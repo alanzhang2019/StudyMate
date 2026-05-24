@@ -283,7 +283,6 @@ export async function generateTTSForClassroom(
   } catch (err) {
     log.warn('Failed to read profile TTS voice:', err);
   }
-
   // Resolve TTS provider (exclude browser-native-tts)
   const ttsProviderIds = Object.keys(getServerTTSProviders()).filter(
     (id) => id !== 'browser-native-tts',
