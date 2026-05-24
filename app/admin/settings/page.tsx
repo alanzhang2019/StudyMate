@@ -3,12 +3,12 @@ import { useState, useEffect } from 'react';
 
 // Define the available voices for each provider
 const PROVIDER_VOICES = {
-    'siliconflow-tts': [
-      { id: 'FunAudioLLM/CosyVoice2-0.5B:alex', name: 'Alex (男声)' },
-      { id: 'FunAudioLLM/CosyVoice2-0.5B:diana', name: 'Diana (女声)' },
-      { id: 'FunAudioLLM/CosyVoice2-0.5B:bella', name: 'Bella (热情女声)' },
-      { id: 'FunAudioLLM/CosyVoice2-0.5B:anna', name: 'Anna (温柔女声)' },
-    ],
+  'siliconflow-tts': [
+    { id: 'FunAudioLLM/CosyVoice2-0.5B:alex', name: 'Alex (男声)' },
+    { id: 'FunAudioLLM/CosyVoice2-0.5B:diana', name: 'Diana (女声)' },
+    { id: 'FunAudioLLM/CosyVoice2-0.5B:bella', name: 'Bella (热情女声)' },
+    { id: 'FunAudioLLM/CosyVoice2-0.5B:anna', name: 'Anna (温柔女声)' },
+  ],
   'openai-tts': [
     { id: 'alloy', name: 'Alloy' },
     { id: 'echo', name: 'Echo' },
