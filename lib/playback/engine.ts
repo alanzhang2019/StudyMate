@@ -522,11 +522,12 @@ export class PlaybackEngine {
           .play(speechAction.audioId || '', speechAction.audioUrl)
           .then((audioStarted) => {
             if (!audioStarted) {
-              // No pre-generated audio — try browser-native TTS if selected
+              // No pre-generated audio — prefer browser speech when available so
+              // classroom playback still has real narration after server-side
+              // TTS failures (e.g. provider quota / balance issues).
               const settings = useSettingsStore.getState();
               if (
                 settings.ttsEnabled &&
-                settings.ttsProviderId === 'browser-native-tts' &&
                 typeof window !== 'undefined' &&
                 window.speechSynthesis
               ) {

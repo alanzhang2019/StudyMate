@@ -452,11 +452,11 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
                   pausedByFailureOrAbort = true;
                   break;
                 }
-                store.getState().addFailedOutline(outline);
-                options.onSceneFailed?.(outline, ttsResult.error || 'TTS generation failed');
-                store.getState().setGenerationStatus('paused');
-                pausedByFailureOrAbort = true;
-                break;
+                log.warn('Continuing scene without generated TTS audio', {
+                  outlineId: outline.id,
+                  stageId: stage.id,
+                  error: ttsResult.error || 'TTS generation failed',
+                });
               }
             }
 
@@ -591,16 +591,18 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
         }
 
         // Step 3: TTS
-          const settings = useSettingsStore.getState();
-          if (settings.ttsEnabled && settings.ttsProviderId !== 'browser-native-tts') {
-            const ttsResult = await generateTTSForScene(
+        const settings = useSettingsStore.getState();
+        if (settings.ttsEnabled && settings.ttsProviderId !== 'browser-native-tts') {
+          const ttsResult = await generateTTSForScene(
             actionsResult.scene,
             params.languageDirective || params.stageInfo.language,
             signal,
           );
           if (!ttsResult.success) {
-            store.getState().addFailedOutline(outline);
-            return;
+            log.warn('Retry succeeded without generated TTS audio', {
+              outlineId,
+              error: ttsResult.error || 'TTS generation failed',
+            });
           }
         }
 

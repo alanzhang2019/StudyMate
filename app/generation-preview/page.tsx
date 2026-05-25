@@ -913,7 +913,10 @@ function GenerationPreviewContent() {
         });
 
         if (!ttsWarmup.timedOut && ttsWarmup.failedCount > 0) {
-          throw new Error(t('generation.speechFailed'));
+          log.warn('[GenerationPreview] Continuing without generated first-scene TTS audio', {
+            failedCount: ttsWarmup.failedCount,
+            totalSpeechActions: ttsWarmup.totalSpeechActions,
+          });
         }
         if (ttsWarmup.timedOut) {
           log.warn('[GenerationPreview] First scene TTS warmup exceeded budget; continuing to classroom', {
