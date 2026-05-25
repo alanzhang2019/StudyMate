@@ -1,0 +1,16 @@
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+⚠ Cross origin request detected from 127.0.0.1 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+[2026-05-18T08:36:37.390Z] [ERROR] [ClassroomJob] Classroom generation job s8nyF4cazd failed: AI_RetryError: Failed after 3 attempts. Last error: rate limit reached for RPM (request_id: chatcmpl-f22225588856457d846e831d8d1ade6a)
+    at _retryWithExponentialBackoff (D:\AItrade\AI-MATH-MISTAKE\.next\dev\server\chunks\bbe1b_ai_dist_index_mjs_940e6ba3._.js:2663:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async fn (D:\AItrade\AI-MATH-MISTAKE\.next\dev\server\chunks\bbe1b_ai_dist_index_mjs_940e6ba3._.js:4327:48)
+    at async D:\AItrade\AI-MATH-MISTAKE\.next\dev\server\chunks\bbe1b_ai_dist_index_mjs_940e6ba3._.js:2390:28
+    at async generateText (D:\AItrade\AI-MATH-MISTAKE\.next\dev\server\chunks\bbe1b_ai_dist_index_mjs_940e6ba3._.js:4164:16)
+    at async callLLM (D:\AItrade\AI-MATH-MISTAKE\.next\dev\server\chunks\[root-of-the-server]__269da1c8._.js:2401:28)
+    at async aiCall (D:\AItrade\AI-MATH-MISTAKE\.next\dev\server\chunks\[root-of-the-server]__068f53cb._.js:16860:24)
+    at async generateSlideContent (D:\AItrade\AI-MATH-MISTAKE\.next\dev\server\chunks\[root-of-the-server]__068f53cb._.js:7464:22)
+    at async generateClassroom (D:\AItrade\AI-MATH-MISTAKE\.next\dev\server\chunks\[root-of-the-server]__068f53cb._.js:17015:25)
+    at async D:\AItrade\AI-MATH-MISTAKE\.next\dev\server\chunks\[root-of-the-server]__068f53cb._.js:17326:28
+    at async fn (D:\AItrade\AI-MATH-MISTAKE\node_modules\.pnpm\next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js:1:199150)
+    at async run (D:\AItrade\AI-MATH-MISTAKE\node_modules\.pnpm\next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js:1:16979)

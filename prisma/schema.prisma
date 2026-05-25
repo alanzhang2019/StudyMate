@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String           @id @default(uuid())
+  email        String           @unique
+  passwordHash String
+  pin          String?          // 4-digit PIN for parent dashboard
+  createdAt    DateTime         @default(now())
+  profiles     StudentProfile[]
+}
+
+model StudentProfile {
+  id            String          @id @default(uuid())
+  parentId      String
+  parent        User            @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  name          String
+  grade         Int
+  teachingStyle String
+  ttsVoice      String?
+  avatarUrl     String?
+  mistakes      MistakeRecord[]
+  createdAt     DateTime        @default(now())
+}
+
+model MistakeRecord {
+  id            String          @id @default(uuid())
+  studentId     String
+  student       StudentProfile  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  problemText   String
+  studentAnswer String
+  correctAnswer String
+  imageUrl      String?
+  isResolved    Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  concepts      KnowledgeConcept[] @relation("MistakeToConcept")
+}
+
+model KnowledgeConcept {
+  id       String          @id @default(uuid())
+  name     String          @unique
+  mistakes MistakeRecord[] @relation("MistakeToConcept")
+}
+
+model SystemConfig {
+  key       String   @id
+  value     String   // Stored as JSON string
+  updatedAt DateTime @updatedAt
+}

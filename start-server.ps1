@@ -1,0 +1,1 @@
+Start-Process -FilePath "npm.cmd" -ArgumentList "run", "dev", "--", "--webpack", "-p", "3001" -WorkingDirectory "D:\AItrade\AI-MATH-MISTAKE" -RedirectStandardOutput "D:\AItrade\AI-MATH-MISTAKE\server-out.log" -RedirectStandardError "D:\AItrade\AI-MATH-MISTAKE\server-err.log" -WindowStyle Hidden

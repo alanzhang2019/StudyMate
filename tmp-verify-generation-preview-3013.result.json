@@ -1,0 +1,14 @@
+{
+  "outcome": "timeout",
+  "url": "http://127.0.0.1:3013/generation-preview",
+  "bodySnippet": "返回首页\nSLIDE\n生成页面内容\n\n正在创建幻灯片、测验和互动内容...\n\nAI智能体工作中...",
+  "events": [
+    "[nav] http://127.0.0.1:3013/generation-preview",
+    "[console:info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+    "[console:log] [HMR] connected",
+    "[nav] http://127.0.0.1:3013/generation-preview",
+    "[console:log] [2026-05-18T17:05:51.094Z] [INFO] [ImageStorage] Cleaned up images older than 24 hours",
+    "[console:log] [2026-05-18T17:06:22.840Z] [INFO] [StageStorage] Saved stage: E-QxfZuk78",
+    "[script-error] page.waitForFunction: Timeout 30000ms exceeded."
+  ]
+}
