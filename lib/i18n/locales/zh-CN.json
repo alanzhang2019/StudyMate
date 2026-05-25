@@ -6,7 +6,7 @@
     "loading": "加载中..."
   },
   "home": {
-    "slogan": "Generative Learning in Multi-Agent Interactive Classroom",
+    "slogan": "StudyMate 作业通 · 小学 4-6 年级 AI 数学错题讲解",
     "greetingWithName": "嗨，{{name}}"
   },
   "toolbar": {
@@ -1060,7 +1060,7 @@
     "subtitle": "不会直接只给答案，会一步一步讲清楚这题该怎么想。",
     "ctaPrimary": "拍一道作业题",
     "ctaSecondary": "看看今天做过的题",
-    "sceneHint": "适合小学数学作业卡题场景",
+    "sceneHint": "作业通 · 适合小学数学作业卡题场景",
     "value1": "先讲思路，再看会不会做",
     "value2": "讲完再练 1 题，确认真的学会",
     "value3": "做过的题会自动帮你记住",

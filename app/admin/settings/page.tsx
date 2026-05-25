@@ -28,7 +28,7 @@ export default function SettingsPage() {
     fetch('/api/admin/config')
       .then(async (res) => {
         if (!res.ok) {
-          throw new Error('Failed to fetch config');
+          throw new Error('加载配置失败');
         }
         const text = await res.text();
         return text ? JSON.parse(text) : { provider: 'siliconflow-tts', voice: 'FunAudioLLM/CosyVoice2-0.5B:alex' };
@@ -61,17 +61,17 @@ export default function SettingsPage() {
         body: JSON.stringify(config)
       });
       
-      if (!res.ok) throw new Error('Failed to save');
-      alert('Saved successfully!');
+      if (!res.ok) throw new Error('保存失败');
+      alert('保存成功');
     } catch (err) {
-      alert('Error saving configuration');
+      alert('保存配置失败');
     }
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 p-6 md:p-12 flex items-center justify-center">
-        <div className="text-slate-500 font-medium">Loading settings...</div>
+        <div className="text-slate-500 font-medium">正在加载作业通设置...</div>
       </div>
     );
   }
@@ -79,7 +79,7 @@ export default function SettingsPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-slate-50 p-6 md:p-12 flex items-center justify-center">
-        <div className="text-red-500 font-medium">Error: {error}</div>
+        <div className="text-red-500 font-medium">加载失败：{error}</div>
       </div>
     );
   }
@@ -89,10 +89,10 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-slate-50 p-6 md:p-12">
       <div className="bg-white p-8 rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100 max-w-2xl mx-auto">
-        <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight mb-6">Global TTS Settings</h2>
+        <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight mb-6">作业通全局语音设置</h2>
         <div className="space-y-6">
         <div>
-          <label className="block text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Provider</label>
+          <label className="block text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">服务商</label>
           <select 
             className="w-full p-3 bg-slate-50 border-2 border-slate-100 rounded-xl text-slate-700 font-medium focus:border-sky-400 focus:ring-4 focus:ring-sky-400/20 transition-all outline-none cursor-pointer" 
             value={config.provider} 
@@ -103,7 +103,7 @@ export default function SettingsPage() {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Voice</label>
+          <label className="block text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">音色</label>
           <select 
             className="w-full p-3 bg-slate-50 border-2 border-slate-100 rounded-xl text-slate-700 font-medium focus:border-sky-400 focus:ring-4 focus:ring-sky-400/20 transition-all outline-none cursor-pointer" 
             value={config.voice} 
@@ -120,7 +120,7 @@ export default function SettingsPage() {
           onClick={handleSave} 
           className="bg-sky-500 hover:bg-sky-400 text-white rounded-xl shadow-md shadow-sky-500/30 font-bold px-6 py-3 mt-8 w-full md:w-auto transition-all active:scale-95"
         >
-          Save Config
+          保存设置
         </button>
         </div>
       </div>

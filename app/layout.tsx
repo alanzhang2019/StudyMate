@@ -25,9 +25,9 @@ const comicNeue = Comic_Neue({
 });
 
 export const metadata: Metadata = {
-  title: 'AI Math Mistake Machine',
+  title: 'StudyMate | 作业通',
   description:
-    'AI-powered math tutor for grades 4-6. Upload a math problem to instantly generate an interactive learning experience.',
+    'StudyMate 作业通是一款面向 4-6 年级的 AI 数学错题讲解工具，拍题后即可生成循序渐进的互动讲解。',
 };
 
 export default function RootLayout({

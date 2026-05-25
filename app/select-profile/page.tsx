@@ -93,7 +93,7 @@ export default function SelectProfilePage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-900 text-white p-4">
-      <h1 className="text-4xl font-bold mb-8">谁在学习？</h1>
+      <h1 className="text-4xl font-bold mb-8">谁在用作业通学习？</h1>
       
       <div className="flex flex-wrap gap-6 justify-center">
         {profiles.map((p) => (
