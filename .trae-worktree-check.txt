@@ -1,0 +1,5 @@
+GIT_DIR:
+.git
+GIT_COMMON:
+.git
+SUPERPROJECT:

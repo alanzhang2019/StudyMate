@@ -1,6 +1,7 @@
 import { buildMistakeGenerationSession } from '@/lib/mistake/openmaic/build-generation-session';
 import type { MistakeImageExtraction } from '@/lib/mistake/ocr/types';
 import { createMistakeSession } from '@/lib/mistake/session/client';
+import { saveGenerationPreviewSession } from '@/lib/mistake/ui/generation-preview-storage';
 
 export async function startMistakePreview(input: {
   extraction: MistakeImageExtraction;
@@ -38,6 +39,6 @@ export async function startMistakePreview(input: {
     },
   });
 
-  sessionStorage.setItem('generationSession', JSON.stringify(generationSession));
+  saveGenerationPreviewSession(generationSession);
   return created.session.id;
 }

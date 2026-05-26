@@ -32,6 +32,11 @@ import { db } from '@/lib/utils/database';
 import { MAX_PDF_CONTENT_CHARS, MAX_VISION_IMAGES } from '@/lib/constants/generation';
 import { buildVideoManifestFromOutlines } from '@/lib/media/video-manifest';
 import { getClassroomNavigationTarget } from '@/lib/mistake/ui/classroom-navigation';
+import {
+  clearGenerationPreviewSession,
+  loadGenerationPreviewSession,
+  saveGenerationPreviewSession,
+} from '@/lib/mistake/ui/generation-preview-storage';
 import { nanoid } from 'nanoid';
 import type { Stage } from '@/lib/types/stage';
 import type { SceneOutline, PdfImage, ImageMapping } from '@/lib/types/generation';
@@ -94,7 +99,7 @@ function GenerationPreviewContent() {
 
   const persistSession = (nextSession: GenerationSessionState) => {
     setSession(nextSession);
-    sessionStorage.setItem('generationSession', JSON.stringify(nextSession));
+    saveGenerationPreviewSession(nextSession);
   };
 
   const clearOutlineReviewTimer = () => {
@@ -135,14 +140,13 @@ function GenerationPreviewContent() {
       }
     });
 
-  // Load session from sessionStorage
+  // Load session from storage
   useEffect(() => {
     cleanupOldImages(24).catch((e) => log.error(e));
 
-    const saved = sessionStorage.getItem('generationSession');
-    if (saved) {
+    const parsed = loadGenerationPreviewSession();
+    if (parsed) {
       try {
-        const parsed = JSON.parse(saved) as GenerationSessionState;
         if (!parsed.previewPhase) {
           parsed.previewPhase = parsed.sceneOutlines?.length ? 'outline-ready' : 'preparing';
         }
@@ -339,7 +343,7 @@ function GenerationPreviewContent() {
           pdfStorageKey: undefined, // Clear so we don't re-parse
         };
         setSession(updatedSession);
-        sessionStorage.setItem('generationSession', JSON.stringify(updatedSession));
+        saveGenerationPreviewSession(updatedSession);
 
         // Truncation warnings
         const warnings: string[] = [];
@@ -403,7 +407,7 @@ function GenerationPreviewContent() {
           researchSources: sources,
         };
         setSession(updatedSessionWithSearch);
-        sessionStorage.setItem('generationSession', JSON.stringify(updatedSessionWithSearch));
+        saveGenerationPreviewSession(updatedSessionWithSearch);
         currentSession = updatedSessionWithSearch;
         activeSteps = getActiveSteps(currentSession);
       }
@@ -976,7 +980,7 @@ function GenerationPreviewContent() {
             outlinesLength: useStageStore.getState().outlines.length,
             generatingOutlinesLength: useStageStore.getState().generatingOutlines.length,
             hasGenerationParams: Boolean(sessionStorage.getItem('generationParams')),
-            hasGenerationSession: Boolean(sessionStorage.getItem('generationSession')),
+            hasGenerationSession: Boolean(loadGenerationPreviewSession()),
           },
           ts: Date.now(),
         }),
@@ -984,7 +988,7 @@ function GenerationPreviewContent() {
       // #endregion
 
       if (shouldClearGenerationPreviewSession({ outcome: 'success' })) {
-        sessionStorage.removeItem('generationSession');
+        clearGenerationPreviewSession();
       }
       await store.saveToStorage();
       const navigationTarget = getClassroomNavigationTarget({
@@ -1020,7 +1024,7 @@ function GenerationPreviewContent() {
     clearOutlineReviewTimer();
     outlineReviewIntentRef.current = false;
     if (shouldClearGenerationPreviewSession({ outcome: 'exit' })) {
-      sessionStorage.removeItem('generationSession');
+      clearGenerationPreviewSession();
     }
     router.push('/');
   };

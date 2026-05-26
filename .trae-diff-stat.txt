@@ -1,0 +1,35 @@
+﻿ .trae/skills/ui-ux-pro-max-skill                   |   1 -
+ README-zh.md                                       | 718 ++------------------
+ README.md                                          | 720 ++-------------------
+ app/admin/settings/page.tsx                        |  32 +-
+ app/generation-preview/page.tsx                    |   5 +-
+ app/layout.tsx                                     |   4 +-
+ app/page.tsx                                       |   4 +-
+ app/select-profile/page.tsx                        |   4 +-
+ components/stage/scene-sidebar.tsx                 |   2 +-
+ .../plans/2026-05-22-parent-dashboard-auth-plan.md | 376 -----------
+ .../2026-05-22-parent-dashboard-auth-design.md     |  71 --
+ e2e/pages/home.page.ts                             |   2 +-
+ lib/hooks/use-scene-generator.ts                   |  22 +-
+ lib/i18n/locales/en-US.json                        |   4 +-
+ lib/i18n/locales/zh-CN.json                        |   4 +-
+ lib/playback/engine.test.ts                        | 105 +++
+ lib/playback/engine.ts                             |   5 +-
+ lib/server/classroom-media-generation.ts           |   1 -
+ package.json                                       |   2 +-
+ prisma/dev.db                                      | Bin 65536 -> 65536 bytes
+ public/avatars/assist-2.png                        | Bin
+ public/avatars/assist.png                          | Bin
+ public/avatars/clown-2.png                         | Bin
+ public/avatars/clown.png                           | Bin
+ public/avatars/curious-2.png                       | Bin
+ public/avatars/curious.png                         | Bin
+ public/avatars/note-taker-2.png                    | Bin
+ public/avatars/note-taker.png                      | Bin
+ public/avatars/teacher-2.png                       | Bin
+ public/avatars/teacher.png                         | Bin
+ public/avatars/thinker-2.png                       | Bin
+ public/avatars/thinker.png                         | Bin
+ public/avatars/user.png                            | Bin
+ tests/auth/auth-runtime-import.test.ts             |  14 +
+ 34 files changed, 267 insertions(+), 1829 deletions(-)

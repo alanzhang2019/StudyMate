@@ -8,7 +8,8 @@
   },
   "scripts": {
     "postinstall": "pnpm exec prisma generate && cd packages/mathml2omml && npm run build && cd ../pptxgenjs && npm run build",
-    "dev": "next dev --webpack -p 3001",
+    "dev": "next dev --webpack -p 3001", 
+    "git-push": "git add . && git commit -m \"fix(tts): migrate deprecated siliconflow vivian voice to alex\" && git push origin main",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

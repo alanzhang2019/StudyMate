@@ -97,6 +97,10 @@ export async function POST(req: NextRequest) {
       if (!ttsVoice.startsWith(prefix)) {
         ttsVoice = `${prefix}${ttsVoice.toLowerCase()}`;
       }
+      // Auto-migrate broken 'vivian' voice to 'alex' as SiliconFlow no longer supports it
+      if (ttsVoice.includes('vivian')) {
+        ttsVoice = 'FunAudioLLM/CosyVoice2-0.5B:alex';
+      }
     }
 
     const voxcpmVoicePrompt =
