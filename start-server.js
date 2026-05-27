@@ -1,16 +1,31 @@
-const { spawn } = require('child_process');
-const fs = require('fs');
+const { spawn } = require("child_process");
+const fs = require("fs");
+const path = require("path");
 
-const out = fs.openSync('D:\\AItrade\\AI-MATH-MISTAKE\\server-out.log', 'a');
-const err = fs.openSync('D:\\AItrade\\AI-MATH-MISTAKE\\server-err.log', 'a');
+const projectRoot = __dirname;
+const outPath = path.join(projectRoot, "server-out.log");
+const errPath = path.join(projectRoot, "server-err.log");
+const pidPath = path.join(projectRoot, "server-pid.txt");
+const nextBin = path.join(projectRoot, "node_modules", "next", "dist", "bin", "next");
 
-const child = spawn('npx.cmd', ['next', 'dev', '--port', '3001'], {
-  cwd: 'D:\\AItrade\\AI-MATH-MISTAKE',
+const out = fs.openSync(outPath, "a");
+const err = fs.openSync(errPath, "a");
+
+fs.appendFileSync(outPath, `[${new Date().toISOString()}] starting Next dev on 3001\n`);
+fs.appendFileSync(errPath, `[${new Date().toISOString()}] launcher initialized\n`);
+
+const child = spawn(process.execPath, [nextBin, "dev", "--webpack", "--port", "3001"], {
+  cwd: projectRoot,
   detached: true,
-  stdio: ['ignore', out, err],
-  shell: true
+  windowsHide: true,
+  shell: false,
+  stdio: ["ignore", out, err],
+});
+
+child.on("error", (error) => {
+  fs.appendFileSync(errPath, `[${new Date().toISOString()}] spawn error: ${error.stack || error.message}\n`);
 });
 
 child.unref();
 
-fs.writeFileSync('D:\\AItrade\\AI-MATH-MISTAKE\\server-pid.txt', child.pid.toString());
+fs.writeFileSync(pidPath, `${child.pid}\n`);

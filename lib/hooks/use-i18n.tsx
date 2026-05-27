@@ -1,9 +1,11 @@
 'use client';
 
 import { createContext, useContext, useEffect, ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, I18nextProvider, initReactI18next } from 'react-i18next';
 import { type Locale, defaultLocale, supportedLocales } from '@/lib/i18n';
-import '@/lib/i18n/config';
+import i18nInstance from '@/lib/i18n/config';
+
+i18nInstance.use(initReactI18next);
 
 const LOCALE_STORAGE_KEY = 'locale';
 
@@ -27,6 +29,14 @@ type I18nContextType = {
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
 export function I18nProvider({ children }: { children: ReactNode }) {
+  return (
+    <I18nextProvider i18n={i18nInstance}>
+      <I18nProviderInner>{children}</I18nProviderInner>
+    </I18nextProvider>
+  );
+}
+
+function I18nProviderInner({ children }: { children: ReactNode }) {
   const { t, i18n } = useTranslation();
 
   const locale = (i18n.language || defaultLocale) as Locale;
@@ -43,7 +53,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     } catch {
       // localStorage unavailable, keep default
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [i18n]);
 
   const setLocale = (newLocale: Locale) => {
     i18n.changeLanguage(newLocale);
