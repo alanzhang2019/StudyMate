@@ -19,6 +19,7 @@ import { resolveAgentModeForGeneration } from '@/lib/mistake/openmaic/resolve-ag
 import { persistPlayableClassroom } from '@/lib/mistake/openmaic/persist-playable-classroom';
 import { buildClientTTSRequestConfig } from '@/lib/audio/build-client-tts-request';
 import { warmSceneTTSWithinBudget } from '@/lib/audio/warm-scene-tts';
+import { createGenerationTiming } from '@/lib/generation/timing';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { shouldClearGenerationPreviewSession } from '@/lib/mistake/ui/generation-preview-session';
 import {
@@ -47,7 +48,7 @@ import { buildGenerationApiHeaders } from './api-headers';
 import { StepVisualizer } from './components/visualizers';
 
 const log = createLogger('GenerationPreview');
-const OUTLINE_REVIEW_AUTO_CONTINUE_MS = 2500;
+const OUTLINE_REVIEW_AUTO_CONTINUE_MS = 1000;
 const FIRST_SCENE_TTS_WARMUP_BUDGET_MS = 8000;
 
 function GenerationPreviewContent() {
@@ -151,7 +152,7 @@ function GenerationPreviewContent() {
           parsed.previewPhase = parsed.sceneOutlines?.length ? 'outline-ready' : 'preparing';
         }
         // Restore review intent: a saved 'review' phase without outlines means the user
-        // had opened the editor mid-stream before the refresh — preserve that intent so
+        // had opened the editor mid-stream before the refresh 鈥?preserve that intent so
         // the post-stream auto-continue timer doesn't fire after SSE restart.
         if (parsed.previewPhase === 'review' && !parsed.sceneOutlines?.length) {
           outlineReviewIntentRef.current = true;
@@ -187,7 +188,7 @@ function GenerationPreviewContent() {
       phase === 'preparing' ||
       phase === 'generating-content' ||
       // Refresh during early-review: editor is shown but outlines weren't persisted,
-      // so kick off SSE again — the editor will receive streaming outlines.
+      // so kick off SSE again 鈥?the editor will receive streaming outlines.
       (phase === 'review' && needsOutlines);
     if (shouldAutoStart) {
       hasStartedRef.current = true;
@@ -200,6 +201,7 @@ function GenerationPreviewContent() {
   const startGeneration = async (sessionOverride?: GenerationSessionState) => {
     const generationSession = sessionOverride ?? session;
     if (!generationSession) return;
+    const timing = createGenerationTiming('generation_preview');
 
     // Create AbortController for this generation run
     abortControllerRef.current?.abort();
@@ -425,19 +427,21 @@ function GenerationPreviewContent() {
         imageMapping = currentSession.imageMapping;
       }
 
-      // Create stage client-side
-      const stageId = nanoid(10);
-      const stage: Stage = {
-        id: stageId,
-        name: extractTopicFromRequirement(currentSession.requirements.requirement),
-        description: '',
-        style: 'professional',
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-        interactiveMode: !!currentSession.requirements.interactiveMode,
-      };
+      const stage = await timing.time('create_stage', async () => {
+        const stageId = nanoid(10);
+        const s: Stage = {
+          id: stageId,
+          name: extractTopicFromRequirement(currentSession.requirements.requirement),
+          description: '',
+          style: 'professional',
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          interactiveMode: !!currentSession.requirements.interactiveMode,
+        };
+        return s;
+      });
 
-      // ── Generate outlines first (infers languageDirective) ──
+      // 鈹€鈹€ Generate outlines first (infers languageDirective) 鈹€鈹€
       let outlines = currentSession.sceneOutlines;
       let languageDirective = currentSession.languageDirective;
 
@@ -449,7 +453,7 @@ function GenerationPreviewContent() {
         setIsOutlineStreaming(true);
         const outlineHeaders = await buildGenerationApiHeaders(currentSession);
 
-        const outlineResult = await new Promise<{
+        const outlineResult = await timing.time('outline_stream', () => new Promise<{
           outlines: SceneOutline[];
           languageDirective: string;
         }>((resolve, reject) => {
@@ -542,7 +546,7 @@ function GenerationPreviewContent() {
               pump().catch(reject);
             })
             .catch(reject);
-        });
+        }));
 
         outlines = outlineResult.outlines;
         languageDirective = outlineResult.languageDirective;
@@ -595,7 +599,7 @@ function GenerationPreviewContent() {
         stage.languageDirective = languageDirective;
       }
 
-      // ── Agent generation (after outlines — uses languageDirective + outlines) ──
+      // 鈹€鈹€ Agent generation (after outlines 鈥?uses languageDirective + outlines) 鈹€鈹€
       const settings = useSettingsStore.getState();
       let agents: Array<{
         id: string;
@@ -744,7 +748,7 @@ function GenerationPreviewContent() {
           stage.agentIds = fallbackIds;
         }
       } else {
-        // Preset mode — use selected agents (include persona)
+        // Preset mode 鈥?use selected agents (include persona)
         // Filter out stale generated agent IDs that may linger in settings
         const registry = useAgentRegistry.getState();
         const presetAgentIds = settings.selectedAgentIds.filter((id) => {
@@ -788,7 +792,7 @@ function GenerationPreviewContent() {
 
       const userProfile =
         currentSession.requirements.userNickname || currentSession.requirements.userBio
-          ? `Student: ${currentSession.requirements.userNickname || 'Unknown'}${currentSession.requirements.userBio ? ` — ${currentSession.requirements.userBio}` : ''}`
+          ? `Student: ${currentSession.requirements.userNickname || 'Unknown'}${currentSession.requirements.userBio ? ` 鈥?${currentSession.requirements.userBio}` : ''}`
           : undefined;
 
       // Generate ONLY the first scene
@@ -797,23 +801,26 @@ function GenerationPreviewContent() {
       const firstOutline = outlines[0];
 
       // Step 2: Generate content (currentStepIndex is already 2)
-      const contentResp = await fetch('/api/generate/scene-content', {
-        method: 'POST',
-        headers: await buildGenerationApiHeaders(currentSession),
-        body: JSON.stringify(
-          withThinkingConfig({
-            outline: firstOutline,
-            allOutlines: outlines,
-            pdfImages: currentSession.pdfImages,
-            imageMapping,
-            stageInfo,
-            stageId: stage.id,
-            agents,
-            languageDirective,
-          }),
-        ),
-        signal,
-      });
+      const contentResp = await timing.time('first_scene_content', async () => {
+        const headers = await buildGenerationApiHeaders(currentSession);
+        return fetch('/api/generate/scene-content', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(
+            withThinkingConfig({
+              outline: firstOutline,
+              allOutlines: outlines,
+              pdfImages: currentSession.pdfImages,
+              imageMapping,
+              stageInfo,
+              stageId: stage.id,
+              agents,
+              languageDirective,
+            }),
+          ),
+          signal,
+        });
+      }, { sceneOrder: firstOutline.order });
 
       if (!contentResp.ok) {
         const errorData = await contentResp.json().catch(() => ({ error: 'Request failed' }));
@@ -829,23 +836,26 @@ function GenerationPreviewContent() {
       const actionsStepIdx = activeSteps.findIndex((s) => s.id === 'actions');
       setCurrentStepIndex(actionsStepIdx >= 0 ? actionsStepIdx : currentStepIndex + 1);
 
-      const actionsResp = await fetch('/api/generate/scene-actions', {
-        method: 'POST',
-        headers: await buildGenerationApiHeaders(currentSession),
-        body: JSON.stringify(
-          withThinkingConfig({
-            outline: contentData.effectiveOutline || firstOutline,
-            allOutlines: outlines,
-            content: contentData.content,
-            stageId: stage.id,
-            agents,
-            previousSpeeches: [],
-            userProfile,
-            languageDirective,
-          }),
-        ),
-        signal,
-      });
+      const actionsResp = await timing.time('first_scene_actions', async () => {
+        const headers = await buildGenerationApiHeaders(currentSession);
+        return fetch('/api/generate/scene-actions', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(
+            withThinkingConfig({
+              outline: contentData.effectiveOutline || firstOutline,
+              allOutlines: outlines,
+              content: contentData.content,
+              stageId: stage.id,
+              agents,
+              previousSpeeches: [],
+              userProfile,
+              languageDirective,
+            }),
+          ),
+          signal,
+        });
+      }, { sceneOrder: firstOutline.order });
 
       if (!actionsResp.ok) {
         const errorData = await actionsResp.json().catch(() => ({ error: 'Request failed' }));
@@ -872,7 +882,7 @@ function GenerationPreviewContent() {
               }
             : undefined;
 
-        const ttsWarmup = await warmSceneTTSWithinBudget({
+        const ttsWarmup = await timing.time('first_scene_tts_warmup', () => warmSceneTTSWithinBudget({
           scene: data.scene,
           language: languageDirective,
           budgetMs: FIRST_SCENE_TTS_WARMUP_BUDGET_MS,
@@ -914,6 +924,9 @@ function GenerationPreviewContent() {
           onError: ({ audioId, error: ttsError }) => {
             log.warn(`[TTS] Failed for ${audioId}:`, ttsError);
           },
+        }), {
+          sceneOrder: data.scene.order,
+          providerId: settings.ttsProviderId,
         });
 
         if (!ttsWarmup.timedOut && ttsWarmup.failedCount > 0) {
@@ -934,10 +947,10 @@ function GenerationPreviewContent() {
       store.addScene(data.scene);
       store.setCurrentSceneId(data.scene.id);
 
-      await persistPlayableClassroom({
+      persistPlayableClassroom({
         stage,
         scenes: [data.scene],
-      });
+      }).catch((err) => log.warn('[GenerationPreview] persistPlayableClassroom failed:', err));
 
       // Set remaining outlines as skeleton placeholders
       const remaining = outlines.filter((o) => o.order !== data.scene.order);
@@ -990,7 +1003,7 @@ function GenerationPreviewContent() {
       if (shouldClearGenerationPreviewSession({ outcome: 'success' })) {
         clearGenerationPreviewSession();
       }
-      await store.saveToStorage();
+      store.saveToStorage().catch((err) => log.warn('[GenerationPreview] saveToStorage failed:', err));
       const navigationTarget = getClassroomNavigationTarget({
         classroomId: stage.id,
         source: 'generation-preview',
@@ -1002,7 +1015,7 @@ function GenerationPreviewContent() {
       router.push(navigationTarget.href);
     } catch (err) {
       setIsOutlineStreaming(false);
-      // AbortError is expected when navigating away — don't show as error
+      // AbortError is expected when navigating away 鈥?don't show as error
       if (err instanceof DOMException && err.name === 'AbortError') {
         log.info('[GenerationPreview] Generation aborted');
         return;
@@ -1044,7 +1057,7 @@ function GenerationPreviewContent() {
 
   // Inverse of expand. Mid-stream: shrink back to the streaming preview card so
   // the user can keep watching while SSE fills in the rest. Post-stream: shrink
-  // back to the small card too, then re-arm the 2.5s auto-continue timer — same
+  // back to the small card too, then re-arm the 2.5s auto-continue timer 鈥?same
   // pacing as the no-review path so the user has a beat to see the card before
   // the page advances. Jumping straight to content gen feels too abrupt.
   const handleCollapseEditor = () => {
@@ -1053,8 +1066,7 @@ function GenerationPreviewContent() {
       // Intentionally drop the review-intent flag: collapsing mid-stream is the
       // user saying "actually, never mind". When SSE finishes, the no-early-open
       // path runs and the standard `reviewOutlineEnabled` / auto-continue rules
-      // decide what happens next. There is no parked promise to settle yet —
-      // the promise is created only after SSE completes (see line 583).
+      // decide what happens next. There is no parked promise to settle yet 鈥?      // the promise is created only after SSE completes (see line 583).
       outlineReviewIntentRef.current = false;
       persistSession({ ...session, previewPhase: 'preparing' });
       setStatusMessage('');
@@ -1072,7 +1084,7 @@ function GenerationPreviewContent() {
 
     // Re-arm the auto-continue timer. The SSE-completion flow is parked inside
     // `waitForOutlineReviewChoice` (because `shouldReview` was true when the
-    // user opened the editor) — fire its resolve via a fresh timeout to match
+    // user opened the editor) 鈥?fire its resolve via a fresh timeout to match
     // the no-review path's pacing.
     clearOutlineReviewTimer();
     outlineReviewTimerRef.current = setTimeout(() => {

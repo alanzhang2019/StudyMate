@@ -20,6 +20,27 @@ import { db } from '@/lib/db';
 
 const log = createLogger('TTS API');
 
+let cachedTTSConfig: { value: unknown; fetchedAt: number } | null = null;
+const TTS_CONFIG_CACHE_TTL_MS = 60_000;
+
+async function getGlobalTTSConfig() {
+  const now = Date.now();
+  if (cachedTTSConfig && now - cachedTTSConfig.fetchedAt < TTS_CONFIG_CACHE_TTL_MS) {
+    return cachedTTSConfig.value;
+  }
+  try {
+    const configRecord = await db.systemConfig.findUnique({ where: { key: 'default_tts_config' } });
+    const value = configRecord?.value
+      ? (typeof configRecord.value === 'string' ? JSON.parse(configRecord.value) : configRecord.value)
+      : null;
+    cachedTTSConfig = { value, fetchedAt: now };
+    return value;
+  } catch (err) {
+    log.warn('Failed to read global TTS config from DB:', err);
+    return null;
+  }
+}
+
 export const maxDuration = 30;
 
 export async function POST(req: NextRequest) {
@@ -45,20 +66,14 @@ export async function POST(req: NextRequest) {
     audioId = body.audioId;
 
     // Apply global TTS config from DB if it exists
-    try {
-      const configRecord = await db.systemConfig.findUnique({ where: { key: 'default_tts_config' } });
-      if (configRecord?.value) {
-        const globalConfig = typeof configRecord.value === 'string' ? JSON.parse(configRecord.value) : configRecord.value;
-        if (globalConfig.provider) {
-          ttsProviderId = globalConfig.provider;
-        }
-        // Use global voice only if profile doesn't specify one
-        if (globalConfig.voice) {
-          ttsVoice = profileTtsVoice || globalConfig.voice;
-        }
+    const globalConfig = await getGlobalTTSConfig();
+    if (globalConfig) {
+      if ((globalConfig as Record<string, unknown>).provider) {
+        ttsProviderId = (globalConfig as Record<string, unknown>).provider as string;
       }
-    } catch (err) {
-      log.warn('Failed to read global TTS config from DB:', err);
+      if ((globalConfig as Record<string, unknown>).voice) {
+        ttsVoice = profileTtsVoice || (globalConfig as Record<string, unknown>).voice as string;
+      }
     }
 
     // Hardcode teacher voice clone if VoxCPM is used.

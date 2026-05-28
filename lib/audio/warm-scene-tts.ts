@@ -15,8 +15,16 @@ interface WarmSceneTTSWithinBudgetParams {
   onError?: (input: { audioId: string; error: unknown }) => void;
 }
 
-function isSpeechAction(action: any): action is SpeechAction {
-  return action?.type === 'speech' && typeof action?.text === 'string' && action.text.trim().length > 0;
+function isSpeechAction(action: unknown): action is SpeechAction {
+  return (
+    typeof action === 'object' &&
+    action !== null &&
+    'type' in action &&
+    (action as { type: string }).type === 'speech' &&
+    'text' in action &&
+    typeof (action as { text: string }).text === 'string' &&
+    (action as { text: string }).text.trim().length > 0
+  );
 }
 
 export async function warmSceneTTSWithinBudget(
@@ -36,25 +44,54 @@ export async function warmSceneTTSWithinBudget(
     action.audioId = `tts_s${params.scene.order}_${action.id}`;
   }
 
-  const generationTasks = speechActions.map(async (action) => {
-    try {
-      await params.generate({
-        audioId: action.audioId as string,
-        text: action.text,
-        language: params.language,
-      });
-    } catch (error) {
-      failedCount += 1;
-      params.onError?.({ audioId: action.audioId as string, error });
-    }
-  });
-
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
-  const completedPromise = Promise.all(generationTasks).then(() => ({
-    timedOut: false,
-    totalSpeechActions: speechActions.length,
-    failedCount,
-  }));
+  const completedPromise = (async () => {
+    const concurrency = 2;
+    let active = 0;
+    const queue: Array<() => void> = [];
+    const gate = () => {
+      if (queue.length > 0 && active < concurrency) {
+        active++;
+        queue.shift()!();
+      }
+    };
+
+    await Promise.all(
+      speechActions.map(
+        (action) =>
+          new Promise<void>((resolve) => {
+            const run = async () => {
+              try {
+                await params.generate({
+                  audioId: action.audioId as string,
+                  text: action.text,
+                  language: params.language,
+                });
+              } catch (error) {
+                failedCount += 1;
+                params.onError?.({ audioId: action.audioId as string, error });
+              } finally {
+                active--;
+                gate();
+                resolve();
+              }
+            };
+            if (active < concurrency) {
+              active++;
+              run();
+            } else {
+              queue.push(run);
+            }
+          }),
+      ),
+    );
+
+    return {
+      timedOut: false,
+      totalSpeechActions: speechActions.length,
+      failedCount,
+    };
+  })();
 
   const timeoutPromise = new Promise<SceneTTSWarmupResult>((resolve) => {
     timeoutId = setTimeout(() => {

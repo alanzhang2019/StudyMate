@@ -202,115 +202,7 @@ All control point coordinates are **relative to `left, top`**, same as `start` a
 | `cubic`   | [[x1,y1],[x2,y2]] | C (Cubic Bezier)     | Two control points for an **S-curve or complex curve**. c1 controls curvature near start, c2 controls curvature near end.               |
 | `shadow`  | object            | —                    | Optional shadow effect.                                                                                                                 |
 
-**Bent/curved line examples:**
-
-_Broken line (right-angle connector):_
-
-```json
-{
-  "id": "line_broken",
-  "type": "line",
-  "left": 300,
-  "top": 200,
-  "width": 3,
-  "start": [0, 0],
-  "end": [80, 60],
-  "broken": [0, 60],
-  "style": "solid",
-  "color": "#5b9bd5",
-  "points": ["", "arrow"]
-}
-```
-
-Path: (300,200) → down to (300,260) → right to (380,260). Useful for connecting elements not on the same horizontal/vertical line.
-
-_Axis-aligned step connector (broken2):_
-
-```json
-{
-  "id": "line_step",
-  "type": "line",
-  "left": 300,
-  "top": 200,
-  "width": 3,
-  "start": [0, 0],
-  "end": [100, 80],
-  "broken2": [50, 40],
-  "style": "solid",
-  "color": "#5b9bd5",
-  "points": ["", "arrow"]
-}
-```
-
-Auto-generates a step-shaped path with right-angle bends. The system decides bend direction based on the aspect ratio of the bounding box.
-
-_Quadratic curve:_
-
-```json
-{
-  "id": "line_curve",
-  "type": "line",
-  "left": 300,
-  "top": 200,
-  "width": 3,
-  "start": [0, 0],
-  "end": [100, 0],
-  "curve": [50, -40],
-  "style": "solid",
-  "color": "#5b9bd5",
-  "points": ["", "arrow"]
-}
-```
-
-A smooth arc from start to end, curving upward (control point above the line). Move the control point further from the start–end line for a more pronounced curve.
-
-_Cubic Bezier curve:_
-
-```json
-{
-  "id": "line_cubic",
-  "type": "line",
-  "left": 300,
-  "top": 200,
-  "width": 3,
-  "start": [0, 0],
-  "end": [100, 0],
-  "cubic": [
-    [30, -40],
-    [70, 40]
-  ],
-  "style": "solid",
-  "color": "#5b9bd5",
-  "points": ["", "arrow"]
-}
-```
-
-An S-shaped curve. c1=[30,-40] pulls the curve up near start, c2=[70,40] pulls it down near end.
-
-**Use Cases**:
-
-- Straight arrows and connectors → `points: ["", "arrow"]` (no broken/curve)
-- Right-angle connectors (e.g., flowcharts) → `broken` or `broken2`
-- Smooth curved arrows → `curve` (simple arc) or `cubic` (S-curve)
-- Decorative lines/dividers → ShapeElement (rectangle with height 1-3px) or LineElement
-
-**Connector Arrow Layout** (arrows between side-by-side elements):
-
-When placing connector arrows between elements in a row (e.g., A → B → C flow), the arrow's visual span is defined by `start` and `end`, NOT `width`. Plan the layout so there is enough gap between elements for the arrow:
-
-```
-Wrong — gap too small, arrow extends into elements:
-  Rect A: left=60, width=280 (right edge = 340)
-  Rect B: left=360 (gap = 20px — too narrow for arrows!)
-  Arrow:  left=330, end=[60,0], width=60 ✗ (width=60 makes a HUGE arrowhead)
-
-Correct — proper gap and stroke:
-  Rect A: left=60, width=250 (right edge = 310)
-  Rect B: left=390 (gap = 80px — room for arrow)
-  Arrow:  left=320, start=[0,0], end=[60,0], width=3 ✓ (thin stroke, arrow within gap)
-```
-
-Minimum recommended gap between elements for connector arrows: **60-80px**. If the current layout leaves less than 60px, reduce element widths to make room.
+For bent/curved lines, use `broken` (right-angle), `broken2` (Z-step), `curve` (smooth arc), or `cubic` (S-curve). Coordinates are relative to left/top.
 
 ---
 
@@ -371,60 +263,30 @@ Minimum recommended gap between elements for connector arrows: **60-80px**. If t
 
 **Optional Fields**: `align` — horizontal alignment of the formula within its box: `"left"`, `"center"` (default), or `"right"`. Use `"left"` for equation derivations or aligned steps, `"center"` for standalone formulas.
 
-**DO NOT generate** these fields (the system fills them automatically):
-
-- `path` — SVG path auto-generated from latex
-- `viewBox` — auto-computed bounding box
-- `strokeWidth` — defaults to 2
-- `fixedRatio` — defaults to true
+**DO NOT generate**: `path`, `viewBox`, `strokeWidth` (default 2), `fixedRatio` (default true) — system auto-fills these.
 
 **CRITICAL — Width & Height auto-scaling**:
-The system renders the formula and computes its natural aspect ratio. Then it applies the following logic:
-
-1. Start with your `height`, compute `width = height × aspectRatio`.
-2. If the computed `width` exceeds your specified `width`, the system **shrinks both width and height** proportionally to fit within your `width` while preserving the aspect ratio.
-
-This means: **`width` is the maximum horizontal bound** and **`height` is the preferred vertical size**. The final rendered size will never exceed either dimension. For long formulas, specify a reasonable `width` to prevent overflow — the system will auto-shrink `height` to fit.
+`height` = preferred vertical size; `width` = maximum horizontal bound. System renders formula at natural aspect ratio, then shrinks both dimensions proportionally if computed width exceeds specified `width`. When placing below LaTeX, add `height + 20~40px` gap for next element's `top`. For long formulas, set `width` to available horizontal space.
 
 **Height guide by formula category:**
 
-| Category                    | Examples                                     | Recommended height |
-| --------------------------- | -------------------------------------------- | ------------------ |
-| Inline equations            | `E=mc^2`, `a+b=c`, `y=ax^2+bx+c`             | 50-80              |
-| Equations with fractions    | `\frac{-b \pm \sqrt{b^2-4ac}}{2a}`           | 60-100             |
-| Integrals / limits          | `\int_0^1 f(x)dx`, `\lim_{x \to 0}`          | 60-100             |
-| Summations with limits      | `\sum_{i=1}^{n} i^2`                         | 80-120             |
-| Matrices                    | `\begin{pmatrix}a & b \\ c & d\end{pmatrix}` | 100-180            |
-| Simple standalone fractions | `\frac{a}{b}`, `\frac{1}{2}`                 | 50-80              |
-| Nested fractions            | `\frac{\frac{a}{b}}{\frac{c}{d}}`            | 80-120             |
+| Category                    | Recommended height |
+| --------------------------- | ------------------ |
+| Inline equations            | 50-80              |
+| Equations with fractions    | 60-100             |
+| Integrals / limits          | 60-100             |
+| Summations with limits      | 80-120             |
+| Matrices                    | 100-180            |
+| Simple standalone fractions | 50-80              |
+| Nested fractions            | 80-120             |
 
-**Key rules:**
+**Long formulas**: Use `\\` inside LaTeX to break at natural boundaries (`+`, `-`, `=`). No `\begin{...}\end{...}` wrappers needed. Example: `a + b + c + d \\ + e + f + g`.
 
-- `height` controls the preferred vertical size. `width` acts as a horizontal cap.
-- The system preserves aspect ratio — if the formula is too wide for `width`, both dimensions shrink proportionally.
-- When placing elements below a LaTeX element, add `height + 20~40px` gap to get the next element's `top`.
-- For long formulas (e.g. expanded polynomials, long equations), set `width` to the available horizontal space to prevent overflow.
+**Multi-step derivations**: Same height per step (70-80px); system auto-computes proportional widths per formula length.
 
-**Line-breaking long formulas:**
-When a formula is long (e.g. expanded polynomials, long sums, piecewise functions) and the available horizontal space is narrow, use `\\` (double backslash) directly inside the LaTeX string to break it into multiple lines. Do NOT wrap with `\begin{...}\end{...}` environments — just use `\\` on its own. For example: `a + b + c + d \\ + e + f + g`. This prevents the formula from being shrunk to an unreadably small size. Break at natural operator boundaries (`+`, `-`, `=`, `,`) for best readability.
+**LaTeX**: Uses KaTeX (full standard math + AMS support). Use `\text{}` for English text inside formulas; for Chinese labels, use a separate TextElement.
 
-**Multi-step equation derivations:**
-When splitting a derivation across multiple LaTeX elements (one per line), simply give each step the **same height** (e.g., 70-80px). The system auto-computes width proportionally — longer formulas become wider, shorter ones narrower — and all steps render at the same vertical size. No manual width estimation needed.
-
-**LaTeX Syntax Tips**:
-
-- Fractions: `\frac{a}{b}`
-- Superscript / subscript: `x^2`, `a_n`
-- Square root: `\sqrt{x}`, `\sqrt[3]{x}`
-- Greek letters: `\alpha`, `\beta`, `\pi`, `\sum`
-- Integrals: `\int_0^1 f(x) dx`
-- Common formulas: `a^2 + b^2 = c^2`, `E = mc^2`
-
-**LaTeX Support**: This project uses KaTeX for formula rendering, which supports virtually all standard LaTeX math commands including arrows, logic symbols, ellipsis, accents, delimiters, and AMS math extensions. You may use any standard LaTeX math command freely.
-
-- `\text{}` can render English text. For Chinese labels, use a separate TextElement.
-
-**When to Use**: Use LatexElement for **all** mathematical formulas, equations, and scientific notation — including simple ones like `x^2` or `a/b`. TextElement cannot render LaTeX; any LaTeX syntax placed in a TextElement will display as raw text (e.g., "\frac{1}{2}" appears literally). For plain text that happens to contain numbers (e.g., "Chapter 3", "Score: 95"), use TextElement.
+**When to Use**: All math formulas/equations go in LatexElement (even simple ones like `x^2`). LaTeX in TextElement renders as raw text. Plain text with numbers (e.g., "Chapter 3") uses TextElement.
 
 ---
 
@@ -657,209 +519,13 @@ shape: left=60, top=150, width=400, height=120
 text:  left=80, top=172, width=360, height=76   ✓ CENTERED
 ```
 
-#### Complete Example: Three-Column Card Layout
-
-Three cards side by side, each with centered text:
-
-```json
-[
-  {
-    "id": "card1_bg",
-    "type": "shape",
-    "left": 60,
-    "top": 200,
-    "width": 280,
-    "height": 140,
-    "path": "M 0 0 L 1 0 L 1 1 L 0 1 Z",
-    "viewBox": [1, 1],
-    "fill": "#dbeafe",
-    "fixedRatio": false
-  },
-  {
-    "id": "card2_bg",
-    "type": "shape",
-    "left": 360,
-    "top": 200,
-    "width": 280,
-    "height": 140,
-    "path": "M 0 0 L 1 0 L 1 1 L 0 1 Z",
-    "viewBox": [1, 1],
-    "fill": "#dcfce7",
-    "fixedRatio": false
-  },
-  {
-    "id": "card3_bg",
-    "type": "shape",
-    "left": 660,
-    "top": 200,
-    "width": 280,
-    "height": 140,
-    "path": "M 0 0 L 1 0 L 1 1 L 0 1 Z",
-    "viewBox": [1, 1],
-    "fill": "#fef3c7",
-    "fixedRatio": false
-  },
-  {
-    "id": "card1_text",
-    "type": "text",
-    "left": 80,
-    "top": 232,
-    "width": 240,
-    "height": 76,
-    "content": "<p style=\"font-size: 18px; text-align: center;\">Point One</p>",
-    "defaultFontName": "",
-    "defaultColor": "#1e40af"
-  },
-  {
-    "id": "card2_text",
-    "type": "text",
-    "left": 380,
-    "top": 232,
-    "width": 240,
-    "height": 76,
-    "content": "<p style=\"font-size: 18px; text-align: center;\">Point Two</p>",
-    "defaultFontName": "",
-    "defaultColor": "#166534"
-  },
-  {
-    "id": "card3_text",
-    "type": "text",
-    "left": 680,
-    "top": 232,
-    "width": 240,
-    "height": 76,
-    "content": "<p style=\"font-size: 18px; text-align: center;\">Point Three</p>",
-    "defaultFontName": "",
-    "defaultColor": "#92400e"
-  }
-]
-```
-
-Calculation for card1:
-
-```
-shape: left=60, width=280, height=140
-text:  width=240, height=76
-
-text.left = 60 + (280 - 240) / 2 = 60 + 20 = 80 ✓
-text.top = 200 + (140 - 76) / 2 = 200 + 32 = 232 ✓
-```
+For multi-column card layouts, use 3 TextElements with background ShapeElements side by side, each 220-240px wide with 20px gaps.
 
 ---
 
 ### Rule 6: Decorative Lines
 
-#### Title Underline (emphasis)
-
-Position formula:
-
-```
-line.left = text.left + 10
-line.width = text.width - 20
-line.top = text.top + text.height + 8 to 12px
-line.height = 2 to 4px
-```
-
-Example:
-
-```json
-{
-  "id": "title_text",
-  "type": "text",
-  "left": 60,
-  "top": 80,
-  "width": 880,
-  "height": 76,
-  "content": "<p style=\"font-size: 28px;\">Chapter Title</p>",
-  "defaultFontName": "",
-  "defaultColor": "#333333"
-}
-```
-
-```json
-{
-  "id": "title_underline",
-  "type": "shape",
-  "left": 70,
-  "top": 166,
-  "width": 860,
-  "height": 3,
-  "path": "M 0 0 L 1 0 L 1 1 L 0 1 Z",
-  "viewBox": [1, 1],
-  "fill": "#5b9bd5",
-  "fixedRatio": false
-}
-```
-
-#### Section Divider (separation)
-
-Position formula:
-
-```
-Vertical gap: 25-35px from content above and below
-Horizontal: centered on canvas or left-aligned (left = 60 or 80)
-line.width = 700-900px (70-90% of canvas width)
-line.height = 1 to 2px
-```
-
-Example:
-
-```json
-{
-  "id": "section_divider",
-  "type": "shape",
-  "left": 100,
-  "top": 285,
-  "width": 800,
-  "height": 1,
-  "path": "M 0 0 L 1 0 L 1 1 L 0 1 Z",
-  "viewBox": [1, 1],
-  "fill": "#cccccc",
-  "fixedRatio": false
-}
-```
-
-#### Highlight Marker (vertical bar beside text)
-
-Position formula:
-
-```
-line.left = text.left - 15
-line.top = text.top + text.height * 0.1
-line.height = text.height * 0.8
-line.width = 3 to 6px
-```
-
-Example:
-
-```json
-{
-  "id": "highlight_text",
-  "type": "text",
-  "left": 100,
-  "top": 200,
-  "width": 800,
-  "height": 103,
-  "content": "<p style=\"font-size: 18px;\">Important point that needs emphasis...</p>",
-  "defaultFontName": "",
-  "defaultColor": "#333333"
-}
-```
-
-```json
-{
-  "id": "highlight_marker",
-  "type": "shape",
-  "left": 85,
-  "top": 210,
-  "width": 4,
-  "height": 82,
-  "path": "M 0 0 L 1 0 L 1 1 L 0 1 Z",
-  "viewBox": [1, 1],
-  "fill": "#ed7d31",
-  "fixedRatio": false
-}
-```
+Decorative divider lines: use ShapeElement (rectangle with height 1-3px) or LineElement with appropriate style/color.
 
 ---
 
@@ -897,45 +563,20 @@ Maintain consistent sizing for same-level content. Ensure 2-4px difference betwe
 ## Pre-Output Checklist
 
 Before outputting JSON, verify:
-
-**🔴 P0 — Critical (must pass 100%)**:
-
-- ✓ [text-height] All text heights are from the lookup table (NOT estimated values like 70, 80, 90)
-- ✓ [text-width] All text elements pass width calculation: `char_count ≤ (width - 20) / font_size`
-- ✓ [alignment] Aligned elements have matching center points (< 2px difference)
-- ✓ [margins] All elements are within canvas margins (50px from each edge)
+- ✓ All text heights from lookup table (NOT estimated); all elements within 50px canvas margins
+- ✓ No LaTeX syntax in TextElement (use LatexElement); no auto-generated fields (`path`/`viewBox`/`strokeWidth`/`fixedRatio`) in LatexElement
+- ✓ LineElement `width` = stroke thickness (2-6), NOT line span; no LineElement `width` > 6
+- ✓ Slide text: concise keywords/bullets only, no teacher names, no conversational tone
+- ✓ Text centered inside background shape with 20px padding on all sides
 {{#if imageElementEnabled}}
-- ✓ [src-image-id] Source image `src` values only use image IDs from the assigned media list (for example, "img_1", "img_2")
-  - Do not invent image IDs or URLs not listed in the available media
-  - If no suitable image exists, do not create image elements; use text and shapes only
-- ✓ [src-image-ratio] Source image aspect ratio is preserved: `height = width / aspect_ratio` (use ratio from image metadata)
+- ✓ Source image `src` uses only IDs from assigned media list; preserve aspect ratio
 {{/if}}
 {{#if generatedImageEnabled}}
-- ✓ [gen-image-id] Generated image `src` values only use generated image IDs from the assigned media list (for example, "gen_img_1")
-- ✓ [gen-image-ratio] Generated image aspect ratio is preserved, usually 16:9 unless a different ratio is listed
+- ✓ Generated image `src` uses only IDs from assigned media list; preserve aspect ratio (usually 16:9)
 {{/if}}
 {{#if generatedVideoEnabled}}
-- ✓ [video-media-ref] Video `mediaRef` values only use generated video media refs from the assigned media list
-  - Do not invent video refs or URLs not listed in the available media
+- ✓ Video `mediaRef` uses only refs from assigned media list
 {{/if}}
-- ✓ [latex-fields] LatexElement does NOT include `path`, `viewBox`, `strokeWidth`, or `fixedRatio` (system auto-generates these)
-- ✓ [latex-width] LatexElement width is appropriate for the formula category (standalone fractions: 30-80, NOT 200+; inline equations: 200-400). Check the LaTeX width guide table above.
-- ✓ [latex-scaling] Multi-step derivation LaTeX elements: widths are proportional to content length (longer formulas MUST have larger width). Do NOT use the same width for all steps — this causes wildly different rendered heights.
-- ✓ [no-latex-in-text] No LaTeX syntax in TextElement content: scan all text `content` fields for `\frac`, `\lim`, `\int`, `\sum`, `\sqrt`, `\alpha`, `^{`, `_{` etc. Any math expression must be a separate LatexElement.
-- ✓ [line-stroke] LineElement `width` is stroke thickness (2-6), NOT line length. Check: no LineElement has `width` > 6. If width equals the distance between start and end, it is WRONG — you confused stroke thickness with line span.
-- ✓ [concise-text] **Slide text is concise and impersonal**: Every text element uses keywords, short phrases, or bullet points — no conversational sentences, no lecture-script-style paragraphs. No teacher name or identity appears on any slide (no "Teacher X's tips/wishes/comments"). If a text reads like spoken language or a personal message, rewrite it as a neutral bullet point.
-
-**🟡 P1 — Serious (strongly recommended)**:
-
-- ✓ [text-bg-pair] **Text-Background pairs**: For each text with a background shape:
-
-- text.width < shape.width (with padding)
-- text.height < shape.height (with padding)
-- text is centered: `text.left = shape.left + (shape.width - text.width) / 2`
-- text is centered: `text.top = shape.top + (shape.height - text.height) / 2`
-
-- ✓ [no-overlap] No unintended element overlaps (especially check LaTeX elements — their rendered height may be much larger than specified)
-- ✓ [image-proximity] Image placed near related text (25-35px gap)
 
 ---
 

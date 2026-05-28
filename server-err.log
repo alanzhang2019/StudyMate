@@ -121,3 +121,337 @@ react-i18next:: useTranslation: You will need to pass in an i18next instance by 
     at async handleRequest (D:\AItrade\AI-MATH-MISTAKE\node_modules\.pnpm\next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7\node_modules\next\dist\server\lib\router-server.js:447:24)
     at async requestHandlerImpl (D:\AItrade\AI-MATH-MISTAKE\node_modules\.pnpm\next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7\node_modules\next\dist\server\lib\router-server.js:496:13)
     at async Server.requestListener (D:\AItrade\AI-MATH-MISTAKE\node_modules\.pnpm\next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7\node_modules\next\dist\server\lib\start-server.js:226:13)
+⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[2026-05-27T07:07:37.881Z] [WARN] [Generation] Invalid elementId, falling back to first element: text_mkU2Dyjl
+[2026-05-27T07:52:54.952Z] [WARN] [ClassroomMedia] Failed to read profile TTS voice: TypeError: Cannot read properties of undefined (reading 'findFirst')
+    at generateTTSForClassroom (webpack-internal:///(rsc)/./lib/server/classroom-media-generation.ts:243:87)
+    at async POST (webpack-internal:///(rsc)/./app/api/classroom/route.ts:32:13)
+    at async AppRouteRouteModule.do (D:\AItrade\AI-MATH-MISTAKE\node_modules\.pnpm\next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:5:37866)
+    at async AppRouteRouteModule.handle (D:\AItrade\AI-MATH-MISTAKE\node_modules\.pnpm\next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:5:45156)
+    at async responseGenerator (webpack-internal:///(rsc)/./node_modules/.pnpm/next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Fclassroom%2Froute&page=%2Fapi%2Fclassroom%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Fclassroom%2Froute.ts&appDir=D%3A%5CAItrade%5CAI-MATH-MISTAKE%5Capp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=D%3A%5CAItrade%5CAI-MATH-MISTAKE&isDev=true&tsconfigPath=&basePath=&assetPrefix=&nextConfigOutput=standalone&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:230:38)
+    at async AppRouteRouteModule.handleResponse (D:\AItrade\AI-MATH-MISTAKE\node_modules\.pnpm\next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:1:187638)
+    at async handleResponse (webpack-internal:///(rsc)/./node_modules/.pnpm/next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Fclassroom%2Froute&page=%2Fapi%2Fclassroom%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Fclassroom%2Froute.ts&appDir=D%3A%5CAItrade%5CAI-MATH-MISTAKE%5Capp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=D%3A%5CAItrade%5CAI-MATH-MISTAKE&isDev=true&tsconfigPath=&basePath=&assetPrefix=&nextConfigOutput=standalone&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:293:32)
+    at async Module.handler (webpack-internal:///(rsc)/./node_modules/.pnpm/next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Fclassroom%2Froute&page=%2Fapi%2Fclassroom%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Fclassroom%2Froute.ts&appDir=D%3A%5CAItrade%5CAI-MATH-MISTAKE%5Capp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=D%3A%5CAItrade%5CAI-MATH-MISTAKE&isDev=true&tsconfigPath=&basePath=&assetPrefix=&nextConfigOutput=standalone&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:347:13)
+    at async DevServer.renderToResponseWithComponentsImpl (D:\AItrade\AI-MATH-MISTAKE\node_modules\.pnpm\next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7\node_modules\next\dist\server\base-server.js:1422:9)
+    at async DevServer.renderPageComponent (D:\AItrade\AI-MATH-MISTAKE\node_modules\.pnpm\next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7\node_modules\next\dist\server\base-server.js:1474:24)
+    at async DevServer.renderToResponseImpl (D:\AItrade\AI-MATH-MISTAKE\node_modules\.pnpm\next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7\node_modules\next\dist\server\base-server.js:1524:32)
+    at async DevServer.pipeImpl (D:\AItrade\AI-MATH-MISTAKE\node_modules\.pnpm\next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7\node_modules\next\dist\server\base-server.js:1018:25)
+    at async NextNodeServer.handleCatchallRenderRequest (D:\AItrade\AI-MATH-MISTAKE\node_modules\.pnpm\next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7\node_modules\next\dist\server\next-server.js:395:17)
+    at async DevServer.handleRequestImpl (D:\AItrade\AI-MATH-MISTAKE\node_modules\.pnpm\next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7\node_modules\next\dist\server\base-server.js:909:17)
+    at async D:\AItrade\AI-MATH-MISTAKE\node_modules\.pnpm\next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7\node_modules\next\dist\server\dev\next-dev-server.js:387:20
+    at async Span.traceAsyncFn (D:\AItrade\AI-MATH-MISTAKE\node_modules\.pnpm\next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7\node_modules\next\dist\trace\trace.js:157:20)
+    at async DevServer.handleRequest (D:\AItrade\AI-MATH-MISTAKE\node_modules\.pnpm\next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7\node_modules\next\dist\server\dev\next-dev-server.js:383:24)
+    at async invokeRender (D:\AItrade\AI-MATH-MISTAKE\node_modules\.pnpm\next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7\node_modules\next\dist\server\lib\router-server.js:248:21)
+    at async handleRequest (D:\AItrade\AI-MATH-MISTAKE\node_modules\.pnpm\next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7\node_modules\next\dist\server\lib\router-server.js:447:24)
+    at async requestHandlerImpl (D:\AItrade\AI-MATH-MISTAKE\node_modules\.pnpm\next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7\node_modules\next\dist\server\lib\router-server.js:496:13)
+    at async Server.requestListener (D:\AItrade\AI-MATH-MISTAKE\node_modules\.pnpm\next@16.1.2_@babel+core@7.2_73d26e8a224c7af85a4dde0601bbbcd7\node_modules\next\dist\server\lib\start-server.js:226:13)
+LaTeX-incompatible input and strict mode is set to 'warn': In LaTeX, \\ or \newline does nothing in display mode [newLineInDisplayMode]
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOSPC: no space left on device, write
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOSPC: no space left on device, write
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOSPC: no space left on device, write
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+⨯ unhandledRejection: [Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+⨯ unhandledRejection:  [Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+⨯ unhandledRejection: [Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+⨯ unhandledRejection:  [Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOSPC: no space left on device, write
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+⨯ uncaughtException: [Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+⨯ uncaughtException:  [Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOSPC: no space left on device, mkdir 'D:\AItrade\AI-MATH-MISTAKE\.next\dev\cache\webpack\client-development-fallback'
+⚠ Failed to reload dynamic routes: Error: ENOSPC: no space left on device, write
+    at ignore-listed frames {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+⚠ Failed to reload dynamic routes: Error: ENOSPC: no space left on device, write
+    at ignore-listed frames {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+⚠ Failed to reload dynamic routes: Error: ENOSPC: no space left on device, write
+    at ignore-listed frames {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+⚠ Failed to reload dynamic routes: Error: ENOSPC: no space left on device, write
+    at ignore-listed frames {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+⚠ Failed to reload dynamic routes: Error: ENOSPC: no space left on device, write
+    at ignore-listed frames {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+⚠ Failed to reload dynamic routes: Error: ENOSPC: no space left on device, write
+    at ignore-listed frames {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+⚠ Failed to reload dynamic routes: Error: ENOSPC: no space left on device, write
+    at ignore-listed frames {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+⚠ Failed to reload dynamic routes: Error: ENOSPC: no space left on device, write
+    at ignore-listed frames {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+⚠ Failed to reload dynamic routes: Error: ENOSPC: no space left on device, write
+    at ignore-listed frames {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+⚠ Failed to reload dynamic routes: Error: ENOSPC: no space left on device, write
+    at ignore-listed frames {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+⚠ Failed to reload dynamic routes: Error: ENOSPC: no space left on device, write
+    at ignore-listed frames {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}
+[Error: ENOSPC: no space left on device, write] {
+  errno: -4055,
+  code: 'ENOSPC',
+  syscall: 'write'
+}

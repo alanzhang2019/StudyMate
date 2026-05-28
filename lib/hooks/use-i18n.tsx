@@ -2,10 +2,23 @@
 
 import { createContext, useContext, useEffect, ReactNode } from 'react';
 import { useTranslation, I18nextProvider, initReactI18next } from 'react-i18next';
+import i18n from 'i18next';
+import resourcesToBackend from 'i18next-resources-to-backend';
 import { type Locale, defaultLocale, supportedLocales } from '@/lib/i18n';
-import i18nInstance from '@/lib/i18n/config';
 
-i18nInstance.use(initReactI18next);
+const clientI18n = i18n.createInstance();
+
+clientI18n
+  .use(resourcesToBackend((language: string) => import(`@/lib/i18n/locales/${language}.json`)))
+  .use(initReactI18next)
+  .init({
+    lng: defaultLocale,
+    fallbackLng: defaultLocale,
+    supportedLngs: supportedLocales.map((l) => l.code),
+    interpolation: {
+      escapeValue: false,
+    },
+  });
 
 const LOCALE_STORAGE_KEY = 'locale';
 
@@ -30,7 +43,7 @@ const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   return (
-    <I18nextProvider i18n={i18nInstance}>
+    <I18nextProvider i18n={clientI18n}>
       <I18nProviderInner>{children}</I18nProviderInner>
     </I18nextProvider>
   );

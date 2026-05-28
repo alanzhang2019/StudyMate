@@ -15,6 +15,7 @@ import { buildClientTTSRequestConfig } from '@/lib/audio/build-client-tts-reques
 import { getVoxCPMProviderOptions } from '@/lib/audio/voxcpm-voices';
 import { generateMediaForOutlines } from '@/lib/media/media-orchestrator';
 import { createLogger } from '@/lib/logger';
+import { createGenerationTiming } from '@/lib/generation/timing';
 
 const log = createLogger('SceneGenerator');
 
@@ -217,9 +218,9 @@ async function generateTTSForScene(
   const sceneOrder = scene.order;
 
   for (const action of speechActions) {
-    // Include scene order in audioId to prevent collision across scenes
     const audioId = `tts_s${sceneOrder}_${action.id}`;
     action.audioId = audioId;
+    const actionStart = performance.now();
     try {
       await generateAndStoreTTS(audioId, action.text, language, signal, profileTtsVoice);
     } catch (error) {
@@ -234,6 +235,13 @@ async function generateTTSForScene(
         error: lastError,
       });
     }
+    const actionDuration = Math.round(performance.now() - actionStart);
+    log.info(`[GenerationTiming] remaining_generation.scene_${sceneOrder}_tts_action ${actionDuration}ms`, {
+      providerId,
+      sceneOrder,
+      actionId: action.id,
+      textLength: action.text.length,
+    });
   }
 
   return {
@@ -280,6 +288,7 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
       if (generatingRef.current) return;
       generatingRef.current = true;
       abortRef.current = false;
+      const timing = createGenerationTiming('remaining_generation');
       const removeGeneratingOutline = (outlineId: string) => {
         const current = store.getState().generatingOutlines;
         if (!current.some((o) => o.id === outlineId)) return;
@@ -318,58 +327,13 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
 
       // Launch media generation in parallel — does not block content/action generation
       mediaAbortRef.current = new AbortController();
-      generateMediaForOutlines(outlines, stage.id, mediaAbortRef.current.signal).catch((err) => {
+      timing.start('media_background');
+      generateMediaForOutlines(outlines, stage.id, mediaAbortRef.current.signal).then(() => {
+        timing.end('media_background', { status: 'ok' });
+      }).catch((err) => {
+        timing.end('media_background', { status: 'error', error: err instanceof Error ? err.message : String(err) });
         log.warn('Media generation error:', err);
       });
-
-      // Pre-fetch all scene contents concurrently to minimize waiting time between pages.
-      // This allows the slow Vision LLM calls to happen in parallel, while keeping
-      // the Actions generation sequential to preserve previousSpeeches coherence.
-      // We use a concurrency limit of 1 to avoid hitting third-party API rate limits (e.g., RPM limits).
-      const CONCURRENCY_LIMIT = 1;
-      let activeCount = 0;
-      const fetchQueue: Array<() => void> = [];
-
-      const limitConcurrency = async <T>(fn: () => Promise<T>): Promise<T> => {
-        if (activeCount >= CONCURRENCY_LIMIT) {
-          await new Promise<void>((resolve) => fetchQueue.push(resolve));
-        }
-        activeCount++;
-        try {
-          return await fn();
-        } finally {
-          activeCount--;
-          if (fetchQueue.length > 0) {
-            const next = fetchQueue.shift();
-            next?.();
-          }
-        }
-      };
-
-      const contentPromises = new Map<string, Promise<SceneContentResult>>();
-      for (const outline of pending) {
-        contentPromises.set(
-          outline.id,
-          limitConcurrency(() =>
-            fetchSceneContent(
-              {
-                outline,
-                allOutlines: outlines,
-                stageId: stage.id,
-                pdfImages: params.pdfImages,
-                imageMapping: params.imageMapping,
-                stageInfo: params.stageInfo,
-                agents: params.agents,
-                languageDirective: params.languageDirective,
-              },
-              signal,
-            )
-          ).catch((error) => ({
-            success: false,
-            error: error instanceof Error ? error.message : 'Unknown error',
-          }))
-        );
-      }
 
       // Get previousSpeeches from last completed scene
       let previousSpeeches: string[] = [];
@@ -393,9 +357,21 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
 
           store.getState().setCurrentGeneratingOrder(outline.order);
 
-          // Step 1: Generate content (await the pre-fetched promise)
+          // Step 1: Generate content
           options.onPhaseChange?.('content', outline);
-          const contentResult = await contentPromises.get(outline.id)!;
+          const contentResult = await timing.time(`scene_${outline.order}_content`, () => fetchSceneContent(
+            {
+              outline,
+              allOutlines: outlines,
+              stageId: stage.id,
+              pdfImages: params.pdfImages,
+              imageMapping: params.imageMapping,
+              stageInfo: params.stageInfo,
+              agents: params.agents,
+              languageDirective: params.languageDirective,
+            },
+            signal,
+          ), { sceneOrder: outline.order });
 
           if (!contentResult.success || !contentResult.content) {
             if (abortRef.current || store.getState().generationEpoch !== startEpoch) {
@@ -417,7 +393,7 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
 
           // Step 2: Generate actions + assemble scene
           options.onPhaseChange?.('actions', outline);
-          const actionsResult = await fetchSceneActions(
+          const actionsResult = await timing.time(`scene_${outline.order}_actions`, () => fetchSceneActions(
             {
               outline: contentResult.effectiveOutline || outline,
               allOutlines: outlines,
@@ -429,7 +405,7 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
               languageDirective: params.languageDirective,
             },
             signal,
-          );
+          ), { sceneOrder: outline.order });
 
           if (actionsResult.success && actionsResult.scene) {
             const scene = actionsResult.scene;
@@ -437,16 +413,15 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
 
             // TTS generation — failure means the whole scene fails
             if (settings.ttsEnabled && settings.ttsProviderId !== 'browser-native-tts') {
-              // Read profile TTS voice from useProfileStore
               const activeProfile = useProfileStore.getState().activeProfile;
               const profileTtsVoice = activeProfile?.ttsVoice || undefined;
 
-              const ttsResult = await generateTTSForScene(
+              const ttsResult = await timing.time(`scene_${outline.order}_tts`, () => generateTTSForScene(
                 scene,
                 params.languageDirective || params.stageInfo.language,
                 signal,
                 profileTtsVoice,
-              );
+              ), { sceneOrder: outline.order, providerId: settings.ttsProviderId });
               if (!ttsResult.success) {
                 if (abortRef.current || store.getState().generationEpoch !== startEpoch) {
                   pausedByFailureOrAbort = true;
@@ -499,6 +474,7 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
       } finally {
         generatingRef.current = false;
         fetchAbortRef.current = null;
+        timing.summary();
       }
     },
     [options, store],

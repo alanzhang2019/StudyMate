@@ -417,3 +417,977 @@
  GET /api/auth/session 200 in 69ms (compile: 16ms, proxy.ts: 48ms, render: 5ms)
  GET /api/server-providers 200 in 2.3s (compile: 1174ms, proxy.ts: 924ms, render: 233ms)
  GET /api/access-code/status 200 in 2.6s (compile: 1461ms, proxy.ts: 930ms, render: 161ms)
+ GET /api/mistake/session/oPL3R02Jmr 200 in 14.7s (compile: 2.5s, proxy.ts: 930ms, render: 11.3s)
+[2026-05-27T06:34:57.577Z] [INFO] [Scene Content API] Content generated successfully: "什么是终止数？"
+ GET /api/auth/session 200 in 20.2s (compile: 2.7s, proxy.ts: 930ms, render: 16.6s)
+[2026-05-27T06:34:57.853Z] [INFO] [Scene Content API] Generating content: "什么是终止数？" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+ PATCH /api/mistake/session/oPL3R02Jmr 400 in 3.5s (compile: 3.3s, proxy.ts: 158ms, render: 45ms)
+ GET /api/auth/session 200 in 3.4s (compile: 34ms, proxy.ts: 3.3s, render: 34ms)
+[2026-05-27T06:35:29.347Z] [INFO] [Scene Content API] Content generated successfully: "找规律"
+[2026-05-27T06:35:52.392Z] [INFO] [Scene Content API] Content generated successfully: "什么是终止数？"
+ POST /api/generate/scene-content 200 in 55s (compile: 25ms, proxy.ts: 158ms, render: 55s)
+[2026-05-27T06:35:52.512Z] [INFO] [Scene Content API] Generating content: "找规律" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+○ Compiling /api/generate/scene-actions ...
+[2026-05-27T06:36:00.930Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T06:36:00.931Z] [INFO] [Scene Actions API] Generating actions: "什么是终止数？" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+ GET /classroom/vPu6O7Fr9T 200 in 785ms (compile: 719ms, proxy.ts: 29ms, render: 38ms)
+ GET /history 200 in 795ms (compile: 405ms, proxy.ts: 29ms, render: 361ms)
+ POST /api/generate/scene-actions 200 in 61s (compile: 8.4s, proxy.ts: 30ms, render: 53s)
+ GET /classroom/vPu6O7Fr9T 200 in 2.7s (compile: 7ms, proxy.ts: 8ms, render: 2.7s)
+ POST /api/generate/scene-content 200 in 61s (compile: 14ms, proxy.ts: 30ms, render: 61s)
+ GET /history 200 in 195ms (compile: 5ms, proxy.ts: 17ms, render: 173ms)
+○ Compiling /api/auth/[...nextauth] ...
+[2026-05-27T06:37:06.716Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+ GET /api/server-providers 200 in 7.1s (compile: 6.0s, proxy.ts: 809ms, render: 268ms)
+ GET /api/access-code/status 200 in 7.1s (compile: 6.1s, proxy.ts: 809ms, render: 208ms)
+ GET /api/auth/session 200 in 10.0s (compile: 6.1s, proxy.ts: 809ms, render: 3.1s)
+ GET /@vite/client 404 in 10.1s (compile: 9.2s, proxy.ts: 809ms, render: 70ms)
+ GET /classroom/vPu6O7Fr9T 200 in 6.7s (compile: 3.4s, proxy.ts: 14ms, render: 3.2s)
+ GET /history 200 in 6.9s (compile: 3.4s, proxy.ts: 232ms, render: 3.3s)
+ GET /api/access-code/status 200 in 28ms (compile: 9ms, proxy.ts: 9ms, render: 11ms)
+ GET /api/server-providers 200 in 34ms (compile: 21ms, proxy.ts: 9ms, render: 5ms)
+ GET /api/auth/session 200 in 79ms (compile: 50ms, proxy.ts: 9ms, render: 21ms)
+ GET /@vite/client 404 in 106ms (compile: 8ms, proxy.ts: 73ms, render: 25ms)
+ GET /api/auth/session 200 in 40ms (compile: 4ms, proxy.ts: 32ms, render: 4ms)
+ GET /api/server-providers 200 in 27ms (compile: 9ms, proxy.ts: 13ms, render: 5ms)
+ GET /api/access-code/status 200 in 31ms (compile: 11ms, proxy.ts: 16ms, render: 4ms)
+[2026-05-27T06:37:14.541Z] [INFO] [Scene Actions API] Generated 12 actions for: "什么是终止数？"
+[2026-05-27T06:37:14.542Z] [INFO] [Scene Actions API] Scene assembled successfully: "什么是终止数？" — 12 actions
+○ Compiling /api/generate/scene-content ...
+[2026-05-27T06:37:20.535Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T06:37:20.536Z] [INFO] [Scene Content API] Generating content: "什么是终止数？" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T06:37:20.565Z] [INFO] [Scene Content API] Content generated successfully: "找规律"
+ GET /api/mistake/session/oPL3R02Jmr 200 in 8.7s (compile: 8.6s, proxy.ts: 13ms, render: 100ms)
+ GET /api/auth/session 200 in 8.7s (compile: 8.6s, proxy.ts: 16ms, render: 122ms)
+ PATCH /api/mistake/session/oPL3R02Jmr 400 in 34ms (compile: 6ms, proxy.ts: 13ms, render: 14ms)
+ GET /api/auth/session 200 in 31ms (compile: 4ms, proxy.ts: 19ms, render: 7ms)
+[2026-05-27T06:37:58.305Z] [INFO] [Scene Content API] Content generated successfully: "什么是终止数？"
+ POST /api/generate/scene-content 200 in 46s (compile: 8.3s, proxy.ts: 9ms, render: 37.8s)
+[2026-05-27T06:37:58.328Z] [INFO] [Scene Content API] Generating content: "找规律" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T06:38:01.032Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T06:38:01.033Z] [INFO] [Scene Actions API] Generating actions: "什么是终止数？" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+ GET /api/auth/session 200 in 61ms (compile: 33ms, proxy.ts: 9ms, render: 19ms)
+ GET /api/auth/session 200 in 13ms (compile: 3ms, proxy.ts: 4ms, render: 6ms)
+[2026-05-27T06:38:23.865Z] [INFO] [Scene Actions API] Generated 12 actions for: "什么是终止数？"
+[2026-05-27T06:38:23.866Z] [INFO] [Scene Actions API] Scene assembled successfully: "什么是终止数？" — 12 actions
+ POST /api/generate/scene-actions 200 in 25.6s (compile: 2.7s, proxy.ts: 6ms, render: 22.9s)
+[2026-05-27T06:38:25.583Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T06:38:25.584Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_zpyQYUO4, textLen=42
+ GET /classroom/vPu6O7Fr9T 200 in 695ms (compile: 611ms, proxy.ts: 7ms, render: 78ms)
+ GET /history 200 in 706ms (compile: 108ms, proxy.ts: 7ms, render: 591ms)
+ POST /api/generate/tts 200 in 3.2s (compile: 1485ms, proxy.ts: 5ms, render: 1679ms)
+[2026-05-27T06:38:27.076Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_IsjiISZi, textLen=38
+ POST /api/generate/tts 200 in 833ms (compile: 2ms, proxy.ts: 9ms, render: 822ms)
+[2026-05-27T06:38:27.920Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_Cg6HBKxU, textLen=42
+ POST /api/generate/tts 200 in 887ms (compile: 2ms, proxy.ts: 14ms, render: 871ms)
+[2026-05-27T06:38:28.800Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_VXe9pRjO, textLen=21
+ POST /api/generate/tts 200 in 606ms (compile: 1476µs, proxy.ts: 4ms, render: 600ms)
+[2026-05-27T06:38:29.412Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_U-TDz0pL, textLen=28
+ POST /api/generate/tts 200 in 608ms (compile: 1454µs, proxy.ts: 4ms, render: 602ms)
+[2026-05-27T06:38:30.025Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_zcg-g7VB, textLen=81
+ POST /api/generate/tts 200 in 1538ms (compile: 2ms, proxy.ts: 4ms, render: 1531ms)
+[2026-05-27T06:38:51.930Z] [INFO] [Scene Content API] Content generated successfully: "找规律"
+ POST /api/generate/scene-content 200 in 54s (compile: 3ms, proxy.ts: 6ms, render: 54s)
+[2026-05-27T06:38:52.070Z] [INFO] [Scene Content API] Generating content: "判断练习" (quiz) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T06:38:52.105Z] [INFO] [Scene Actions API] Generating actions: "找规律" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T06:39:15.144Z] [INFO] [Scene Actions API] Generated 10 actions for: "找规律"
+[2026-05-27T06:39:15.145Z] [INFO] [Scene Actions API] Scene assembled successfully: "找规律" — 10 actions
+ POST /api/generate/scene-actions 200 in 23.2s (compile: 156ms, proxy.ts: 7ms, render: 23.0s)
+[2026-05-27T06:39:15.208Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s3_action_HS28h5oX, textLen=53
+ POST /api/generate/tts 200 in 1298ms (compile: 4ms, proxy.ts: 7ms, render: 1288ms)
+[2026-05-27T06:39:16.476Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s3_action_ZVPZRBby, textLen=37
+ POST /api/generate/tts 200 in 994ms (compile: 2ms, proxy.ts: 5ms, render: 986ms)
+[2026-05-27T06:39:17.479Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s3_action_5c73T-OD, textLen=58
+ POST /api/generate/tts 200 in 1502ms (compile: 1886µs, proxy.ts: 5ms, render: 1494ms)
+[2026-05-27T06:39:18.985Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s3_action_fdFZCz77, textLen=51
+ POST /api/generate/tts 200 in 1183ms (compile: 2ms, proxy.ts: 6ms, render: 1175ms)
+[2026-05-27T06:39:20.174Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s3_action_ivfYUGZ7, textLen=52
+ POST /api/generate/tts 200 in 1096ms (compile: 1872µs, proxy.ts: 6ms, render: 1088ms)
+[2026-05-27T06:39:30.927Z] [INFO] [Scene Content API] Content generated successfully: "判断练习"
+ POST /api/generate/scene-content 200 in 39.0s (compile: 120ms, proxy.ts: 7ms, render: 38.9s)
+[2026-05-27T06:39:37.929Z] [INFO] [Scene Content API] Generating content: "验证样例" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T06:39:38.178Z] [INFO] [Scene Actions API] Generating actions: "判断练习" (quiz) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T06:39:50.327Z] [INFO] [Scene Actions API] Generated 4 actions for: "判断练习"
+[2026-05-27T06:39:50.336Z] [INFO] [Scene Actions API] Scene assembled successfully: "判断练习" — 4 actions
+ POST /api/generate/scene-actions 200 in 12.6s (compile: 274ms, proxy.ts: 50ms, render: 12.3s)
+[2026-05-27T06:39:50.538Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s4_action_WatRHc3f, textLen=66
+ POST /api/generate/tts 200 in 1562ms (compile: 17ms, proxy.ts: 30ms, render: 1515ms)
+[2026-05-27T06:39:52.443Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s4_action_Lwky45yV, textLen=151
+ POST /api/generate/tts 200 in 3.6s (compile: 2ms, proxy.ts: 5ms, render: 3.6s)
+[2026-05-27T06:39:55.634Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s4_action_OHEblev_, textLen=40
+ POST /api/generate/tts 200 in 774ms (compile: 3ms, proxy.ts: 5ms, render: 766ms)
+[2026-05-27T06:40:34.252Z] [INFO] [Scene Content API] Content generated successfully: "验证样例"
+ POST /api/generate/scene-content 200 in 56s (compile: 30ms, proxy.ts: 50ms, render: 56s)
+[2026-05-27T06:40:34.288Z] [INFO] [Scene Actions API] Generating actions: "验证样例" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T06:40:34.316Z] [INFO] [Scene Content API] Generating content: "动手试一试" (interactive) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T06:40:34.320Z] [INFO] [Generation] Generating simulation widget for: 动手试一试
+[2026-05-27T06:40:48.556Z] [INFO] [Scene Actions API] Generated 8 actions for: "验证样例"
+[2026-05-27T06:40:48.557Z] [INFO] [Scene Actions API] Scene assembled successfully: "验证样例" — 8 actions
+ POST /api/generate/scene-actions 200 in 14.3s (compile: 5ms, proxy.ts: 9ms, render: 14.3s)
+[2026-05-27T06:40:48.580Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s5_action_h-v-2lJB, textLen=29
+ POST /api/generate/tts 200 in 905ms (compile: 3ms, proxy.ts: 6ms, render: 896ms)
+[2026-05-27T06:40:49.501Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s5_action_P24OHXJz, textLen=42
+ POST /api/generate/tts 200 in 808ms (compile: 1863µs, proxy.ts: 5ms, render: 801ms)
+[2026-05-27T06:40:50.314Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s5_action_IrlIT69-, textLen=161
+ POST /api/generate/tts 200 in 2.7s (compile: 2ms, proxy.ts: 6ms, render: 2.7s)
+[2026-05-27T06:40:53.002Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s5_action_ZJIxd5f9, textLen=66
+ POST /api/generate/tts 200 in 1319ms (compile: 2ms, proxy.ts: 6ms, render: 1311ms)
+[2026-05-27T06:44:23.136Z] [INFO] [Generation] [Ultra Mode] Generated 0 teacher actions for "动手试一试" (simulation)
+[2026-05-27T06:44:23.144Z] [INFO] [Scene Content API] Content generated successfully: "动手试一试"
+ POST /api/generate/scene-content 200 in 3.8min (compile: 40ms, proxy.ts: 9ms, render: 3.8min)
+[2026-05-27T06:44:23.191Z] [INFO] [Scene Content API] Generating content: "高效计数思路" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T06:44:23.223Z] [INFO] [Scene Actions API] Generating actions: "动手试一试" (interactive) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T06:44:23.224Z] [INFO] [Generation] [Actions Gen] Interactive "动手试一试": hasHtml=true, teacherActions=0, widgetType=simulation
+[2026-05-27T06:44:38.254Z] [INFO] [Scene Content API] Content generated successfully: "高效计数思路"
+ POST /api/generate/scene-content 200 in 15.1s (compile: 7ms, proxy.ts: 12ms, render: 15.1s)
+[2026-05-27T06:44:38.277Z] [INFO] [Scene Content API] Generating content: "综合挑战" (quiz) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T06:44:39.030Z] [INFO] [Scene Actions API] Generated 6 actions for: "动手试一试"
+[2026-05-27T06:44:39.030Z] [INFO] [Scene Actions API] Scene assembled successfully: "动手试一试" — 6 actions
+ POST /api/generate/scene-actions 200 in 15.9s (compile: 40ms, proxy.ts: 13ms, render: 15.8s)
+[2026-05-27T06:44:39.051Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s6_action_xyIhMmKH, textLen=72
+ POST /api/generate/tts 200 in 1616ms (compile: 3ms, proxy.ts: 4ms, render: 1609ms)
+[2026-05-27T06:44:40.676Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s6_action_O2Jwh-h4, textLen=71
+ POST /api/generate/tts 200 in 1392ms (compile: 2ms, proxy.ts: 5ms, render: 1385ms)
+[2026-05-27T06:44:42.080Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s6_action_Vrrx_pOU, textLen=59
+ POST /api/generate/tts 200 in 1386ms (compile: 4ms, proxy.ts: 6ms, render: 1376ms)
+[2026-05-27T06:44:43.463Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s6_action_fZ-11rlv, textLen=62
+ POST /api/generate/tts 200 in 1201ms (compile: 3ms, proxy.ts: 5ms, render: 1193ms)
+[2026-05-27T06:44:44.672Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s6_action_OngrPhyj, textLen=87
+ POST /api/generate/tts 200 in 1891ms (compile: 3ms, proxy.ts: 5ms, render: 1883ms)
+[2026-05-27T06:44:46.605Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s6_action_SbkCWDGF, textLen=66
+ POST /api/generate/tts 200 in 1314ms (compile: 1893µs, proxy.ts: 4ms, render: 1308ms)
+[2026-05-27T06:44:47.942Z] [INFO] [Scene Actions API] Generating actions: "高效计数思路" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T06:44:53.533Z] [INFO] [Scene Content API] Content generated successfully: "综合挑战"
+ POST /api/generate/scene-content 200 in 15.3s (compile: 3ms, proxy.ts: 7ms, render: 15.3s)
+[2026-05-27T06:44:53.560Z] [INFO] [Scene Content API] Generating content: "总结与鼓励" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T06:45:16.815Z] [INFO] [Scene Actions API] Generated 8 actions for: "高效计数思路"
+[2026-05-27T06:45:16.815Z] [INFO] [Scene Actions API] Scene assembled successfully: "高效计数思路" — 8 actions
+ POST /api/generate/scene-actions 200 in 28.9s (compile: 3ms, proxy.ts: 6ms, render: 28.9s)
+[2026-05-27T06:45:16.840Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s7_action_opTRkENm, textLen=53
+ POST /api/generate/tts 200 in 1506ms (compile: 3ms, proxy.ts: 5ms, render: 1497ms)
+[2026-05-27T06:45:18.418Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s7_action_oiYQFx_I, textLen=75
+ POST /api/generate/tts 200 in 1780ms (compile: 70ms, proxy.ts: 5ms, render: 1704ms)
+[2026-05-27T06:45:20.146Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s7_action_tjsEsNp7, textLen=112
+[2026-05-27T06:45:21.316Z] [INFO] [Scene Content API] Content generated successfully: "总结与鼓励"
+ POST /api/generate/scene-content 200 in 27.8s (compile: 4ms, proxy.ts: 7ms, render: 27.8s)
+ POST /api/generate/tts 200 in 2.5s (compile: 3ms, proxy.ts: 8ms, render: 2.5s)
+[2026-05-27T06:45:22.673Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s7_action_K2e8G6r8, textLen=62
+ POST /api/generate/tts 200 in 1310ms (compile: 4ms, proxy.ts: 5ms, render: 1300ms)
+[2026-05-27T06:45:24.037Z] [INFO] [Scene Actions API] Generating actions: "综合挑战" (quiz) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T06:45:32.856Z] [INFO] [Scene Actions API] Generated 4 actions for: "综合挑战"
+[2026-05-27T06:45:32.857Z] [INFO] [Scene Actions API] Scene assembled successfully: "综合挑战" — 4 actions
+ POST /api/generate/scene-actions 200 in 8.8s (compile: 3ms, proxy.ts: 6ms, render: 8.8s)
+[2026-05-27T06:45:32.878Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s8_action_ixlZgQdp, textLen=109
+ POST /api/generate/tts 200 in 2.5s (compile: 3ms, proxy.ts: 6ms, render: 2.5s)
+[2026-05-27T06:45:35.363Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s8_action_cY5b2NQ8, textLen=166
+ POST /api/generate/tts 200 in 3.2s (compile: 3ms, proxy.ts: 5ms, render: 3.2s)
+[2026-05-27T06:45:38.588Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s8_action_UqKis3DZ, textLen=97
+ POST /api/generate/tts 200 in 2.3s (compile: 3ms, proxy.ts: 6ms, render: 2.3s)
+[2026-05-27T06:45:40.952Z] [INFO] [Scene Actions API] Generating actions: "总结与鼓励" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T06:46:14.802Z] [INFO] [Scene Actions API] Generated 9 actions for: "总结与鼓励"
+[2026-05-27T06:46:14.802Z] [INFO] [Scene Actions API] Scene assembled successfully: "总结与鼓励" — 9 actions
+ POST /api/generate/scene-actions 200 in 33.9s (compile: 3ms, proxy.ts: 6ms, render: 33.9s)
+[2026-05-27T06:46:14.827Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s9_action_pF6IJw4f, textLen=67
+ POST /api/generate/tts 200 in 1505ms (compile: 4ms, proxy.ts: 7ms, render: 1495ms)
+[2026-05-27T06:46:16.337Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s9_action_Cnn57BFh, textLen=69
+ POST /api/generate/tts 200 in 1521ms (compile: 3ms, proxy.ts: 6ms, render: 1512ms)
+[2026-05-27T06:46:17.864Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s9_action_Hdj1svIm, textLen=59
+ POST /api/generate/tts 200 in 1200ms (compile: 2ms, proxy.ts: 6ms, render: 1192ms)
+[2026-05-27T06:46:19.067Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s9_action_Xob4v4Mx, textLen=45
+ POST /api/generate/tts 200 in 770ms (compile: 3ms, proxy.ts: 5ms, render: 762ms)
+○ Compiling /api/mistake/session/[id] ...
+ PATCH /api/mistake/session/oPL3R02Jmr 200 in 19.2s (compile: 19.1s, proxy.ts: 5ms, render: 64ms)
+○ Compiling /api/auth/[...nextauth] ...
+ GET /api/auth/session 200 in 14.5s (compile: 14.4s, proxy.ts: 36ms, render: 81ms)
+ GET /api/auth/session 200 in 54ms (compile: 4ms, proxy.ts: 21ms, render: 29ms)
+ GET /api/auth/session 200 in 431ms (compile: 133ms, proxy.ts: 67ms, render: 231ms)
+ GET /api/auth/session 200 in 55ms (compile: 8ms, proxy.ts: 17ms, render: 30ms)
+ GET /api/auth/session 200 in 79ms (compile: 27ms, proxy.ts: 33ms, render: 19ms)
+ GET /api/auth/session 200 in 62ms (compile: 8ms, proxy.ts: 30ms, render: 25ms)
+ GET /api/auth/session 200 in 52ms (compile: 31ms, proxy.ts: 6ms, render: 15ms)
+ GET /api/auth/session 200 in 34ms (compile: 6ms, proxy.ts: 8ms, render: 20ms)
+ GET /api/auth/session 200 in 68ms (compile: 18ms, proxy.ts: 9ms, render: 41ms)
+ GET /api/auth/session 200 in 29ms (compile: 6ms, proxy.ts: 10ms, render: 14ms)
+○ Compiling /admin/settings ...
+ GET /admin/settings 200 in 38.7s (compile: 37.5s, proxy.ts: 27ms, render: 1113ms)
+ GET /classroom/vPu6O7Fr9T 200 in 4.2s (compile: 1428ms, proxy.ts: 38ms, render: 2.8s)
+○ Compiling /api/admin/config ...
+ GET /history 200 in 3.5s (compile: 117ms, proxy.ts: 20ms, render: 3.4s)
+[2026-05-27T07:03:00.921Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+ GET /api/access-code/status 200 in 6.3s (compile: 6.1s, proxy.ts: 18ms, render: 157ms)
+ GET /api/server-providers 200 in 6.3s (compile: 6.1s, proxy.ts: 18ms, render: 157ms)
+ GET /api/auth/session 200 in 6.3s (compile: 6.2s, proxy.ts: 18ms, render: 151ms)
+ GET /api/auth/session 200 in 47ms (compile: 7ms, proxy.ts: 12ms, render: 29ms)
+ GET /api/admin/config 200 in 6.4s (compile: 6.1s, proxy.ts: 22ms, render: 335ms)
+ GET /admin/settings 200 in 658ms (compile: 97ms, proxy.ts: 11ms, render: 549ms)
+ GET /api/access-code/status 200 in 1557ms (compile: 1442ms, proxy.ts: 87ms, render: 28ms)
+ GET /api/server-providers 200 in 1567ms (compile: 1474ms, proxy.ts: 87ms, render: 6ms)
+ GET /api/auth/session 200 in 1651ms (compile: 1514ms, proxy.ts: 87ms, render: 49ms)
+○ Compiling /_not-found ...
+ GET /api/auth/session 200 in 4.3s (compile: 26ms, proxy.ts: 4.3s, render: 9ms)
+ GET /@vite/client 404 in 8.9s (compile: 8.6s, proxy.ts: 10ms, render: 227ms)
+ GET /classroom/vPu6O7Fr9T 200 in 3.7s (compile: 1003ms, proxy.ts: 10ms, render: 2.7s)
+ GET /api/access-code/status 200 in 86ms (compile: 34ms, proxy.ts: 39ms, render: 12ms)
+[2026-05-27T07:03:15.376Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+ GET /api/server-providers 200 in 107ms (compile: 60ms, proxy.ts: 39ms, render: 8ms)
+ GET /api/admin/config 200 in 254ms (compile: 70ms, proxy.ts: 42ms, render: 142ms)
+ GET /api/auth/session 200 in 275ms (compile: 184ms, proxy.ts: 39ms, render: 52ms)
+ GET /history 200 in 4.0s (compile: 80ms, proxy.ts: 9ms, render: 3.9s)
+ GET /api/auth/session 200 in 42ms (compile: 12ms, proxy.ts: 12ms, render: 18ms)
+ GET /api/server-providers 200 in 29ms (compile: 10ms, proxy.ts: 12ms, render: 6ms)
+ GET /api/access-code/status 200 in 36ms (compile: 19ms, proxy.ts: 12ms, render: 5ms)
+ GET /api/auth/session 200 in 59ms (compile: 39ms, proxy.ts: 12ms, render: 8ms)
+ GET /@vite/client 404 in 90ms (compile: 48ms, proxy.ts: 12ms, render: 29ms)
+ GET /api/auth/session 200 in 16ms (compile: 5ms, proxy.ts: 5ms, render: 6ms)
+ GET /api/server-providers 200 in 16ms (compile: 6ms, proxy.ts: 7ms, render: 3ms)
+○ Compiling /api/classroom ...
+ GET /api/access-code/status 200 in 12.1s (compile: 11.8s, proxy.ts: 15ms, render: 310ms)
+ GET /api/mistake/session/oPL3R02Jmr 200 in 12.1s (compile: 11.9s, proxy.ts: 7ms, render: 274ms)
+ GET /api/classroom?id=vPu6O7Fr9T 200 in 11.3s (compile: 11.0s, proxy.ts: 24ms, render: 320ms)
+ GET /api/auth/session 200 in 12.3s (compile: 11.9s, proxy.ts: 15ms, render: 417ms)
+ PATCH /api/mistake/session/oPL3R02Jmr 400 in 100ms (compile: 49ms, proxy.ts: 39ms, render: 12ms)
+○ Compiling /api/classroom-media/[classroomId]/[...path] ...
+[2026-05-27T07:03:40.634Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T07:03:40.638Z] [INFO] [Scene Content API] Generating content: "什么是终止数？" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+ GET /api/auth/session 200 in 9.6s (compile: 9.5s, proxy.ts: 10ms, render: 129ms)
+ GET /api/auth/session 200 in 19ms (compile: 4ms, proxy.ts: 8ms, render: 8ms)
+ GET /api/classroom-media/vPu6O7Fr9T/audio/tts_s1_action_nipahIz1.mp3 200 in 8.5s (compile: 7.8s, proxy.ts: 696ms, render: 17ms)
+ GET /api/auth/session 200 in 51ms (compile: 18ms, proxy.ts: 4ms, render: 29ms)
+ GET /api/auth/session 200 in 26ms (compile: 3ms, proxy.ts: 10ms, render: 13ms)
+ GET /api/auth/session 200 in 23ms (compile: 5ms, proxy.ts: 4ms, render: 14ms)
+ GET /api/auth/session 200 in 47ms (compile: 26ms, proxy.ts: 7ms, render: 14ms)
+ GET /api/auth/session 200 in 18ms (compile: 3ms, proxy.ts: 4ms, render: 11ms)
+ GET /api/auth/session 200 in 24ms (compile: 9ms, proxy.ts: 5ms, render: 9ms)
+ GET /api/classroom-media/vPu6O7Fr9T/audio/tts_s1_action_Ca4GfZ3b.mp3 200 in 24ms (compile: 12ms, proxy.ts: 5ms, render: 8ms)
+ GET /api/auth/session 200 in 163ms (compile: 12ms, proxy.ts: 6ms, render: 145ms)
+ GET /api/auth/session 200 in 330ms (compile: 69ms, proxy.ts: 89ms, render: 172ms)
+ GET /api/auth/session 200 in 505ms (compile: 115ms, proxy.ts: 123ms, render: 267ms)
+ GET /api/auth/session 200 in 276ms (compile: 84ms, proxy.ts: 63ms, render: 128ms)
+ GET /api/auth/session 200 in 440ms (compile: 25ms, proxy.ts: 405ms, render: 10ms)
+ GET /api/auth/session 200 in 28ms (compile: 4ms, proxy.ts: 10ms, render: 14ms)
+ GET /api/auth/session 200 in 104ms (compile: 15ms, proxy.ts: 82ms, render: 7ms)
+ GET /api/auth/session 200 in 26ms (compile: 4ms, proxy.ts: 5ms, render: 16ms)
+ GET /api/auth/session 200 in 31ms (compile: 14ms, proxy.ts: 5ms, render: 12ms)
+ GET /api/classroom-media/vPu6O7Fr9T/audio/tts_s1_action_nW20kWeR.mp3 200 in 31ms (compile: 15ms, proxy.ts: 6ms, render: 10ms)
+[2026-05-27T07:04:14.823Z] [INFO] [Scene Content API] Content generated successfully: "什么是终止数？"
+ POST /api/generate/scene-content 200 in 44s (compile: 9.6s, proxy.ts: 12ms, render: 34.3s)
+[2026-05-27T07:04:14.850Z] [INFO] [Scene Content API] Generating content: "找规律" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:04:18.375Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T07:04:18.377Z] [INFO] [Scene Actions API] Generating actions: "什么是终止数？" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+ GET /api/classroom-media/vPu6O7Fr9T/audio/tts_s1_action_iNB5TReR.mp3 200 in 31ms (compile: 16ms, proxy.ts: 4ms, render: 10ms)
+[2026-05-27T07:04:39.384Z] [INFO] [Scene Actions API] Generated 10 actions for: "什么是终止数？"
+[2026-05-27T07:04:39.385Z] [INFO] [Scene Actions API] Scene assembled successfully: "什么是终止数？" — 10 actions
+ POST /api/generate/scene-actions 200 in 24.6s (compile: 3.5s, proxy.ts: 7ms, render: 21.1s)
+○ Compiling /api/generate/tts ...
+[2026-05-27T07:04:44.436Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T07:04:44.437Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_I3USMfSU, textLen=41
+ POST /api/generate/tts 200 in 6.1s (compile: 4.9s, proxy.ts: 5ms, render: 1204ms)
+[2026-05-27T07:04:45.571Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_7OZnk0q3, textLen=40
+ POST /api/generate/tts 200 in 921ms (compile: 2ms, proxy.ts: 7ms, render: 912ms)
+[2026-05-27T07:04:46.515Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_79KkH3Y9, textLen=54
+ POST /api/generate/tts 200 in 1319ms (compile: 1540µs, proxy.ts: 4ms, render: 1313ms)
+[2026-05-27T07:04:47.873Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_W8CS_KkV, textLen=27
+ POST /api/generate/tts 200 in 651ms (compile: 2ms, proxy.ts: 8ms, render: 640ms)
+[2026-05-27T07:04:48.491Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_5JgYx79c, textLen=107
+ GET /api/auth/session 200 in 126ms (compile: 66ms, proxy.ts: 5ms, render: 55ms)
+ GET /api/auth/session 200 in 34ms (compile: 6ms, proxy.ts: 7ms, render: 20ms)
+ GET /api/auth/session 200 in 59ms (compile: 5ms, proxy.ts: 4ms, render: 49ms)
+ POST /api/generate/tts 200 in 1952ms (compile: 1765µs, proxy.ts: 4ms, render: 1946ms)
+ GET /api/auth/session 200 in 25ms (compile: 13ms, proxy.ts: 4ms, render: 7ms)
+ GET /api/auth/session 200 in 15ms (compile: 4ms, proxy.ts: 4ms, render: 7ms)
+ GET /api/auth/session 200 in 14ms (compile: 4ms, proxy.ts: 4ms, render: 6ms)
+ GET /api/auth/session 200 in 25ms (compile: 13ms, proxy.ts: 4ms, render: 8ms)
+ GET /api/auth/session 200 in 14ms (compile: 3ms, proxy.ts: 4ms, render: 6ms)
+ GET /api/auth/session 200 in 13ms (compile: 3ms, proxy.ts: 4ms, render: 6ms)
+○ Compiling /mistake ...
+ GET /mistake 200 in 7.4s (compile: 6.6s, proxy.ts: 4ms, render: 736ms)
+ GET /api/auth/session 200 in 2.9s (compile: 2.2s, proxy.ts: 12ms, render: 675ms)
+ POST /api/generate/scene-content 200 in 53s (compile: 3ms, proxy.ts: 7ms, render: 53s)
+[2026-05-27T07:05:07.593Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T07:05:07.594Z] [INFO] [Scene Content API] Generating content: "判断练习" (quiz) [model=kimi:deepseek/deepseek-v4-flash]
+ POST /api/generate/scene-content 200 in 216ms (compile: 185ms, proxy.ts: 8ms, render: 23ms)
+ GET /api/auth/session 200 in 243ms (compile: 220ms, proxy.ts: 7ms, render: 16ms)
+ GET /admin/settings 200 in 174ms (compile: 31ms, proxy.ts: 8ms, render: 135ms)
+ GET /history 200 in 428ms (compile: 259ms, proxy.ts: 6ms, render: 164ms)
+○ Compiling /api/server-providers ...
+[2026-05-27T07:05:14.461Z] [INFO] [Scene Content API] Content generated successfully: "找规律"
+[2026-05-27T07:05:23.701Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+ GET /api/server-providers 200 in 15.0s (compile: 14.8s, proxy.ts: 13ms, render: 192ms)
+ GET /api/server-providers 200 in 9.8s (compile: 9.6s, proxy.ts: 13ms, render: 192ms)
+ GET /api/access-code/status 200 in 15.0s (compile: 14.8s, proxy.ts: 13ms, render: 192ms)
+ GET /api/access-code/status 200 in 9.8s (compile: 9.6s, proxy.ts: 13ms, render: 192ms)
+ GET /api/auth/session 200 in 9.8s (compile: 9.6s, proxy.ts: 13ms, render: 239ms)
+ GET /api/admin/config 200 in 11.6s (compile: 10.7s, proxy.ts: 442ms, render: 478ms)
+ GET /api/auth/session 200 in 15.3s (compile: 14.8s, proxy.ts: 13ms, render: 499ms)
+ GET /api/access-code/status 200 in 155ms (compile: 17ms, proxy.ts: 134ms, render: 4ms)
+ GET /api/server-providers 200 in 161ms (compile: 24ms, proxy.ts: 134ms, render: 4ms)
+ GET /api/auth/session 200 in 202ms (compile: 62ms, proxy.ts: 134ms, render: 6ms)
+[2026-05-27T07:05:24.502Z] [INFO] [Scene Content API] Content generated successfully: "判断练习"
+ GET /api/auth/session 200 in 341ms (compile: 227ms, proxy.ts: 74ms, render: 40ms)
+ GET /history 200 in 14.8s (compile: 13.8s, proxy.ts: 25ms, render: 943ms)
+ GET /@vite/client 404 in 10.9s (compile: 10.5s, proxy.ts: 13ms, render: 304ms)
+ GET /api/auth/session 200 in 414ms (compile: 377ms, proxy.ts: 24ms, render: 13ms)
+ GET /api/auth/session 200 in 24ms (compile: 4ms, proxy.ts: 6ms, render: 13ms)
+ GET /api/auth/session 200 in 151ms (compile: 132ms, proxy.ts: 7ms, render: 11ms)
+ GET /api/auth/session 200 in 16ms (compile: 4ms, proxy.ts: 5ms, render: 8ms)
+ GET /api/auth/session 200 in 90ms (compile: 51ms, proxy.ts: 9ms, render: 30ms)
+ GET /api/auth/session 200 in 42ms (compile: 7ms, proxy.ts: 15ms, render: 20ms)
+ GET /api/auth/session 200 in 36ms (compile: 14ms, proxy.ts: 12ms, render: 10ms)
+ GET /classroom/U_i4WvsM1f 200 in 347ms (compile: 315ms, proxy.ts: 5ms, render: 26ms)
+○ Compiling /api/classroom ...
+ GET /api/mistake/session/oPL3R02Jmr 200 in 4.8s (compile: 4.7s, proxy.ts: 26ms, render: 55ms)
+ GET /api/classroom?id=U_i4WvsM1f 200 in 4.5s (compile: 3.9s, proxy.ts: 534ms, render: 74ms)
+ GET /api/mistake/session/oPL3R02Jmr 200 in 1363ms (compile: 1335ms, proxy.ts: 17ms, render: 12ms)
+ GET /classroom/U_i4WvsM1f 200 in 1393ms (compile: 1216ms, proxy.ts: 16ms, render: 161ms)
+ GET /admin/settings 200 in 1396ms (compile: 1302ms, proxy.ts: 18ms, render: 76ms)
+[2026-05-27T07:05:54.558Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T07:05:54.559Z] [INFO] [Scene Content API] Generating content: "分数通分复习" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+ PATCH /api/mistake/session/oPL3R02Jmr 400 in 255ms (compile: 32ms, proxy.ts: 211ms, render: 11ms)
+ GET /history 200 in 1645ms (compile: 96ms, proxy.ts: 15ms, render: 1534ms)
+○ Compiling /api/classroom-media/[classroomId]/[...path] ...
+ GET /api/classroom-media/U_i4WvsM1f/audio/tts_s1_action_jVYTdvCt.mp3 200 in 9.5s (compile: 9.5s, proxy.ts: 4ms, render: 66ms)
+ GET /api/classroom-media/U_i4WvsM1f/audio/tts_s1_action_hIe2FIoG.mp3 200 in 25ms (compile: 10ms, proxy.ts: 5ms, render: 10ms)
+[2026-05-27T07:06:37.890Z] [INFO] [Scene Content API] Content generated successfully: "分数通分复习"
+ POST /api/generate/scene-content 200 in 44s (compile: 164ms, proxy.ts: 26ms, render: 43s)
+[2026-05-27T07:06:39.904Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T07:06:39.906Z] [INFO] [Scene Content API] Generating content: "计算括号内差值" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:06:41.605Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T07:06:41.606Z] [INFO] [Scene Actions API] Generating actions: "分数通分复习" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+ GET /api/classroom-media/U_i4WvsM1f/audio/tts_s1_action_0tRAizWC.mp3 200 in 135ms (compile: 84ms, proxy.ts: 12ms, render: 40ms)
+ GET /api/classroom-media/U_i4WvsM1f/audio/tts_s1_action_Px8_R-mo.mp3 200 in 32ms (compile: 14ms, proxy.ts: 5ms, render: 13ms)
+[2026-05-27T07:06:55.466Z] [INFO] [Scene Actions API] Generated 10 actions for: "分数通分复习"
+[2026-05-27T07:06:55.467Z] [INFO] [Scene Actions API] Scene assembled successfully: "分数通分复习" — 10 actions
+ POST /api/generate/scene-actions 200 in 17.6s (compile: 3.7s, proxy.ts: 5ms, render: 13.9s)
+[2026-05-27T07:06:58.696Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T07:06:58.696Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_jL00bJGN, textLen=86
+[2026-05-27T07:07:04.564Z] [INFO] [Scene Content API] Content generated successfully: "计算括号内差值"
+ POST /api/generate/scene-content 200 in 26.7s (compile: 1992ms, proxy.ts: 5ms, render: 24.7s)
+ GET /classroom/U_i4WvsM1f 200 in 7.6s (compile: 4.3s, proxy.ts: 9ms, render: 3.3s)
+ GET /admin/settings 200 in 7.6s (compile: 4.8s, proxy.ts: 10ms, render: 2.9s)
+[2026-05-27T07:07:06.008Z] [INFO] [Scene Content API] Generating content: "移项求解" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+ GET /history 200 in 8.8s (compile: 301ms, proxy.ts: 9ms, render: 8.5s)
+ POST /api/generate/tts 200 in 10.7s (compile: 1695ms, proxy.ts: 5ms, render: 9.0s)
+[2026-05-27T07:07:06.250Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_RufEFF5F, textLen=60
+ POST /api/generate/tts 200 in 1362ms (compile: 4ms, proxy.ts: 9ms, render: 1349ms)
+[2026-05-27T07:07:07.622Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_bP6sUstJ, textLen=92
+ POST /api/generate/tts 200 in 2.0s (compile: 15ms, proxy.ts: 5ms, render: 2.0s)
+[2026-05-27T07:07:09.623Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_EgIj9LKF, textLen=61
+ POST /api/generate/tts 200 in 1309ms (compile: 158µs, proxy.ts: 15ms, render: 1293ms)
+[2026-05-27T07:07:10.920Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_WsQHaqF3, textLen=68
+ POST /api/generate/tts 200 in 1398ms (compile: 2ms, proxy.ts: 5ms, render: 1391ms)
+[2026-05-27T07:07:12.464Z] [INFO] [Scene Actions API] Generating actions: "计算括号内差值" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+ GET /api/auth/session 200 in 4.4s (compile: 4.4s, proxy.ts: 5ms, render: 74ms)
+ GET /api/auth/session 200 in 18ms (compile: 4ms, proxy.ts: 6ms, render: 8ms)
+ GET /api/auth/session 200 in 20ms (compile: 6ms, proxy.ts: 5ms, render: 8ms)
+ GET /api/auth/session 200 in 18ms (compile: 4ms, proxy.ts: 5ms, render: 9ms)
+ GET /api/auth/session 200 in 18ms (compile: 5ms, proxy.ts: 5ms, render: 8ms)
+ GET /api/auth/session 200 in 19ms (compile: 6ms, proxy.ts: 6ms, render: 7ms)
+ GET /api/auth/session 200 in 17ms (compile: 4ms, proxy.ts: 6ms, render: 8ms)
+ GET /api/auth/session 200 in 19ms (compile: 4ms, proxy.ts: 5ms, render: 10ms)
+ GET /api/auth/session 200 in 44ms (compile: 20ms, proxy.ts: 6ms, render: 18ms)
+[2026-05-27T07:07:37.883Z] [INFO] [Scene Actions API] Generated 8 actions for: "计算括号内差值"
+[2026-05-27T07:07:37.883Z] [INFO] [Scene Actions API] Scene assembled successfully: "计算括号内差值" — 8 actions
+ POST /api/generate/scene-actions 200 in 25.6s (compile: 123ms, proxy.ts: 5ms, render: 25.4s)
+[2026-05-27T07:07:37.937Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T07:07:37.937Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s3_action_70Lb_kIf, textLen=23
+ POST /api/generate/tts 200 in 721ms (compile: 30ms, proxy.ts: 5ms, render: 686ms)
+[2026-05-27T07:07:38.628Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s3_action_BE_bNdqo, textLen=64
+ POST /api/generate/tts 200 in 1382ms (compile: 1975µs, proxy.ts: 4ms, render: 1376ms)
+[2026-05-27T07:07:40.018Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s3_action_JjqKnE-G, textLen=54
+ POST /api/generate/tts 200 in 1259ms (compile: 1627µs, proxy.ts: 4ms, render: 1254ms)
+[2026-05-27T07:07:41.287Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s3_action_eq93kUpO, textLen=61
+ POST /api/generate/tts 200 in 1304ms (compile: 1670µs, proxy.ts: 5ms, render: 1298ms)
+[2026-05-27T07:07:55.647Z] [INFO] [Scene Content API] Content generated successfully: "移项求解"
+ POST /api/generate/scene-content 200 in 51s (compile: 1139ms, proxy.ts: 25ms, render: 50s)
+[2026-05-27T07:07:55.813Z] [INFO] [Scene Content API] Generating content: "验算与总结" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:07:55.840Z] [INFO] [Scene Actions API] Generating actions: "移项求解" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:08:09.557Z] [INFO] [Scene Actions API] Generated 8 actions for: "移项求解"
+[2026-05-27T07:08:09.558Z] [INFO] [Scene Actions API] Scene assembled successfully: "移项求解" — 8 actions
+ POST /api/generate/scene-actions 200 in 13.9s (compile: 169ms, proxy.ts: 10ms, render: 13.7s)
+[2026-05-27T07:08:09.579Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s4_action_XVs4SJkN, textLen=22
+ POST /api/generate/tts 200 in 1482ms (compile: 4ms, proxy.ts: 5ms, render: 1472ms)
+[2026-05-27T07:08:11.071Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s4_action_2rTtbClH, textLen=86
+ POST /api/generate/tts 200 in 1775ms (compile: 1823µs, proxy.ts: 5ms, render: 1768ms)
+[2026-05-27T07:08:12.899Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s4_action_Ie4SzbCZ, textLen=39
+ GET /api/auth/session 200 in 33ms (compile: 14ms, proxy.ts: 5ms, render: 14ms)
+ GET /api/auth/session 200 in 30ms (compile: 4ms, proxy.ts: 17ms, render: 10ms)
+ GET /api/auth/session 200 in 16ms (compile: 4ms, proxy.ts: 5ms, render: 8ms)
+ POST /api/generate/tts 200 in 904ms (compile: 41ms, proxy.ts: 7ms, render: 856ms)
+[2026-05-27T07:08:13.798Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s4_action_KLVLvqwk, textLen=93
+ POST /api/generate/tts 200 in 1974ms (compile: 2ms, proxy.ts: 19ms, render: 1953ms)
+[2026-05-27T07:08:15.758Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s4_action_2SanTYBr, textLen=65
+ POST /api/generate/tts 200 in 1206ms (compile: 3ms, proxy.ts: 5ms, render: 1198ms)
+[2026-05-27T07:08:40.836Z] [INFO] [Scene Content API] Content generated successfully: "验算与总结"
+ POST /api/generate/scene-content 200 in 45s (compile: 143ms, proxy.ts: 10ms, render: 45s)
+[2026-05-27T07:08:46.867Z] [INFO] [Scene Content API] Generating content: "相似练习" (quiz) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:08:47.171Z] [INFO] [Scene Actions API] Generating actions: "验算与总结" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+ GET /api/auth/session 200 in 2.8s (compile: 1269ms, proxy.ts: 1312ms, render: 228ms)
+ GET /api/auth/session 200 in 206ms (compile: 83ms, proxy.ts: 57ms, render: 65ms)
+ GET /api/auth/session 200 in 183ms (compile: 20ms, proxy.ts: 11ms, render: 152ms)
+ GET /api/auth/session 200 in 5.1s (compile: 3.9s, proxy.ts: 243ms, render: 957ms)
+ GET /api/auth/session 200 in 1204ms (compile: 362ms, proxy.ts: 374ms, render: 468ms)
+ GET /api/auth/session 200 in 902ms (compile: 281ms, proxy.ts: 271ms, render: 350ms)
+ GET /api/auth/session 200 in 59ms (compile: 30ms, proxy.ts: 7ms, render: 22ms)
+ GET /api/auth/session 200 in 27ms (compile: 6ms, proxy.ts: 9ms, render: 12ms)
+ GET /api/auth/session 200 in 30ms (compile: 6ms, proxy.ts: 8ms, render: 16ms)
+ GET /api/auth/session 200 in 31ms (compile: 6ms, proxy.ts: 8ms, render: 16ms)
+ GET /api/auth/session 200 in 31ms (compile: 7ms, proxy.ts: 8ms, render: 15ms)
+ GET /api/auth/session 200 in 73ms (compile: 8ms, proxy.ts: 9ms, render: 56ms)
+[2026-05-27T07:09:00.526Z] [INFO] [Scene Content API] Content generated successfully: "相似练习"
+ POST /api/generate/scene-content 200 in 15.9s (compile: 350ms, proxy.ts: 1340ms, render: 14.2s)
+[2026-05-27T07:09:15.886Z] [INFO] [Scene Actions API] Generated 12 actions for: "验算与总结"
+[2026-05-27T07:09:15.888Z] [INFO] [Scene Actions API] Scene assembled successfully: "验算与总结" — 12 actions
+ POST /api/generate/scene-actions 200 in 31.2s (compile: 1129ms, proxy.ts: 1340ms, render: 28.8s)
+[2026-05-27T07:09:15.980Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s5_action_0GrQVlzT, textLen=42
+ POST /api/generate/tts 200 in 1152ms (compile: 6ms, proxy.ts: 10ms, render: 1136ms)
+[2026-05-27T07:09:17.112Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s5_action_qFCrXAMk, textLen=51
+ POST /api/generate/tts 200 in 1089ms (compile: 2ms, proxy.ts: 4ms, render: 1083ms)
+[2026-05-27T07:09:18.223Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s5_action_S0p5yX-I, textLen=123
+ POST /api/generate/tts 200 in 2.5s (compile: 1648µs, proxy.ts: 4ms, render: 2.5s)
+[2026-05-27T07:09:20.765Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s5_action_FuWCcb2O, textLen=51
+ POST /api/generate/tts 200 in 1014ms (compile: 1622µs, proxy.ts: 8ms, render: 1005ms)
+[2026-05-27T07:09:21.791Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s5_action_TQ-W4OYn, textLen=32
+ POST /api/generate/tts 200 in 669ms (compile: 1686µs, proxy.ts: 4ms, render: 663ms)
+[2026-05-27T07:09:22.468Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s5_action_UD4Rb31D, textLen=92
+ POST /api/generate/tts 200 in 1859ms (compile: 1699µs, proxy.ts: 8ms, render: 1849ms)
+[2026-05-27T07:09:24.443Z] [INFO] [Scene Actions API] Generating actions: "相似练习" (quiz) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:09:47.144Z] [INFO] [Scene Actions API] Generated 4 actions for: "相似练习"
+[2026-05-27T07:09:47.144Z] [INFO] [Scene Actions API] Scene assembled successfully: "相似练习" — 4 actions
+ POST /api/generate/scene-actions 200 in 22.8s (compile: 13ms, proxy.ts: 26ms, render: 22.7s)
+[2026-05-27T07:09:47.202Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s6_action_NwJG7W8o, textLen=61
+ POST /api/generate/tts 200 in 1368ms (compile: 11ms, proxy.ts: 28ms, render: 1329ms)
+[2026-05-27T07:09:48.607Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s6_action_bQHgLZyC, textLen=218
+ POST /api/generate/tts 200 in 4.4s (compile: 3ms, proxy.ts: 5ms, render: 4.4s)
+[2026-05-27T07:09:53.032Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s6_action_E5OcavkJ, textLen=82
+ POST /api/generate/tts 200 in 1872ms (compile: 1935µs, proxy.ts: 5ms, render: 1865ms)
+○ Compiling /api/mistake/session/[id] ...
+ PATCH /api/mistake/session/oPL3R02Jmr 200 in 15.7s (compile: 15.6s, proxy.ts: 10ms, render: 95ms)
+ GET /classroom/U_i4WvsM1f 200 in 3.6s (compile: 3.2s, proxy.ts: 80ms, render: 345ms)
+ GET /admin/settings 200 in 3.6s (compile: 3.1s, proxy.ts: 327ms, render: 193ms)
+ GET /history 200 in 4.2s (compile: 2.1s, proxy.ts: 80ms, render: 2.0s)
+○ Compiling /api/classroom ...
+ GET /api/classroom?id=U_i4WvsM1f 200 in 12.7s (compile: 12.6s, proxy.ts: 118ms, render: 42ms)
+ GET /classroom/U_i4WvsM1f 200 in 1503ms (compile: 1397ms, proxy.ts: 19ms, render: 87ms)
+ GET /admin/settings 200 in 1504ms (compile: 1208ms, proxy.ts: 20ms, render: 275ms)
+ GET /history 200 in 1514ms (compile: 1088ms, proxy.ts: 19ms, render: 407ms)
+[2026-05-27T07:15:24.195Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T07:15:24.197Z] [INFO] [Scene Content API] Generating content: "计算括号内差值" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:15:24.205Z] [INFO] [Scene Content API] Generating content: "移项求解" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:15:24.206Z] [INFO] [Scene Content API] Generating content: "分数通分复习" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+ GET /admin/settings 200 in 372ms (compile: 147ms, proxy.ts: 26ms, render: 200ms)
+ GET /classroom/U_i4WvsM1f 200 in 376ms (compile: 274ms, proxy.ts: 25ms, render: 77ms)
+ GET /history 200 in 390ms (compile: 76ms, proxy.ts: 25ms, render: 289ms)
+[2026-05-27T07:16:31.836Z] [INFO] [Scene Content API] Content generated successfully: "移项求解"
+ POST /api/generate/scene-content 200 in 72s (compile: 4.0s, proxy.ts: 203ms, render: 68s)
+[2026-05-27T07:16:36.679Z] [INFO] [Scene Content API] Generating content: "验算与总结" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:16:43.924Z] [INFO] [Scene Content API] Content generated successfully: "分数通分复习"
+ POST /api/generate/scene-content 200 in 84s (compile: 4.0s, proxy.ts: 203ms, render: 80s)
+[2026-05-27T07:16:44.606Z] [INFO] [Scene Content API] Content generated successfully: "计算括号内差值"
+ POST /api/generate/scene-content 200 in 85s (compile: 4.0s, proxy.ts: 203ms, render: 81s)
+[2026-05-27T07:16:47.187Z] [INFO] [Scene Content API] Generating content: "相似练习" (quiz) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:17:00.908Z] [INFO] [Scene Content API] Content generated successfully: "相似练习"
+ POST /api/generate/scene-content 200 in 16.1s (compile: 211ms, proxy.ts: 875ms, render: 15.0s)
+[2026-05-27T07:18:02.343Z] [INFO] [Scene Content API] Content generated successfully: "验算与总结"
+ POST /api/generate/scene-content 200 in 86s (compile: 47ms, proxy.ts: 137ms, render: 86s)
+ GET /history 200 in 2.6s (compile: 57ms, proxy.ts: 121ms, render: 2.4s)
+○ Compiling /api/auth/[...nextauth] ...
+[2026-05-27T07:22:22.558Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+ GET /classroom/U_i4WvsM1f 200 in 75s (compile: 72s, proxy.ts: 55ms, render: 3.3s)
+ GET /api/server-providers 200 in 54ms (compile: 9ms, proxy.ts: 27ms, render: 17ms)
+ GET /api/access-code/status 200 in 60ms (compile: 29ms, proxy.ts: 27ms, render: 4ms)
+ GET /api/auth/session 200 in 251ms (compile: 50ms, proxy.ts: 27ms, render: 174ms)
+○ Compiling /api/mistake/session/[id] ...
+[2026-05-27T07:22:45.253Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T07:22:45.256Z] [INFO] [Scene Content API] Generating content: "分数通分复习" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:22:45.263Z] [INFO] [Scene Content API] Generating content: "计算括号内差值" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:22:45.264Z] [INFO] [Scene Content API] Generating content: "移项求解" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+ GET /api/mistake/session/oPL3R02Jmr 200 in 10.0s (compile: 9.8s, proxy.ts: 27ms, render: 148ms)
+ GET /api/auth/session 200 in 6.8s (compile: 6.4s, proxy.ts: 324ms, render: 159ms)
+ PATCH /api/mistake/session/oPL3R02Jmr 400 in 50ms (compile: 27ms, proxy.ts: 14ms, render: 10ms)
+ GET /classroom/U_i4WvsM1f 200 in 1245ms (compile: 1133ms, proxy.ts: 13ms, render: 99ms)
+[2026-05-27T07:23:10.960Z] [INFO] [Scene Content API] Content generated successfully: "计算括号内差值"
+ POST /api/generate/scene-content 200 in 34.1s (compile: 6.7s, proxy.ts: 1636ms, render: 25.8s)
+[2026-05-27T07:23:10.981Z] [INFO] [Scene Content API] Generating content: "验算与总结" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:23:38.198Z] [INFO] [Scene Content API] Content generated successfully: "分数通分复习"
+ POST /api/generate/scene-content 200 in 61s (compile: 6.7s, proxy.ts: 1636ms, render: 53s)
+[2026-05-27T07:23:38.219Z] [INFO] [Scene Content API] Generating content: "相似练习" (quiz) [model=kimi:deepseek/deepseek-v4-flash]
+○ Compiling /api/generate/scene-actions ...
+[2026-05-27T07:23:54.225Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T07:23:54.229Z] [INFO] [Scene Actions API] Generating actions: "分数通分复习" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:23:54.268Z] [INFO] [Scene Content API] Content generated successfully: "移项求解"
+ POST /api/generate/scene-content 200 in 76s (compile: 6.3s, proxy.ts: 324ms, render: 69s)
+[2026-05-27T07:24:05.800Z] [INFO] [Scene Actions API] Generated 10 actions for: "分数通分复习"
+[2026-05-27T07:24:05.801Z] [INFO] [Scene Actions API] Scene assembled successfully: "分数通分复习" — 10 actions
+ POST /api/generate/scene-actions 200 in 27.6s (compile: 16.0s, proxy.ts: 6ms, render: 11.6s)
+[2026-05-27T07:24:06.729Z] [INFO] [Scene Content API] Content generated successfully: "相似练习"
+ POST /api/generate/scene-content 200 in 28.5s (compile: 4ms, proxy.ts: 6ms, render: 28.5s)
+○ Compiling /api/generate/tts ...
+[2026-05-27T07:24:12.153Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T07:24:12.154Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_DBirCVBu, textLen=43
+[2026-05-27T07:24:12.156Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_MCSJlqP2, textLen=54
+[2026-05-27T07:24:12.156Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_sOR8KfiI, textLen=42
+ GET /classroom/U_i4WvsM1f 200 in 370ms (compile: 282ms, proxy.ts: 7ms, render: 80ms)
+ POST /api/generate/tts 200 in 7.6s (compile: 5.9s, proxy.ts: 10ms, render: 1672ms)
+[2026-05-27T07:24:13.457Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_kXPiJt6N, textLen=52
+ POST /api/generate/tts 200 in 7.7s (compile: 5.9s, proxy.ts: 10ms, render: 1826ms)
+ POST /api/generate/tts 200 in 7.8s (compile: 5.9s, proxy.ts: 10ms, render: 1848ms)
+[2026-05-27T07:24:13.581Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_LD75DntF, textLen=64
+ POST /api/generate/tts 200 in 1175ms (compile: 3ms, proxy.ts: 4ms, render: 1168ms)
+ POST /api/generate/tts 200 in 1317ms (compile: 1760µs, proxy.ts: 4ms, render: 1311ms)
+[2026-05-27T07:24:15.138Z] [INFO] [Scene Actions API] Generating actions: "计算括号内差值" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:24:23.322Z] [INFO] [Scene Content API] Content generated successfully: "验算与总结"
+ POST /api/generate/scene-content 200 in 72s (compile: 3ms, proxy.ts: 5ms, render: 72s)
+○ Compiling /api/auth/[...nextauth] ...
+ GET /admin/settings 200 in 5.5s (compile: 2.0s, proxy.ts: 2.0s, render: 1409ms)
+ GET /api/auth/session 200 in 12.7s (compile: 11.4s, proxy.ts: 6ms, render: 1319ms)
+ GET /api/auth/session 200 in 67ms (compile: 20ms, proxy.ts: 18ms, render: 29ms)
+ GET /api/auth/session 200 in 26ms (compile: 8ms, proxy.ts: 6ms, render: 12ms)
+ GET /api/auth/session 200 in 24ms (compile: 6ms, proxy.ts: 7ms, render: 10ms)
+ GET /api/auth/session 200 in 36ms (compile: 7ms, proxy.ts: 8ms, render: 20ms)
+ GET /api/auth/session 200 in 40ms (compile: 7ms, proxy.ts: 18ms, render: 14ms)
+ GET /classroom/U_i4WvsM1f 200 in 5.0s (compile: 2.4s, proxy.ts: 7ms, render: 2.6s)
+ POST /api/generate/scene-actions 200 in 27.3s (compile: 128ms, proxy.ts: 5ms, render: 27.2s)
+○ Compiling /api/admin/config ...
+[2026-05-27T07:24:52.704Z] [INFO] [Scene Actions API] Generated 6 actions for: "计算括号内差值"
+[2026-05-27T07:24:52.706Z] [INFO] [Scene Actions API] Scene assembled successfully: "计算括号内差值" — 6 actions
+[2026-05-27T07:24:57.530Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+ GET /api/server-providers 200 in 15.2s (compile: 15.0s, proxy.ts: 12ms, render: 181ms)
+ GET /api/access-code/status 200 in 15.2s (compile: 15.0s, proxy.ts: 12ms, render: 180ms)
+ GET /api/admin/config 200 in 15.6s (compile: 15.0s, proxy.ts: 13ms, render: 580ms)
+ GET /api/auth/session 200 in 13.8s (compile: 13.3s, proxy.ts: 18ms, render: 531ms)
+ GET /admin/settings 200 in 3.7s (compile: 3.0s, proxy.ts: 51ms, render: 615ms)
+ GET /classroom/U_i4WvsM1f 200 in 757ms (compile: 720ms, proxy.ts: 14ms, render: 23ms)
+ GET /api/access-code/status 200 in 16ms (compile: 5ms, proxy.ts: 8ms, render: 4ms)
+ GET /api/server-providers 200 in 21ms (compile: 10ms, proxy.ts: 8ms, render: 3ms)
+ GET /api/admin/config 200 in 48ms (compile: 15ms, proxy.ts: 8ms, render: 25ms)
+ GET /api/auth/session 200 in 54ms (compile: 31ms, proxy.ts: 8ms, render: 16ms)
+ GET /api/auth/session 200 in 16ms (compile: 4ms, proxy.ts: 5ms, render: 8ms)
+ GET /api/auth/session 200 in 3.8s (compile: 266ms, proxy.ts: 2.4s, render: 1151ms)
+ GET /mistake 200 in 167ms (compile: 83ms, proxy.ts: 33ms, render: 51ms)
+ GET /api/auth/session 200 in 173ms (compile: 27ms, proxy.ts: 34ms, render: 112ms)
+ GET /history 200 in 1886ms (compile: 316ms, proxy.ts: 690ms, render: 880ms)
+ GET /mistake 200 in 320ms (compile: 4ms, proxy.ts: 7ms, render: 308ms)
+ GET /api/access-code/status 200 in 519ms (compile: 12ms, proxy.ts: 491ms, render: 16ms)
+ GET /api/server-providers 200 in 536ms (compile: 31ms, proxy.ts: 491ms, render: 14ms)
+ GET /api/auth/session 200 in 570ms (compile: 60ms, proxy.ts: 491ms, render: 19ms)
+ GET /api/auth/session 200 in 32ms (compile: 9ms, proxy.ts: 7ms, render: 16ms)
+ GET /api/auth/session 200 in 31ms (compile: 7ms, proxy.ts: 7ms, render: 17ms)
+○ Compiling /api/mistake/session/extract ...
+[2026-05-27T07:49:27.921Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+ GET /api/auth/session 200 in 27.1s (compile: 22.4s, proxy.ts: 2.7s, render: 2.1s)
+ POST /api/mistake/session/extract 200 in 49s (compile: 46s, proxy.ts: 21ms, render: 2.3s)
+ GET /mistake 200 in 27.1s (compile: 22.2s, proxy.ts: 2.7s, render: 2.3s)
+ GET /api/auth/session 200 in 48ms (compile: 16ms, proxy.ts: 17ms, render: 14ms)
+ GET /admin/settings 200 in 157ms (compile: 101ms, proxy.ts: 18ms, render: 39ms)
+ GET /api/auth/session 200 in 35ms (compile: 5ms, proxy.ts: 6ms, render: 24ms)
+ GET /mistake 200 in 36ms (compile: 3ms, proxy.ts: 4ms, render: 29ms)
+ GET /admin/settings 200 in 45ms (compile: 3ms, proxy.ts: 5ms, render: 37ms)
+ GET /api/access-code/status 200 in 27ms (compile: 15ms, proxy.ts: 7ms, render: 5ms)
+ GET /api/server-providers 200 in 38ms (compile: 26ms, proxy.ts: 7ms, render: 5ms)
+ GET /api/auth/session 200 in 66ms (compile: 44ms, proxy.ts: 7ms, render: 15ms)
+ GET /api/auth/session 200 in 42ms (compile: 7ms, proxy.ts: 7ms, render: 28ms)
+ GET /api/server-providers 200 in 1759ms (compile: 1285ms, proxy.ts: 453ms, render: 21ms)
+ GET /api/access-code/status 200 in 1782ms (compile: 1324ms, proxy.ts: 453ms, render: 5ms)
+ GET /api/auth/session 200 in 2.1s (compile: 1592ms, proxy.ts: 453ms, render: 29ms)
+○ Compiling /api/admin/config ...
+[2026-05-27T07:49:43.795Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+ GET /api/auth/session 200 in 3.8s (compile: 3.6s, proxy.ts: 120ms, render: 72ms)
+ GET /api/admin/config 200 in 5.9s (compile: 5.1s, proxy.ts: 603ms, render: 141ms)
+ GET /api/auth/session 200 in 14ms (compile: 3ms, proxy.ts: 4ms, render: 7ms)
+ POST /api/mistake/session/extract 200 in 5.0s (compile: 3.7s, proxy.ts: 83ms, render: 1193ms)
+ GET /mistake/recognize 200 in 2.5s (compile: 2.4s, proxy.ts: 4ms, render: 50ms)
+ POST /api/mistake/session 201 in 1699ms (compile: 1326ms, proxy.ts: 4ms, render: 369ms)
+○ Compiling /generation-preview ...
+ GET /generation-preview 200 in 7.2s (compile: 6.4s, proxy.ts: 689ms, render: 44ms)
+ GET /admin/settings 200 in 971ms (compile: 873ms, proxy.ts: 17ms, render: 82ms)
+ GET /generation-preview 200 in 969ms (compile: 927ms, proxy.ts: 17ms, render: 25ms)
+[2026-05-27T07:49:59.436Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+ GET /api/server-providers 200 in 41ms (compile: 23ms, proxy.ts: 7ms, render: 11ms)
+○ Compiling /api/generate/scene-outlines-stream ...
+[2026-05-27T07:50:07.172Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T07:50:07.175Z] [INFO] [Outlines Stream] Generating outlines: "【核心诉求】
+请为一名小学6年级学生（姓名：橦橦）讲解这道错题。
+期望的教学风格：socratic。" [model=kimi:deepseek/deepseek-v4-flash]
+ POST /api/generate/scene-outlines-stream 200 in 26.5s (compile: 7.7s, proxy.ts: 6ms, render: 18.8s)
+ GET /api/server-providers 200 in 19ms (compile: 6ms, proxy.ts: 7ms, render: 6ms)
+○ Compiling /api/generate/scene-content ...
+[2026-05-27T07:50:36.337Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T07:50:36.339Z] [INFO] [Scene Content API] Generating content: "错题引入" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:51:44.981Z] [INFO] [Scene Content API] Content generated successfully: "错题引入"
+ POST /api/generate/scene-content 200 in 76s (compile: 7.8s, proxy.ts: 5ms, render: 69s)
+ GET /api/server-providers 200 in 273ms (compile: 22ms, proxy.ts: 222ms, render: 29ms)
+○ Compiling /api/generate/scene-actions ...
+[2026-05-27T07:52:15.797Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T07:52:15.801Z] [INFO] [Scene Actions API] Generating actions: "错题引入" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:52:36.849Z] [INFO] [Scene Actions API] Generated 8 actions for: "错题引入"
+[2026-05-27T07:52:36.851Z] [INFO] [Scene Actions API] Scene assembled successfully: "错题引入" — 8 actions
+ POST /api/generate/scene-actions 200 in 36.3s (compile: 15.1s, proxy.ts: 47ms, render: 21.1s)
+○ Compiling /api/classroom ...
+[2026-05-27T07:52:54.927Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T07:52:54.928Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s1_action_KHvNwvg3, textLen=31
+[2026-05-27T07:52:54.929Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s1_action_ZFyskf19, textLen=47
+[2026-05-27T07:52:54.930Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s1_action_GoT573om, textLen=53
+[2026-05-27T07:52:54.931Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s1_action_wecZRpj_, textLen=53
+ GET /generation-preview 200 in 921ms (compile: 824ms, proxy.ts: 24ms, render: 73ms)
+ GET /admin/settings 200 in 107ms (compile: 61ms, proxy.ts: 11ms, render: 35ms)
+ POST /api/generate/tts 200 in 19.2s (compile: 16.9s, proxy.ts: 15ms, render: 2.3s)
+ POST /api/generate/tts 200 in 19.2s (compile: 16.9s, proxy.ts: 15ms, render: 2.3s)
+[2026-05-27T07:52:56.292Z] [INFO] [ClassroomMedia] Generated TTS: tts_s1_action_ZFyskf19.mp3 (168703 bytes)
+ POST /api/generate/tts 200 in 19.4s (compile: 16.9s, proxy.ts: 15ms, render: 2.5s)
+ POST /api/generate/tts 200 in 19.5s (compile: 16.9s, proxy.ts: 15ms, render: 2.6s)
+[2026-05-27T07:52:57.247Z] [INFO] [ClassroomMedia] Generated TTS: tts_s1_action_wecZRpj_.mp3 (170623 bytes)
+[2026-05-27T07:52:58.092Z] [INFO] [ClassroomMedia] Generated TTS: tts_s1_action_KHvNwvg3.mp3 (126463 bytes)
+[2026-05-27T07:52:59.281Z] [INFO] [ClassroomMedia] Generated TTS: tts_s1_action_GoT573om.mp3 (199807 bytes)
+ POST /api/classroom 201 in 22.4s (compile: 16.9s, proxy.ts: 15ms, render: 5.5s)
+ PATCH /api/mistake/session/effidIBAao 200 in 913ms (compile: 863ms, proxy.ts: 5ms, render: 45ms)
+ GET /generation-preview 200 in 166ms (compile: 133ms, proxy.ts: 7ms, render: 26ms)
+ GET /admin/settings 200 in 167ms (compile: 78ms, proxy.ts: 10ms, render: 79ms)
+○ Compiling /classroom/[id] ...
+ GET /classroom/TNpX3uq4aV 200 in 27.6s (compile: 25.7s, proxy.ts: 11ms, render: 1953ms)
+ GET /admin/settings 200 in 700ms (compile: 594ms, proxy.ts: 40ms, render: 66ms)
+○ Compiling /api/auth/[...nextauth] ...
+[2026-05-27T07:53:54.801Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+ GET /api/access-code/status 200 in 16.6s (compile: 16.3s, proxy.ts: 15ms, render: 279ms)
+ GET /api/server-providers 200 in 16.6s (compile: 16.3s, proxy.ts: 15ms, render: 255ms)
+ GET /api/classroom?id=TNpX3uq4aV 200 in 16.3s (compile: 15.1s, proxy.ts: 887ms, render: 304ms)
+ GET /api/mistake/session/effidIBAao 200 in 16.6s (compile: 16.4s, proxy.ts: 15ms, render: 244ms)
+ GET /api/access-code/status 200 in 53ms (compile: 13ms, proxy.ts: 27ms, render: 14ms)
+ GET /api/server-providers 200 in 69ms (compile: 28ms, proxy.ts: 27ms, render: 14ms)
+ GET /api/auth/session 200 in 16.7s (compile: 16.4s, proxy.ts: 15ms, render: 333ms)
+ GET /api/admin/config 200 in 12.5s (compile: 12.0s, proxy.ts: 57ms, render: 438ms)
+○ Compiling /api/generate/scene-content ...
+[2026-05-27T07:54:05.471Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T07:54:05.473Z] [INFO] [Scene Content API] Generating content: "回顾分数加减法" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:54:05.509Z] [INFO] [Scene Content API] Generating content: "苏格拉底式引导——第一步" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:54:05.539Z] [INFO] [Scene Content API] Generating content: "计算括号内的结果" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+ PATCH /api/mistake/session/effidIBAao 400 in 11.4s (compile: 8.9s, proxy.ts: 25ms, render: 2.5s)
+ GET /api/auth/session 200 in 12.3s (compile: 8.9s, proxy.ts: 74ms, render: 3.4s)
+ GET /api/auth/session 200 in 937ms (compile: 209ms, proxy.ts: 180ms, render: 548ms)
+ GET /api/auth/session 200 in 35ms (compile: 16ms, proxy.ts: 5ms, render: 14ms)
+ GET /api/auth/session 200 in 18ms (compile: 4ms, proxy.ts: 5ms, render: 9ms)
+ GET /api/auth/session 200 in 80ms (compile: 6ms, proxy.ts: 5ms, render: 70ms)
+[2026-05-27T07:54:33.568Z] [INFO] [Scene Content API] Content generated successfully: "苏格拉底式引导——第一步"
+ POST /api/generate/scene-content 200 in 38.6s (compile: 8.9s, proxy.ts: 25ms, render: 29.7s)
+[2026-05-27T07:54:33.612Z] [INFO] [Scene Content API] Generating content: "解方程——移项" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:55:15.805Z] [INFO] [Scene Content API] Content generated successfully: "计算括号内的结果"
+ POST /api/generate/scene-content 200 in 81s (compile: 8.9s, proxy.ts: 25ms, render: 72s)
+[2026-05-27T07:55:17.812Z] [INFO] [Scene Content API] Generating content: "检验答案" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:55:27.034Z] [INFO] [Scene Content API] Content generated successfully: "解方程——移项"
+ POST /api/generate/scene-content 200 in 54s (compile: 4ms, proxy.ts: 6ms, render: 54s)
+[2026-05-27T07:55:27.424Z] [INFO] [Scene Content API] Generating content: "小测验" (quiz) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:55:30.918Z] [INFO] [Scene Content API] Content generated successfully: "回顾分数加减法"
+ POST /api/generate/scene-content 200 in 96s (compile: 8.9s, proxy.ts: 25ms, render: 87s)
+[2026-05-27T07:55:31.189Z] [INFO] [Scene Content API] Generating content: "要点总结" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+○ Compiling /api/generate/scene-actions ...
+[2026-05-27T07:55:41.991Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T07:55:41.994Z] [INFO] [Scene Actions API] Generating actions: "回顾分数加减法" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:55:42.031Z] [INFO] [Scene Content API] Content generated successfully: "小测验"
+ POST /api/generate/scene-content 200 in 14.8s (compile: 17ms, proxy.ts: 85ms, render: 14.7s)
+[2026-05-27T07:55:50.980Z] [INFO] [Scene Actions API] Generated 9 actions for: "回顾分数加减法"
+[2026-05-27T07:55:50.981Z] [INFO] [Scene Actions API] Scene assembled successfully: "回顾分数加减法" — 9 actions
+ POST /api/generate/scene-actions 200 in 19.9s (compile: 10.7s, proxy.ts: 152ms, render: 9.0s)
+[2026-05-27T07:55:54.131Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T07:55:54.131Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_dXde5sMm, textLen=42
+[2026-05-27T07:55:54.133Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_vl2EYKzb, textLen=105
+[2026-05-27T07:55:54.133Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_9cdLtMaL, textLen=49
+ GET /classroom/TNpX3uq4aV 200 in 1576ms (compile: 1478ms, proxy.ts: 6ms, render: 92ms)
+ GET /admin/settings 200 in 189ms (compile: 139ms, proxy.ts: 22ms, render: 28ms)
+ POST /api/generate/tts 200 in 4.4s (compile: 1478ms, proxy.ts: 10ms, render: 2.9s)
+ POST /api/generate/tts 200 in 4.4s (compile: 1479ms, proxy.ts: 10ms, render: 2.9s)
+[2026-05-27T07:55:55.529Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_ZWRN24Xs, textLen=84
+[2026-05-27T07:55:55.530Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_H1Z_lwKU, textLen=40
+ POST /api/generate/tts 200 in 854ms (compile: 3ms, proxy.ts: 5ms, render: 847ms)
+ POST /api/generate/tts 200 in 5.9s (compile: 1478ms, proxy.ts: 10ms, render: 4.4s)
+ POST /api/generate/tts 200 in 7.5s (compile: 3ms, proxy.ts: 5ms, render: 7.5s)
+[2026-05-27T07:56:06.481Z] [INFO] [Scene Actions API] Generating actions: "苏格拉底式引导——第一步" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:56:20.363Z] [INFO] [Scene Content API] Content generated successfully: "要点总结"
+ POST /api/generate/scene-content 200 in 49s (compile: 32ms, proxy.ts: 177ms, render: 49s)
+[2026-05-27T07:56:35.097Z] [INFO] [Scene Actions API] Generated 6 actions for: "苏格拉底式引导——第一步"
+[2026-05-27T07:56:35.098Z] [INFO] [Scene Actions API] Scene assembled successfully: "苏格拉底式引导——第一步" — 6 actions
+ POST /api/generate/scene-actions 200 in 31.7s (compile: 2.7s, proxy.ts: 328ms, render: 28.6s)
+[2026-05-27T07:56:35.206Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s3_action_-rjykVIY, textLen=43
+[2026-05-27T07:56:35.208Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s3_action_bgFEKow6, textLen=40
+[2026-05-27T07:56:35.210Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s3_action_uXadNxuq, textLen=101
+ POST /api/generate/tts 200 in 1151ms (compile: 4ms, proxy.ts: 10ms, render: 1136ms)
+ POST /api/generate/tts 200 in 1318ms (compile: 4ms, proxy.ts: 10ms, render: 1304ms)
+ POST /api/generate/tts 200 in 2.2s (compile: 4ms, proxy.ts: 10ms, render: 2.2s)
+[2026-05-27T07:56:37.346Z] [INFO] [Scene Actions API] Generating actions: "计算括号内的结果" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:56:50.035Z] [INFO] [Scene Content API] Content generated successfully: "检验答案"
+ POST /api/generate/scene-content 200 in 94s (compile: 345ms, proxy.ts: 894ms, render: 93s)
+[2026-05-27T07:57:14.062Z] [INFO] [Scene Actions API] Generated 10 actions for: "计算括号内的结果"
+[2026-05-27T07:57:14.079Z] [INFO] [Scene Actions API] Scene assembled successfully: "计算括号内的结果" — 10 actions
+ POST /api/generate/scene-actions 200 in 36.8s (compile: 4ms, proxy.ts: 8ms, render: 36.8s)
+[2026-05-27T07:57:14.212Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s4_action_HvN8LyGx, textLen=65
+[2026-05-27T07:57:14.213Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s4_action_HMut5XcD, textLen=64
+[2026-05-27T07:57:14.213Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s4_action_eyGBAVjA, textLen=24
+ POST /api/generate/tts 200 in 815ms (compile: 8ms, proxy.ts: 22ms, render: 786ms)
+[2026-05-27T07:57:15.009Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s4_action_2Tr74dnf, textLen=54
+ POST /api/generate/tts 200 in 1958ms (compile: 8ms, proxy.ts: 22ms, render: 1929ms)
+ POST /api/generate/tts 200 in 2.1s (compile: 8ms, proxy.ts: 21ms, render: 2.1s)
+ POST /api/generate/tts 200 in 1303ms (compile: 20ms, proxy.ts: 4ms, render: 1279ms)
+[2026-05-27T07:57:16.266Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s4_action_OAjcp4Xe, textLen=114
+ POST /api/generate/tts 200 in 4.4s (compile: 1569µs, proxy.ts: 4ms, render: 4.4s)
+[2026-05-27T07:57:20.776Z] [INFO] [Scene Actions API] Generating actions: "解方程——移项" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:57:43.815Z] [INFO] [Scene Actions API] Generated 10 actions for: "解方程——移项"
+[2026-05-27T07:57:43.817Z] [INFO] [Scene Actions API] Scene assembled successfully: "解方程——移项" — 10 actions
+ POST /api/generate/scene-actions 200 in 23.1s (compile: 3ms, proxy.ts: 6ms, render: 23.1s)
+[2026-05-27T07:57:44.240Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s5_action_we-N53No, textLen=71
+[2026-05-27T07:57:44.242Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s5_action_5iOE501t, textLen=71
+[2026-05-27T07:57:44.243Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s5_action_34Ujwvw_, textLen=67
+ POST /api/generate/tts 200 in 1794ms (compile: 14ms, proxy.ts: 116ms, render: 1663ms)
+[2026-05-27T07:57:45.890Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s5_action_6eR0pFk8, textLen=87
+ POST /api/generate/tts 200 in 1872ms (compile: 15ms, proxy.ts: 116ms, render: 1741ms)
+[2026-05-27T07:57:45.969Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s5_action_43R4P08i, textLen=87
+ POST /api/generate/tts 200 in 2.0s (compile: 14ms, proxy.ts: 116ms, render: 1917ms)
+ POST /api/generate/tts 200 in 1831ms (compile: 3ms, proxy.ts: 21ms, render: 1808ms)
+ POST /api/generate/tts 200 in 1868ms (compile: 13ms, proxy.ts: 5ms, render: 1850ms)
+[2026-05-27T07:57:47.866Z] [INFO] [Scene Actions API] Generating actions: "检验答案" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:57:56.412Z] [INFO] [Scene Actions API] Generated 12 actions for: "检验答案"
+[2026-05-27T07:57:56.413Z] [INFO] [Scene Actions API] Scene assembled successfully: "检验答案" — 12 actions
+ POST /api/generate/scene-actions 200 in 8.6s (compile: 2ms, proxy.ts: 5ms, render: 8.6s)
+[2026-05-27T07:57:56.473Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s6_action_qEgP2tVg, textLen=64
+[2026-05-27T07:57:56.473Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s6_action_7x1Ay-d_, textLen=56
+[2026-05-27T07:57:56.474Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s6_action_XX9a2C1F, textLen=61
+ POST /api/generate/tts 200 in 1672ms (compile: 6ms, proxy.ts: 10ms, render: 1656ms)
+ POST /api/generate/tts 200 in 1745ms (compile: 6ms, proxy.ts: 10ms, render: 1729ms)
+[2026-05-27T07:57:58.187Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s6_action_OkCAemfS, textLen=39
+[2026-05-27T07:57:58.238Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s6_action_NWQwvyLm, textLen=30
+ POST /api/generate/tts 200 in 2.1s (compile: 6ms, proxy.ts: 10ms, render: 2.1s)
+[2026-05-27T07:57:58.587Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s6_action_NOsifwQz, textLen=54
+ POST /api/generate/tts 200 in 1010ms (compile: 2ms, proxy.ts: 7ms, render: 1001ms)
+ POST /api/generate/tts 200 in 1161ms (compile: 1855µs, proxy.ts: 6ms, render: 1153ms)
+ POST /api/generate/tts 200 in 3.0s (compile: 2ms, proxy.ts: 9ms, render: 2.9s)
+[2026-05-27T07:58:01.224Z] [INFO] [Scene Actions API] Generating actions: "小测验" (quiz) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:58:09.864Z] [INFO] [Scene Actions API] Generated 3 actions for: "小测验"
+[2026-05-27T07:58:09.864Z] [INFO] [Scene Actions API] Scene assembled successfully: "小测验" — 3 actions
+ POST /api/generate/scene-actions 200 in 8.7s (compile: 1777µs, proxy.ts: 7ms, render: 8.6s)
+[2026-05-27T07:58:09.888Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s7_action_hKQxoe_m, textLen=81
+[2026-05-27T07:58:09.889Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s7_action_hgaKu3P4, textLen=304
+ POST /api/generate/tts 200 in 2.3s (compile: 3ms, proxy.ts: 6ms, render: 2.3s)
+ POST /api/generate/tts 200 in 6.7s (compile: 3ms, proxy.ts: 6ms, render: 6.7s)
+[2026-05-27T07:58:16.691Z] [INFO] [Scene Actions API] Generating actions: "要点总结" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T07:59:01.985Z] [INFO] [Scene Actions API] Generated 8 actions for: "要点总结"
+[2026-05-27T07:59:01.986Z] [INFO] [Scene Actions API] Scene assembled successfully: "要点总结" — 8 actions
+ POST /api/generate/scene-actions 200 in 45s (compile: 2ms, proxy.ts: 16ms, render: 45s)
+[2026-05-27T07:59:02.046Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s8_action_fgSI9JTD, textLen=31
+[2026-05-27T07:59:02.047Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s8_action_qY_8gjNg, textLen=54
+[2026-05-27T07:59:02.048Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s8_action_HuZUWwmQ, textLen=20
+ POST /api/generate/tts 200 in 773ms (compile: 6ms, proxy.ts: 9ms, render: 758ms)
+[2026-05-27T07:59:02.795Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s8_action_rCPfkkEJ, textLen=94
+ POST /api/generate/tts 200 in 1046ms (compile: 5ms, proxy.ts: 9ms, render: 1031ms)
+ POST /api/generate/tts 200 in 1606ms (compile: 5ms, proxy.ts: 9ms, render: 1591ms)
+ POST /api/generate/tts 200 in 1879ms (compile: 3ms, proxy.ts: 6ms, render: 1870ms)
+○ Compiling /api/mistake/session/[id] ...
+ PATCH /api/mistake/session/effidIBAao 200 in 17.7s (compile: 17.6s, proxy.ts: 5ms, render: 119ms)
+○ Compiling /api/auth/[...nextauth] ...
+ GET /api/auth/session 200 in 105s (compile: 97s, proxy.ts: 282ms, render: 7.4s)
+ GET /api/auth/session 200 in 22.9s (compile: 3.4s, proxy.ts: 12.0s, render: 7.5s)
+ GET /api/auth/session 200 in 23.0s (compile: 3.4s, proxy.ts: 12.0s, render: 7.6s)
+ GET /classroom/TNpX3uq4aV 200 in 28.1s (compile: 22.8s, proxy.ts: 4.8s, render: 508ms)
+ GET /api/auth/session 200 in 23.4s (compile: 3.4s, proxy.ts: 19.7s, render: 264ms)
+ GET /api/auth/session 200 in 3.8s (compile: 99ms, proxy.ts: 3.6s, render: 98ms)
+ GET /api/auth/session 200 in 3.8s (compile: 100ms, proxy.ts: 3.6s, render: 109ms)
+ GET /classroom/TNpX3uq4aV 200 in 731ms (compile: 401ms, proxy.ts: 53ms, render: 278ms)
+ GET /classroom/TNpX3uq4aV 200 in 31ms (compile: 6ms, proxy.ts: 7ms, render: 18ms)
+ GET /admin/settings 200 in 1975ms (compile: 506ms, proxy.ts: 108ms, render: 1360ms)
+ GET /api/auth/session 200 in 205ms (compile: 76ms, proxy.ts: 10ms, render: 119ms)
+ GET /api/auth/session 200 in 74ms (compile: 19ms, proxy.ts: 13ms, render: 42ms)
+ GET /classroom/TNpX3uq4aV 200 in 3.1s (compile: 33ms, proxy.ts: 6ms, render: 3.1s)
+○ Compiling /api/access-code/status ...
+[2026-05-27T10:05:04.858Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+ GET /api/server-providers 200 in 65s (compile: 65s, proxy.ts: 20ms, render: 153ms)
+ GET /api/access-code/status 200 in 65s (compile: 65s, proxy.ts: 19ms, render: 152ms)
+ GET /api/admin/config 200 in 66s (compile: 65s, proxy.ts: 23ms, render: 832ms)
+ GET /api/auth/session 200 in 5.3s (compile: 4.3s, proxy.ts: 187ms, render: 844ms)
+ GET /admin/settings 200 in 4.5s (compile: 3.4s, proxy.ts: 218ms, render: 881ms)
+ GET /classroom/TNpX3uq4aV 200 in 619ms (compile: 556ms, proxy.ts: 25ms, render: 38ms)
+ GET /api/server-providers 200 in 23ms (compile: 7ms, proxy.ts: 7ms, render: 8ms)
+ GET /api/access-code/status 200 in 31ms (compile: 17ms, proxy.ts: 7ms, render: 6ms)
+ GET /api/admin/config 200 in 61ms (compile: 25ms, proxy.ts: 8ms, render: 28ms)
+ GET /api/auth/session 200 in 79ms (compile: 43ms, proxy.ts: 7ms, render: 29ms)
+ GET /api/auth/session 200 in 21ms (compile: 4ms, proxy.ts: 4ms, render: 13ms)
+ GET /api/server-providers 200 in 23ms (compile: 9ms, proxy.ts: 9ms, render: 5ms)
+ GET /api/access-code/status 200 in 56ms (compile: 40ms, proxy.ts: 13ms, render: 3ms)
+○ Compiling /api/mistake/session/[id] ...
+ GET /api/mistake/session/effidIBAao 200 in 32.6s (compile: 32.5s, proxy.ts: 9ms, render: 89ms)
+ GET /api/classroom?id=TNpX3uq4aV 200 in 27.1s (compile: 21.0s, proxy.ts: 5.8s, render: 259ms)
+ GET /api/auth/session 200 in 32.6s (compile: 32.4s, proxy.ts: 48ms, render: 111ms)
+ PATCH /api/mistake/session/effidIBAao 400 in 6.7s (compile: 6.6s, proxy.ts: 31ms, render: 38ms)
+ GET /classroom/TNpX3uq4aV 200 in 6.7s (compile: 6.2s, proxy.ts: 24ms, render: 492ms)
+ GET /admin/settings 200 in 6.7s (compile: 6.6s, proxy.ts: 28ms, render: 69ms)
+ GET /api/auth/session 200 in 111ms (compile: 71ms, proxy.ts: 13ms, render: 27ms)
+○ Compiling /api/classroom-media/[classroomId]/[...path] ...
+[2026-05-27T10:05:56.998Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T10:05:56.999Z] [INFO] [Scene Content API] Generating content: "计算括号内的结果" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T10:05:57.007Z] [INFO] [Scene Content API] Generating content: "苏格拉底式引导——第一步" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T10:05:57.008Z] [INFO] [Scene Content API] Generating content: "回顾分数加减法" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+ GET /api/classroom-media/TNpX3uq4aV/audio/tts_s1_action_ZFyskf19.mp3 200 in 10.3s (compile: 10.0s, proxy.ts: 40ms, render: 194ms)
+ GET /api/auth/session 200 in 10.3s (compile: 10.0s, proxy.ts: 40ms, render: 260ms)
+ GET /classroom/TNpX3uq4aV 200 in 2.1s (compile: 1565ms, proxy.ts: 19ms, render: 534ms)
+ GET /admin/settings 200 in 2.1s (compile: 2.0s, proxy.ts: 32ms, render: 48ms)
+ GET /api/classroom-media/TNpX3uq4aV/audio/tts_s1_action_wecZRpj_.mp3 200 in 27ms (compile: 16ms, proxy.ts: 4ms, render: 7ms)
+ GET /api/classroom-media/TNpX3uq4aV/audio/tts_s1_action_KHvNwvg3.mp3 200 in 22ms (compile: 10ms, proxy.ts: 4ms, render: 8ms)
+ GET /api/classroom-media/TNpX3uq4aV/audio/tts_s1_action_GoT573om.mp3 200 in 22ms (compile: 9ms, proxy.ts: 4ms, render: 9ms)
+[2026-05-27T10:06:44.400Z] [INFO] [Scene Content API] Content generated successfully: "计算括号内的结果"
+ POST /api/generate/scene-content 200 in 58s (compile: 10.2s, proxy.ts: 14ms, render: 47s)
+[2026-05-27T10:06:44.431Z] [INFO] [Scene Content API] Generating content: "解方程——移项" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T10:07:23.450Z] [INFO] [Scene Content API] Content generated successfully: "回顾分数加减法"
+ POST /api/generate/scene-content 200 in 97s (compile: 10.2s, proxy.ts: 14ms, render: 87s)
+[2026-05-27T10:07:25.863Z] [INFO] [Scene Content API] Generating content: "检验答案" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T10:07:28.619Z] [INFO] [Scene Content API] Content generated successfully: "解方程——移项"
+ POST /api/generate/scene-content 200 in 44s (compile: 4ms, proxy.ts: 9ms, render: 44s)
+○ Compiling /api/generate/scene-actions ...
+[2026-05-27T10:07:41.399Z] [INFO] [Scene Content API] Content generated successfully: "检验答案"
+ POST /api/generate/scene-content 200 in 17.3s (compile: 385ms, proxy.ts: 861ms, render: 16.1s)
+[2026-05-27T10:08:14.178Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T10:08:14.184Z] [INFO] [Scene Content API] Generating content: "要点总结" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T10:08:14.190Z] [INFO] [Scene Actions API] Generating actions: "回顾分数加减法" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T10:08:14.192Z] [INFO] [Scene Content API] Generating content: "小测验" (quiz) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T10:08:14.246Z] [INFO] [Scene Content API] Content generated successfully: "苏格拉底式引导——第一步"
+ POST /api/generate/scene-content 200 in 2.5min (compile: 10.2s, proxy.ts: 14ms, render: 2.3min)
+ GET /admin/settings 200 in 2.8s (compile: 161ms, proxy.ts: 12ms, render: 2.6s)
+ GET /classroom/TNpX3uq4aV 200 in 2.8s (compile: 2.8s, proxy.ts: 12ms, render: 49ms)
+[2026-05-27T10:08:33.914Z] [INFO] [Scene Content API] Content generated successfully: "小测验"
+ POST /api/generate/scene-content 200 in 64s (compile: 44s, proxy.ts: 976ms, render: 19.8s)
+[2026-05-27T10:08:35.064Z] [INFO] [Scene Actions API] Generated 18 actions for: "回顾分数加减法"
+[2026-05-27T10:08:35.065Z] [INFO] [Scene Actions API] Scene assembled successfully: "回顾分数加减法" — 18 actions
+ POST /api/generate/scene-actions 200 in 71s (compile: 49s, proxy.ts: 863ms, render: 21.0s)
+○ Compiling /api/generate/tts ...
+[2026-05-27T10:08:54.806Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T10:08:54.808Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_HEOptrTX, textLen=22
+[2026-05-27T10:08:54.812Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_GXN7LZVw, textLen=24
+[2026-05-27T10:08:54.814Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_diGvoVDc, textLen=37
+ GET /classroom/TNpX3uq4aV 200 in 5.4s (compile: 5.2s, proxy.ts: 10ms, render: 181ms)
+ GET /admin/settings 200 in 5.6s (compile: 255ms, proxy.ts: 5.3s, render: 45ms)
+ POST /api/generate/tts 200 in 20.7s (compile: 14.3s, proxy.ts: 11ms, render: 6.4s)
+ POST /api/generate/tts 200 in 20.8s (compile: 14.3s, proxy.ts: 11ms, render: 6.5s)
+[2026-05-27T10:08:55.935Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action__nGWSm8Q, textLen=46
+[2026-05-27T10:08:55.957Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_YBNdHZPO, textLen=12
+ POST /api/generate/tts 200 in 21.0s (compile: 14.3s, proxy.ts: 11ms, render: 6.7s)
+[2026-05-27T10:08:56.129Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_h8Cpv5ml, textLen=30
+ POST /api/generate/tts 200 in 422ms (compile: 1989µs, proxy.ts: 7ms, render: 413ms)
+[2026-05-27T10:08:56.383Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_IZEt2Qkr, textLen=23
+ POST /api/generate/tts 200 in 817ms (compile: 2ms, proxy.ts: 4ms, render: 811ms)
+ POST /api/generate/tts 200 in 639ms (compile: 8ms, proxy.ts: 4ms, render: 627ms)
+[2026-05-27T10:08:57.081Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_0RytoOYq, textLen=48
+[2026-05-27T10:08:57.083Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s2_action_TzwKiTgH, textLen=29
+ POST /api/generate/tts 200 in 652ms (compile: 2ms, proxy.ts: 6ms, render: 643ms)
+ POST /api/generate/tts 200 in 1085ms (compile: 2ms, proxy.ts: 6ms, render: 1076ms)
+ POST /api/generate/tts 200 in 2.6s (compile: 18ms, proxy.ts: 25ms, render: 2.5s)
+[2026-05-27T10:09:01.373Z] [INFO] [Scene Content API] Content generated successfully: "要点总结"
+ POST /api/generate/scene-content 200 in 80s (compile: 32.5s, proxy.ts: 87ms, render: 47s)
+○ Compiling /api/generate/scene-actions ...
+[2026-05-27T10:09:05.982Z] [INFO] [ServerProviderConfig] [ServerProviderConfig] Loaded (server-providers.yml): 1 LLM, 1 TTS, 0 ASR, 0 PDF, 0 Image, 0 Video, 0 WebSearch providers
+[2026-05-27T10:09:05.992Z] [INFO] [Scene Actions API] Generating actions: "苏格拉底式引导——第一步" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T10:09:15.952Z] [INFO] [Scene Actions API] Generated 8 actions for: "苏格拉底式引导——第一步"
+[2026-05-27T10:09:15.954Z] [INFO] [Scene Actions API] Scene assembled successfully: "苏格拉底式引导——第一步" — 8 actions
+ POST /api/generate/scene-actions 200 in 17.3s (compile: 5.9s, proxy.ts: 5ms, render: 11.5s)
+[2026-05-27T10:09:16.072Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s3_action_FMnCHKDY, textLen=56
+[2026-05-27T10:09:16.074Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s3_action_EQZAJm9_, textLen=28
+[2026-05-27T10:09:16.075Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s3_action_ysI45RvG, textLen=49
+ POST /api/generate/tts 200 in 1381ms (compile: 33ms, proxy.ts: 10ms, render: 1338ms)
+[2026-05-27T10:09:17.387Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s3_action_DJHqDM1d, textLen=39
+ POST /api/generate/tts 200 in 1521ms (compile: 33ms, proxy.ts: 10ms, render: 1478ms)
+ POST /api/generate/tts 200 in 820ms (compile: 2ms, proxy.ts: 6ms, render: 812ms)
+ POST /api/generate/tts 200 in 4.7s (compile: 33ms, proxy.ts: 10ms, render: 4.6s)
+[2026-05-27T10:09:20.708Z] [INFO] [Scene Actions API] Generating actions: "计算括号内的结果" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T10:09:46.150Z] [INFO] [Scene Actions API] Generated 10 actions for: "计算括号内的结果"
+[2026-05-27T10:09:46.151Z] [INFO] [Scene Actions API] Scene assembled successfully: "计算括号内的结果" — 10 actions
+ POST /api/generate/scene-actions 200 in 25.5s (compile: 2ms, proxy.ts: 6ms, render: 25.5s)
+[2026-05-27T10:09:46.204Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s4_action_IDixbgHh, textLen=94
+[2026-05-27T10:09:46.205Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s4_action_yHUk6VqP, textLen=40
+[2026-05-27T10:09:46.206Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s4_action_evCreFSi, textLen=66
+ POST /api/generate/tts 200 in 1304ms (compile: 5ms, proxy.ts: 20ms, render: 1278ms)
+[2026-05-27T10:09:47.493Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s4_action_YL1wuQ6i, textLen=62
+ POST /api/generate/tts 200 in 1713ms (compile: 5ms, proxy.ts: 21ms, render: 1687ms)
+[2026-05-27T10:09:47.893Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s4_action_dOapHqiS, textLen=56
+ POST /api/generate/tts 200 in 2.2s (compile: 5ms, proxy.ts: 20ms, render: 2.2s)
+ POST /api/generate/tts 200 in 1376ms (compile: 1504µs, proxy.ts: 4ms, render: 1370ms)
+ POST /api/generate/tts 200 in 1101ms (compile: 1536µs, proxy.ts: 4ms, render: 1096ms)
+[2026-05-27T10:09:49.027Z] [INFO] [Scene Actions API] Generating actions: "解方程——移项" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T10:10:15.172Z] [INFO] [Scene Actions API] Generated 8 actions for: "解方程——移项"
+[2026-05-27T10:10:15.177Z] [INFO] [Scene Actions API] Scene assembled successfully: "解方程——移项" — 8 actions
+ POST /api/generate/scene-actions 200 in 26.3s (compile: 1822µs, proxy.ts: 4ms, render: 26.3s)
+[2026-05-27T10:10:17.452Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s5_action_4jN4O7Gl, textLen=23
+[2026-05-27T10:10:17.489Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s5_action_D_1hF6zW, textLen=38
+[2026-05-27T10:10:17.520Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s5_action_cihY3duf, textLen=38
+ POST /api/generate/tts 200 in 4.1s (compile: 417ms, proxy.ts: 484ms, render: 3.2s)
+ POST /api/generate/tts 200 in 7.7s (compile: 417ms, proxy.ts: 484ms, render: 6.8s)
+ POST /api/generate/tts 200 in 7.8s (compile: 397ms, proxy.ts: 483ms, render: 6.9s)
+[2026-05-27T10:10:23.639Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s5_action_KeAGH5Et, textLen=50
+ POST /api/generate/tts 200 in 1199ms (compile: 9ms, proxy.ts: 13ms, render: 1177ms)
+[2026-05-27T10:10:24.836Z] [INFO] [Scene Actions API] Generating actions: "检验答案" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T10:10:33.142Z] [INFO] [Scene Actions API] Generated 12 actions for: "检验答案"
+[2026-05-27T10:10:33.143Z] [INFO] [Scene Actions API] Scene assembled successfully: "检验答案" — 12 actions
+ POST /api/generate/scene-actions 200 in 8.3s (compile: 2ms, proxy.ts: 5ms, render: 8.3s)
+[2026-05-27T10:10:33.182Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s6_action_HyVAQvjk, textLen=55
+[2026-05-27T10:10:33.183Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s6_action__F9eHl9o, textLen=59
+[2026-05-27T10:10:33.184Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s6_action_xj27spuE, textLen=65
+ POST /api/generate/tts 200 in 1460ms (compile: 6ms, proxy.ts: 8ms, render: 1445ms)
+[2026-05-27T10:10:34.636Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s6_action_YHAEdZyr, textLen=57
+ POST /api/generate/tts 200 in 1530ms (compile: 6ms, proxy.ts: 8ms, render: 1516ms)
+[2026-05-27T10:10:34.699Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s6_action_6V3aoOl8, textLen=45
+ POST /api/generate/tts 200 in 1592ms (compile: 6ms, proxy.ts: 8ms, render: 1578ms)
+[2026-05-27T10:10:34.777Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s6_action_JTQLWLP0, textLen=59
+ POST /api/generate/tts 200 in 1237ms (compile: 3ms, proxy.ts: 5ms, render: 1229ms)
+ POST /api/generate/tts 200 in 1325ms (compile: 2ms, proxy.ts: 5ms, render: 1318ms)
+ POST /api/generate/tts 200 in 1749ms (compile: 1881µs, proxy.ts: 19ms, render: 1728ms)
+[2026-05-27T10:10:36.574Z] [INFO] [Scene Actions API] Generating actions: "小测验" (quiz) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T10:10:59.983Z] [INFO] [Scene Actions API] Generated 3 actions for: "小测验"
+[2026-05-27T10:10:59.984Z] [INFO] [Scene Actions API] Scene assembled successfully: "小测验" — 3 actions
+ POST /api/generate/scene-actions 200 in 23.4s (compile: 1968µs, proxy.ts: 5ms, render: 23.4s)
+[2026-05-27T10:11:00.031Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s7_action_CrL2wM9A, textLen=80
+[2026-05-27T10:11:00.033Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s7_action_hX4VAfuB, textLen=314
+ POST /api/generate/tts 200 in 1639ms (compile: 3ms, proxy.ts: 10ms, render: 1625ms)
+ POST /api/generate/tts 200 in 5.9s (compile: 3ms, proxy.ts: 10ms, render: 5.9s)
+[2026-05-27T10:11:05.985Z] [INFO] [Scene Actions API] Generating actions: "要点总结" (slide) [model=kimi:deepseek/deepseek-v4-flash]
+[2026-05-27T10:11:16.915Z] [INFO] [Scene Actions API] Generated 13 actions for: "要点总结"
+[2026-05-27T10:11:16.915Z] [INFO] [Scene Actions API] Scene assembled successfully: "要点总结" — 13 actions
+ POST /api/generate/scene-actions 200 in 10.9s (compile: 3ms, proxy.ts: 6ms, render: 10.9s)
+[2026-05-27T10:11:16.964Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s8_action_vICzEe2b, textLen=48
+[2026-05-27T10:11:16.965Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s8_action_TeBiUhic, textLen=61
+[2026-05-27T10:11:16.966Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s8_action_6Wy6umOB, textLen=54
+ POST /api/generate/tts 200 in 1129ms (compile: 4ms, proxy.ts: 9ms, render: 1116ms)
+ POST /api/generate/tts 200 in 1150ms (compile: 4ms, proxy.ts: 8ms, render: 1137ms)
+[2026-05-27T10:11:18.081Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s8_action_xFu_k7B_, textLen=38
+[2026-05-27T10:11:18.093Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s8_action_WEHUFpZ_, textLen=59
+ POST /api/generate/tts 200 in 1652ms (compile: 4ms, proxy.ts: 8ms, render: 1640ms)
+[2026-05-27T10:11:18.596Z] [INFO] [TTS API] Generating TTS: provider=siliconflow-tts, model=FunAudioLLM/CosyVoice2-0.5B, voice=FunAudioLLM/CosyVoice2-0.5B:anna, audioId=tts_s8_action_ycWm5JOg, textLen=53
+ POST /api/generate/tts 200 in 934ms (compile: 2ms, proxy.ts: 13ms, render: 919ms)
+ POST /api/generate/tts 200 in 1164ms (compile: 1766µs, proxy.ts: 4ms, render: 1158ms)
+ POST /api/generate/tts 200 in 1238ms (compile: 1802µs, proxy.ts: 5ms, render: 1231ms)
+○ Compiling /api/mistake/session/[id] ...
+ PATCH /api/mistake/session/effidIBAao 200 in 44s (compile: 44s, proxy.ts: 5ms, render: 282ms)
+ GET /classroom/TNpX3uq4aV 200 in 11.4s (compile: 11.2s, proxy.ts: 67ms, render: 114ms)
+ GET /admin/settings 200 in 11.4s (compile: 1158ms, proxy.ts: 93ms, render: 10.1s)
+○ Compiling /api/auth/[...nextauth] ...
+ GET /api/auth/session 200 in 2.3min (compile: 2.2min, proxy.ts: 240ms, render: 450ms)
+ GET /classroom/TNpX3uq4aV 200 in 6.4s (compile: 5.4s, proxy.ts: 683ms, render: 320ms)
+ GET /api/auth/session 200 in 5.8s (compile: 5.6s, proxy.ts: 201ms, render: 39ms)
+ GET /classroom/TNpX3uq4aV 200 in 60ms (compile: 29ms, proxy.ts: 8ms, render: 24ms)
+ GET /api/auth/session 200 in 611ms (compile: 148ms, proxy.ts: 116ms, render: 346ms)
+ GET /api/auth/session 200 in 55ms (compile: 11ms, proxy.ts: 7ms, render: 37ms)
+ GET /api/auth/session 200 in 121ms (compile: 58ms, proxy.ts: 8ms, render: 55ms)
+ GET /api/auth/session 200 in 60ms (compile: 6ms, proxy.ts: 20ms, render: 35ms)
+ GET /api/auth/session 200 in 74ms (compile: 33ms, proxy.ts: 8ms, render: 33ms)
+ GET /api/auth/session 200 in 45ms (compile: 5ms, proxy.ts: 7ms, render: 33ms)
+ GET /api/auth/session 200 in 125ms (compile: 31ms, proxy.ts: 17ms, render: 76ms)
+ GET /api/auth/session 200 in 49ms (compile: 9ms, proxy.ts: 9ms, render: 31ms)
+ GET /api/auth/session 200 in 151ms (compile: 50ms, proxy.ts: 14ms, render: 88ms)
+ GET /api/auth/session 200 in 96ms (compile: 11ms, proxy.ts: 19ms, render: 66ms)
+ GET /classroom/TNpX3uq4aV 200 in 36.0s (compile: 33.5s, proxy.ts: 909ms, render: 1592ms)
+ GET /classroom/TNpX3uq4aV 200 in 264ms (compile: 119ms, proxy.ts: 37ms, render: 109ms)
+ GET /classroom/TNpX3uq4aV 200 in 1408ms (compile: 1290ms, proxy.ts: 46ms, render: 72ms)
+○ Compiling /api/classroom ...
+ GET /api/classroom?id=TNpX3uq4aV 200 in 40s (compile: 37.1s, proxy.ts: 5ms, render: 3.0s)
+ GET /api/classroom?id=TNpX3uq4aV 200 in 1051ms (compile: 244ms, proxy.ts: 499ms, render: 308ms)
+ GET /api/classroom?id=TNpX3uq4aV 200 in 1092ms (compile: 250ms, proxy.ts: 499ms, render: 343ms)
+ GET /classroom/TNpX3uq4aV 200 in 7.5s (compile: 5.0s, proxy.ts: 499ms, render: 1980ms)
+○ Compiling /api/auth/[...nextauth] ...
+ GET /api/auth/session 200 in 47s (compile: 46s, proxy.ts: 24ms, render: 409ms)
+ GET /api/auth/session 200 in 103ms (compile: 27ms, proxy.ts: 37ms, render: 39ms)
+ GET /api/auth/session 200 in 121ms (compile: 38ms, proxy.ts: 15ms, render: 68ms)
+ GET /api/auth/session 200 in 49ms (compile: 8ms, proxy.ts: 11ms, render: 31ms)
+ GET /classroom/TNpX3uq4aV 200 in 1815ms (compile: 1721ms, proxy.ts: 17ms, render: 77ms)
+○ Compiling /api/generate/scene-content ...
+[?25h

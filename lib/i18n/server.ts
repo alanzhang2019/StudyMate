@@ -3,7 +3,9 @@ import resourcesToBackend from 'i18next-resources-to-backend';
 import { supportedLocales } from './locales';
 import { defaultLocale } from './types';
 
-i18n
+const serverI18n = i18n.createInstance();
+
+serverI18n
   .use(resourcesToBackend((language: string) => import(`./locales/${language}.json`)))
   .init({
     lng: defaultLocale,
@@ -14,4 +16,10 @@ i18n
     },
   });
 
-export default i18n;
+export function translate(locale: string, key: string, options?: Record<string, unknown>): string {
+  return serverI18n.t(key, { lng: locale, ...options });
+}
+
+export function getClientTranslation(key: string): string {
+  return serverI18n.t(key);
+}

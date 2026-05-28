@@ -27,26 +27,32 @@ describe('warmSceneTTSWithinBudget', () => {
     vi.useRealTimers();
   });
 
-  it('returns after the warmup budget expires without blocking on pending TTS', async () => {
-    vi.useFakeTimers();
+  it('generates first-scene speech warmup with concurrency 2', async () => {
     const scene = createScene();
-    const generate = vi.fn().mockImplementation(() => new Promise<void>(() => {}));
-
-    const resultPromise = warmSceneTTSWithinBudget({
-      scene,
-      language: 'zh-CN',
-      budgetMs: 1000,
-      generate,
+    const started: string[] = [];
+    const ended: string[] = [];
+    const generate = vi.fn().mockImplementation(async ({ audioId }: { audioId: string }) => {
+      started.push(audioId);
+      await Promise.resolve();
+      ended.push(audioId);
     });
 
-    await vi.advanceTimersByTimeAsync(1000);
-
-    await expect(resultPromise).resolves.toEqual({
-      timedOut: true,
+    await expect(
+      warmSceneTTSWithinBudget({
+        scene,
+        language: 'zh-CN',
+        budgetMs: 1000,
+        generate,
+      }),
+    ).resolves.toEqual({
+      timedOut: false,
       totalSpeechActions: 2,
       failedCount: 0,
     });
+
     expect(generate).toHaveBeenCalledTimes(2);
+    expect(started).toHaveLength(2);
+    expect(ended).toHaveLength(2);
     expect(scene.actions?.[0]).toMatchObject({ audioId: 'tts_s1_speech-1' });
     expect(scene.actions?.[2]).toMatchObject({ audioId: 'tts_s1_speech-2' });
   });
