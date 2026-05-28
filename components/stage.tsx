@@ -38,6 +38,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { AlertTriangle } from 'lucide-react';
 import { VisuallyHidden } from 'radix-ui';
+import { sendDebugEvent } from '@/lib/utils/debug-event';
 
 /**
  * Stage Component
@@ -73,29 +74,25 @@ export function Stage({
 
   useEffect(() => {
     // #region debug-point A:stage-snapshot
-    fetch('http://127.0.0.1:7777/event', {
-      method: 'POST',
-      body: JSON.stringify({
-        sessionId: 'mistake-classroom-regression',
-        runId: 'pre',
-        hypothesisId: 'A',
-        location: 'components/stage.tsx:64',
-        msg: '[DEBUG] stage render snapshot',
-        data: {
-          currentSceneId,
-          currentSceneType: currentScene?.type ?? null,
-          currentSceneTitle: currentScene?.title ?? null,
-          scenesLength: scenes.length,
-          outlinesLength: outlines.length,
-          generatingOutlinesLength: generatingOutlines.length,
-          currentSceneCanvasElementsLength:
-            currentScene?.type === 'slide' && currentScene.content.type === 'slide'
-              ? currentScene.content.canvas.elements.length
-              : null,
-        },
-        ts: Date.now(),
-      }),
-    }).catch(() => {});
+    sendDebugEvent({
+      sessionId: 'mistake-classroom-regression',
+      runId: 'pre',
+      hypothesisId: 'A',
+      location: 'components/stage.tsx:64',
+      msg: '[DEBUG] stage render snapshot',
+      data: {
+        currentSceneId,
+        currentSceneType: currentScene?.type ?? null,
+        currentSceneTitle: currentScene?.title ?? null,
+        scenesLength: scenes.length,
+        outlinesLength: outlines.length,
+        generatingOutlinesLength: generatingOutlines.length,
+        currentSceneCanvasElementsLength:
+          currentScene?.type === 'slide' && currentScene.content.type === 'slide'
+            ? currentScene.content.canvas.elements.length
+            : null,
+      },
+    });
     // #endregion
   }, [
     currentScene?.id,
@@ -164,28 +161,24 @@ export function Stage({
 
   useEffect(() => {
     // #region debug-point A:stage-presentation
-    fetch('http://127.0.0.1:7777/event', {
-      method: 'POST',
-      body: JSON.stringify({
-        sessionId: 'mistake-classroom-regression',
-        runId: 'pre',
-        hypothesisId: 'A',
-        location: 'components/stage.tsx:161',
-        msg: '[DEBUG] stage presentation snapshot',
-        data: {
-          defaultPresentation,
-          isPresenting,
-          controlsVisible,
-          isPresentationInteractionActive,
-          engineMode,
-          currentSceneId,
-          generatingOutlinesLength: generatingOutlines.length,
-          whiteboardOpen,
-          whiteboardEnabled,
-        },
-        ts: Date.now(),
-      }),
-    }).catch(() => {});
+    sendDebugEvent({
+      sessionId: 'mistake-classroom-regression',
+      runId: 'pre',
+      hypothesisId: 'A',
+      location: 'components/stage.tsx:161',
+      msg: '[DEBUG] stage presentation snapshot',
+      data: {
+        defaultPresentation,
+        isPresenting,
+        controlsVisible,
+        isPresentationInteractionActive,
+        engineMode,
+        currentSceneId,
+        generatingOutlinesLength: generatingOutlines.length,
+        whiteboardOpen,
+        whiteboardEnabled,
+      },
+    });
     // #endregion
   }, [
     controlsVisible,

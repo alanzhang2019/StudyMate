@@ -14,6 +14,7 @@ import type { PercentageGeometry } from '@/lib/types/action';
 import { useViewportSize } from './Canvas/hooks/useViewportSize';
 import { useRef, useMemo, useEffect } from 'react';
 import { AnimatePresence } from 'motion/react';
+import { sendDebugEvent } from '@/lib/utils/debug-event';
 
 export function ScreenCanvas() {
   const canvasScale = useCanvasStore.use.canvasScale();
@@ -60,26 +61,22 @@ export function ScreenCanvas() {
 
   useEffect(() => {
     // #region debug-point B:screen-canvas
-    fetch('http://127.0.0.1:7777/event', {
-      method: 'POST',
-      body: JSON.stringify({
-        sessionId: 'mistake-classroom-regression',
-        runId: 'pre',
-        hypothesisId: 'B',
-        location: 'components/slide-renderer/Editor/ScreenCanvas.tsx:63',
-        msg: '[DEBUG] screen canvas snapshot',
-        data: {
-          elementsLength: elements.length,
-          firstElementType: elements[0]?.type ?? null,
-          canvasScale,
-          viewportWidth: viewportStyles.width,
-          viewportHeight: viewportStyles.height,
-          viewportLeft: viewportStyles.left,
-          viewportTop: viewportStyles.top,
-        },
-        ts: Date.now(),
-      }),
-    }).catch(() => {});
+    sendDebugEvent({
+      sessionId: 'mistake-classroom-regression',
+      runId: 'pre',
+      hypothesisId: 'B',
+      location: 'components/slide-renderer/Editor/ScreenCanvas.tsx:63',
+      msg: '[DEBUG] screen canvas snapshot',
+      data: {
+        elementsLength: elements.length,
+        firstElementType: elements[0]?.type ?? null,
+        canvasScale,
+        viewportWidth: viewportStyles.width,
+        viewportHeight: viewportStyles.height,
+        viewportLeft: viewportStyles.left,
+        viewportTop: viewportStyles.top,
+      },
+    });
     // #endregion
   }, [
     canvasScale,

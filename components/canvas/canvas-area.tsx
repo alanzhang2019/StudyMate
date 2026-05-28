@@ -13,6 +13,7 @@ import type { CanvasToolbarProps } from '@/components/canvas/canvas-toolbar';
 import type { Scene, StageMode } from '@/lib/types/stage';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { ClassroomCompletePageConnected } from '@/components/scene-renderers/classroom-complete';
+import { sendDebugEvent } from '@/lib/utils/debug-event';
 
 interface CanvasAreaProps extends CanvasToolbarProps {
   readonly currentScene: Scene | null;
@@ -67,30 +68,26 @@ export function CanvasArea({
 
   useEffect(() => {
     // #region debug-point E:canvas-visibility
-    fetch('http://127.0.0.1:7777/event', {
-      method: 'POST',
-      body: JSON.stringify({
-        sessionId: 'mistake-classroom-regression',
-        runId: 'pre',
-        hypothesisId: 'E',
-        location: 'components/canvas/canvas-area.tsx:68',
-        msg: '[DEBUG] canvas visibility snapshot',
-        data: {
-          currentSceneId: currentScene?.id ?? null,
-          currentSceneType: currentScene?.type ?? null,
-          showPlayHint,
-          whiteboardOpen,
-          whiteboardEnabled,
-          isPendingScene: Boolean(isPendingScene),
-          isCourseComplete: Boolean(isCourseComplete),
-          isGenerationFailed: Boolean(isGenerationFailed),
-          hasVisibleLectureContent,
-          isLiveSession,
-          engineState,
-        },
-        ts: Date.now(),
-      }),
-    }).catch(() => {});
+    sendDebugEvent({
+      sessionId: 'mistake-classroom-regression',
+      runId: 'pre',
+      hypothesisId: 'E',
+      location: 'components/canvas/canvas-area.tsx:68',
+      msg: '[DEBUG] canvas visibility snapshot',
+      data: {
+        currentSceneId: currentScene?.id ?? null,
+        currentSceneType: currentScene?.type ?? null,
+        showPlayHint,
+        whiteboardOpen,
+        whiteboardEnabled,
+        isPendingScene: Boolean(isPendingScene),
+        isCourseComplete: Boolean(isCourseComplete),
+        isGenerationFailed: Boolean(isGenerationFailed),
+        hasVisibleLectureContent,
+        isLiveSession,
+        engineState,
+      },
+    });
     // #endregion
   }, [
     currentScene?.id,

@@ -25,6 +25,7 @@ import { useSceneGenerator } from '@/lib/hooks/use-scene-generator';
 import { useMediaGenerationStore } from '@/lib/store/media-generation';
 import { useWhiteboardHistoryStore } from '@/lib/store/whiteboard-history';
 import { createLogger } from '@/lib/logger';
+import { sendDebugEvent } from '@/lib/utils/debug-event';
 import { MediaStageProvider } from '@/lib/contexts/media-stage-context';
 import { generateMediaForOutlines } from '@/lib/media/media-orchestrator';
 import { updateMistakeSession } from '@/lib/mistake/session/client';
@@ -85,25 +86,21 @@ export default function ClassroomDetailPage() {
         useStageStore.getState().stage?.id === classroomId && useStageStore.getState().scenes.length > 0,
       );
       // #region debug-point D:after-storage-load
-      fetch('http://127.0.0.1:7777/event', {
-        method: 'POST',
-        body: JSON.stringify({
-          sessionId: 'mistake-classroom-regression',
-          runId: 'pre',
-          hypothesisId: 'D',
-          location: 'app/classroom/[id]/page.tsx:67',
-          msg: '[DEBUG] classroom load after storage',
-          data: {
-            classroomId,
-            indexedDbHit,
-            stageId: useStageStore.getState().stage?.id ?? null,
-            stageName: useStageStore.getState().stage?.name ?? null,
-            scenesLength: useStageStore.getState().scenes.length,
-            currentSceneId: useStageStore.getState().currentSceneId ?? null,
-          },
-          ts: Date.now(),
-        }),
-      }).catch(() => {});
+      sendDebugEvent({
+        sessionId: 'mistake-classroom-regression',
+        runId: 'pre',
+        hypothesisId: 'D',
+        location: 'app/classroom/[id]/page.tsx:67',
+        msg: '[DEBUG] classroom load after storage',
+        data: {
+          classroomId,
+          indexedDbHit,
+          stageId: useStageStore.getState().stage?.id ?? null,
+          stageName: useStageStore.getState().stage?.name ?? null,
+          scenesLength: useStageStore.getState().scenes.length,
+          currentSceneId: useStageStore.getState().currentSceneId ?? null,
+        },
+      });
       // #endregion
       const missingServerAudio =
         indexedDbHit && needsServerAudioHydration(useStageStore.getState().scenes);
@@ -131,25 +128,21 @@ export default function ClassroomDetailPage() {
               });
               serverHit = true;
               // #region debug-point D:server-hydration
-              fetch('http://127.0.0.1:7777/event', {
-                method: 'POST',
-                body: JSON.stringify({
-                  sessionId: 'mistake-classroom-regression',
-                  runId: 'pre',
-                  hypothesisId: 'D',
-                  location: 'app/classroom/[id]/page.tsx:94',
-                  msg: '[DEBUG] classroom load after server hydration',
-                  data: {
-                    classroomId,
-                    stageId: stage?.id ?? null,
-                    stageName: stage?.name ?? null,
-                    scenesLength: scenes.length,
-                    firstSceneId: scenes[0]?.id ?? null,
-                    firstSceneType: scenes[0]?.type ?? null,
-                  },
-                  ts: Date.now(),
-                }),
-              }).catch(() => {});
+              sendDebugEvent({
+                sessionId: 'mistake-classroom-regression',
+                runId: 'pre',
+                hypothesisId: 'D',
+                location: 'app/classroom/[id]/page.tsx:94',
+                msg: '[DEBUG] classroom load after server hydration',
+                data: {
+                  classroomId,
+                  stageId: stage?.id ?? null,
+                  stageName: stage?.name ?? null,
+                  scenesLength: scenes.length,
+                  firstSceneId: scenes[0]?.id ?? null,
+                  firstSceneType: scenes[0]?.type ?? null,
+                },
+              });
               // #endregion
               log.info('Loaded from server-side storage:', classroomId);
 
@@ -179,23 +172,19 @@ export default function ClassroomDetailPage() {
 
       if (loadState.kind === 'not_found') {
         // #region debug-point D:not-found
-        fetch('http://127.0.0.1:7777/event', {
-          method: 'POST',
-          body: JSON.stringify({
-            sessionId: 'mistake-classroom-regression',
-            runId: 'pre',
-            hypothesisId: 'D',
-            location: 'app/classroom/[id]/page.tsx:118',
-            msg: '[DEBUG] classroom load not found',
-            data: {
-              classroomId,
-              indexedDbHit,
-              serverHit,
-              message: loadState.message,
-            },
-            ts: Date.now(),
-          }),
-        }).catch(() => {});
+        sendDebugEvent({
+          sessionId: 'mistake-classroom-regression',
+          runId: 'pre',
+          hypothesisId: 'D',
+          location: 'app/classroom/[id]/page.tsx:118',
+          msg: '[DEBUG] classroom load not found',
+          data: {
+            classroomId,
+            indexedDbHit,
+            serverHit,
+            message: loadState.message,
+          },
+        });
         // #endregion
         if (shouldCommitClassroomLoadUpdate({ cancelled: Boolean(isCancelled?.()) })) {
           setError(loadState.message);
@@ -204,26 +193,22 @@ export default function ClassroomDetailPage() {
       }
 
       // #region debug-point D:ready-state
-      fetch('http://127.0.0.1:7777/event', {
-        method: 'POST',
-        body: JSON.stringify({
-          sessionId: 'mistake-classroom-regression',
-          runId: 'pre',
-          hypothesisId: 'D',
-          location: 'app/classroom/[id]/page.tsx:122',
-          msg: '[DEBUG] classroom load ready state',
-          data: {
-            classroomId,
-            indexedDbHit,
-            serverHit,
-            stageId: useStageStore.getState().stage?.id ?? null,
-            stageName: useStageStore.getState().stage?.name ?? null,
-            scenesLength: useStageStore.getState().scenes.length,
-            currentSceneId: useStageStore.getState().currentSceneId ?? null,
-          },
-          ts: Date.now(),
-        }),
-      }).catch(() => {});
+      sendDebugEvent({
+        sessionId: 'mistake-classroom-regression',
+        runId: 'pre',
+        hypothesisId: 'D',
+        location: 'app/classroom/[id]/page.tsx:122',
+        msg: '[DEBUG] classroom load ready state',
+        data: {
+          classroomId,
+          indexedDbHit,
+          serverHit,
+          stageId: useStageStore.getState().stage?.id ?? null,
+          stageName: useStageStore.getState().stage?.name ?? null,
+          scenesLength: useStageStore.getState().scenes.length,
+          currentSceneId: useStageStore.getState().currentSceneId ?? null,
+        },
+      });
       // #endregion
 
       const currentState = useStageStore.getState();
@@ -306,22 +291,18 @@ export default function ClassroomDetailPage() {
       }
     } finally {
       // #region debug-point C:classroom-load-finally
-      fetch('http://127.0.0.1:7777/event', {
-        method: 'POST',
-        body: JSON.stringify({
-          sessionId: 'classroom-needs-refresh',
-          runId: 'pre',
-          hypothesisId: 'C',
-          location: 'app/classroom/[id]/page.tsx:294',
-          msg: '[DEBUG] classroom load lifecycle finally',
-          data: {
-            classroomId,
-            stageId: useStageStore.getState().stage?.id ?? null,
-            scenesLength: useStageStore.getState().scenes.length,
-          },
-          ts: Date.now(),
-        }),
-      }).catch(() => {});
+      sendDebugEvent({
+        sessionId: 'classroom-needs-refresh',
+        runId: 'pre',
+        hypothesisId: 'C',
+        location: 'app/classroom/[id]/page.tsx:294',
+        msg: '[DEBUG] classroom load lifecycle finally',
+        data: {
+          classroomId,
+          stageId: useStageStore.getState().stage?.id ?? null,
+          scenesLength: useStageStore.getState().scenes.length,
+        },
+      });
       // #endregion
       if (shouldCommitClassroomLoadUpdate({ cancelled: Boolean(isCancelled?.()) })) {
         setLoading(false);
@@ -403,27 +384,23 @@ export default function ClassroomDetailPage() {
 
   useEffect(() => {
     // #region debug-point B:classroom-visibility
-    fetch('http://127.0.0.1:7777/event', {
-      method: 'POST',
-      body: JSON.stringify({
-        sessionId: 'classroom-needs-refresh',
-        runId: 'pre',
-        hypothesisId: 'B',
-        location: 'app/classroom/[id]/page.tsx:330',
-        msg: '[DEBUG] classroom visibility snapshot',
-        data: {
-          classroomId,
-          loading,
-          error,
-          mistakeSessionId,
-          stageId: useStageStore.getState().stage?.id ?? null,
-          scenesLength: useStageStore.getState().scenes.length,
-          currentSceneId: useStageStore.getState().currentSceneId ?? null,
-          hasGenerationParams: Boolean(sessionStorage.getItem('generationParams')),
-        },
-        ts: Date.now(),
-      }),
-    }).catch(() => {});
+    sendDebugEvent({
+      sessionId: 'classroom-needs-refresh',
+      runId: 'pre',
+      hypothesisId: 'B',
+      location: 'app/classroom/[id]/page.tsx:330',
+      msg: '[DEBUG] classroom visibility snapshot',
+      data: {
+        classroomId,
+        loading,
+        error,
+        mistakeSessionId,
+        stageId: useStageStore.getState().stage?.id ?? null,
+        scenesLength: useStageStore.getState().scenes.length,
+        currentSceneId: useStageStore.getState().currentSceneId ?? null,
+        hasGenerationParams: Boolean(sessionStorage.getItem('generationParams')),
+      },
+    });
     // #endregion
   }, [classroomId, error, loading, mistakeSessionId]);
 
@@ -431,21 +408,17 @@ export default function ClassroomDetailPage() {
     const lifecycleId = `${classroomId}-${Date.now()}-${++loadLifecycleIdRef.current}`;
     let cancelled = false;
     // #region debug-point C:classroom-load-start
-    fetch('http://127.0.0.1:7777/event', {
-      method: 'POST',
-      body: JSON.stringify({
-        sessionId: 'classroom-needs-refresh',
-        runId: 'pre',
-        hypothesisId: 'C',
-        location: 'app/classroom/[id]/page.tsx:356',
-        msg: '[DEBUG] classroom load lifecycle start',
-        data: {
-          lifecycleId,
-          classroomId,
-        },
-        ts: Date.now(),
-      }),
-    }).catch(() => {});
+    sendDebugEvent({
+      sessionId: 'classroom-needs-refresh',
+      runId: 'pre',
+      hypothesisId: 'C',
+      location: 'app/classroom/[id]/page.tsx:356',
+      msg: '[DEBUG] classroom load lifecycle start',
+      data: {
+        lifecycleId,
+        classroomId,
+      },
+    });
     // #endregion
 
     // Reset loading state on course switch to unmount Stage during transition,
@@ -481,21 +454,17 @@ export default function ClassroomDetailPage() {
     return () => {
       cancelled = true;
       // #region debug-point C:classroom-load-cleanup
-      fetch('http://127.0.0.1:7777/event', {
-        method: 'POST',
-        body: JSON.stringify({
-          sessionId: 'classroom-needs-refresh',
-          runId: 'pre',
-          hypothesisId: 'C',
-          location: 'app/classroom/[id]/page.tsx:376',
-          msg: '[DEBUG] classroom load lifecycle cleanup',
-          data: {
-            lifecycleId,
-            classroomId,
-          },
-          ts: Date.now(),
-        }),
-      }).catch(() => {});
+      sendDebugEvent({
+        sessionId: 'classroom-needs-refresh',
+        runId: 'pre',
+        hypothesisId: 'C',
+        location: 'app/classroom/[id]/page.tsx:376',
+        msg: '[DEBUG] classroom load lifecycle cleanup',
+        data: {
+          lifecycleId,
+          classroomId,
+        },
+      });
       // #endregion
       stop();
     };

@@ -43,6 +43,7 @@ import type { Stage } from '@/lib/types/stage';
 import type { SceneOutline, PdfImage, ImageMapping } from '@/lib/types/generation';
 import { AgentRevealModal } from '@/components/agent/agent-reveal-modal';
 import { createLogger } from '@/lib/logger';
+import { sendDebugEvent } from '@/lib/utils/debug-event';
 import { type GenerationSessionState, ALL_STEPS, getActiveSteps } from './types';
 import { buildGenerationApiHeaders } from './api-headers';
 import { StepVisualizer } from './components/visualizers';
@@ -978,26 +979,22 @@ function GenerationPreviewContent() {
       }
 
       // #region debug-point A:before-classroom-push
-      fetch('http://127.0.0.1:7777/event', {
-        method: 'POST',
-        body: JSON.stringify({
-          sessionId: 'classroom-needs-refresh',
-          runId: 'pre',
-          hypothesisId: 'A',
-          location: 'app/generation-preview/page.tsx:984',
-          msg: '[DEBUG] generation preview before classroom push',
-          data: {
-            classroomId: stage.id,
-            currentSceneId: data.scene.id,
-            scenesLength: useStageStore.getState().scenes.length,
-            outlinesLength: useStageStore.getState().outlines.length,
-            generatingOutlinesLength: useStageStore.getState().generatingOutlines.length,
-            hasGenerationParams: Boolean(sessionStorage.getItem('generationParams')),
-            hasGenerationSession: Boolean(loadGenerationPreviewSession()),
-          },
-          ts: Date.now(),
-        }),
-      }).catch(() => {});
+      sendDebugEvent({
+        sessionId: 'classroom-needs-refresh',
+        runId: 'pre',
+        hypothesisId: 'A',
+        location: 'app/generation-preview/page.tsx:984',
+        msg: '[DEBUG] generation preview before classroom push',
+        data: {
+          classroomId: stage.id,
+          currentSceneId: data.scene.id,
+          scenesLength: useStageStore.getState().scenes.length,
+          outlinesLength: useStageStore.getState().outlines.length,
+          generatingOutlinesLength: useStageStore.getState().generatingOutlines.length,
+          hasGenerationParams: Boolean(sessionStorage.getItem('generationParams')),
+          hasGenerationSession: Boolean(loadGenerationPreviewSession()),
+        },
+      });
       // #endregion
 
       if (shouldClearGenerationPreviewSession({ outcome: 'success' })) {

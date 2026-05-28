@@ -75,12 +75,20 @@ export default function MistakePage() {
     formData.set('image', image);
     formData.set('subject', 'math');
 
-    const response = await fetch('/api/mistake/session/extract', {
-      method: 'POST',
-      body: formData,
-    });
-    const json = (await response.json()) as ExtractResponse | { error?: string };
-    const extractError = 'error' in json ? json.error : undefined;
+    console.log('[Mistake] Starting OCR request...');
+    const startTime = Date.now();
+
+    try {
+      const response = await fetch('/api/mistake/session/extract', {
+        method: 'POST',
+        body: formData,
+      });
+      console.log('[Mistake] OCR response received in', Date.now() - startTime, 'ms');
+      console.log('[Mistake] Response status:', response.status);
+
+      const json = (await response.json()) as ExtractResponse | { error?: string };
+      console.log('[Mistake] Response data:', json);
+      const extractError = 'error' in json ? json.error : undefined;
 
     if (!response.ok || !('extraction' in json)) {
       setStatus('error');
@@ -106,6 +114,11 @@ export default function MistakePage() {
       ...json.extraction,
     });
     router.push('/mistake/recognize');
+    } catch (err) {
+      console.error('[Mistake] OCR request failed:', err);
+      setStatus('error');
+      setError(err instanceof Error ? err.message : '网络请求失败，请检查网络连接');
+    }
   }
 
   async function startMistakeFlow(extraction: ExtractResponse['extraction']) {

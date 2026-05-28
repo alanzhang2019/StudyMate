@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   experimental: {
     proxyClientMaxBodySize: '200mb',
   },
+  turbopack: {},
   webpack: (config, { dev }) => {
     if (dev) {
       config.watchOptions = {

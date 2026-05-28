@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback, type RefObject } from 'react';
 import { useCanvasStore } from '@/lib/store';
+import { sendDebugEvent } from '@/lib/utils/debug-event';
 
 export interface ViewportStyles {
   width: number;
@@ -82,49 +83,41 @@ export function useViewportSize(canvasRef: RefObject<HTMLElement | null>) {
     });
     if (!placement) {
       // #region debug-point B:viewport-init-skip
-      fetch('http://127.0.0.1:7777/event', {
-        method: 'POST',
-        body: JSON.stringify({
-          sessionId: 'mistake-classroom-regression',
-          runId: 'pre',
-          hypothesisId: 'B',
-          location: 'useViewportSize.ts:init-skip',
-          msg: '[DEBUG] viewport init skipped',
-          data: {
-            canvasWidth,
-            canvasHeight,
-            canvasPercentage,
-            viewportRatio,
-            viewportSize,
-          },
-          ts: Date.now(),
-        }),
-      }).catch(() => {});
-      // #endregion
-      return;
-    }
-    // #region debug-point B:viewport-init-apply
-    fetch('http://127.0.0.1:7777/event', {
-      method: 'POST',
-      body: JSON.stringify({
+      sendDebugEvent({
         sessionId: 'mistake-classroom-regression',
         runId: 'pre',
         hypothesisId: 'B',
-        location: 'useViewportSize.ts:init-apply',
-        msg: '[DEBUG] viewport init apply placement',
+        location: 'useViewportSize.ts:init-skip',
+        msg: '[DEBUG] viewport init skipped',
         data: {
           canvasWidth,
           canvasHeight,
           canvasPercentage,
           viewportRatio,
           viewportSize,
-          scale: placement.scale,
-          left: placement.left,
-          top: placement.top,
         },
-        ts: Date.now(),
-      }),
-    }).catch(() => {});
+      });
+      // #endregion
+      return;
+    }
+    // #region debug-point B:viewport-init-apply
+    sendDebugEvent({
+      sessionId: 'mistake-classroom-regression',
+      runId: 'pre',
+      hypothesisId: 'B',
+      location: 'useViewportSize.ts:init-apply',
+      msg: '[DEBUG] viewport init apply placement',
+      data: {
+        canvasWidth,
+        canvasHeight,
+        canvasPercentage,
+        viewportRatio,
+        viewportSize,
+        scale: placement.scale,
+        left: placement.left,
+        top: placement.top,
+      },
+    });
     // #endregion
     setCanvasScale(placement.scale);
     setViewportLeft(placement.left);
@@ -140,25 +133,21 @@ export function useViewportSize(canvasRef: RefObject<HTMLElement | null>) {
 
       if (canvasWidth <= 0 || canvasHeight <= 0) {
         // #region debug-point B:viewport-update-skip
-        fetch('http://127.0.0.1:7777/event', {
-          method: 'POST',
-          body: JSON.stringify({
-            sessionId: 'mistake-classroom-regression',
-            runId: 'pre',
-            hypothesisId: 'B',
-            location: 'useViewportSize.ts:update-skip',
-            msg: '[DEBUG] viewport update skipped',
-            data: {
-              canvasWidth,
-              canvasHeight,
-              newValue,
-              oldValue,
-              viewportRatio,
-              viewportSize,
-            },
-            ts: Date.now(),
-          }),
-        }).catch(() => {});
+        sendDebugEvent({
+          sessionId: 'mistake-classroom-regression',
+          runId: 'pre',
+          hypothesisId: 'B',
+          location: 'useViewportSize.ts:update-skip',
+          msg: '[DEBUG] viewport update skipped',
+          data: {
+            canvasWidth,
+            canvasHeight,
+            newValue,
+            oldValue,
+            viewportRatio,
+            viewportSize,
+          },
+        });
         // #endregion
         return;
       }
@@ -171,24 +160,20 @@ export function useViewportSize(canvasRef: RefObject<HTMLElement | null>) {
         const nextScale = newViewportActualWidth / viewportSize;
         if (nextScale <= 0) return;
         // #region debug-point B:viewport-update-apply-width
-        fetch('http://127.0.0.1:7777/event', {
-          method: 'POST',
-          body: JSON.stringify({
-            sessionId: 'mistake-classroom-regression',
-            runId: 'pre',
-            hypothesisId: 'B',
-            location: 'useViewportSize.ts:update-apply-width',
-            msg: '[DEBUG] viewport update apply width-driven placement',
-            data: {
-              canvasWidth,
-              canvasHeight,
-              newValue,
-              oldValue,
-              nextScale,
-            },
-            ts: Date.now(),
-          }),
-        }).catch(() => {});
+        sendDebugEvent({
+          sessionId: 'mistake-classroom-regression',
+          runId: 'pre',
+          hypothesisId: 'B',
+          location: 'useViewportSize.ts:update-apply-width',
+          msg: '[DEBUG] viewport update apply width-driven placement',
+          data: {
+            canvasWidth,
+            canvasHeight,
+            newValue,
+            oldValue,
+            nextScale,
+          },
+        });
         // #endregion
         setCanvasScale(nextScale);
 
@@ -202,24 +187,20 @@ export function useViewportSize(canvasRef: RefObject<HTMLElement | null>) {
         const nextScale = newViewportActualHeight / (viewportSize * viewportRatio);
         if (nextScale <= 0) return;
         // #region debug-point B:viewport-update-apply-height
-        fetch('http://127.0.0.1:7777/event', {
-          method: 'POST',
-          body: JSON.stringify({
-            sessionId: 'mistake-classroom-regression',
-            runId: 'pre',
-            hypothesisId: 'B',
-            location: 'useViewportSize.ts:update-apply-height',
-            msg: '[DEBUG] viewport update apply height-driven placement',
-            data: {
-              canvasWidth,
-              canvasHeight,
-              newValue,
-              oldValue,
-              nextScale,
-            },
-            ts: Date.now(),
-          }),
-        }).catch(() => {});
+        sendDebugEvent({
+          sessionId: 'mistake-classroom-regression',
+          runId: 'pre',
+          hypothesisId: 'B',
+          location: 'useViewportSize.ts:update-apply-height',
+          msg: '[DEBUG] viewport update apply height-driven placement',
+          data: {
+            canvasWidth,
+            canvasHeight,
+            newValue,
+            oldValue,
+            nextScale,
+          },
+        });
         // #endregion
         setCanvasScale(nextScale);
 
