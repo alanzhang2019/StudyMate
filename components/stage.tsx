@@ -406,6 +406,50 @@ export function Stage({
     return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
   }, [clearPresentationIdleTimer, defaultPresentation]);
 
+  // Auto fullscreen on mobile landscape orientation
+  useEffect(() => {
+    // Only enable on mobile devices
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (!isMobile) return;
+
+    const handleOrientationChange = () => {
+      const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+      const stageElement = stageRef.current;
+      if (!stageElement) return;
+
+      if (isLandscape && document.fullscreenElement !== stageElement) {
+        // Enter fullscreen when rotating to landscape
+        const requestFS = stageElement.requestFullscreen || (stageElement as any).webkitRequestFullscreen;
+        if (typeof requestFS === 'function') {
+          requestFS.call(stageElement).catch(() => {
+            // Silently fail if fullscreen is not allowed
+          });
+        }
+      } else if (!isLandscape && document.fullscreenElement === stageElement) {
+        // Exit fullscreen when rotating back to portrait
+        const exitFS = document.exitFullscreen || (document as any).webkitExitFullscreen;
+        if (typeof exitFS === 'function') {
+          exitFS.call(document).catch(() => {
+            // Silently fail
+          });
+        }
+      }
+    };
+
+    // Listen for orientation changes
+    window.addEventListener('orientationchange', handleOrientationChange);
+    // Also check on resize (some devices don't fire orientationchange reliably)
+    window.addEventListener('resize', handleOrientationChange);
+
+    // Initial check
+    handleOrientationChange();
+
+    return () => {
+      window.removeEventListener('orientationchange', handleOrientationChange);
+      window.removeEventListener('resize', handleOrientationChange);
+    };
+  }, []);
+
   useEffect(() => {
     if (!isPresenting) {
       setControlsVisible(true);

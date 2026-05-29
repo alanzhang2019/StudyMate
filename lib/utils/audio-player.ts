@@ -24,6 +24,22 @@ function isPlaybackInterruptionError(error: unknown) {
   );
 }
 
+function isUserGestureRequiredError(error: unknown) {
+  if (!(error instanceof DOMException || error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.toLowerCase();
+  return (
+    error.name === 'NotAllowedError' ||
+    message.includes('user interaction') ||
+    message.includes('user gesture') ||
+    message.includes('play() failed') ||
+    message.includes('not allowed') ||
+    message.includes('interact with the document')
+  );
+}
+
 /**
  * Audio player implementation
  */
@@ -59,6 +75,11 @@ export class AudioPlayer {
         try {
           await playbackAudio.play();
         } catch (error) {
+          if (isUserGestureRequiredError(error)) {
+            // Mobile browsers require user gesture before playing audio
+            // Silently fail - audio will play on next user interaction
+            return false;
+          }
           if (isPlaybackInterruptionError(error) && (this.audio !== playbackAudio || playbackAudio.paused)) {
             return false;
           }
@@ -103,6 +124,11 @@ export class AudioPlayer {
       try {
         await playbackAudio.play();
       } catch (error) {
+        if (isUserGestureRequiredError(error)) {
+          // Mobile browsers require user gesture before playing audio
+          URL.revokeObjectURL(blobUrl);
+          return false;
+        }
         if (isPlaybackInterruptionError(error) && (this.audio !== playbackAudio || playbackAudio.paused)) {
           URL.revokeObjectURL(blobUrl);
           return false;

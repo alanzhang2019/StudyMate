@@ -15,6 +15,8 @@ import {
   BookOpen,
   Loader2,
   Volume2,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { AudioIndicatorState } from './audio-indicator';
@@ -193,6 +195,7 @@ export function Roundtable({
   const [isVoiceOpen, setIsVoiceOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [userMessage, setUserMessage] = useState<string | null>(null);
+  const [isTTSCollapsed, setIsTTSCollapsed] = useState(false);
   const agentScrollRef = useRef<HTMLDivElement>(null);
   const bubbleScrollRef = useRef<HTMLDivElement>(null);
   const teacherAvatarRef = useRef<HTMLDivElement>(null);
@@ -1682,7 +1685,10 @@ export function Roundtable({
                             />
                           </div>
                         ) : (
-                          <p className="whitespace-pre-wrap break-words" suppressHydrationWarning>
+                          <p className={cn(
+                            "whitespace-pre-wrap break-words transition-all duration-300",
+                            isTTSCollapsed && "max-h-[3.5em] overflow-hidden"
+                          )} suppressHydrationWarning>
                             {sourceText}
                             {isTopicPending && (
                               <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 ml-1 align-middle" />
@@ -1690,6 +1696,24 @@ export function Roundtable({
                           </p>
                         )}
                       </div>
+
+                      {/* Collapse/Expand button */}
+                      {!isBubbleLoading && sourceText && sourceText.length > 80 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsTTSCollapsed(!isTTSCollapsed);
+                          }}
+                          className="self-center mt-1 p-0.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          title={isTTSCollapsed ? "展开" : "折叠"}
+                        >
+                          {isTTSCollapsed ? (
+                            <ChevronDown className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+                          ) : (
+                            <ChevronUp className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+                          )}
+                        </button>
+                      )}
 
                       {/* Playback state icon (hidden during loading — dots already indicate activity) */}
                       {bubbleRole !== 'user' &&

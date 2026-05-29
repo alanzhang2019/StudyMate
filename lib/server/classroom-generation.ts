@@ -31,6 +31,11 @@ import { buildVideoManifestFromOutlines } from '@/lib/media/video-manifest';
 import type { UserRequirements } from '@/lib/types/generation';
 import type { Scene, Stage } from '@/lib/types/stage';
 import { AGENT_COLOR_PALETTE, AGENT_DEFAULT_AVATARS } from '@/lib/constants/agent-defaults';
+import {
+  isFastGenerationEnabled,
+  getOptimizedMaxTokens,
+  getOptimizedSceneCount,
+} from '@/lib/generation/fast-mode';
 
 const log = createLogger('Classroom');
 
@@ -39,6 +44,8 @@ export interface GenerateClassroomInput {
   modelString?: string;
   maxScenes?: number;
   pdfContent?: { text: string; images: string[] };
+  /** Direct image data for vision-based generation (skips OCR) */
+  imageData?: { mimeType: string; base64: string }[];
   enableWebSearch?: boolean;
   webSearchProviderId?: WebSearchProviderId;
   webSearchApiKey?: string;
@@ -225,15 +232,40 @@ export async function generateClassroom(
     );
   }
 
-  const aiCall: AICallFn = async (systemPrompt, userPrompt, _images) => {
+  // Optimize for faster generation on slow networks
+  const optimizedMaxTokens = getOptimizedMaxTokens(modelInfo?.outputWindow);
+  const fastMode = isFastGenerationEnabled();
+
+  if (fastMode) {
+    log.info('Fast generation mode enabled - optimizing for speed');
+  }
+
+  const aiCall: AICallFn = async (systemPrompt, userPrompt, images) => {
+    // Build messages with images if provided
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const messages: any[] = [{ role: 'system', content: systemPrompt }];
+
+    if (images && images.length > 0) {
+      // Use AI SDK's multimodal message format
+      const content: Array<{ type: 'text'; text: string } | { type: 'image'; image: string }> = [
+        { type: 'text', text: userPrompt },
+      ];
+      for (const img of images) {
+        content.push({
+          type: 'image',
+          image: img.src,
+        });
+      }
+      messages.push({ role: 'user', content });
+    } else {
+      messages.push({ role: 'user', content: userPrompt });
+    }
+
     const result = await callLLM(
       {
         model: languageModel,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        maxOutputTokens: modelInfo?.outputWindow,
+        messages,
+        maxOutputTokens: optimizedMaxTokens,
       },
       'generate-classroom',
     );
@@ -310,16 +342,23 @@ export async function generateClassroom(
     scenesGenerated: 0,
   });
 
+  // Prepare vision images if provided
+  const visionImages = input.imageData?.map((img, idx) => ({
+    id: `vision-${idx}`,
+    src: `data:${img.mimeType};base64,${img.base64}`,
+  }));
+
   const outlinesResult = await generateSceneOutlinesFromRequirements(
     requirements,
     pdfText,
-    undefined,
+    visionImages,
     aiCall,
     undefined,
     {
       imageGenerationEnabled: input.enableImageGeneration,
       videoGenerationEnabled: input.enableVideoGeneration,
       researchContext,
+      visionEnabled: !!visionImages && visionImages.length > 0,
       // NO teacherContext — agents haven't been generated yet
     },
   );
@@ -330,7 +369,12 @@ export async function generateClassroom(
   }
 
   const { languageDirective } = outlinesResult.data;
-  const outlines = limitSceneOutlines(outlinesResult.data.outlines, input.maxScenes);
+  // Apply fast mode scene count limit
+  const effectiveMaxScenes = fastMode ? getOptimizedSceneCount(input.maxScenes) : input.maxScenes;
+  if (fastMode && input.maxScenes && input.maxScenes > 5) {
+    log.info(`Fast mode: limiting scenes from ${input.maxScenes} to ${effectiveMaxScenes}`);
+  }
+  const outlines = limitSceneOutlines(outlinesResult.data.outlines, effectiveMaxScenes);
   log.info(`Generated ${outlines.length} scene outlines (languageDirective: ${languageDirective})`);
 
   await options.onProgress?.({

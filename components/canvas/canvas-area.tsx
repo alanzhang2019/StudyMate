@@ -14,6 +14,7 @@ import type { Scene, StageMode } from '@/lib/types/stage';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { ClassroomCompletePageConnected } from '@/components/scene-renderers/classroom-complete';
 import { sendDebugEvent } from '@/lib/utils/debug-event';
+import { useGenerationProgress, getPhaseText } from '@/lib/hooks/use-generation-progress';
 
 interface CanvasAreaProps extends CanvasToolbarProps {
   readonly currentScene: Scene | null;
@@ -216,22 +217,7 @@ export function CanvasArea({
                     )}
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center gap-4">
-                    {/* Spinner */}
-                    <div className="relative w-12 h-12">
-                      <div className="absolute inset-0 rounded-full border-2 border-gray-100 dark:border-gray-700" />
-                      <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-purple-500 dark:border-t-purple-400 animate-spin" />
-                    </div>
-                    {/* Text */}
-                    <motion.span
-                      initial={{ opacity: 0, y: 4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2, duration: 0.3 }}
-                      className="text-sm text-gray-400 dark:text-gray-500 font-medium"
-                    >
-                      {t('stage.generatingNextPage')}
-                    </motion.span>
-                  </div>
+                  <GenerationProgressView />
                 )}
               </motion.div>
             )}
@@ -315,6 +301,85 @@ export function CanvasArea({
           onStopDiscussion={onStopDiscussion}
         />
       )}
+    </div>
+  );
+}
+
+/**
+ * Generation progress view with countdown timer
+ */
+function GenerationProgressView() {
+  const progress = useGenerationProgress();
+
+  return (
+    <div className="flex flex-col items-center gap-5">
+      {/* Spinner with progress ring */}
+      <div className="relative w-16 h-16">
+        {/* Background ring */}
+        <div className="absolute inset-0 rounded-full border-3 border-gray-100 dark:border-gray-700" />
+        {/* Progress ring */}
+        <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 64 64">
+          <circle
+            cx="32"
+            cy="32"
+            r="28"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            className="text-purple-500 dark:text-purple-400"
+            strokeDasharray={`${2 * Math.PI * 28}`}
+            strokeDashoffset={`${2 * Math.PI * 28 * (1 - (progress.completedScenes / Math.max(1, progress.totalScenes)))}`}
+            strokeLinecap="round"
+            style={{ transition: 'stroke-dashoffset 0.5s ease' }}
+          />
+        </svg>
+        {/* Spinner */}
+        <div className="absolute inset-2 rounded-full border-2 border-transparent border-t-purple-500 dark:border-t-purple-400 animate-spin" />
+      </div>
+
+      {/* Progress text */}
+      <div className="flex flex-col items-center gap-2">
+        <motion.span
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.3 }}
+          className="text-base text-gray-700 dark:text-gray-300 font-semibold"
+        >
+          正在生成第 {progress.currentScene} / {progress.totalScenes} 页
+        </motion.span>
+
+        {/* Phase indicator */}
+        <motion.span
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.3 }}
+          className="text-xs text-purple-500 dark:text-purple-400 font-medium px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-900/20"
+        >
+          {getPhaseText(progress.currentPhase)}
+        </motion.span>
+
+        {/* Generation status hint */}
+        <motion.span
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6, duration: 0.3 }}
+          className="text-sm text-gray-400 dark:text-gray-500 font-medium"
+        >
+          后台生成中，可继续浏览
+        </motion.span>
+      </div>
+
+      {/* Progress bar */}
+      <div className="w-48 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+        <motion.div
+          className="h-full bg-gradient-to-r from-purple-500 to-purple-400 dark:from-purple-400 dark:to-purple-300 rounded-full"
+          initial={{ width: 0 }}
+          animate={{
+            width: `${(progress.completedScenes / Math.max(1, progress.totalScenes)) * 100}%`,
+          }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+        />
+      </div>
     </div>
   );
 }

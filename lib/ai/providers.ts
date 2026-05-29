@@ -705,6 +705,20 @@ export const PROVIDERS: Record<ProviderId, ProviderConfig> = {
       },
       // Qwen Series
       {
+        id: 'Qwen/Qwen3-30B-A3B-Instruct-2507',
+        name: 'Qwen3-30B-A3B',
+        contextWindow: 128000,
+        outputWindow: 8192,
+        capabilities: { streaming: true, tools: true, vision: false },
+      },
+      {
+        id: 'Qwen/Qwen3-8B',
+        name: 'Qwen3-8B (Fast)',
+        contextWindow: 128000,
+        outputWindow: 8192,
+        capabilities: { streaming: true, tools: true, vision: false },
+      },
+      {
         id: 'Qwen/Qwen3-VL-32B-Instruct',
         name: 'Qwen3-VL-32B-Instruct',
         contextWindow: 256000,

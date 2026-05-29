@@ -182,6 +182,24 @@ export async function generateTTS(
 }
 
 /**
+ * Fetch with timeout helper
+ */
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+  timeoutMs: number = 30000,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    return response;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+/**
  * OpenAI TTS implementation (direct API call with explicit UTF-8 encoding)
  */
 async function generateOpenAITTS(
@@ -191,30 +209,34 @@ async function generateOpenAITTS(
   const baseUrl = config.baseUrl || TTS_PROVIDERS['openai-tts'].defaultBaseUrl;
 
   // Use gpt-4o-mini-tts for best quality and intelligent realtime applications
-  const response = await fetch(`${baseUrl}/audio/speech`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${config.apiKey}`,
-      'Content-Type': 'application/json; charset=utf-8',
-    },
-    body: JSON.stringify({
+  const response = await fetchWithTimeout(
+    `${baseUrl}/audio/speech`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${config.apiKey}`,
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+      body: JSON.stringify({
         model: config.modelId || (config.providerId === 'siliconflow-tts' ? 'FunAudioLLM/CosyVoice2-0.5B' : 'tts-1'),
         input: text,
         voice: config.voice,
         speed: config.speed || 1.0,
       }),
-  });
+    },
+    60000, // 60s timeout for TTS generation
+  );
 
   if (!response.ok) {
-      const errorText = await response.text().catch(() => response.statusText);
-      console.error('SiliconFlow/OpenAI TTS API Error Payload:', errorText);
-      try {
-        const error = JSON.parse(errorText);
-        throw new Error(`OpenAI TTS API error: ${error.error?.message || response.statusText}`);
-      } catch (e) {
-        throw new Error(`OpenAI TTS API error: ${errorText || response.statusText}`);
-      }
+    const errorText = await response.text().catch(() => response.statusText);
+    console.error('SiliconFlow/OpenAI TTS API Error Payload:', errorText);
+    try {
+      const error = JSON.parse(errorText);
+      throw new Error(`OpenAI TTS API error: ${error.error?.message || response.statusText}`);
+    } catch (e) {
+      throw new Error(`OpenAI TTS API error: ${errorText || response.statusText}`);
     }
+  }
 
   const arrayBuffer = await response.arrayBuffer();
   const contentType = response.headers.get('content-type') || '';

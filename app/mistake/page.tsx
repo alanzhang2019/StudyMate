@@ -1,30 +1,17 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'motion/react';
 
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useI18n } from '@/lib/hooks/use-i18n';
-import { shouldSkipConfirmation } from '@/lib/mistake/session/confidence-policy';
 import { getHomeworkHomeContent } from '@/lib/mistake/ui/content';
-import { buildPendingRecognizeImageUrl } from '@/lib/mistake/ui/pending-recognize-image';
-import { startMistakePreview } from '@/lib/mistake/ui/start-mistake-preview';
-import { writePendingRecognizeSession } from '@/lib/mistake/ui/recognize-session';
 import { useProfileStore } from '@/lib/store/profile';
+import { useAudioRecorder } from '@/lib/hooks/use-audio-recorder';
+import { ImageCropper } from '@/components/image-cropper';
 
-import { Camera } from 'lucide-react';
-
-type ExtractResponse = {
-  success: true;
-  extraction: {
-    problemText: string;
-    studentAnswer?: string;
-    correctAnswerCandidate?: string;
-    confidence: number;
-    needsUserConfirmation: boolean;
-  };
-};
+import { Camera, History, Sparkles, AlertTriangle, Mic, Loader2, Keyboard, Send, ImagePlus, Crop, Trash2 } from 'lucide-react';
 
 type PageStatus =
   | 'idle'
@@ -33,36 +20,147 @@ type PageStatus =
   | 'starting_preview'
   | 'error';
 
-export default function MistakePage() {
-  const router = useRouter();
+interface ImageItem {
+  id: string;
+  file: File;
+  previewUrl: string;
+  cropped?: boolean;
+}
+
+export default function HomeworkPage() {
   const { t } = useI18n();
-  const activeProfile = useProfileStore((state) => state.activeProfile);
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [image, setImage] = useState<File | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [images, setImages] = useState<ImageItem[]>([]);
+  const [textInput, setTextInput] = useState('');
+  const [isTextMode, setIsTextMode] = useState(false);
   const [status, setStatus] = useState<PageStatus>('idle');
   const [error, setError] = useState('');
+  const [cropImageUrl, setCropImageUrl] = useState<string | null>(null);
+  const [cropImageIndex, setCropImageIndex] = useState<number>(-1);
+  const activeProfile = useProfileStore((s) => s.activeProfile);
   const homeContent = getHomeworkHomeContent(t);
 
-  const previewUrl = useMemo(() => {
-    if (!image) {
-      return null;
-    }
+  const { isRecording, isProcessing, startRecording, stopRecording } = useAudioRecorder({
+    onTranscription: (text) => {
+      setTextInput((prev) => prev + text);
+      setIsTextMode(true);
+    },
+    onError: (err) => {
+      setError(err);
+    },
+  });
 
-    return URL.createObjectURL(image);
-  }, [image]);
   const isStartingPreview = status === 'creating_session' || status === 'starting_preview';
   const isExtracting = status === 'extracting';
+  const isLoading = isExtracting || isStartingPreview;
 
+  // Cleanup preview URLs on unmount
   useEffect(() => {
     return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-      }
+      images.forEach(img => URL.revokeObjectURL(img.previewUrl));
     };
-  }, [previewUrl]);
+  }, []);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+    }
+  }, [textInput]);
+
+  // Handle file selection
+  const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    const newImages: ImageItem[] = [];
+    Array.from(files).forEach((file) => {
+      const previewUrl = URL.createObjectURL(file);
+      newImages.push({
+        id: Math.random().toString(36).substring(2, 9),
+        file,
+        previewUrl,
+      });
+    });
+
+    setImages(prev => [...prev, ...newImages]);
+    setIsTextMode(false);
+    setStatus('idle');
+    setError('');
+
+    // Reset input so same file can be selected again
+    event.target.value = '';
+  }, []);
+
+  // Remove image
+  const removeImage = useCallback((index: number) => {
+    setImages(prev => {
+      const newImages = [...prev];
+      URL.revokeObjectURL(newImages[index].previewUrl);
+      newImages.splice(index, 1);
+      return newImages;
+    });
+  }, []);
+
+  // Start crop
+  const startCrop = useCallback((index: number) => {
+    setCropImageUrl(images[index].previewUrl);
+    setCropImageIndex(index);
+  }, [images]);
+
+  // Handle crop complete
+  const handleCropComplete = useCallback((croppedBlob: Blob) => {
+    if (cropImageIndex < 0) return;
+
+    const croppedFile = new File([croppedBlob], `cropped_${images[cropImageIndex].file.name}`, {
+      type: 'image/jpeg',
+      lastModified: Date.now(),
+    });
+
+    const newPreviewUrl = URL.createObjectURL(croppedBlob);
+
+    setImages(prev => {
+      const newImages = [...prev];
+      URL.revokeObjectURL(newImages[cropImageIndex].previewUrl);
+      newImages[cropImageIndex] = {
+        ...newImages[cropImageIndex],
+        file: croppedFile,
+        previewUrl: newPreviewUrl,
+        cropped: true,
+      };
+      return newImages;
+    });
+
+    setCropImageUrl(null);
+    setCropImageIndex(-1);
+  }, [cropImageIndex, images]);
+
+  // Cancel crop
+  const handleCropCancel = useCallback(() => {
+    setCropImageUrl(null);
+    setCropImageIndex(-1);
+  }, []);
+
+  // Convert file to base64
+  async function fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        // Remove data URL prefix
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
 
   async function handleExtract() {
-    if (!image) {
+    if (images.length === 0) {
       setError('请先上传图片');
       setStatus('error');
       return;
@@ -71,172 +169,431 @@ export default function MistakePage() {
     setStatus('extracting');
     setError('');
 
-    const formData = new FormData();
-    formData.set('image', image);
-    formData.set('subject', 'math');
-
-    console.log('[Mistake] Starting OCR request...');
-    const startTime = Date.now();
-
     try {
-      const response = await fetch('/api/mistake/session/extract', {
+      // Process images and convert to base64
+      const imageData = await Promise.all(
+        images.map(async (img) => {
+          const base64 = await fileToBase64(img.file);
+          return {
+            mimeType: img.file.type || 'image/jpeg',
+            base64,
+          };
+        })
+      );
+
+      // Call generate-classroom API directly with images
+      const response = await fetch('/api/mistake/session/generate-classroom', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          grade: activeProfile?.grade || 4,
+          subject: 'math',
+          source: 'photo',
+          studentName: activeProfile?.name || '学生',
+          teachingStyle: activeProfile?.teachingStyle || '幽默风趣',
+          studentProfileId: activeProfile?.id,
+          imageData,
+        }),
       });
-      console.log('[Mistake] OCR response received in', Date.now() - startTime, 'ms');
-      console.log('[Mistake] Response status:', response.status);
 
-      const json = (await response.json()) as ExtractResponse | { error?: string };
-      console.log('[Mistake] Response data:', json);
-      const extractError = 'error' in json ? json.error : undefined;
+      const json = await response.json();
 
-    if (!response.ok || !('extraction' in json)) {
-      setStatus('error');
-      setError(extractError ?? '图片提取失败');
-      return;
-    }
+      if (!response.ok || json.error) {
+        setStatus('error');
+        setError(json.error || '生成课件失败');
+        return;
+      }
 
-    if (shouldSkipConfirmation(json.extraction)) {
-      await startMistakeFlow(json.extraction);
-      return;
-    }
-
-    if (!image) {
-      setStatus('error');
-      setError('题目图片预览已丢失，请重新上传');
-      return;
-    }
-
-    const persistentImageUrl = await buildPendingRecognizeImageUrl(image);
-
-    writePendingRecognizeSession({
-      imageUrl: persistentImageUrl,
-      ...json.extraction,
-    });
-    router.push('/mistake/recognize');
+      // Navigate to generation preview
+      setStatus('starting_preview');
+      router.push('/generation-preview');
     } catch (err) {
-      console.error('[Mistake] OCR request failed:', err);
+      console.error('[Mistake] Direct generation failed:', err);
       setStatus('error');
       setError(err instanceof Error ? err.message : '网络请求失败，请检查网络连接');
     }
   }
 
-  async function startMistakeFlow(extraction: ExtractResponse['extraction']) {
-    setStatus('creating_session');
+  async function handleTextSubmit() {
+    if (!textInput.trim()) {
+      setError('请输入题目内容');
+      setStatus('error');
+      return;
+    }
+
+    setStatus('extracting');
     setError('');
 
     try {
-      await startMistakePreview({
-        extraction,
-        problemText: extraction.problemText,
-        studentAnswer: extraction.studentAnswer,
-        correctAnswer: extraction.correctAnswerCandidate,
-        studentName: activeProfile?.name || '学生',
-        grade: activeProfile?.grade || 4,
-        teachingStyle: activeProfile?.teachingStyle || '幽默风趣',
-        studentProfileId: activeProfile?.id,
+      // Call generate-classroom API with text
+      const response = await fetch('/api/mistake/session/generate-classroom', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          grade: activeProfile?.grade || 4,
+          subject: 'math',
+          source: 'manual',
+          problemText: textInput.trim(),
+          studentName: activeProfile?.name || '学生',
+          teachingStyle: activeProfile?.teachingStyle || '幽默风趣',
+          studentProfileId: activeProfile?.id,
+        }),
       });
+
+      const json = await response.json();
+
+      if (!response.ok || json.error) {
+        setStatus('error');
+        setError(json.error || '生成课件失败');
+        return;
+      }
+
+      // Navigate to generation preview
       setStatus('starting_preview');
       router.push('/generation-preview');
-    } catch (flowError) {
+    } catch (err) {
+      console.error('[Mistake] Text submission failed:', err);
       setStatus('error');
-      setError(flowError instanceof Error ? flowError.message : '进入讲解失败');
+      setError(err instanceof Error ? err.message : '提交失败，请重试');
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (images.length > 0) {
+        handleExtract();
+      } else if (textInput.trim()) {
+        handleTextSubmit();
+      }
+    }
+  };
+
+  const hasContent = images.length > 0 || textInput.trim();
+
   return (
-    <main className="mx-auto grid min-h-screen w-full max-w-4xl gap-8 px-6 py-12">
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex flex-col">
+      {/* Decorative background elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-20 -right-20 w-80 h-80 bg-blue-200/30 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 -left-20 w-72 h-72 bg-indigo-200/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-20 right-1/4 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl" />
+      </div>
+
+      {/* Hidden file input */}
       <input
         ref={fileInputRef}
         accept="image/*"
-        capture="environment"
         className="hidden"
         type="file"
-        onChange={(event) => {
-          setImage(event.target.files?.[0] ?? null);
-          setStatus('idle');
-          setError('');
-        }}
+        multiple
+        onChange={handleFileChange}
       />
 
-      <section className="grid gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
-        <p className="text-sm font-bold text-primary tracking-widest uppercase">{homeContent.sceneHint}</p>
-        <div className="grid gap-4">
-          <h1 className="text-5xl md:text-6xl font-heading font-bold tracking-tight text-foreground leading-tight">
+      {/* Image Cropper Modal */}
+      <AnimatePresence>
+        {cropImageUrl && (
+          <ImageCropper
+            imageUrl={cropImageUrl}
+            onCrop={handleCropComplete}
+            onCancel={handleCropCancel}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Main Content */}
+      <div className="relative flex-1 flex flex-col mx-auto w-full max-w-3xl px-4 py-8 md:py-16">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className="text-center mb-12"
+        >
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm mb-6 border border-blue-100">
+            <Sparkles className="w-4 h-4 text-blue-500" />
+            <span className="text-sm font-medium text-blue-600">AI 智能讲解</span>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-800 via-blue-700 to-indigo-700 bg-clip-text text-transparent mb-4">
             {homeContent.title}
           </h1>
-          <p className="max-w-2xl text-lg md:text-xl text-muted-foreground leading-relaxed">
+          <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
             {homeContent.subtitle}
           </p>
-        </div>
-        <div className="flex flex-wrap gap-4 mt-2">
-          <Button onClick={() => fileInputRef.current?.click()} size="lg" type="button" variant="cta" className="text-lg">
-            <Camera className="w-5 h-5 mr-2" />
-            {homeContent.ctaPrimary}
-          </Button>
-          <Button onClick={() => router.push('/history')} size="lg" type="button" variant="secondary" className="text-lg">
-            {homeContent.ctaSecondary}
-          </Button>
-        </div>
-      </section>
+          <p className="text-sm text-slate-500 mt-3">{homeContent.uploadTip}</p>
+        </motion.div>
 
-      <section className="grid gap-4 md:grid-cols-3 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150 fill-mode-both">
-        {homeContent.values.map((value, index) => (
-          <Card key={value} className="p-6 hover:-translate-y-2 hover:rotate-1 transition-transform duration-300">
-            <p className="text-base font-bold text-center text-primary">{value}</p>
-          </Card>
-        ))}
-      </section>
+        {/* Image Preview Area - Multiple Images */}
+        <AnimatePresence>
+          {images.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="mb-6 space-y-4"
+            >
+              {/* Image Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {images.map((img, index) => (
+                  <motion.div
+                    key={img.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    layout
+                  >
+                    <Card className="overflow-hidden border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                      <div className="relative">
+                        <div className="aspect-[4/3] w-full overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-slate-200">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={img.previewUrl}
+                            alt={`题目图片 ${index + 1}`}
+                            className="h-full w-full object-contain"
+                          />
+                        </div>
+                        {/* Image number badge */}
+                        <div className="absolute top-3 left-3 px-2 py-1 bg-blue-500 text-white text-xs font-bold rounded-lg">
+                          {index + 1}
+                        </div>
+                        {/* Action buttons */}
+                        <div className="absolute top-3 right-3 flex gap-2">
+                          <button
+                            onClick={() => startCrop(index)}
+                            className="p-2 bg-white/90 hover:bg-white rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+                            title="裁剪"
+                          >
+                            <Crop className="w-4 h-4 text-slate-600" />
+                          </button>
+                          <button
+                            onClick={() => removeImage(index)}
+                            className="p-2 bg-white/90 hover:bg-red-50 rounded-full shadow-lg transition-all duration-200 hover:rotate-90"
+                            title="删除"
+                          >
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </button>
+                        </div>
+                      </div>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
 
-      <Card className="grid gap-4 p-8 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 fill-mode-both border-4 border-white/50 bg-white/80 backdrop-blur-sm">
-        <div className="grid gap-2">
-          <h2 className="text-2xl font-heading font-bold text-primary">上传题目</h2>
-          <p className="text-base text-muted-foreground">{homeContent.uploadHint}</p>
-          <p className="text-sm text-muted-foreground/80">{homeContent.uploadTip}</p>
-        </div>
-
-        {previewUrl ? (
-          <div className="grid gap-6 md:grid-cols-[280px_1fr] mt-4">
-            <div className="relative group overflow-hidden rounded-2xl border-4 border-white shadow-clay">
-              <img
-                alt="待识别题目预览"
-                className="w-full aspect-video object-cover transition-transform duration-500 group-hover:scale-105"
-                src={previewUrl}
-              />
-            </div>
-            <div className="grid content-center gap-4">
-              <p className="text-sm font-medium text-foreground bg-primary/10 p-3 rounded-xl border border-primary/20">
-                {image?.name ?? '已选择题目图片，下一步会先识别并请你确认。'}
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <Button disabled={isExtracting || isStartingPreview} onClick={handleExtract} type="button" variant="cta" className="flex-1 sm:flex-none">
-                  {isExtracting ? '正在看这道题……' : '开始识别'}
-                </Button>
-                <Button
+              {/* Add more images button */}
+              {images.length < 4 && (
+                <motion.button
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   onClick={() => fileInputRef.current?.click()}
-                  type="button"
-                  variant="outline"
-                  className="flex-1 sm:flex-none"
+                  className="w-full py-3 border-2 border-dashed border-slate-300 hover:border-blue-400 rounded-xl text-slate-500 hover:text-blue-500 transition-colors flex items-center justify-center gap-2"
                 >
-                  重新选择
-                </Button>
+                  <ImagePlus className="w-5 h-5" />
+                  <span>添加更多图片（最多4张）</span>
+                </motion.button>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Spacer to push input to bottom */}
+        <div className="flex-1" />
+
+        {/* Error Message */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3"
+            >
+              <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-600">{error}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Bottom Input Bar - Doubao Style */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="sticky bottom-4 z-10"
+        >
+          <Card className="border-0 shadow-2xl shadow-blue-500/10 bg-white/95 backdrop-blur-xl rounded-2xl overflow-hidden">
+            <div className="p-3">
+              {/* Text Input Mode */}
+              <AnimatePresence>
+                {isTextMode && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mb-3"
+                  >
+                    <div className="flex items-end gap-2 bg-slate-100 rounded-xl px-4 py-2">
+                      <textarea
+                        ref={textareaRef}
+                        value={textInput}
+                        onChange={(e) => setTextInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="输入题目内容..."
+                        rows={1}
+                        className="flex-1 bg-transparent border-none outline-none resize-none text-slate-700 placeholder:text-slate-400 max-h-32 py-1"
+                      />
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => {
+                          if (textInput.trim()) {
+                            handleTextSubmit();
+                          }
+                          setIsTextMode(false);
+                        }}
+                        disabled={isLoading || !textInput.trim()}
+                        className={`flex-shrink-0 p-2 rounded-lg transition-colors duration-200 ${
+                          isLoading
+                            ? 'bg-slate-200 text-slate-400'
+                            : textInput.trim()
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-slate-200 text-slate-400'
+                        }`}
+                      >
+                        {isLoading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Send className="w-4 h-4" />
+                        )}
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Main Input Bar */}
+              <div className="flex items-center gap-3">
+                {/* Left: Camera Button */}
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex-shrink-0 p-3 rounded-full bg-slate-100 hover:bg-blue-100 text-slate-600 hover:text-blue-600 transition-colors duration-200 relative"
+                >
+                  <Camera className="w-5 h-5" />
+                  {images.length > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                      {images.length}
+                    </span>
+                  )}
+                </motion.button>
+
+                {/* Center: Voice Button (Doubao Style) */}
+                <button
+                  onPointerDown={(e) => {
+                    e.preventDefault();
+                    if (!isTextMode && !isProcessing) {
+                      startRecording();
+                    }
+                  }}
+                  onPointerUp={(e) => {
+                    e.preventDefault();
+                    if (isRecording) {
+                      stopRecording();
+                    }
+                  }}
+                  onPointerLeave={(e) => {
+                    if (isRecording) {
+                      stopRecording();
+                    }
+                  }}
+                  onContextMenu={(e) => e.preventDefault()}
+                  disabled={isProcessing || isTextMode}
+                  className={`flex-1 py-3 px-6 rounded-full font-medium text-base transition-all duration-200 select-none touch-none ${
+                    isRecording
+                      ? 'bg-red-500 text-white shadow-lg shadow-red-500/30 scale-[0.98]'
+                      : isProcessing
+                        ? 'bg-slate-200 text-slate-400'
+                        : isTextMode
+                          ? 'bg-slate-100 text-slate-400'
+                          : 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg hover:shadow-xl active:scale-[0.98]'
+                  }`}
+                >
+                  {isRecording ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                      松开结束
+                    </span>
+                  ) : isProcessing ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      识别中...
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-2">
+                      <Mic className="w-4 h-4" />
+                      按住说话
+                    </span>
+                  )}
+                </button>
+
+                {/* Right: Keyboard & Send Buttons */}
+                <div className="flex items-center gap-2">
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setIsTextMode(!isTextMode)}
+                    className={`flex-shrink-0 p-3 rounded-full transition-colors duration-200 ${
+                      isTextMode
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-slate-100 hover:bg-blue-100 text-slate-600 hover:text-blue-600'
+                    }`}
+                  >
+                    <Keyboard className="w-5 h-5" />
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => {
+                      if (images.length > 0) {
+                        handleExtract();
+                      } else if (textInput.trim()) {
+                        handleTextSubmit();
+                      }
+                    }}
+                    disabled={isLoading || !hasContent}
+                    className={`flex-shrink-0 p-3 rounded-full transition-all duration-200 ${
+                      isLoading
+                        ? 'bg-slate-200 text-slate-400'
+                        : hasContent
+                          ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg hover:shadow-xl'
+                          : 'bg-slate-100 text-slate-400'
+                    }`}
+                  >
+                    {isLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Send className="w-5 h-5" />
+                    )}
+                  </motion.button>
+                </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="mt-4 flex flex-col items-center justify-center p-12 border-4 border-dashed border-primary/20 rounded-3xl bg-primary/5 hover:bg-primary/10 transition-colors cursor-pointer group" onClick={() => fileInputRef.current?.click()}>
-            <div className="w-20 h-20 bg-white rounded-full shadow-clay flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-              <Camera className="w-10 h-10 text-primary" />
-            </div>
-            <p className="text-xl font-heading font-bold text-primary mb-2">点击或拖拽上传</p>
-            <p className="text-sm text-muted-foreground">支持 jpg, png 格式的图片</p>
-          </div>
-        )}
+          </Card>
+        </motion.div>
 
-        {error ? <p className="text-sm font-bold text-destructive bg-destructive/10 p-3 rounded-xl border border-destructive/20 mt-2">{error}</p> : null}
-      </Card>
-
-      <p className="text-sm font-medium text-muted-foreground/60 text-center animate-in fade-in duration-1000 delay-500 fill-mode-both">{homeContent.parentHint}</p>
+        {/* History Button */}
+        <div className="flex justify-center mt-4 mb-4">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => router.push('/history')}
+            className="px-6 py-3 bg-white/80 hover:bg-white border border-slate-200 hover:border-indigo-300 text-slate-600 rounded-xl font-medium shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-2"
+          >
+            <History className="w-4 h-4" />
+            {homeContent.ctaSecondary}
+          </motion.button>
+        </div>
+      </div>
     </main>
   );
 }

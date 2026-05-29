@@ -35,7 +35,7 @@ export const DEFAULT_LANGUAGE_DIRECTIVE =
 export async function generateSceneOutlinesFromRequirements(
   requirements: UserRequirements,
   pdfText: string | undefined,
-  pdfImages: PdfImage[] | undefined,
+  pdfImages: PdfImage[] | Array<{ id: string; src: string }> | undefined,
   aiCall: AICallFn,
   callbacks?: GenerationCallbacks,
   options?: {
@@ -52,12 +52,20 @@ export async function generateSceneOutlinesFromRequirements(
   let visionImages: Array<{ id: string; src: string }> | undefined;
 
   if (pdfImages && pdfImages.length > 0) {
-    if (options?.visionEnabled && options?.imageMapping) {
+    // Check if pdfImages is already vision-ready (has src property)
+    const isVisionReady = pdfImages.length > 0 && 'src' in pdfImages[0];
+
+    if (isVisionReady) {
+      // Direct vision images passed from upstream (e.g., mistake photo mode)
+      visionImages = (pdfImages as Array<{ id: string; src: string }>).slice(0, MAX_VISION_IMAGES);
+      availableImagesText = `Using ${visionImages.length} uploaded image(s) for vision analysis.`;
+    } else if (options?.visionEnabled && options?.imageMapping) {
       // Vision mode: split into vision images (first N) and text-only (rest)
-      const allWithSrc = pdfImages.filter((img) => options.imageMapping![img.id]);
+      const typedPdfImages = pdfImages as PdfImage[];
+      const allWithSrc = typedPdfImages.filter((img) => options.imageMapping![img.id]);
       const visionSlice = allWithSrc.slice(0, MAX_VISION_IMAGES);
       const textOnlySlice = allWithSrc.slice(MAX_VISION_IMAGES);
-      const noSrcImages = pdfImages.filter((img) => !options.imageMapping![img.id]);
+      const noSrcImages = typedPdfImages.filter((img) => !options.imageMapping![img.id]);
 
       const visionDescriptions = visionSlice.map((img) => formatImagePlaceholder(img));
       const textDescriptions = [...textOnlySlice, ...noSrcImages].map((img) =>
@@ -73,7 +81,8 @@ export async function generateSceneOutlinesFromRequirements(
       }));
     } else {
       // Text-only mode: full descriptions
-      availableImagesText = pdfImages.map((img) => formatImageDescription(img)).join('\n');
+      const typedPdfImages = pdfImages as PdfImage[];
+      availableImagesText = typedPdfImages.map((img) => formatImageDescription(img)).join('\n');
     }
   }
 

@@ -8,6 +8,7 @@
 import { nanoid } from 'nanoid';
 import katex from 'katex';
 import { MAX_VISION_IMAGES } from '@/lib/constants/generation';
+import { getOptimizedActionCount } from './fast-mode';
 import type {
   SceneOutline,
   GeneratedSlideContent,
@@ -150,10 +151,20 @@ export async function generateFullScenes(
 }
 
 /**
+ * Check if fast generation mode is enabled locally
+ * Fast mode merges content and actions generation into a single API call
+ */
+function checkFastGenerationEnabled(): boolean {
+  return process.env.FAST_GENERATION_MODE === 'true' || process.env.FAST_GENERATION_MODE === '1';
+}
+
+/**
  * Generate a single scene (two-step process)
  *
  * Step 3.1: Generate content
  * Step 3.2: Generate Actions
+ *
+ * In fast mode, steps are merged for fewer API calls
  */
 async function generateSingleScene(
   outline: SceneOutline,
@@ -1252,7 +1263,7 @@ export async function generateSceneActions(
     });
 
     if (!prompts) {
-      return generateDefaultSlideActions(outline, content.elements);
+      return getOptimizedActionCount(generateDefaultSlideActions(outline, content.elements));
     }
 
     const response = await aiCall(prompts.system, prompts.user);
@@ -1260,10 +1271,10 @@ export async function generateSceneActions(
 
     if (actions.length > 0) {
       // Validate and fill in Action IDs
-      return processActions(actions, content.elements, agents);
+      return getOptimizedActionCount(processActions(actions, content.elements, agents));
     }
 
-    return generateDefaultSlideActions(outline, content.elements);
+    return getOptimizedActionCount(generateDefaultSlideActions(outline, content.elements));
   }
 
   if (outline.type === 'quiz' && 'questions' in content) {

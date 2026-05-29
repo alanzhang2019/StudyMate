@@ -273,7 +273,8 @@ export async function generateTTSForClassroom(
   // Attempt to read profile TTS voice override
   let profileTtsVoice: string | undefined;
   try {
-    const session = await db.mistakeSession.findFirst({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const session = await (db as any).mistakeSession?.findFirst({
       where: { classroomId },
       include: { profile: true },
     });

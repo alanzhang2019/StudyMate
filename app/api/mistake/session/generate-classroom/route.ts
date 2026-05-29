@@ -15,11 +15,16 @@ const requestSchema = z.object({
   grade: z.number().int().min(4).max(6),
   subject: z.literal('math'),
   source: z.union([z.literal('photo'), z.literal('manual')]),
-  problemText: z.string().min(1),
+  problemText: z.string().min(1).optional(),
   studentAnswer: z.string().optional(),
   correctAnswer: z.string().optional(),
   studentName: z.string().optional(),
   teachingStyle: z.string().optional(),
+  // Optional: direct image data for vision-based generation
+  imageData: z.array(z.object({
+    mimeType: z.string(),
+    base64: z.string(),
+  })).optional(),
 });
 
 export const maxDuration = 30;
@@ -43,8 +48,37 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const input: MistakeClassroomInput = parsed.data;
-    const requirement = buildMistakeClassroomRequirement(input);
+    const input = parsed.data;
+
+    // Build requirement from image or text
+    let requirement: string;
+    if (input.imageData && input.imageData.length > 0) {
+      // Vision-based generation: build requirement that instructs LLM to analyze the image
+      requirement = [
+        '【核心诉求】',
+        `请为一名小学${input.grade}年级学生（姓名：${input.studentName ?? '同学'}）讲解这道错题。`,
+        `期望的教学风格：${input.teachingStyle ?? '清晰易懂'}。`,
+        '',
+        '【错题信息】',
+        '请仔细查看上传的题目图片，识别题目内容并进行讲解。',
+        input.problemText ? `补充信息：${input.problemText}` : '',
+        `学生答案：${input.studentAnswer ?? '未提供'}`,
+      ].join('\n');
+    } else {
+      // Text-based generation
+      const classroomInput: MistakeClassroomInput = {
+        grade: input.grade,
+        subject: input.subject,
+        source: input.source,
+        problemText: input.problemText || '',
+        studentAnswer: input.studentAnswer,
+        correctAnswer: input.correctAnswer,
+        studentName: input.studentName,
+        teachingStyle: input.teachingStyle,
+      };
+      requirement = buildMistakeClassroomRequirement(classroomInput);
+    }
+
     const classroomInput: GenerateClassroomInput = {
       requirement,
       userNickname: input.studentName,
@@ -56,6 +90,8 @@ export async function POST(req: NextRequest) {
       enableVideoGeneration: true,
       enableTTS: true,
       agentMode: 'default' as const,
+      // Pass image data for vision-based generation
+      ...(input.imageData ? { imageData: input.imageData } : {}),
     };
 
     const baseUrl = buildRequestOrigin(req);

@@ -47,6 +47,7 @@ import { sendDebugEvent } from '@/lib/utils/debug-event';
 import { type GenerationSessionState, ALL_STEPS, getActiveSteps } from './types';
 import { buildGenerationApiHeaders } from './api-headers';
 import { StepVisualizer } from './components/visualizers';
+import { GenerationCountdown } from './components/generation-countdown';
 
 const log = createLogger('GenerationPreview');
 const OUTLINE_REVIEW_AUTO_CONTINUE_MS = 1000;
@@ -79,6 +80,7 @@ function GenerationPreviewContent() {
   );
   const [showAgentReveal, setShowAgentReveal] = useState(false);
   const [isConfirmingOutlines, setIsConfirmingOutlines] = useState(false);
+  const [isFirstPageReady, setIsFirstPageReady] = useState(false);
   const [generatedAgents, setGeneratedAgents] = useState<
     Array<{
       id: string;
@@ -215,6 +217,7 @@ function GenerationPreviewContent() {
 
     setError(null);
     setCurrentStepIndex(0);
+    setIsFirstPageReady(false);
 
     try {
       // Compute active steps for this session (recomputed after session mutations)
@@ -944,7 +947,8 @@ function GenerationPreviewContent() {
         }
       }
 
-      // Add scene to store and navigate
+      // Mark first page as ready and add scene to store
+      setIsFirstPageReady(true);
       store.addScene(data.scene);
       store.setCurrentSceneId(data.scene.id);
 
@@ -970,11 +974,16 @@ function GenerationPreviewContent() {
         }),
       );
 
+      // Update mistake session status in the background — don't block navigation
+      // on this, especially for reverse-proxy deployments that may have short
+      // timeout limits.
       if (currentSession.sourceMode === 'mistake' && currentSession.mistakeSessionId) {
-        await updateMistakeSession(currentSession.mistakeSessionId, {
+        updateMistakeSession(currentSession.mistakeSessionId, {
           classroomId: stage.id,
           status: 'live',
           error: '',
+        }).catch((err) => {
+          log.warn('[GenerationPreview] Failed to update mistake session status:', err);
         });
       }
 
@@ -1017,7 +1026,20 @@ function GenerationPreviewContent() {
         log.info('[GenerationPreview] Generation aborted');
         return;
       }
-      setError(err instanceof Error ? err.message : String(err));
+      const errMessage = err instanceof Error ? err.message : String(err);
+      // Detect reverse-proxy timeout (common with free-tier NAT tools like花生壳)
+      if (
+        errMessage.includes('Failed to fetch') ||
+        errMessage.includes('ERR_EMPTY_RESPONSE') ||
+        errMessage.includes('network error')
+      ) {
+        setError(
+          t('generation.proxyTimeoutError') ||
+            '请求超时：反向代理（花生壳）可能有请求时间限制。请使用内网地址访问，或升级花生壳服务。',
+        );
+      } else {
+        setError(errMessage);
+      }
     }
   };
 
@@ -1262,17 +1284,12 @@ function GenerationPreviewContent() {
   }
 
   return (
-    <div className="min-h-[100dvh] w-full bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 flex flex-col items-center justify-center p-4 relative overflow-hidden text-center">
+    <div className="min-h-[100dvh] w-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:to-slate-900 flex flex-col items-center justify-center p-4 relative overflow-hidden text-center">
       {/* Background Decor */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div
-          className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: '4s' }}
-        />
-        <div
-          className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: '6s' }}
-        />
+        <div className="absolute -top-20 -right-20 w-80 h-80 bg-blue-200/30 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 -left-20 w-72 h-72 bg-indigo-200/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-20 right-1/4 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl" />
       </div>
 
       {/* Back button */}
@@ -1294,7 +1311,7 @@ function GenerationPreviewContent() {
           transition={{ duration: 0.5 }}
           className="w-full"
         >
-          <Card className="relative overflow-hidden border-muted/40 shadow-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl min-h-[400px] flex flex-col items-center justify-center p-8 md:p-12">
+          <Card className="relative overflow-hidden border-0 shadow-2xl shadow-blue-500/10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl min-h-[400px] flex flex-col items-center justify-center p-8 md:p-12">
             {/* Progress Dots */}
             <div className="absolute top-6 left-0 right-0 flex justify-center gap-2">
               {activeSteps.map((step, idx) => (
@@ -1303,10 +1320,10 @@ function GenerationPreviewContent() {
                   className={cn(
                     'h-1.5 rounded-full transition-all duration-500',
                     idx < currentStepIndex
-                      ? 'w-1.5 bg-blue-500/30'
+                      ? 'w-1.5 bg-gradient-to-r from-blue-400 to-indigo-400'
                       : idx === currentStepIndex
-                        ? 'w-8 bg-blue-500'
-                        : 'w-1.5 bg-muted/50',
+                        ? 'w-8 bg-gradient-to-r from-blue-500 to-indigo-500'
+                        : 'w-1.5 bg-slate-200 dark:bg-slate-700',
                   )}
                 />
               ))}
@@ -1383,6 +1400,15 @@ function GenerationPreviewContent() {
                     </p>
                   </motion.div>
                 </AnimatePresence>
+
+                {/* Generation Countdown */}
+                <GenerationCountdown
+                  currentStepIndex={currentStepIndex}
+                  totalSteps={activeSteps.length}
+                  isActive={!error && !isComplete && !isOutlineReady}
+                  isReviewing={isReviewingOutlines}
+                  isFirstPageReady={isFirstPageReady}
+                />
 
                 {/* Truncation warning indicator */}
                 <AnimatePresence>

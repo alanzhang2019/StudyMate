@@ -111,17 +111,19 @@ export function useAudioRecorder(options: UseAudioRecorderOptions = {}) {
         // Use browser native ASR if configured
         if (asrProviderId === 'browser-native') {
           // Check if Speech Recognition is supported
-          if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
-            onError?.('您的浏览器不支持语音识别功能');
+          const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+          if (!SpeechRecognition) {
+            onError?.('您的浏览器不支持语音识别功能，请使用Chrome或Safari');
+            busyRef.current = false;
             return;
           }
 
-          const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
           const recognition = new SpeechRecognition();
 
-          recognition.lang = asrLanguage || 'zh-CN';
+          recognition.lang = asrLanguage === 'zh' ? 'zh-CN' : (asrLanguage || 'zh-CN');
           recognition.continuous = false;
-          recognition.interimResults = false;
+          recognition.interimResults = true;
+          recognition.maxAlternatives = 1;
 
           recognition.onstart = () => {
             setIsRecording(true);
@@ -134,12 +136,18 @@ export function useAudioRecorder(options: UseAudioRecorderOptions = {}) {
           };
 
           recognition.onresult = (event: {
-            results: {
-              [index: number]: { [index: number]: { transcript: string } };
-            };
+            results: SpeechRecognitionResultList;
+            resultIndex: number;
           }) => {
-            const transcript = event.results[0][0].transcript;
-            onTranscription?.(transcript);
+            // Get the most recent result
+            const lastResult = event.results[event.results.length - 1];
+            if (lastResult && lastResult[0]) {
+              const transcript = lastResult[0].transcript;
+              // Only send final results
+              if (lastResult.isFinal) {
+                onTranscription?.(transcript);
+              }
+            }
           };
 
           recognition.onerror = (event: { error: string }) => {
@@ -158,22 +166,25 @@ export function useAudioRecorder(options: UseAudioRecorderOptions = {}) {
                 }
                 return;
               case 'no-speech':
-                errorMessage = '未检测到语音输入';
+                errorMessage = '未检测到语音输入，请重试';
                 break;
               case 'audio-capture':
-                errorMessage = '无法访问麦克风';
+                errorMessage = '无法访问麦克风，请检查设备';
                 break;
               case 'not-allowed':
-                errorMessage = '麦克风权限被拒绝';
+                errorMessage = '麦克风权限被拒绝，请在设置中开启';
                 break;
               case 'network':
-                errorMessage = '网络错误';
+                errorMessage = '网络错误，请检查网络连接';
                 break;
               default:
                 errorMessage = `语音识别错误: ${event.error}`;
             }
 
-            onError?.(errorMessage);
+            // Don't show error for user-initiated stops
+            if (event.error !== 'aborted') {
+              onError?.(errorMessage);
+            }
             busyRef.current = false;
             setIsRecording(false);
             setRecordingTime(0);
@@ -190,6 +201,10 @@ export function useAudioRecorder(options: UseAudioRecorderOptions = {}) {
             if (timerRef.current) {
               clearInterval(timerRef.current);
               timerRef.current = null;
+            }
+            // Clear the ref so we know it's stopped
+            if (speechRecognitionRef.current === recognition) {
+              speechRecognitionRef.current = null;
             }
           };
 
@@ -251,14 +266,13 @@ export function useAudioRecorder(options: UseAudioRecorderOptions = {}) {
   const stopRecording = useCallback(() => {
     // Stop Speech Recognition if active
     if (speechRecognitionRef.current) {
-      speechRecognitionRef.current.stop();
-      speechRecognitionRef.current = null;
-      busyRef.current = false;
-      setIsRecording(false);
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
+      try {
+        speechRecognitionRef.current.stop();
+      } catch (e) {
+        // Ignore errors if already stopped
       }
+      // Don't clear ref here - let onend handler do it
+      // to ensure we get the final result
       return;
     }
 

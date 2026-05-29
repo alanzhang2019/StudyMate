@@ -30,6 +30,7 @@ import { MediaStageProvider } from '@/lib/contexts/media-stage-context';
 import { generateMediaForOutlines } from '@/lib/media/media-orchestrator';
 import { updateMistakeSession } from '@/lib/mistake/session/client';
 import type { MistakeSession } from '@/lib/mistake/session/types';
+import { AlertCircle } from 'lucide-react';
 
 const log = createLogger('Classroom');
 
@@ -498,19 +499,23 @@ export default function ClassroomDetailPage() {
         .map((img: { storageId?: string }) => img.storageId)
         .filter(Boolean) as string[];
 
+      // Start generation in background without blocking the UI
       loadImageMapping(storageIds).then((imageMapping) => {
-        generateRemaining({
-          pdfImages: generationParams?.pdfImages as any,
-          imageMapping,
-          stageInfo: {
-            name: stage.name || '',
-            description: stage.description,
-            style: stage.style,
-          },
-          agents: generationParams?.agents as any,
-          userProfile: generationParams?.userProfile as any,
-          languageDirective: generationParams?.languageDirective || stage.languageDirective,
-        });
+        // Use setTimeout to ensure this doesn't block the render cycle
+        setTimeout(() => {
+          generateRemaining({
+            pdfImages: generationParams?.pdfImages as any,
+            imageMapping,
+            stageInfo: {
+              name: stage.name || '',
+              description: stage.description,
+              style: stage.style,
+            },
+            agents: generationParams?.agents as any,
+            userProfile: generationParams?.userProfile as any,
+            languageDirective: generationParams?.languageDirective || stage.languageDirective,
+          });
+        }, 100);
       });
     } else if (!hasPending && outlines.length > 0 && stage) {
       // All scenes are generated, but some media may not have finished.
@@ -538,26 +543,43 @@ export default function ClassroomDetailPage() {
   return (
     <ThemeProvider>
       <MediaStageProvider value={classroomId}>
-        <div className="h-screen flex flex-col overflow-hidden">
+        <div className="h-screen flex flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+          {/* Decorative background */}
+          {showLoadingOverlay && (
+            <div className="fixed inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute -top-20 -right-20 w-80 h-80 bg-blue-200/30 rounded-full blur-3xl" />
+              <div className="absolute top-1/3 -left-20 w-72 h-72 bg-indigo-200/20 rounded-full blur-3xl" />
+              <div className="absolute -bottom-20 right-1/4 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl" />
+            </div>
+          )}
+          
           {showLoadingOverlay ? (
-            <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-              <div className="text-center text-muted-foreground">
-                <p>Loading classroom...</p>
+            <div className="flex-1 flex items-center justify-center bg-transparent relative z-10">
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-2xl shadow-lg flex items-center justify-center">
+                  <div className="w-8 h-8 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                </div>
+                <p className="text-xl font-medium text-slate-700">Loading classroom...</p>
+                <p className="text-sm text-slate-500 mt-2">Preparing your AI tutoring experience</p>
               </div>
             </div>
           ) : error ? (
-            <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-              <div className="text-center">
-                <p className="text-destructive mb-4">Error: {error}</p>
+            <div className="flex-1 flex items-center justify-center bg-transparent relative z-10">
+              <div className="text-center p-8 max-w-md">
+                <div className="w-16 h-16 mx-auto mb-6 bg-red-100 rounded-2xl shadow-lg flex items-center justify-center">
+                  <AlertCircle className="w-8 h-8 text-red-500" />
+                </div>
+                <p className="text-xl font-medium text-slate-800 mb-2">Something went wrong</p>
+                <p className="text-slate-600 mb-6">Error: {error}</p>
                 <button
                   onClick={() => {
                     setError(null);
                     setLoading(true);
                     loadClassroom();
                   }}
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
                 >
-                  Retry
+                  Try Again
                 </button>
               </div>
             </div>

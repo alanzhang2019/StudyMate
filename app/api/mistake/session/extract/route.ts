@@ -15,6 +15,8 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const image = formData.get('image');
+    const additionalImages = formData.getAll('additionalImages');
+    const imageCount = Number(formData.get('imageCount') || '1');
 
     if (!(image instanceof File)) {
       return apiError('MISSING_REQUIRED_FIELD', 400, 'Image file is required');
@@ -33,7 +35,42 @@ export async function POST(request: NextRequest) {
       return apiError('INVALID_REQUEST', 400, 'Invalid extract request');
     }
 
-    const extraction = await extractFromImage(image, parsed.data);
+    // Process primary image
+    let extraction = await extractFromImage(image, parsed.data);
+
+    // Process additional images if present
+    const validAdditionalImages = additionalImages.filter(
+      (img): img is File => img instanceof File && img.type.startsWith('image/')
+    );
+
+    if (validAdditionalImages.length > 0) {
+      // Extract text from additional images and append
+      const additionalTexts: string[] = [];
+      
+      for (const additionalImage of validAdditionalImages) {
+        try {
+          const additionalExtraction = await extractFromImage(additionalImage, parsed.data);
+          if (additionalExtraction.problemText && additionalExtraction.problemText.trim()) {
+            additionalTexts.push(additionalExtraction.problemText.trim());
+          }
+        } catch (err) {
+          console.warn('[Extract] Failed to process additional image:', err);
+        }
+      }
+
+      // Merge problem texts from all images
+      if (additionalTexts.length > 0) {
+        const mergedProblemText = [extraction.problemText, ...additionalTexts]
+          .filter(Boolean)
+          .join('\n\n');
+        
+        extraction = {
+          ...extraction,
+          problemText: mergedProblemText,
+          confidence: Math.min(extraction.confidence + 0.1, 1.0), // Slight confidence boost for multi-image
+        };
+      }
+    }
 
     if (extraction.confidence === 0 && extraction.rawModelText?.includes('ocr-error')) {
       return apiSuccess({ extraction });

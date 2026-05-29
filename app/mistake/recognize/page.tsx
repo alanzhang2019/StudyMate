@@ -13,6 +13,10 @@ import {
   readPendingRecognizeSession,
   type PendingRecognizeSession,
 } from '@/lib/mistake/ui/recognize-session';
+import {
+  loadPendingRecognizeImage,
+  cleanupPendingRecognizeImage,
+} from '@/lib/mistake/ui/pending-recognize-image';
 import { shouldShowRecognizeFailure } from '@/lib/mistake/ui/recognize-state';
 import { startMistakePreview } from '@/lib/mistake/ui/start-mistake-preview';
 import { useProfileStore } from '@/lib/store/profile';
@@ -27,6 +31,7 @@ export default function MistakeRecognizePage() {
   const [correctAnswer, setCorrectAnswer] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [imageUrl, setImageUrl] = useState<string>('');
 
   useEffect(() => {
     const stored = readPendingRecognizeSession();
@@ -39,6 +44,13 @@ export default function MistakeRecognizePage() {
     setProblemText(stored.problemText);
     setStudentAnswer(stored.studentAnswer ?? '');
     setCorrectAnswer(stored.correctAnswerCandidate ?? '');
+
+    // Load image from IndexedDB if stored as a storage key
+    loadPendingRecognizeImage(stored.imageUrl).then((url) => {
+      if (url) {
+        setImageUrl(url);
+      }
+    });
   }, [t]);
 
   const showFailure = shouldShowRecognizeFailure(pending);
@@ -64,6 +76,7 @@ export default function MistakeRecognizePage() {
         studentProfileId: activeProfile?.id,
       });
       clearPendingRecognizeSession();
+      cleanupPendingRecognizeImage(pending.imageUrl);
       router.push('/generation-preview');
     } catch (flowError) {
       setSubmitting(false);
@@ -84,8 +97,8 @@ export default function MistakeRecognizePage() {
 
       <div className="grid gap-6 md:grid-cols-[280px_1fr]">
         <Card className="overflow-hidden">
-          {pending?.imageUrl ? (
-            <img alt="识别确认题目图片" className="h-full w-full object-contain bg-muted/30" src={pending.imageUrl} />
+          {imageUrl || pending?.imageUrl ? (
+            <img alt="识别确认题目图片" className="h-full w-full object-contain bg-muted/30" src={imageUrl || pending?.imageUrl} />
           ) : (
             <div className="flex h-full min-h-80 items-center justify-center p-6 text-sm text-muted-foreground">
               {t('homeworkRecognize.failTitle')}
