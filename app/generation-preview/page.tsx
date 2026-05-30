@@ -556,6 +556,21 @@ function GenerationPreviewContent() {
         languageDirective = outlineResult.languageDirective;
         setIsOutlineStreaming(false);
 
+        // For mistake mode: ensure first outline shows the problem text directly
+        if (currentSession.sourceMode === 'mistake' && outlines.length > 0) {
+          const requirement = currentSession.requirements.requirement;
+          const problemMatch = requirement.match(/题干：(.+)/);
+          const problemText = problemMatch ? problemMatch[1].trim() : '';
+          if (problemText) {
+            outlines[0] = {
+              ...outlines[0],
+              title: '作业讲解',
+              description: problemText,
+              keyPoints: ['题目展示', '分析讲解', '总结方法'],
+            };
+          }
+        }
+
         // Mid-stream review intent (sticky ref) overrides the auto-continue timer.
         const userOpenedReviewEarly = outlineReviewIntentRef.current;
         const shouldReviewOutlines =
@@ -872,7 +887,8 @@ function GenerationPreviewContent() {
       }
 
       // Warm first-scene TTS, but don't let the preview page hold navigation hostage.
-      if (settings.ttsEnabled && settings.ttsProviderId !== 'browser-native-tts') {
+      // Skip TTS warmup for mistake mode to speed up navigation to classroom.
+      if (settings.ttsEnabled && settings.ttsProviderId !== 'browser-native-tts' && currentSession.sourceMode !== 'mistake') {
         const ttsProviderConfig = settings.ttsProvidersConfig?.[settings.ttsProviderId];
         const requestConfig = buildClientTTSRequestConfig(settings.ttsProviderId, ttsProviderConfig);
         const providerOptions =

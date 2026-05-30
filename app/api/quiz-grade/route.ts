@@ -44,7 +44,23 @@ export async function POST(req: NextRequest) {
     }
 
     // Resolve model from request headers/body
-    const { model: languageModel, thinkingConfig } = await resolveModelFromRequest(req, body);
+    let { model: languageModel, thinkingConfig } = await resolveModelFromRequest(req, body);
+
+    // For mistake mode, if the requested model uses kimi provider (which may not support all models),
+    // switch to MISTAKE_CLASSROOM_MODEL if available
+    const mistakeModelString = process.env.MISTAKE_CLASSROOM_MODEL;
+    const modelProvider = (req.headers.get('x-model') || '').split(':')[0];
+
+    if (modelProvider === 'kimi' && mistakeModelString) {
+      log.info(`[QuizGrade] Switching from kimi model to MISTAKE_CLASSROOM_MODEL: ${mistakeModelString}`);
+      try {
+        const resolved = await resolveModelFromRequest(req, { ...body, modelString: mistakeModelString });
+        languageModel = resolved.model;
+        thinkingConfig = resolved.thinkingConfig;
+      } catch (modelError) {
+        log.warn(`[QuizGrade] Failed to resolve MISTAKE_CLASSROOM_MODEL, keeping original model:`, modelError);
+      }
+    }
 
     const isZh = language === 'zh-CN';
 

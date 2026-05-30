@@ -1,11 +1,15 @@
 import type { MistakeSession } from './types';
 
 export async function createMistakeSession(payload: Record<string, unknown>) {
+  console.log('[createMistakeSession] Sending request to /api/mistake/session');
+
   const response = await fetch('/api/mistake/session', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(payload),
   });
+
+  console.log('[createMistakeSession] Response status:', response.status);
 
   const json = (await response.json()) as {
     success?: true;
@@ -13,6 +17,8 @@ export async function createMistakeSession(payload: Record<string, unknown>) {
     liveUrl?: string;
     error?: string;
   };
+
+  console.log('[createMistakeSession] Response JSON:', JSON.stringify(json));
 
   if (!response.ok || !json.session || !json.liveUrl) {
     throw new Error(json.error ?? '创建错题会话失败');

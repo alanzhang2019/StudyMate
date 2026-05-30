@@ -10,6 +10,10 @@ import { getHomeworkHomeContent } from '@/lib/mistake/ui/content';
 import { useProfileStore } from '@/lib/store/profile';
 import { useAudioRecorder } from '@/lib/hooks/use-audio-recorder';
 import { ImageCropper } from '@/components/image-cropper';
+import { saveGenerationPreviewSession } from '@/lib/mistake/ui/generation-preview-storage';
+import { writePendingRecognizeSession } from '@/lib/mistake/ui/recognize-session';
+import { buildPendingRecognizeImageUrl } from '@/lib/mistake/ui/pending-recognize-image';
+import { nanoid } from 'nanoid';
 
 import { Camera, History, Sparkles, AlertTriangle, Mic, Loader2, Keyboard, Send, ImagePlus, Crop, Trash2 } from 'lucide-react';
 
@@ -170,45 +174,62 @@ export default function HomeworkPage() {
     setError('');
 
     try {
-      // Process images and convert to base64
-      const imageData = await Promise.all(
-        images.map(async (img) => {
-          const base64 = await fileToBase64(img.file);
-          return {
-            mimeType: img.file.type || 'image/jpeg',
-            base64,
-          };
-        })
-      );
+      const primaryImage = images[0].file;
 
-      // Call generate-classroom API directly with images
-      const response = await fetch('/api/mistake/session/generate-classroom', {
+      // Build FormData for extract API
+      const formData = new FormData();
+      formData.append('image', primaryImage);
+      formData.append('imageCount', images.length.toString());
+      formData.append('subject', 'math');
+
+      if (activeProfile?.grade) {
+        formData.append('grade', activeProfile.grade.toString());
+      }
+
+      // Add additional images if present
+      if (images.length > 1) {
+        for (let i = 1; i < images.length; i++) {
+          formData.append('additionalImages', images[i].file);
+        }
+      }
+
+      // Call extract API to recognize the problem from image
+      const response = await fetch('/api/mistake/session/extract', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          grade: activeProfile?.grade || 4,
-          subject: 'math',
-          source: 'photo',
-          studentName: activeProfile?.name || '学生',
-          teachingStyle: activeProfile?.teachingStyle || '幽默风趣',
-          studentProfileId: activeProfile?.id,
-          imageData,
-        }),
+        body: formData,
       });
 
       const json = await response.json();
 
       if (!response.ok || json.error) {
         setStatus('error');
-        setError(json.error || '生成课件失败');
+        setError(json.error?.message || json.error || '识别题目失败');
         return;
       }
 
-      // Navigate to generation preview
-      setStatus('starting_preview');
-      router.push('/generation-preview');
+      // Handle API response format: apiSuccess returns { success: true, ...data }
+      // So extraction is directly in json, not json.data
+      const extraction = json.extraction || json.data?.extraction;
+
+      if (!extraction) {
+        setStatus('error');
+        setError('未能识别出题目内容，请重试');
+        return;
+      }
+
+      // Store image in IndexedDB and get storage key
+      const imageStorageKey = await buildPendingRecognizeImageUrl(primaryImage);
+
+      // Save extraction result to pending session for recognize page
+      writePendingRecognizeSession({
+        ...extraction,
+        imageUrl: imageStorageKey,
+      });
+
+      // Navigate to recognize page to show extraction result
+      router.push('/mistake/recognize');
     } catch (err) {
-      console.error('[Mistake] Direct generation failed:', err);
+      console.error('[Mistake] Extract failed:', err);
       setStatus('error');
       setError(err instanceof Error ? err.message : '网络请求失败，请检查网络连接');
     }
@@ -248,8 +269,21 @@ export default function HomeworkPage() {
         return;
       }
 
-      // Navigate to generation preview
+      // Save generation session and navigate to preview
       setStatus('starting_preview');
+      saveGenerationPreviewSession({
+        sessionId: nanoid(),
+        requirements: {
+          requirement: `【核心诉求】\n请为一名小学${activeProfile?.grade || 4}年级学生讲解这道作业题。\n\n【作业题信息】\n题干：${textInput.trim()}\n学生答案：未提供`,
+          grade: activeProfile?.grade || 4,
+          subject: 'math',
+          source: 'manual',
+        },
+        pdfText: '',
+        currentStep: 'generating',
+        sourceMode: 'mistake',
+        mistakeSessionId: json.jobId || json.sessionId,
+      });
       router.push('/generation-preview');
     } catch (err) {
       console.error('[Mistake] Text submission failed:', err);

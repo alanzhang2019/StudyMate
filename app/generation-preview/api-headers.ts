@@ -30,12 +30,28 @@ export async function buildGenerationApiHeaders(
   session: Pick<GenerationSessionState, 'sourceMode'> | null | undefined,
   deps: GenerationApiHeaderDeps = defaultDeps,
 ): Promise<GenerationApiHeaders> {
+  let modelConfig = deps.getCurrentModelConfig();
+  const settings = deps.getSettings();
+
+  // For mistake mode, use the server-configured MISTAKE_CLASSROOM_MODEL
   if (session?.sourceMode === 'mistake') {
     await deps.syncServerProviders();
+    try {
+      const response = await fetch('/api/mistake/model-config');
+      if (response.ok) {
+        const config = await response.json();
+        modelConfig = {
+          ...modelConfig,
+          modelString: config.modelString,
+          providerId: config.providerId,
+          modelId: config.modelId,
+        };
+      }
+    } catch {
+      // Fallback to current model config if fetch fails
+    }
   }
 
-  const modelConfig = deps.getCurrentModelConfig();
-  const settings = deps.getSettings();
   const imageProviderConfig = settings.imageProvidersConfig?.[settings.imageProviderId || ''];
   const videoProviderConfig = settings.videoProvidersConfig?.[settings.videoProviderId || ''];
 

@@ -13,6 +13,13 @@ export async function startMistakePreview(input: {
   teachingStyle?: string;
   studentProfileId?: string;
 }) {
+  console.log('[startMistakePreview] Creating session with:', {
+    studentProfileId: input.studentProfileId,
+    source: 'photo',
+    ocrProblemText: input.extraction.problemText,
+    confirmedProblemText: input.problemText,
+  });
+
   const created = await createMistakeSession({
     studentProfileId: input.studentProfileId,
     source: 'photo',
@@ -23,6 +30,12 @@ export async function startMistakePreview(input: {
       ...(input.correctAnswer ? { correctAnswer: input.correctAnswer } : {}),
     },
     status: 'draft',
+  });
+
+  console.log('[startMistakePreview] Session created:', {
+    sessionId: created.session.id,
+    hasLiveUrl: !!created.liveUrl,
+    liveUrl: created.liveUrl,
   });
 
   const generationSession = buildMistakeGenerationSession({

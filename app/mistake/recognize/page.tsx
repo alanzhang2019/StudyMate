@@ -65,7 +65,15 @@ export default function MistakeRecognizePage() {
     setError('');
 
     try {
-      await startMistakePreview({
+      console.log('[Recognize] Starting preview with:', {
+        problemText,
+        studentAnswer,
+        correctAnswer,
+        hasProfile: !!activeProfile,
+        profileName: activeProfile?.name,
+      });
+
+      const sessionId = await startMistakePreview({
         extraction: pending,
         problemText,
         studentAnswer: studentAnswer || undefined,
@@ -75,10 +83,16 @@ export default function MistakeRecognizePage() {
         teachingStyle: activeProfile?.teachingStyle,
         studentProfileId: activeProfile?.id,
       });
+
+      console.log('[Recognize] Preview started, sessionId:', sessionId);
+
       clearPendingRecognizeSession();
       cleanupPendingRecognizeImage(pending.imageUrl);
+
+      console.log('[Recognize] Navigating to generation-preview...');
       router.push('/generation-preview');
     } catch (flowError) {
+      console.error('[Recognize] handleConfirm error:', flowError);
       setSubmitting(false);
       setError(flowError instanceof Error ? flowError.message : t('homeworkCommon.systemError'));
     }

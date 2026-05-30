@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
       enableImageGeneration: false,
       enableVideoGeneration: true,
       enableTTS: true,
-      agentMode: 'default' as const,
+      agentMode: 'generate' as const,
       // Pass image data for vision-based generation
       ...(input.imageData ? { imageData: input.imageData } : {}),
     };

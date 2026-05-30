@@ -514,6 +514,7 @@ export default function ClassroomDetailPage() {
             agents: generationParams?.agents as any,
             userProfile: generationParams?.userProfile as any,
             languageDirective: generationParams?.languageDirective || stage.languageDirective,
+            sourceMode: generationParams?.sourceMode,
           });
         }, 100);
       });
