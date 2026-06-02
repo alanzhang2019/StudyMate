@@ -38,7 +38,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import { AlertTriangle } from 'lucide-react';
 import { VisuallyHidden } from 'radix-ui';
-import { sendDebugEvent } from '@/lib/utils/debug-event';
 import { InteractiveIframeHost } from '@/components/scene-renderers/InteractiveIframeHost';
 
 /**
@@ -73,38 +72,6 @@ export function Stage({
 
   const currentScene = getCurrentScene();
 
-  useEffect(() => {
-    // #region debug-point A:stage-snapshot
-    sendDebugEvent({
-      sessionId: 'mistake-classroom-regression',
-      runId: 'pre',
-      hypothesisId: 'A',
-      location: 'components/stage.tsx:64',
-      msg: '[DEBUG] stage render snapshot',
-      data: {
-        currentSceneId,
-        currentSceneType: currentScene?.type ?? null,
-        currentSceneTitle: currentScene?.title ?? null,
-        scenesLength: scenes.length,
-        outlinesLength: outlines.length,
-        generatingOutlinesLength: generatingOutlines.length,
-        currentSceneCanvasElementsLength:
-          currentScene?.type === 'slide' && currentScene.content.type === 'slide'
-            ? currentScene.content.canvas.elements.length
-            : null,
-      },
-    });
-    // #endregion
-  }, [
-    currentScene?.id,
-    currentScene?.title,
-    currentScene?.type,
-    currentSceneId,
-    generatingOutlines.length,
-    outlines.length,
-    scenes.length,
-  ]);
-
   // Layout state from settings store (persisted via localStorage)
   const sidebarCollapsed = useSettingsStore((s) => s.sidebarCollapsed);
   const setSidebarCollapsed = useSettingsStore((s) => s.setSidebarCollapsed);
@@ -119,6 +86,7 @@ export function Stage({
   const [engineMode, setEngineMode] = useState<EngineMode>('idle');
   const [playbackCompleted, setPlaybackCompleted] = useState(false); // Distinguishes "never played" idle from "finished" idle
   const [lectureSpeech, setLectureSpeech] = useState<string | null>(null); // From PlaybackEngine (lecture)
+  const [isAutoStartingPlayback, setIsAutoStartingPlayback] = useState(false);
   const [liveSpeech, setLiveSpeech] = useState<string | null>(null); // From buffer (discussion/QA)
   const [speechProgress, setSpeechProgress] = useState<number | null>(null); // StreamBuffer reveal progress (0–1)
   const [discussionTrigger, setDiscussionTrigger] = useState<TriggerEvent | null>(null);
@@ -159,39 +127,6 @@ export function Stage({
   const whiteboardOpen = useCanvasStore.use.whiteboardOpen();
   const setWhiteboardOpen = useCanvasStore.use.setWhiteboardOpen();
   const whiteboardEnabled = shouldEnableHomeworkWhiteboard({ defaultPresentation });
-
-  useEffect(() => {
-    // #region debug-point A:stage-presentation
-    sendDebugEvent({
-      sessionId: 'mistake-classroom-regression',
-      runId: 'pre',
-      hypothesisId: 'A',
-      location: 'components/stage.tsx:161',
-      msg: '[DEBUG] stage presentation snapshot',
-      data: {
-        defaultPresentation,
-        isPresenting,
-        controlsVisible,
-        isPresentationInteractionActive,
-        engineMode,
-        currentSceneId,
-        generatingOutlinesLength: generatingOutlines.length,
-        whiteboardOpen,
-        whiteboardEnabled,
-      },
-    });
-    // #endregion
-  }, [
-    controlsVisible,
-    currentSceneId,
-    defaultPresentation,
-    engineMode,
-    generatingOutlines.length,
-    isPresenting,
-    isPresentationInteractionActive,
-    whiteboardEnabled,
-    whiteboardOpen,
-  ]);
 
   // Selected agents from settings store (Zustand)
   const selectedAgentIds = useSettingsStore((s) => s.selectedAgentIds);
@@ -487,8 +422,6 @@ export function Stage({
 
   // Initialize playback engine when scene changes
   useEffect(() => {
-    console.log('[DEBUG Stage] useEffect triggered for currentScene:', currentScene?.id, 'title:', currentScene?.title);
-    
     // Bump epoch so any stale SSE callbacks from the previous scene are discarded
     sceneEpochRef.current++;
 
@@ -512,6 +445,7 @@ export function Stage({
     if (!currentScene || !currentScene.actions || currentScene.actions.length === 0) {
       engineRef.current = null;
       setEngineMode('idle');
+      setIsAutoStartingPlayback(false);
 
       return;
     }
@@ -677,39 +611,35 @@ export function Stage({
     // Auto-start if triggered by auto-play scene advance or user preference
     const shouldAutoStart =
       autoPlay || autoStartRef.current || useSettingsStore.getState().autoPlayLecture;
-    
-    // Create a local variable to hold the timer so we can clear it if unmounted/re-rendered
-    let startTimer: NodeJS.Timeout | null = null;
     let isActive = true;
-    
+
     if (shouldAutoStart) {
       autoStartRef.current = false;
-      // Use a small timeout to allow UI to settle before starting playback
-      startTimer = setTimeout(() => {
-        console.log('[DEBUG Stage] shouldAutoStart timer fired, starting engine');
-        (async () => {
-          if (currentScene && chatAreaRef.current) {
-            const sessionId = await chatAreaRef.current.startLecture(currentScene.id);
-            if (!isActive) return;
-            lectureSessionIdRef.current = sessionId;
-            lectureActionCounterRef.current = 0;
-          }
-          if (isActive) {
-            engine.start();
-          }
-        })();
-      }, 300);
+      setIsAutoStartingPlayback(true);
+      void (async () => {
+        if (currentScene && chatAreaRef.current) {
+          const sessionId = await chatAreaRef.current.startLecture(currentScene.id);
+          if (!isActive) return;
+          lectureSessionIdRef.current = sessionId;
+          lectureActionCounterRef.current = 0;
+        }
+        if (isActive) {
+          engine.start();
+          setIsAutoStartingPlayback(false);
+        }
+      })();
     } else {
+      setIsAutoStartingPlayback(false);
       // Load saved playback state and restore position (but never auto-play).
     }
-    
+
     return () => {
       isActive = false;
-      if (startTimer) clearTimeout(startTimer);
+      setIsAutoStartingPlayback(false);
       engine.stop();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Only re-run when scene changes, functions are stable refs
-  }, [currentScene?.id, autoPlay]);
+  }, [currentScene?.id, currentScene?.actions?.length, autoPlay]);
 
   useEffect(() => {
     if (!playbackCompleted || lectureCompleteNotifiedRef.current) {
@@ -1201,6 +1131,7 @@ export function Stage({
             onStopDiscussion={handleStopDiscussion}
             hideToolbar={mode === 'playback' || (isPresenting && !controlsVisible)}
             isPendingScene={isPendingScene}
+            isAutoStarting={isAutoStartingPlayback}
             isCourseComplete={isCourseComplete}
             isGenerationFailed={
               isPendingScene && failedOutlines.some((f) => f.id === generatingOutlines[0]?.id)

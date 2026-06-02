@@ -3,7 +3,6 @@ export type StoredClassroomGenerationParams = {
   agents?: unknown[];
   userProfile?: unknown;
   languageDirective?: string;
-  sourceMode?: string;
   mistakeSessionId?: string;
 };
 
@@ -22,7 +21,6 @@ export function parseStoredClassroomGenerationParams(
 
     const hasUsefulField = Boolean(
       parsed.mistakeSessionId ||
-        parsed.sourceMode ||
         parsed.languageDirective ||
         (parsed.agents && parsed.agents.length > 0) ||
         (parsed.pdfImages && parsed.pdfImages.length > 0) ||

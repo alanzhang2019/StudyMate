@@ -20,8 +20,10 @@ export function buildMistakeClassroomRequirement(input: MistakeClassroomInput): 
 
   return [
     '【核心诉求】',
-    `请为一名小学${input.grade}年级学生（姓名：${input.studentName ?? '同学'}）讲解这道错题。`,
+    `请为一名小学${input.grade}年级学生（姓名：${input.studentName ?? '同学'}）讲解这道作业题。`,
     `期望的教学风格：${input.teachingStyle ?? '清晰易懂'}。`,
+    '讲解过程中统一使用“作业讲解”或“题目讲解”这样的说法，不要把本次课件命名为“错题回顾”或“错题讲解”。',
+    '如适合，可安排 1 页互动演示或数学模拟，帮助学生直观看懂关键步骤；若加入互动页，应让互动内容尽量独占一页，不要与大段文字挤在一起。',
     '',
     '【错题信息】',
     `题干：${problemText}`,

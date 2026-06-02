@@ -21,18 +21,50 @@ import { useStageStore } from '@/lib/store';
 import { loadImageMapping } from '@/lib/utils/image-storage';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { useSceneGenerator } from '@/lib/hooks/use-scene-generator';
+import { generateAndStoreTTS, useSceneGenerator } from '@/lib/hooks/use-scene-generator';
 import { useMediaGenerationStore } from '@/lib/store/media-generation';
 import { useWhiteboardHistoryStore } from '@/lib/store/whiteboard-history';
 import { createLogger } from '@/lib/logger';
-import { sendDebugEvent } from '@/lib/utils/debug-event';
 import { MediaStageProvider } from '@/lib/contexts/media-stage-context';
 import { generateMediaForOutlines } from '@/lib/media/media-orchestrator';
 import { updateMistakeSession } from '@/lib/mistake/session/client';
 import type { MistakeSession } from '@/lib/mistake/session/types';
 import { AlertCircle } from 'lucide-react';
+import { warmSceneTTSWithinBudget } from '@/lib/audio/warm-scene-tts';
+import { getCurrentModelConfig } from '@/lib/utils/model-config';
+import { useSettingsStore } from '@/lib/store/settings';
+import type { Scene } from '@/lib/types/stage';
 
 const log = createLogger('Classroom');
+
+function sceneToGeneratedContent(scene: Scene): unknown | null {
+  if (scene.type === 'slide' && scene.content.type === 'slide') {
+    return {
+      elements: scene.content.canvas.elements,
+      background: scene.content.canvas.background,
+    };
+  }
+  if (scene.type === 'quiz' && scene.content.type === 'quiz') {
+    return { questions: scene.content.questions };
+  }
+  if (scene.type === 'interactive' && scene.content.type === 'interactive') {
+    return {
+      html: scene.content.html ?? '',
+      widgetType: scene.content.widgetType,
+      widgetConfig: scene.content.widgetConfig,
+      teacherActions: scene.content.teacherActions,
+    };
+  }
+  if (scene.type === 'pbl' && scene.content.type === 'pbl') {
+    return { projectConfig: scene.content.projectConfig };
+  }
+  return null;
+}
+
+function withThinkingConfig<T extends Record<string, unknown>>(body: T): T {
+  const { thinkingConfig } = getCurrentModelConfig();
+  return thinkingConfig ? ({ ...body, thinkingConfig } as T) : body;
+}
 
 export default function ClassroomDetailPage() {
   const params = useParams();
@@ -49,6 +81,7 @@ export default function ClassroomDetailPage() {
 
   const generationStartedRef = useRef(false);
   const loadLifecycleIdRef = useRef(0);
+  const firstSceneHydrationRef = useRef(false);
 
   const { generateRemaining, retrySingleOutline, stop } = useSceneGenerator({
     onComplete: async () => {
@@ -86,23 +119,6 @@ export default function ClassroomDetailPage() {
       indexedDbHit = Boolean(
         useStageStore.getState().stage?.id === classroomId && useStageStore.getState().scenes.length > 0,
       );
-      // #region debug-point D:after-storage-load
-      sendDebugEvent({
-        sessionId: 'mistake-classroom-regression',
-        runId: 'pre',
-        hypothesisId: 'D',
-        location: 'app/classroom/[id]/page.tsx:67',
-        msg: '[DEBUG] classroom load after storage',
-        data: {
-          classroomId,
-          indexedDbHit,
-          stageId: useStageStore.getState().stage?.id ?? null,
-          stageName: useStageStore.getState().stage?.name ?? null,
-          scenesLength: useStageStore.getState().scenes.length,
-          currentSceneId: useStageStore.getState().currentSceneId ?? null,
-        },
-      });
-      // #endregion
       const missingServerAudio =
         indexedDbHit && needsServerAudioHydration(useStageStore.getState().scenes);
 
@@ -128,23 +144,6 @@ export default function ClassroomDetailPage() {
                 chats: [],
               });
               serverHit = true;
-              // #region debug-point D:server-hydration
-              sendDebugEvent({
-                sessionId: 'mistake-classroom-regression',
-                runId: 'pre',
-                hypothesisId: 'D',
-                location: 'app/classroom/[id]/page.tsx:94',
-                msg: '[DEBUG] classroom load after server hydration',
-                data: {
-                  classroomId,
-                  stageId: stage?.id ?? null,
-                  stageName: stage?.name ?? null,
-                  scenesLength: scenes.length,
-                  firstSceneId: scenes[0]?.id ?? null,
-                  firstSceneType: scenes[0]?.type ?? null,
-                },
-              });
-              // #endregion
               log.info('Loaded from server-side storage:', classroomId);
 
               // Hydrate server-generated agents into IndexedDB + registry.
@@ -172,45 +171,11 @@ export default function ClassroomDetailPage() {
       });
 
       if (loadState.kind === 'not_found') {
-        // #region debug-point D:not-found
-        sendDebugEvent({
-          sessionId: 'mistake-classroom-regression',
-          runId: 'pre',
-          hypothesisId: 'D',
-          location: 'app/classroom/[id]/page.tsx:118',
-          msg: '[DEBUG] classroom load not found',
-          data: {
-            classroomId,
-            indexedDbHit,
-            serverHit,
-            message: loadState.message,
-          },
-        });
-        // #endregion
         if (shouldCommitClassroomLoadUpdate({ cancelled: Boolean(isCancelled?.()) })) {
           setError(loadState.message);
         }
         return;
       }
-
-      // #region debug-point D:ready-state
-      sendDebugEvent({
-        sessionId: 'mistake-classroom-regression',
-        runId: 'pre',
-        hypothesisId: 'D',
-        location: 'app/classroom/[id]/page.tsx:122',
-        msg: '[DEBUG] classroom load ready state',
-        data: {
-          classroomId,
-          indexedDbHit,
-          serverHit,
-          stageId: useStageStore.getState().stage?.id ?? null,
-          stageName: useStageStore.getState().stage?.name ?? null,
-          scenesLength: useStageStore.getState().scenes.length,
-          currentSceneId: useStageStore.getState().currentSceneId ?? null,
-        },
-      });
-      // #endregion
 
       const currentState = useStageStore.getState();
       if (
@@ -291,20 +256,6 @@ export default function ClassroomDetailPage() {
         setError(error instanceof Error ? error.message : 'Failed to load classroom');
       }
     } finally {
-      // #region debug-point C:classroom-load-finally
-      sendDebugEvent({
-        sessionId: 'classroom-needs-refresh',
-        runId: 'pre',
-        hypothesisId: 'C',
-        location: 'app/classroom/[id]/page.tsx:294',
-        msg: '[DEBUG] classroom load lifecycle finally',
-        data: {
-          classroomId,
-          stageId: useStageStore.getState().stage?.id ?? null,
-          scenesLength: useStageStore.getState().scenes.length,
-        },
-      });
-      // #endregion
       if (shouldCommitClassroomLoadUpdate({ cancelled: Boolean(isCancelled?.()) })) {
         setLoading(false);
       }
@@ -384,43 +335,8 @@ export default function ClassroomDetailPage() {
   }, [classroomId]);
 
   useEffect(() => {
-    // #region debug-point B:classroom-visibility
-    sendDebugEvent({
-      sessionId: 'classroom-needs-refresh',
-      runId: 'pre',
-      hypothesisId: 'B',
-      location: 'app/classroom/[id]/page.tsx:330',
-      msg: '[DEBUG] classroom visibility snapshot',
-      data: {
-        classroomId,
-        loading,
-        error,
-        mistakeSessionId,
-        stageId: useStageStore.getState().stage?.id ?? null,
-        scenesLength: useStageStore.getState().scenes.length,
-        currentSceneId: useStageStore.getState().currentSceneId ?? null,
-        hasGenerationParams: Boolean(sessionStorage.getItem('generationParams')),
-      },
-    });
-    // #endregion
-  }, [classroomId, error, loading, mistakeSessionId]);
-
-  useEffect(() => {
     const lifecycleId = `${classroomId}-${Date.now()}-${++loadLifecycleIdRef.current}`;
     let cancelled = false;
-    // #region debug-point C:classroom-load-start
-    sendDebugEvent({
-      sessionId: 'classroom-needs-refresh',
-      runId: 'pre',
-      hypothesisId: 'C',
-      location: 'app/classroom/[id]/page.tsx:356',
-      msg: '[DEBUG] classroom load lifecycle start',
-      data: {
-        lifecycleId,
-        classroomId,
-      },
-    });
-    // #endregion
 
     // Reset loading state on course switch to unmount Stage during transition,
     // preventing stale data from syncing back to the new course
@@ -438,6 +354,7 @@ export default function ClassroomDetailPage() {
     // setLectureCompleted(false);
     resetCanvasForClassroomPlayback();
     generationStartedRef.current = false;
+    firstSceneHydrationRef.current = false;
 
     // Clear previous classroom's media tasks to prevent cross-classroom contamination.
     // Placeholder IDs (gen_img_1, gen_vid_1) are NOT globally unique across stages,
@@ -454,22 +371,102 @@ export default function ClassroomDetailPage() {
     // Cancel ongoing generation when classroomId changes or component unmounts
     return () => {
       cancelled = true;
-      // #region debug-point C:classroom-load-cleanup
-      sendDebugEvent({
-        sessionId: 'classroom-needs-refresh',
-        runId: 'pre',
-        hypothesisId: 'C',
-        location: 'app/classroom/[id]/page.tsx:376',
-        msg: '[DEBUG] classroom load lifecycle cleanup',
-        data: {
-          lifecycleId,
-          classroomId,
-        },
-      });
-      // #endregion
       stop();
     };
   }, [classroomId, loadClassroom, stop]);
+
+  useEffect(() => {
+    const abortController = new AbortController();
+
+    const run = async () => {
+      if (loading || error || firstSceneHydrationRef.current) return;
+
+      const state = useStageStore.getState();
+      const stage = state.stage;
+      if (!stage) return;
+
+      const scenesSorted = [...state.scenes].sort((a, b) => a.order - b.order);
+      const firstScene = scenesSorted[0];
+      if (!firstScene) return;
+      if ((firstScene.actions?.length ?? 0) > 0) return;
+
+      const outline = state.outlines.find((o) => o.order === firstScene.order);
+      if (!outline) return;
+
+      const generationParams = parseStoredClassroomGenerationParams(
+        sessionStorage.getItem('generationParams'),
+      );
+      if (!generationParams) return;
+
+      const content = sceneToGeneratedContent(firstScene);
+      if (!content) return;
+
+      firstSceneHydrationRef.current = true;
+
+      const config = getCurrentModelConfig();
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+        'x-model': config.modelString || '',
+        'x-api-key': config.apiKey || '',
+        'x-base-url': config.baseUrl || '',
+        'x-provider-type': config.providerType || '',
+      };
+
+      const resp = await fetch('/api/generate/scene-actions', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(
+          withThinkingConfig({
+            outline,
+            allOutlines: state.outlines,
+            content,
+            stageId: stage.id,
+            agents: generationParams.agents,
+            previousSpeeches: [],
+            userProfile: generationParams.userProfile,
+            languageDirective: generationParams.languageDirective || stage.languageDirective,
+          }),
+        ),
+        signal: abortController.signal,
+      });
+
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({ error: 'Request failed' }));
+        throw new Error(data.error || `HTTP ${resp.status}`);
+      }
+
+      const data = await resp.json();
+      if (!data.success || !data.scene) {
+        throw new Error(data.error || 'Actions generation failed');
+      }
+
+      const settings = useSettingsStore.getState();
+      const language = generationParams.languageDirective || stage.languageDirective;
+      if (settings.ttsEnabled && settings.ttsProviderId !== 'browser-native-tts') {
+        await warmSceneTTSWithinBudget({
+          scene: data.scene,
+          language,
+          budgetMs: 2500,
+          generate: async ({ audioId, text, language: inputLanguage }) => {
+            await generateAndStoreTTS(audioId, text, inputLanguage, abortController.signal);
+          },
+        });
+      }
+
+      useStageStore.getState().updateScene(firstScene.id, {
+        actions: Array.isArray(data.scene.actions) ? data.scene.actions : [],
+        updatedAt: Date.now(),
+      });
+    };
+
+    run().catch((err) => {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      log.warn('[Classroom] Failed to hydrate first scene actions:', err);
+      firstSceneHydrationRef.current = false;
+    });
+
+    return () => abortController.abort();
+  }, [loading, error]);
 
   // Auto-resume generation for pending outlines
   useEffect(() => {
@@ -514,7 +511,6 @@ export default function ClassroomDetailPage() {
             agents: generationParams?.agents as any,
             userProfile: generationParams?.userProfile as any,
             languageDirective: generationParams?.languageDirective || stage.languageDirective,
-            sourceMode: generationParams?.sourceMode,
           });
         }, 100);
       });

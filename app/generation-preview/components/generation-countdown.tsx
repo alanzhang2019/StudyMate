@@ -8,6 +8,8 @@ import { cn } from '@/lib/utils';
 interface GenerationCountdownProps {
   /** Current step index (0-based) */
   currentStepIndex: number;
+  /** Active step ids in real execution order */
+  stepIds: string[];
   /** Total number of active steps */
   totalSteps: number;
   /** Whether generation is currently active */
@@ -22,15 +24,15 @@ interface GenerationCountdownProps {
   className?: string;
 }
 
-// Estimated time per step in seconds (based on Qwen3-8B performance)
-// Total time until first page is ready
+// Estimated time per step in seconds for the current preview pipeline.
+// These values target "time until first page is ready", not full classroom completion.
 const STEP_TIME_ESTIMATES: Record<string, number> = {
-  'pdf-analysis': 15,
-  'web-search': 20,
-  'outline': 60,
-  'agent-generation': 25,
-  'slide-content': 35,
-  'actions': 25,
+  'pdf-analysis': 10,
+  'web-search': 12,
+  'outline': 18,
+  'agent-generation': 15,
+  'slide-content': 30,
+  'actions': 16,
 };
 
 // Grace period after estimate expires before showing "still working"
@@ -45,18 +47,20 @@ function formatTime(seconds: number): string {
   return `${minutes}分${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}秒`;
 }
 
-function computeTotalEstimate(totalSteps: number): number {
-  const stepIds = Object.keys(STEP_TIME_ESTIMATES);
+export function computeFirstPageEstimateSeconds(stepIds: string[]): number {
   let total = 0;
-  for (let i = 0; i < totalSteps; i++) {
-    const stepId = stepIds[i] || 'slide-content';
+  for (const stepId of stepIds) {
     total += STEP_TIME_ESTIMATES[stepId] || 30;
+    if (stepId === 'slide-content') {
+      break;
+    }
   }
   return total;
 }
 
 export function GenerationCountdown({
   currentStepIndex,
+  stepIds,
   totalSteps,
   isActive,
   isReviewing = false,
@@ -68,7 +72,7 @@ export function GenerationCountdown({
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isMountedRef = useRef(false);
 
-  const totalEstimatedSeconds = useMemo(() => computeTotalEstimate(totalSteps), [totalSteps]);
+  const totalEstimatedSeconds = useMemo(() => computeFirstPageEstimateSeconds(stepIds), [stepIds]);
 
   const updateElapsed = useCallback((effectiveStart: number) => {
     const elapsed = Math.floor((Date.now() - effectiveStart) / 1000);

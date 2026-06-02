@@ -33,27 +33,7 @@ interface SceneActionsResult {
   error?: string;
 }
 
-async function getMistakeModelConfig(): Promise<ReturnType<typeof getCurrentModelConfig> | null> {
-  try {
-    await useSettingsStore.getState().fetchServerProviders();
-    const response = await fetch('/api/mistake/model-config');
-    if (response.ok) {
-      const config = await response.json();
-      const baseConfig = getCurrentModelConfig();
-      return {
-        ...baseConfig,
-        modelString: config.modelString,
-        providerId: config.providerId,
-        modelId: config.modelId,
-      };
-    }
-  } catch {
-    // Fallback to current model config if fetch fails
-  }
-  return null;
-}
-
-function buildHeaders(sourceMode?: string): HeadersInit {
+function buildHeaders(): HeadersInit {
   const config = getCurrentModelConfig();
   const settings = useSettingsStore.getState();
   const imageProviderConfig = settings.imageProvidersConfig?.[settings.imageProviderId];
@@ -102,20 +82,10 @@ async function fetchSceneContent(
     };
     agents?: AgentInfo[];
     languageDirective?: string;
-    sourceMode?: string;
   },
   signal?: AbortSignal,
 ): Promise<SceneContentResult> {
   const headers = buildHeaders();
-  if (params.sourceMode === 'mistake') {
-    const mistakeConfig = await getMistakeModelConfig();
-    if (mistakeConfig) {
-      headers['x-model'] = mistakeConfig.modelString;
-      headers['x-api-key'] = mistakeConfig.apiKey;
-      headers['x-base-url'] = mistakeConfig.baseUrl || '';
-      headers['x-provider-type'] = mistakeConfig.providerType || '';
-    }
-  }
 
   const response = await fetch('/api/generate/scene-content', {
     method: 'POST',
@@ -143,20 +113,10 @@ async function fetchSceneActions(
     previousSpeeches?: string[];
     userProfile?: string;
     languageDirective?: string;
-    sourceMode?: string;
   },
   signal?: AbortSignal,
 ): Promise<SceneActionsResult> {
   const headers = buildHeaders();
-  if (params.sourceMode === 'mistake') {
-    const mistakeConfig = await getMistakeModelConfig();
-    if (mistakeConfig) {
-      headers['x-model'] = mistakeConfig.modelString;
-      headers['x-api-key'] = mistakeConfig.apiKey;
-      headers['x-base-url'] = mistakeConfig.baseUrl || '';
-      headers['x-provider-type'] = mistakeConfig.providerType || '';
-    }
-  }
 
   const response = await fetch('/api/generate/scene-actions', {
     method: 'POST',
@@ -314,7 +274,6 @@ export interface GenerationParams {
   agents?: AgentInfo[];
   userProfile?: string;
   languageDirective?: string;
-  sourceMode?: 'mistake' | 'pdf' | 'topic';
 }
 
 export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
@@ -414,7 +373,6 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
               stageInfo: params.stageInfo,
               agents: params.agents,
               languageDirective: params.languageDirective,
-              sourceMode: params.sourceMode,
             },
             signal,
           ), { sceneOrder: outline.order });
@@ -449,7 +407,6 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
               previousSpeeches,
               userProfile: params.userProfile,
               languageDirective: params.languageDirective,
-              sourceMode: params.sourceMode,
             },
             signal,
           ), { sceneOrder: outline.order });
@@ -576,7 +533,6 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
             stageInfo: params.stageInfo,
             agents: params.agents,
             languageDirective: params.languageDirective,
-            sourceMode: params.sourceMode,
           },
           signal,
         );
@@ -605,7 +561,6 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
             previousSpeeches,
             userProfile: params.userProfile,
             languageDirective: params.languageDirective,
-            sourceMode: params.sourceMode,
           },
           signal,
         );

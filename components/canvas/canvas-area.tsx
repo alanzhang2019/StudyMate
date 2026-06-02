@@ -26,6 +26,7 @@ interface CanvasAreaProps extends CanvasToolbarProps {
   readonly onRetryGeneration?: () => void;
   readonly hasVisibleLectureContent?: boolean;
   readonly whiteboardEnabled?: boolean;
+  readonly isAutoStarting?: boolean;
 }
 
 export function CanvasArea({
@@ -55,6 +56,7 @@ export function CanvasArea({
   onRetryGeneration,
   hasVisibleLectureContent = false,
   whiteboardEnabled = true,
+  isAutoStarting = false,
 }: CanvasAreaProps) {
   const { t } = useI18n();
   const showControls = mode === 'playback' && !whiteboardOpen;
@@ -65,6 +67,7 @@ export function CanvasArea({
     isLiveSession: isLiveSession ?? false,
     isPendingScene: Boolean(isPendingScene),
     hasVisibleLectureContent,
+    isAutoStarting,
   });
 
   useEffect(() => {
@@ -85,6 +88,7 @@ export function CanvasArea({
         isCourseComplete: Boolean(isCourseComplete),
         isGenerationFailed: Boolean(isGenerationFailed),
         hasVisibleLectureContent,
+        isAutoStarting,
         isLiveSession,
         engineState,
       },
@@ -99,6 +103,7 @@ export function CanvasArea({
     isGenerationFailed,
     isLiveSession,
     isPendingScene,
+    isAutoStarting,
     showPlayHint,
     whiteboardEnabled,
     whiteboardOpen,
@@ -305,6 +310,7 @@ export function CanvasArea({
           onTogglePresentation={onTogglePresentation}
           showStopDiscussion={showStopDiscussion}
           onStopDiscussion={onStopDiscussion}
+          isAutoStarting={isAutoStarting}
         />
       )}
     </div>

@@ -4,6 +4,6 @@ export function getClassroomNavigationTarget(input: {
 }) {
   return {
     href: `/classroom/${input.classroomId}`,
-    mode: input.source === 'generation-preview' ? ('hard' as const) : ('soft' as const),
+    mode: 'soft' as const,
   };
 }

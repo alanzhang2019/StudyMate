@@ -1,4 +1,5 @@
-import { buildMistakeGenerationSession } from '@/lib/mistake/openmaic/build-generation-session';
+import type { GenerationSessionState } from '@/app/generation-preview/types';
+import { buildMistakeClassroomRequirement } from '@/lib/mistake/openmaic/build-requirement';
 import type { MistakeImageExtraction } from '@/lib/mistake/ocr/types';
 import { createMistakeSession } from '@/lib/mistake/session/client';
 import { saveGenerationPreviewSession } from '@/lib/mistake/ui/generation-preview-storage';
@@ -38,19 +39,29 @@ export async function startMistakePreview(input: {
     liveUrl: created.liveUrl,
   });
 
-  const generationSession = buildMistakeGenerationSession({
-    mistakeSessionId: created.session.id,
-    input: {
-      grade: input.grade || 4,
-      subject: 'math',
-      source: 'photo',
-      problemText: input.problemText,
-      ...(input.studentAnswer ? { studentAnswer: input.studentAnswer } : {}),
-      ...(input.correctAnswer ? { correctAnswer: input.correctAnswer } : {}),
-      studentName: input.studentName,
-      teachingStyle: input.teachingStyle,
+  const generationSession: GenerationSessionState = {
+    sessionId: created.session.id,
+    requirements: {
+      requirement: buildMistakeClassroomRequirement({
+        grade: input.grade || 4,
+        subject: 'math',
+        source: 'photo',
+        problemText: input.problemText,
+        ...(input.studentAnswer ? { studentAnswer: input.studentAnswer } : {}),
+        ...(input.correctAnswer ? { correctAnswer: input.correctAnswer } : {}),
+        studentName: input.studentName,
+        teachingStyle: input.teachingStyle,
+      }),
+      webSearch: false,
+      interactiveMode: false,
+      userNickname: input.studentName,
     },
-  });
+    pdfText: '',
+    sceneOutlines: [],
+    currentStep: 'generating',
+    previewPhase: 'preparing',
+    mistakeSessionId: created.session.id,
+  };
 
   saveGenerationPreviewSession(generationSession);
   return created.session.id;

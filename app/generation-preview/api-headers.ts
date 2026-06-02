@@ -27,7 +27,7 @@ const defaultDeps: GenerationApiHeaderDeps = {
 };
 
 export async function buildGenerationApiHeaders(
-  _session: Pick<GenerationSessionState, 'sourceMode'> | null | undefined,
+  _session: GenerationSessionState | null | undefined,
   deps: GenerationApiHeaderDeps = defaultDeps,
 ): Promise<GenerationApiHeaders> {
   const modelConfig = deps.getCurrentModelConfig();

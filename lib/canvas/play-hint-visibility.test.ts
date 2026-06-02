@@ -25,6 +25,7 @@ describe('shouldShowCanvasPlayHint', () => {
         isLiveSession: false,
         isPendingScene: false,
         hasVisibleLectureContent: false,
+        isAutoStarting: false,
       }),
     ).toBe(true);
   });
@@ -38,6 +39,21 @@ describe('shouldShowCanvasPlayHint', () => {
         isLiveSession: false,
         isPendingScene: false,
         hasVisibleLectureContent: true,
+        isAutoStarting: false,
+      }),
+    ).toBe(false);
+  });
+
+  it('hides the center play hint while classroom autoplay is already starting', () => {
+    expect(
+      shouldShowCanvasPlayHint({
+        showControls: true,
+        engineState: 'idle',
+        sceneType: 'slide',
+        isLiveSession: false,
+        isPendingScene: false,
+        hasVisibleLectureContent: false,
+        isAutoStarting: true,
       }),
     ).toBe(false);
   });

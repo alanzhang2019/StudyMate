@@ -283,7 +283,6 @@ export default function HomeworkPage() {
         },
         pdfText: '',
         currentStep: 'generating',
-        sourceMode: 'mistake',
         mistakeSessionId: json.jobId || json.sessionId,
       });
       router.push('/generation-preview');

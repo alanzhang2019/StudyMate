@@ -28,8 +28,6 @@ export interface GenerationSessionState {
   researchSources?: Array<{ title: string; url: string }>;
   // Language directive inferred from outline generation
   languageDirective?: string;
-  // Session source mode
-  sourceMode?: 'default' | 'mistake';
   // Links a mistake-mode preview session back to its persisted record
   mistakeSessionId?: string;
 }

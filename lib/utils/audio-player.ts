@@ -57,7 +57,6 @@ export class AudioPlayer {
    * @returns true if audio started playing, false if no audio (TTS disabled or not generated)
    */
   public async play(audioId: string, audioUrl?: string): Promise<boolean> {
-    console.log('[DEBUG AudioPlayer] play() called with audioId:', audioId);
     try {
       // 1. Try audioUrl first (server-generated TTS)
       if (audioUrl) {

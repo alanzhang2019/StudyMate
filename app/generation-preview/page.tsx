@@ -17,8 +17,6 @@ import { getVoxCPMProviderOptions, useVoxCPMVoiceProfiles } from '@/lib/audio/vo
 import { updateMistakeSession } from '@/lib/mistake/session/client';
 import { resolveAgentModeForGeneration } from '@/lib/mistake/openmaic/resolve-agent-mode';
 import { persistPlayableClassroom } from '@/lib/mistake/openmaic/persist-playable-classroom';
-import { buildClientTTSRequestConfig } from '@/lib/audio/build-client-tts-request';
-import { warmSceneTTSWithinBudget } from '@/lib/audio/warm-scene-tts';
 import { createGenerationTiming } from '@/lib/generation/timing';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { shouldClearGenerationPreviewSession } from '@/lib/mistake/ui/generation-preview-session';
@@ -29,7 +27,6 @@ import {
   storeImages,
 } from '@/lib/utils/image-storage';
 import { getCurrentModelConfig } from '@/lib/utils/model-config';
-import { db } from '@/lib/utils/database';
 import { MAX_PDF_CONTENT_CHARS, MAX_VISION_IMAGES } from '@/lib/constants/generation';
 import { buildVideoManifestFromOutlines } from '@/lib/media/video-manifest';
 import { getClassroomNavigationTarget } from '@/lib/mistake/ui/classroom-navigation';
@@ -43,7 +40,7 @@ import type { Stage } from '@/lib/types/stage';
 import type { SceneOutline, PdfImage, ImageMapping } from '@/lib/types/generation';
 import { AgentRevealModal } from '@/components/agent/agent-reveal-modal';
 import { createLogger } from '@/lib/logger';
-import { sendDebugEvent } from '@/lib/utils/debug-event';
+import { buildSceneFromGeneratedContent } from '@/lib/generation/scene-assembly';
 import { type GenerationSessionState, ALL_STEPS, getActiveSteps } from './types';
 import { buildGenerationApiHeaders } from './api-headers';
 import { StepVisualizer } from './components/visualizers';
@@ -51,42 +48,6 @@ import { GenerationCountdown } from './components/generation-countdown';
 
 const log = createLogger('GenerationPreview');
 const OUTLINE_REVIEW_AUTO_CONTINUE_MS = 1000;
-const FIRST_SCENE_TTS_WARMUP_BUDGET_MS = 8000;
-const RAW_LATEX_PATTERN = /\\(?:frac|sqrt|sum|int|lim|alpha|beta|theta|times|div)\b|[_^]\{?/;
-
-function analyzeGeneratedMathContent(content: unknown) {
-  if (!content || typeof content !== 'object' || !('elements' in content)) {
-    return null;
-  }
-
-  const elements = (content as { elements?: Array<Record<string, unknown>> }).elements;
-  if (!Array.isArray(elements)) {
-    return null;
-  }
-
-  const textElements = elements.filter((el) => el?.type === 'text');
-  const latexElements = elements.filter((el) => el?.type === 'latex');
-  const rawLatexTextElements = textElements
-    .map((el) => {
-      const contentValue = typeof el.content === 'string' ? el.content : '';
-      return {
-        id: typeof el.id === 'string' ? el.id : null,
-        content: contentValue,
-      };
-    })
-    .filter((el) => RAW_LATEX_PATTERN.test(el.content));
-
-  return {
-    totalElements: elements.length,
-    textElementCount: textElements.length,
-    latexElementCount: latexElements.length,
-    rawLatexTextElementCount: rawLatexTextElements.length,
-    rawLatexSamples: rawLatexTextElements.slice(0, 3).map((el) => ({
-      id: el.id,
-      content: el.content.replace(/\s+/g, ' ').trim().slice(0, 160),
-    })),
-  };
-}
 
 function GenerationPreviewContent() {
   const router = useRouter();
@@ -613,35 +574,6 @@ function GenerationPreviewContent() {
         outlines = outlineResult.outlines;
         languageDirective = outlineResult.languageDirective;
         setIsOutlineStreaming(false);
-        // #region debug-point B:outline-stream-duration
-        sendDebugEvent({
-          sessionId: 'generation-latex-slow',
-          runId: 'pre-fix',
-          hypothesisId: 'B',
-          location: 'app/generation-preview/page.tsx:outline_stream',
-          msg: '[DEBUG] outline stream completed',
-          data: {
-            outlineCount: outlines.length,
-            durationMs: timing.records().find((record) => record.name === 'outline_stream')?.durationMs ?? null,
-          },
-        });
-        // #endregion
-
-        // For mistake mode: ensure first outline shows the problem text directly
-        if (currentSession.sourceMode === 'mistake' && outlines.length > 0) {
-          const requirement = currentSession.requirements.requirement;
-          // Use multiline match to capture the full problem text (may span multiple lines)
-          const problemMatch = requirement.match(/题干：([\s\S]+?)(?=\n【|$)/);
-          const problemText = problemMatch ? problemMatch[1].trim() : '';
-          if (problemText) {
-            outlines[0] = {
-              ...outlines[0],
-              title: '作业讲解',
-              description: problemText,
-              keyPoints: ['题目展示', '分析讲解', '总结方法'],
-            };
-          }
-        }
 
         // Mid-stream review intent (sticky ref) overrides the auto-continue timer.
         const userOpenedReviewEarly = outlineReviewIntentRef.current;
@@ -700,7 +632,6 @@ function GenerationPreviewContent() {
       }> = [];
 
       const agentMode = resolveAgentModeForGeneration({
-        sourceMode: currentSession.sourceMode,
         agentMode: settings.agentMode,
       });
 
@@ -798,19 +729,6 @@ function GenerationPreviewContent() {
           if (!agentResp.ok) throw new Error('Agent generation failed');
           const agentData = await agentResp.json();
           if (!agentData.success) throw new Error(agentData.error || 'Agent generation failed');
-          // #region debug-point C:agent-generation-duration
-          sendDebugEvent({
-            sessionId: 'generation-latex-slow',
-            runId: 'pre-fix',
-            hypothesisId: 'C',
-            location: 'app/generation-preview/page.tsx:agent_generation',
-            msg: '[DEBUG] agent generation completed',
-            data: {
-              durationMs: Math.round(performance.now() - agentGenerationStartedAt),
-              agentCount: Array.isArray(agentData.agents) ? agentData.agents.length : null,
-            },
-          });
-          // #endregion
 
           // Save to IndexedDB and registry
           const { saveGeneratedAgents } = await import('@/lib/orchestration/registry/store');
@@ -937,175 +855,25 @@ function GenerationPreviewContent() {
         throw new Error(contentData.error || t('generation.sceneGenerateFailed'));
       }
 
-      // #region debug-point A:first-scene-content-shape
-      sendDebugEvent({
-        sessionId: 'generation-latex-slow',
-        runId: 'pre-fix',
-        hypothesisId: 'A',
-        location: 'app/generation-preview/page.tsx:first_scene_content',
-        msg: '[DEBUG] first scene content generated',
-        data: {
-          sceneType: contentData.effectiveOutline?.type ?? firstOutline.type,
-          outlineTitle: contentData.effectiveOutline?.title ?? firstOutline.title,
-          mathAnalysis: analyzeGeneratedMathContent(contentData.content),
-        },
-      });
-      // #endregion
+      const scene = buildSceneFromGeneratedContent(
+        contentData.effectiveOutline || firstOutline,
+        contentData.content,
+        stage.id,
+      );
 
-      // Generate actions (activate actions step indicator)
-      const actionsStepIdx = activeSteps.findIndex((s) => s.id === 'actions');
-      setCurrentStepIndex(actionsStepIdx >= 0 ? actionsStepIdx : currentStepIndex + 1);
-
-      const actionsResp = await timing.time('first_scene_actions', async () => {
-        const headers = await buildGenerationApiHeaders(currentSession);
-        return fetch('/api/generate/scene-actions', {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(
-            withThinkingConfig({
-              outline: contentData.effectiveOutline || firstOutline,
-              allOutlines: outlines,
-              content: contentData.content,
-              stageId: stage.id,
-              agents,
-              previousSpeeches: [],
-              userProfile,
-              languageDirective,
-            }),
-          ),
-          signal,
-        });
-      }, { sceneOrder: firstOutline.order });
-
-      if (!actionsResp.ok) {
-        const errorData = await actionsResp.json().catch(() => ({ error: 'Request failed' }));
-        throw new Error(errorData.error || t('generation.sceneGenerateFailed'));
-      }
-
-      const data = await actionsResp.json();
-      if (!data.success || !data.scene) {
-        throw new Error(data.error || t('generation.sceneGenerateFailed'));
-      }
-      // #region debug-point D:first-scene-actions-duration
-      sendDebugEvent({
-        sessionId: 'generation-latex-slow',
-        runId: 'pre-fix',
-        hypothesisId: 'D',
-        location: 'app/generation-preview/page.tsx:first_scene_actions',
-        msg: '[DEBUG] first scene actions completed',
-        data: {
-          durationMs:
-            timing.records().find((record) => record.name === 'first_scene_actions')?.durationMs ?? null,
-          actionCount: Array.isArray(data.scene?.actions) ? data.scene.actions.length : null,
-        },
-      });
-      // #endregion
-
-      // Warm first-scene TTS, but don't let the preview page hold navigation hostage.
-      if (settings.ttsEnabled && settings.ttsProviderId !== 'browser-native-tts') {
-        const ttsProviderConfig = settings.ttsProvidersConfig?.[settings.ttsProviderId];
-        const requestConfig = buildClientTTSRequestConfig(settings.ttsProviderId, ttsProviderConfig);
-        const providerOptions =
-          settings.ttsProviderId === 'voxcpm-tts'
-            ? {
-                ...(ttsProviderConfig?.providerOptions || {}),
-                ...(await getVoxCPMProviderOptions(settings.ttsVoice, {
-                  role: 'teacher',
-                  language: languageDirective,
-                })),
-              }
-            : undefined;
-
-        const ttsWarmup = await timing.time('first_scene_tts_warmup', () => warmSceneTTSWithinBudget({
-          scene: data.scene,
-          language: languageDirective,
-          budgetMs: FIRST_SCENE_TTS_WARMUP_BUDGET_MS,
-          generate: async ({ audioId, text }) => {
-            const resp = await fetch('/api/generate/tts', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                text,
-                audioId,
-                ttsProviderId: settings.ttsProviderId,
-                ttsModelId: ttsProviderConfig?.modelId,
-                ttsVoice: settings.ttsVoice,
-                ttsSpeed: settings.ttsSpeed,
-                ttsApiKey: requestConfig.ttsApiKey,
-                ttsBaseUrl: requestConfig.ttsBaseUrl,
-                ttsProviderOptions: providerOptions,
-              }),
-            });
-
-            const ttsData = await resp
-              .json()
-              .catch(() => ({ success: false, error: resp.statusText || 'Invalid TTS response' }));
-            if (!resp.ok || !ttsData.success || !ttsData.base64 || !ttsData.format) {
-              throw new Error(ttsData.details || ttsData.error || `TTS request failed: HTTP ${resp.status}`);
-            }
-
-            const binary = atob(ttsData.base64);
-            const bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-            const blob = new Blob([bytes], { type: `audio/${ttsData.format}` });
-            await db.audioFiles.put({
-              id: audioId,
-              blob,
-              format: ttsData.format,
-              createdAt: Date.now(),
-            });
-          },
-          onError: ({ audioId, error: ttsError }) => {
-            log.warn(`[TTS] Failed for ${audioId}:`, ttsError);
-          },
-        }), {
-          sceneOrder: data.scene.order,
-          providerId: settings.ttsProviderId,
-        });
-
-        if (!ttsWarmup.timedOut && ttsWarmup.failedCount > 0) {
-          log.warn('[GenerationPreview] Continuing without generated first-scene TTS audio', {
-            failedCount: ttsWarmup.failedCount,
-            totalSpeechActions: ttsWarmup.totalSpeechActions,
-          });
-        }
-        if (ttsWarmup.timedOut) {
-          log.warn('[GenerationPreview] First scene TTS warmup exceeded budget; continuing to classroom', {
-            budgetMs: FIRST_SCENE_TTS_WARMUP_BUDGET_MS,
-            totalSpeechActions: ttsWarmup.totalSpeechActions,
-          });
-        }
-        // #region debug-point E:first-scene-tts-duration
-        sendDebugEvent({
-          sessionId: 'generation-latex-slow',
-          runId: 'pre-fix',
-          hypothesisId: 'E',
-          location: 'app/generation-preview/page.tsx:first_scene_tts_warmup',
-          msg: '[DEBUG] first scene tts warmup completed',
-          data: {
-            durationMs:
-              timing.records().find((record) => record.name === 'first_scene_tts_warmup')?.durationMs ?? null,
-            timedOut: ttsWarmup.timedOut,
-            totalSpeechActions: ttsWarmup.totalSpeechActions,
-            failedCount: ttsWarmup.failedCount,
-          },
-        });
-        // #endregion
-      }
-
-      // Mark first page as ready and add scene to store
+      // Mark first page as ready and add scene to store (actions/TTS will be generated in classroom)
       setIsFirstPageReady(true);
       setIsComplete(true);
-      store.addScene(data.scene);
-      store.setCurrentSceneId(data.scene.id);
+      store.addScene(scene);
+      store.setCurrentSceneId(scene.id);
 
       persistPlayableClassroom({
         stage,
-        scenes: [data.scene],
+        scenes: [scene],
       }).catch((err) => log.warn('[GenerationPreview] persistPlayableClassroom failed:', err));
 
       // Set remaining outlines as skeleton placeholders
-      const remaining = outlines.filter((o) => o.order !== data.scene.order);
+      const remaining = outlines.filter((o) => o.order !== scene.order);
       store.setGeneratingOutlines(remaining);
 
       // Store generation params for classroom to continue generation
@@ -1116,7 +884,6 @@ function GenerationPreviewContent() {
           agents,
           userProfile,
           languageDirective,
-          sourceMode: currentSession.sourceMode,
           mistakeSessionId: currentSession.mistakeSessionId,
         }),
       );
@@ -1124,7 +891,7 @@ function GenerationPreviewContent() {
       // Update mistake session status in the background — don't block navigation
       // on this, especially for reverse-proxy deployments that may have short
       // timeout limits.
-      if (currentSession.sourceMode === 'mistake' && currentSession.mistakeSessionId) {
+      if (currentSession.mistakeSessionId) {
         updateMistakeSession(currentSession.mistakeSessionId, {
           classroomId: stage.id,
           status: 'live',
@@ -1134,45 +901,9 @@ function GenerationPreviewContent() {
         });
       }
 
-      // #region debug-point A:before-classroom-push
-      sendDebugEvent({
-        sessionId: 'classroom-needs-refresh',
-        runId: 'pre',
-        hypothesisId: 'A',
-        location: 'app/generation-preview/page.tsx:984',
-        msg: '[DEBUG] generation preview before classroom push',
-        data: {
-          classroomId: stage.id,
-          currentSceneId: data.scene.id,
-          scenesLength: useStageStore.getState().scenes.length,
-          outlinesLength: useStageStore.getState().outlines.length,
-          generatingOutlinesLength: useStageStore.getState().generatingOutlines.length,
-          hasGenerationParams: Boolean(sessionStorage.getItem('generationParams')),
-          hasGenerationSession: Boolean(loadGenerationPreviewSession()),
-        },
-      });
-      // #endregion
-
       if (shouldClearGenerationPreviewSession({ outcome: 'success' })) {
         clearGenerationPreviewSession();
       }
-      // #region debug-point B:generation-preview-summary
-      const timingSummary = timing.summary();
-      sendDebugEvent({
-        sessionId: 'generation-latex-slow',
-        runId: 'pre-fix',
-        hypothesisId: 'B',
-        location: 'app/generation-preview/page.tsx:success-summary',
-        msg: '[DEBUG] generation preview timing summary',
-        data: {
-          totalDurationMs: timingSummary.totalDurationMs,
-          measuredDurationMs: timingSummary.measuredDurationMs,
-          slowestStage: timingSummary.slowestStage?.name ?? null,
-          slowestDurationMs: timingSummary.slowestStage?.durationMs ?? null,
-          stages: timingSummary.stages,
-        },
-      });
-      // #endregion
       store.saveToStorage().catch((err) => log.warn('[GenerationPreview] saveToStorage failed:', err));
       const navigationTarget = getClassroomNavigationTarget({
         classroomId: stage.id,
@@ -1204,24 +935,6 @@ function GenerationPreviewContent() {
       } else {
         setError(errMessage);
       }
-      // #region debug-point C:generation-preview-error
-      const timingSummary = timing.summary();
-      sendDebugEvent({
-        sessionId: 'generation-latex-slow',
-        runId: 'pre-fix',
-        hypothesisId: 'C',
-        location: 'app/generation-preview/page.tsx:error-summary',
-        msg: '[DEBUG] generation preview failed',
-        data: {
-          error: errMessage,
-          totalDurationMs: timingSummary.totalDurationMs,
-          measuredDurationMs: timingSummary.measuredDurationMs,
-          slowestStage: timingSummary.slowestStage?.name ?? null,
-          slowestDurationMs: timingSummary.slowestStage?.durationMs ?? null,
-          stages: timingSummary.stages,
-        },
-      });
-      // #endregion
     } finally {
       isGeneratingRef.current = false;
     }
@@ -1588,6 +1301,7 @@ function GenerationPreviewContent() {
                 {/* Generation Countdown */}
                 <GenerationCountdown
                   currentStepIndex={currentStepIndex}
+                  stepIds={activeSteps.map((step) => step.id)}
                   totalSteps={activeSteps.length}
                   isActive={!error && !isComplete && !isOutlineReady}
                   isReviewing={isReviewingOutlines}

@@ -55,9 +55,13 @@ describe('PlaybackEngine', () => {
   afterEach(() => {
     useSettingsStore.setState(originalSettings);
     vi.unstubAllGlobals();
+    vi.useRealTimers();
   });
 
-  it('falls back to browser speech when generated audio is unavailable', async () => {
+  it('uses reading timer when generated audio is unavailable', async () => {
+    vi.useFakeTimers();
+    const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+
     const speak = vi.fn((utterance: MockSpeechSynthesisUtterance) => {
       queueMicrotask(() => utterance.onend?.());
     });
@@ -100,6 +104,8 @@ describe('PlaybackEngine', () => {
     await Promise.resolve();
 
     expect(audioPlayer.play).toHaveBeenCalledWith('tts_s1_speech-1', undefined);
-    expect(speak).toHaveBeenCalledTimes(1);
+    expect(speak).toHaveBeenCalledTimes(0);
+    expect(setTimeoutSpy).toHaveBeenCalledTimes(1);
+    expect(setTimeoutSpy.mock.calls[0]?.[1]).toBeGreaterThanOrEqual(2000);
   });
 });

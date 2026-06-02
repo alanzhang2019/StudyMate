@@ -30,7 +30,6 @@ describe('shouldResumeClassroomGeneration', () => {
   it('resumes when pending outlines exist and preview handed off valid params', () => {
     const params = parseStoredClassroomGenerationParams(
       JSON.stringify({
-        sourceMode: 'mistake',
         mistakeSessionId: 'session-1',
         languageDirective: '中文',
       }),
@@ -47,7 +46,6 @@ describe('shouldResumeClassroomGeneration', () => {
   it('does not resume when there are no pending outlines', () => {
     const params = parseStoredClassroomGenerationParams(
       JSON.stringify({
-        sourceMode: 'mistake',
         mistakeSessionId: 'session-1',
       }),
     );
@@ -77,7 +75,6 @@ describe('shouldDiscardPersistedClassroomOutlines', () => {
       shouldDiscardPersistedClassroomOutlines({
         generationParams: parseStoredClassroomGenerationParams(
           JSON.stringify({
-            sourceMode: 'mistake',
             mistakeSessionId: 'session-1',
           }),
         ),

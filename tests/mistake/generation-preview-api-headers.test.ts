@@ -8,7 +8,7 @@ describe('buildGenerationApiHeaders', () => {
     const syncServerProviders = vi.fn(async () => undefined);
 
     const headers = await buildGenerationApiHeaders(
-      { sourceMode: 'mistake' } as GenerationSessionState,
+      { mistakeSessionId: 'mistake-1' } as GenerationSessionState,
       {
         syncServerProviders,
         getCurrentModelConfig: () => ({
@@ -43,7 +43,7 @@ describe('buildGenerationApiHeaders', () => {
     const syncServerProviders = vi.fn(async () => undefined);
 
     const headers = await buildGenerationApiHeaders(
-      { sourceMode: 'default' } as GenerationSessionState,
+      { sessionId: 'preview-1' } as GenerationSessionState,
       {
         syncServerProviders,
         getCurrentModelConfig: () => ({

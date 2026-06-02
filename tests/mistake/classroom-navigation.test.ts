@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { getClassroomNavigationTarget } from '@/lib/mistake/ui/classroom-navigation';
 
 describe('getClassroomNavigationTarget', () => {
-  it('uses hard navigation for generation preview handoff', () => {
+  it('uses soft navigation for generation preview handoff to avoid page flash', () => {
     expect(
       getClassroomNavigationTarget({
         classroomId: 'classroom-1',
@@ -11,7 +11,7 @@ describe('getClassroomNavigationTarget', () => {
       }),
     ).toEqual({
       href: '/classroom/classroom-1',
-      mode: 'hard',
+      mode: 'soft',
     });
   });
 

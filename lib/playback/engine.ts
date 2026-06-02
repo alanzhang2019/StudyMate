@@ -123,7 +123,6 @@ export class PlaybackEngine {
 
   /** idle → playing (from beginning) */
   start(): void {
-    console.log('[DEBUG PlaybackEngine] start() called. current mode:', this.mode);
     if (this.mode !== 'idle') {
       log.warn('Cannot start: not idle, current mode:', this.mode);
       return;

@@ -7,6 +7,7 @@ export function shouldShowCanvasPlayHint(input: {
   isLiveSession: boolean;
   isPendingScene: boolean;
   hasVisibleLectureContent: boolean;
+  isAutoStarting: boolean;
 }) {
   return (
     input.showControls &&
@@ -14,6 +15,7 @@ export function shouldShowCanvasPlayHint(input: {
     input.sceneType === 'slide' &&
     !input.isLiveSession &&
     !input.isPendingScene &&
-    !input.hasVisibleLectureContent
+    !input.hasVisibleLectureContent &&
+    !input.isAutoStarting
   );
 }
