@@ -39,6 +39,7 @@ import {
 import { AlertTriangle } from 'lucide-react';
 import { VisuallyHidden } from 'radix-ui';
 import { sendDebugEvent } from '@/lib/utils/debug-event';
+import { InteractiveIframeHost } from '@/components/scene-renderers/InteractiveIframeHost';
 
 /**
  * Stage Component
@@ -1129,13 +1130,14 @@ export function Stage({
   })();
 
   return (
-    <div
-      ref={stageRef}
-      className={cn(
-        'flex-1 flex overflow-hidden bg-gray-50 dark:bg-gray-900',
-        isPresenting && !controlsVisible && 'cursor-none',
-      )}
-    >
+    <>
+      <div
+        ref={stageRef}
+        className={cn(
+          'flex-1 flex overflow-hidden bg-gray-50 dark:bg-gray-900',
+          isPresenting && !controlsVisible && 'cursor-none',
+        )}
+      >
       {/* Scene Sidebar */}
       <SceneSidebar
         collapsed={sidebarCollapsed}
@@ -1146,7 +1148,10 @@ export function Stage({
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0 relative">
+      <div className={cn(
+        'flex-1 flex flex-col overflow-hidden min-w-0 relative',
+        currentScene?.type === 'interactive' && 'h-auto',
+      )}>
         {/* Header */}
         {!isPresenting && (
           <Header
@@ -1159,10 +1164,13 @@ export function Stage({
 
         {/* Canvas Area */}
         <div
-          className="overflow-hidden relative flex-1 min-h-0 isolate"
-          style={{
-            height: sceneViewerHeight,
-          }}
+          className={cn(
+            'overflow-hidden relative isolate',
+            currentScene?.type === 'interactive' ? 'h-auto' : 'flex-1 min-h-0',
+          )}
+          style={
+            currentScene?.type === 'interactive' ? undefined : { height: sceneViewerHeight }
+          }
           suppressHydrationWarning
         >
           <CanvasArea
@@ -1450,5 +1458,7 @@ export function Stage({
         </AlertDialogContent>
       </AlertDialog>
     </div>
+      <InteractiveIframeHost />
+    </>
   );
 }

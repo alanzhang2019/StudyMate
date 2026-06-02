@@ -622,6 +622,33 @@ function fixElementDefaults(
   });
 }
 
+function normalizeRawLatexText(content: string): string {
+  let normalized = content;
+  const replaceFraction = /\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g;
+
+  while (replaceFraction.test(normalized)) {
+    normalized = normalized.replace(replaceFraction, '$1/$2');
+  }
+
+  return normalized
+    .replace(/\\times\b/g, '×')
+    .replace(/\\div\b/g, '÷');
+}
+
+export function sanitizeRawLatexInTextElements(
+  elements: GeneratedSlideData['elements'],
+): GeneratedSlideData['elements'] {
+  return elements.map((el) => {
+    if (el.type !== 'text') return el;
+    if (typeof el.content !== 'string' || !el.content.includes('\\')) return el;
+
+    return {
+      ...el,
+      content: normalizeRawLatexText(el.content),
+    };
+  });
+}
+
 /**
  * Process LaTeX elements: render latex string to HTML using KaTeX.
  * Fills in html and fixedRatio fields.
@@ -802,8 +829,11 @@ async function generateSlideContent(
   const fixedElements = fixElementDefaults(generatedData.elements, assignedImages);
   log.debug(`After element fixing: ${fixedElements.length} elements`);
 
+  const sanitizedTextElements = sanitizeRawLatexInTextElements(fixedElements);
+  log.debug(`After raw text LaTeX sanitization: ${sanitizedTextElements.length} elements`);
+
   // Process LaTeX elements: render latex string → HTML via KaTeX
-  const latexProcessedElements = processLatexElements(fixedElements);
+  const latexProcessedElements = processLatexElements(sanitizedTextElements);
   log.debug(`After LaTeX processing: ${latexProcessedElements.length} elements`);
 
   // Resolve image_id references to actual URLs

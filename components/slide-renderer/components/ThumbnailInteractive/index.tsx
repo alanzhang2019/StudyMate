@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, useEffect } from 'react';
 import type { InteractiveContent } from '@/lib/types/stage';
-import { patchHtmlForIframe } from '@/lib/utils/iframe';
+import { resolveInteractiveIframeSource } from '@/lib/utils/iframe';
 
 interface ThumbnailInteractiveProps {
   /** Interactive content to render */
@@ -47,10 +47,9 @@ export function ThumbnailInteractive({
   const scale = useMemo(() => size / viewportSize, [size, viewportSize]);
 
   // Patch HTML for iframe rendering (only when visible to save memory)
-  const patchedHtml = useMemo(
-    () => (isVisible && content.html ? patchHtmlForIframe(content.html) : undefined),
-    [isVisible, content.html],
-  );
+  const iframeSource = isVisible
+    ? resolveInteractiveIframeSource(content)
+    : { srcDoc: undefined, src: undefined };
 
   // Calculate thumbnail height (16:9 aspect ratio)
   const height = size * 0.5625;
@@ -80,8 +79,8 @@ export function ThumbnailInteractive({
           }}
         >
           <iframe
-            srcDoc={patchedHtml}
-            src={patchedHtml ? undefined : content.url}
+            srcDoc={iframeSource.srcDoc}
+            src={iframeSource.src}
             className="w-full h-full border-0"
             title="Interactive Preview"
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups"

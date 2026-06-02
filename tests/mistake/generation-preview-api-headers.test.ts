@@ -4,11 +4,8 @@ import { buildGenerationApiHeaders } from '@/app/generation-preview/api-headers'
 import type { GenerationSessionState } from '@/app/generation-preview/types';
 
 describe('buildGenerationApiHeaders', () => {
-  it('syncs server providers before reading the model for mistake sessions', async () => {
-    let currentModel = 'kimi:moonshotai/kimi-k2.6';
-    const syncServerProviders = vi.fn(async () => {
-      currentModel = 'kimi:gemini-2.5-flash';
-    });
+  it('keeps mistake sessions on the current selected model instead of overriding to a server-only mistake model', async () => {
+    const syncServerProviders = vi.fn(async () => undefined);
 
     const headers = await buildGenerationApiHeaders(
       { sourceMode: 'mistake' } as GenerationSessionState,
@@ -16,8 +13,8 @@ describe('buildGenerationApiHeaders', () => {
         syncServerProviders,
         getCurrentModelConfig: () => ({
           providerId: 'kimi',
-          modelId: currentModel.split(':')[1] || '',
-          modelString: currentModel,
+          modelId: 'moonshotai/kimi-k2.6',
+          modelString: 'kimi:moonshotai/kimi-k2.6',
           apiKey: '',
           baseUrl: '',
           providerType: 'openai',
@@ -38,8 +35,8 @@ describe('buildGenerationApiHeaders', () => {
       },
     );
 
-    expect(syncServerProviders).toHaveBeenCalledTimes(1);
-    expect(headers['x-model']).toBe('kimi:gemini-2.5-flash');
+    expect(syncServerProviders).not.toHaveBeenCalled();
+    expect(headers['x-model']).toBe('kimi:moonshotai/kimi-k2.6');
   });
 
   it('does not sync server providers for non-mistake sessions', async () => {

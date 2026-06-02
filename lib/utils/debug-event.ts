@@ -16,11 +16,14 @@ export function sendDebugEvent(payload: {
     return;
   }
 
+  // Silently skip if debug endpoint is not available to avoid console noise
   fetch('http://127.0.0.1:7777/event', {
     method: 'POST',
     body: JSON.stringify({
       ...payload,
       ts: payload.ts ?? Date.now(),
     }),
+    // Abort after 500ms to avoid hanging requests
+    signal: AbortSignal.timeout?.(500),
   }).catch(() => {});
 }

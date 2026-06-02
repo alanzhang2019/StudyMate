@@ -32,5 +32,9 @@ export function SceneRenderer({ scene, mode }: SceneRendererProps) {
     }
   }, [scene, mode]);
 
-  return <div className="w-full h-full">{renderer}</div>;
+  return (
+    <div className="w-full h-full">
+      {renderer}
+    </div>
+  );
 }

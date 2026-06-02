@@ -129,23 +129,26 @@ export function CanvasArea({
   );
 
   return (
-    <div className="w-full h-full flex flex-col bg-gray-50 dark:bg-gray-900 group/canvas">
+    <div className={cn(
+      'w-full flex flex-col bg-gray-50 dark:bg-gray-900 group/canvas',
+      'h-full',
+    )}>
       {/* Slide area — takes remaining space */}
       <div
         className={cn(
-          'flex-1 min-h-0 relative overflow-hidden flex items-center justify-center p-2 transition-colors duration-500',
+          'relative overflow-hidden flex p-2 transition-colors duration-500',
           currentScene?.type === 'interactive'
-            ? 'bg-blue-100/50 dark:bg-blue-950/20'
-            : 'bg-slate-200/95 dark:bg-slate-950/70',
+            ? 'flex-1 min-h-0 bg-blue-100/50 dark:bg-blue-950/20 items-center justify-center'
+            : 'flex-1 min-h-0 bg-slate-200/95 dark:bg-slate-950/70 items-center justify-center',
         )}
       >
         <div
           className={cn(
-            'aspect-[16/9] h-full max-h-full max-w-full bg-white dark:bg-gray-800 shadow-2xl rounded-lg overflow-hidden relative transition-all duration-700 border-2 border-slate-400 dark:border-slate-600',
-            showControls && !isLiveSession && currentScene?.type === 'slide' && 'cursor-pointer',
+            'max-w-full bg-white dark:bg-gray-800 shadow-2xl rounded-lg relative transition-all duration-700 border-2 border-slate-400 dark:border-slate-600',
             currentScene?.type === 'interactive'
-              ? 'shadow-blue-200/60 dark:shadow-blue-900/50 ring-2 ring-blue-300/40 dark:ring-blue-500/20'
-              : 'shadow-slate-400/60 dark:shadow-slate-950/70 ring-2 ring-white/80 dark:ring-slate-800/90',
+              ? 'aspect-[16/9] h-full max-h-full w-full overflow-hidden shadow-blue-200/60 dark:shadow-blue-900/50 ring-2 ring-blue-300/40 dark:ring-blue-500/20'
+              : 'aspect-[16/9] h-full max-h-full overflow-hidden shadow-slate-400/60 dark:shadow-slate-950/70 ring-2 ring-white/80 dark:ring-slate-800/90',
+            showControls && !isLiveSession && currentScene?.type === 'slide' && 'cursor-pointer',
           )}
           onClick={handleSlideClick}
         >
@@ -158,7 +161,10 @@ export function CanvasArea({
 
           {/* Scene Content */}
           {currentScene && !whiteboardOpen && (
-            <div className="absolute inset-0">
+            <div className={cn(
+              'w-full h-full',
+              'absolute inset-0 overflow-hidden'
+            )}>
               <SceneProvider>
                 <SceneRenderer scene={currentScene} mode={mode} />
               </SceneProvider>

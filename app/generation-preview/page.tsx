@@ -52,11 +52,47 @@ import { GenerationCountdown } from './components/generation-countdown';
 const log = createLogger('GenerationPreview');
 const OUTLINE_REVIEW_AUTO_CONTINUE_MS = 1000;
 const FIRST_SCENE_TTS_WARMUP_BUDGET_MS = 8000;
+const RAW_LATEX_PATTERN = /\\(?:frac|sqrt|sum|int|lim|alpha|beta|theta|times|div)\b|[_^]\{?/;
+
+function analyzeGeneratedMathContent(content: unknown) {
+  if (!content || typeof content !== 'object' || !('elements' in content)) {
+    return null;
+  }
+
+  const elements = (content as { elements?: Array<Record<string, unknown>> }).elements;
+  if (!Array.isArray(elements)) {
+    return null;
+  }
+
+  const textElements = elements.filter((el) => el?.type === 'text');
+  const latexElements = elements.filter((el) => el?.type === 'latex');
+  const rawLatexTextElements = textElements
+    .map((el) => {
+      const contentValue = typeof el.content === 'string' ? el.content : '';
+      return {
+        id: typeof el.id === 'string' ? el.id : null,
+        content: contentValue,
+      };
+    })
+    .filter((el) => RAW_LATEX_PATTERN.test(el.content));
+
+  return {
+    totalElements: elements.length,
+    textElementCount: textElements.length,
+    latexElementCount: latexElements.length,
+    rawLatexTextElementCount: rawLatexTextElements.length,
+    rawLatexSamples: rawLatexTextElements.slice(0, 3).map((el) => ({
+      id: el.id,
+      content: el.content.replace(/\s+/g, ' ').trim().slice(0, 160),
+    })),
+  };
+}
 
 function GenerationPreviewContent() {
   const router = useRouter();
   const { t } = useI18n();
   const hasStartedRef = useRef(false);
+  const isGeneratingRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const outlineReviewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const outlineReviewResolveRef = useRef<((outlines: SceneOutline[]) => void) | null>(null);
@@ -70,7 +106,7 @@ function GenerationPreviewContent() {
   const [sessionLoaded, setSessionLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [isComplete] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [streamingOutlines, setStreamingOutlines] = useState<SceneOutline[] | null>(null);
   const [isOutlineStreaming, setIsOutlineStreaming] = useState(false);
@@ -81,6 +117,7 @@ function GenerationPreviewContent() {
   const [showAgentReveal, setShowAgentReveal] = useState(false);
   const [isConfirmingOutlines, setIsConfirmingOutlines] = useState(false);
   const [isFirstPageReady, setIsFirstPageReady] = useState(false);
+  const [generationStartTime, setGenerationStartTime] = useState<number>(0);
   const [generatedAgents, setGeneratedAgents] = useState<
     Array<{
       id: string;
@@ -155,7 +192,7 @@ function GenerationPreviewContent() {
           parsed.previewPhase = parsed.sceneOutlines?.length ? 'outline-ready' : 'preparing';
         }
         // Restore review intent: a saved 'review' phase without outlines means the user
-        // had opened the editor mid-stream before the refresh 鈥?preserve that intent so
+        // had opened the editor mid-stream before the refresh — preserve that intent so
         // the post-stream auto-continue timer doesn't fire after SSE restart.
         if (parsed.previewPhase === 'review' && !parsed.sceneOutlines?.length) {
           outlineReviewIntentRef.current = true;
@@ -164,9 +201,13 @@ function GenerationPreviewContent() {
       } catch (e) {
         log.error('Failed to parse generation session:', e);
       }
-    }
-    setSessionLoaded(true);
-  }, []);
+    } else {
+      log.warn('[GenerationPreview] No session found, will prompt user to return');
+        // Clear generating ref in case of unexpected unmount previously
+        isGeneratingRef.current = false;
+      }
+      setSessionLoaded(true);
+    }, []);
 
   // Abort all in-flight requests on unmount
   useEffect(() => {
@@ -202,8 +243,18 @@ function GenerationPreviewContent() {
 
   // Main generation flow
   const startGeneration = async (sessionOverride?: GenerationSessionState) => {
+    // Prevent concurrent generation runs
+    if (isGeneratingRef.current) {
+      log.warn('[GenerationPreview] Generation already in progress, skipping duplicate start');
+      return;
+    }
+    isGeneratingRef.current = true;
+
     const generationSession = sessionOverride ?? session;
-    if (!generationSession) return;
+    if (!generationSession) {
+      isGeneratingRef.current = false;
+      return;
+    }
     const timing = createGenerationTiming('generation_preview');
 
     // Create AbortController for this generation run
@@ -218,6 +269,8 @@ function GenerationPreviewContent() {
     setError(null);
     setCurrentStepIndex(0);
     setIsFirstPageReady(false);
+    setIsComplete(false);
+    setGenerationStartTime(Date.now());
 
     try {
       // Compute active steps for this session (recomputed after session mutations)
@@ -513,7 +566,12 @@ function GenerationPreviewContent() {
                         } else if (evt.type === 'retry') {
                           collected.length = 0;
                           setStreamingOutlines([]);
-                          setStatusMessage(t('generation.outlineRetrying'));
+                          setStatusMessage(
+                            t('generation.outlineRetrying') +
+                              ` (${evt.attempt}/${evt.maxAttempts})`,
+                          );
+                          // Reset countdown timer for the retry attempt
+                          setGenerationStartTime(Date.now());
                         } else if (evt.type === 'done') {
                           directive = evt.languageDirective || directive;
                           resolve({
@@ -555,11 +613,25 @@ function GenerationPreviewContent() {
         outlines = outlineResult.outlines;
         languageDirective = outlineResult.languageDirective;
         setIsOutlineStreaming(false);
+        // #region debug-point B:outline-stream-duration
+        sendDebugEvent({
+          sessionId: 'generation-latex-slow',
+          runId: 'pre-fix',
+          hypothesisId: 'B',
+          location: 'app/generation-preview/page.tsx:outline_stream',
+          msg: '[DEBUG] outline stream completed',
+          data: {
+            outlineCount: outlines.length,
+            durationMs: timing.records().find((record) => record.name === 'outline_stream')?.durationMs ?? null,
+          },
+        });
+        // #endregion
 
         // For mistake mode: ensure first outline shows the problem text directly
         if (currentSession.sourceMode === 'mistake' && outlines.length > 0) {
           const requirement = currentSession.requirements.requirement;
-          const problemMatch = requirement.match(/题干：(.+)/);
+          // Use multiline match to capture the full problem text (may span multiple lines)
+          const problemMatch = requirement.match(/题干：([\s\S]+?)(?=\n【|$)/);
           const problemText = problemMatch ? problemMatch[1].trim() : '';
           if (problemText) {
             outlines[0] = {
@@ -637,6 +709,7 @@ function GenerationPreviewContent() {
         if (agentStepIdx >= 0) setCurrentStepIndex(agentStepIdx);
 
         try {
+          const agentGenerationStartedAt = performance.now();
           const allAvatars = [
             {
               path: '/avatars/teacher.png',
@@ -725,6 +798,19 @@ function GenerationPreviewContent() {
           if (!agentResp.ok) throw new Error('Agent generation failed');
           const agentData = await agentResp.json();
           if (!agentData.success) throw new Error(agentData.error || 'Agent generation failed');
+          // #region debug-point C:agent-generation-duration
+          sendDebugEvent({
+            sessionId: 'generation-latex-slow',
+            runId: 'pre-fix',
+            hypothesisId: 'C',
+            location: 'app/generation-preview/page.tsx:agent_generation',
+            msg: '[DEBUG] agent generation completed',
+            data: {
+              durationMs: Math.round(performance.now() - agentGenerationStartedAt),
+              agentCount: Array.isArray(agentData.agents) ? agentData.agents.length : null,
+            },
+          });
+          // #endregion
 
           // Save to IndexedDB and registry
           const { saveGeneratedAgents } = await import('@/lib/orchestration/registry/store');
@@ -851,6 +937,21 @@ function GenerationPreviewContent() {
         throw new Error(contentData.error || t('generation.sceneGenerateFailed'));
       }
 
+      // #region debug-point A:first-scene-content-shape
+      sendDebugEvent({
+        sessionId: 'generation-latex-slow',
+        runId: 'pre-fix',
+        hypothesisId: 'A',
+        location: 'app/generation-preview/page.tsx:first_scene_content',
+        msg: '[DEBUG] first scene content generated',
+        data: {
+          sceneType: contentData.effectiveOutline?.type ?? firstOutline.type,
+          outlineTitle: contentData.effectiveOutline?.title ?? firstOutline.title,
+          mathAnalysis: analyzeGeneratedMathContent(contentData.content),
+        },
+      });
+      // #endregion
+
       // Generate actions (activate actions step indicator)
       const actionsStepIdx = activeSteps.findIndex((s) => s.id === 'actions');
       setCurrentStepIndex(actionsStepIdx >= 0 ? actionsStepIdx : currentStepIndex + 1);
@@ -885,10 +986,23 @@ function GenerationPreviewContent() {
       if (!data.success || !data.scene) {
         throw new Error(data.error || t('generation.sceneGenerateFailed'));
       }
+      // #region debug-point D:first-scene-actions-duration
+      sendDebugEvent({
+        sessionId: 'generation-latex-slow',
+        runId: 'pre-fix',
+        hypothesisId: 'D',
+        location: 'app/generation-preview/page.tsx:first_scene_actions',
+        msg: '[DEBUG] first scene actions completed',
+        data: {
+          durationMs:
+            timing.records().find((record) => record.name === 'first_scene_actions')?.durationMs ?? null,
+          actionCount: Array.isArray(data.scene?.actions) ? data.scene.actions.length : null,
+        },
+      });
+      // #endregion
 
       // Warm first-scene TTS, but don't let the preview page hold navigation hostage.
-      // Skip TTS warmup for mistake mode to speed up navigation to classroom.
-      if (settings.ttsEnabled && settings.ttsProviderId !== 'browser-native-tts' && currentSession.sourceMode !== 'mistake') {
+      if (settings.ttsEnabled && settings.ttsProviderId !== 'browser-native-tts') {
         const ttsProviderConfig = settings.ttsProvidersConfig?.[settings.ttsProviderId];
         const requestConfig = buildClientTTSRequestConfig(settings.ttsProviderId, ttsProviderConfig);
         const providerOptions =
@@ -961,10 +1075,27 @@ function GenerationPreviewContent() {
             totalSpeechActions: ttsWarmup.totalSpeechActions,
           });
         }
+        // #region debug-point E:first-scene-tts-duration
+        sendDebugEvent({
+          sessionId: 'generation-latex-slow',
+          runId: 'pre-fix',
+          hypothesisId: 'E',
+          location: 'app/generation-preview/page.tsx:first_scene_tts_warmup',
+          msg: '[DEBUG] first scene tts warmup completed',
+          data: {
+            durationMs:
+              timing.records().find((record) => record.name === 'first_scene_tts_warmup')?.durationMs ?? null,
+            timedOut: ttsWarmup.timedOut,
+            totalSpeechActions: ttsWarmup.totalSpeechActions,
+            failedCount: ttsWarmup.failedCount,
+          },
+        });
+        // #endregion
       }
 
       // Mark first page as ready and add scene to store
       setIsFirstPageReady(true);
+      setIsComplete(true);
       store.addScene(data.scene);
       store.setCurrentSceneId(data.scene.id);
 
@@ -1025,6 +1156,23 @@ function GenerationPreviewContent() {
       if (shouldClearGenerationPreviewSession({ outcome: 'success' })) {
         clearGenerationPreviewSession();
       }
+      // #region debug-point B:generation-preview-summary
+      const timingSummary = timing.summary();
+      sendDebugEvent({
+        sessionId: 'generation-latex-slow',
+        runId: 'pre-fix',
+        hypothesisId: 'B',
+        location: 'app/generation-preview/page.tsx:success-summary',
+        msg: '[DEBUG] generation preview timing summary',
+        data: {
+          totalDurationMs: timingSummary.totalDurationMs,
+          measuredDurationMs: timingSummary.measuredDurationMs,
+          slowestStage: timingSummary.slowestStage?.name ?? null,
+          slowestDurationMs: timingSummary.slowestStage?.durationMs ?? null,
+          stages: timingSummary.stages,
+        },
+      });
+      // #endregion
       store.saveToStorage().catch((err) => log.warn('[GenerationPreview] saveToStorage failed:', err));
       const navigationTarget = getClassroomNavigationTarget({
         classroomId: stage.id,
@@ -1037,7 +1185,7 @@ function GenerationPreviewContent() {
       router.push(navigationTarget.href);
     } catch (err) {
       setIsOutlineStreaming(false);
-      // AbortError is expected when navigating away 鈥?don't show as error
+      // AbortError is expected when navigating away — don't show as error
       if (err instanceof DOMException && err.name === 'AbortError') {
         log.info('[GenerationPreview] Generation aborted');
         return;
@@ -1056,6 +1204,26 @@ function GenerationPreviewContent() {
       } else {
         setError(errMessage);
       }
+      // #region debug-point C:generation-preview-error
+      const timingSummary = timing.summary();
+      sendDebugEvent({
+        sessionId: 'generation-latex-slow',
+        runId: 'pre-fix',
+        hypothesisId: 'C',
+        location: 'app/generation-preview/page.tsx:error-summary',
+        msg: '[DEBUG] generation preview failed',
+        data: {
+          error: errMessage,
+          totalDurationMs: timingSummary.totalDurationMs,
+          measuredDurationMs: timingSummary.measuredDurationMs,
+          slowestStage: timingSummary.slowestStage?.name ?? null,
+          slowestDurationMs: timingSummary.slowestStage?.durationMs ?? null,
+          stages: timingSummary.stages,
+        },
+      });
+      // #endregion
+    } finally {
+      isGeneratingRef.current = false;
     }
   };
 
@@ -1424,6 +1592,7 @@ function GenerationPreviewContent() {
                   isActive={!error && !isComplete && !isOutlineReady}
                   isReviewing={isReviewingOutlines}
                   isFirstPageReady={isFirstPageReady}
+                  startTime={generationStartTime}
                 />
 
                 {/* Truncation warning indicator */}

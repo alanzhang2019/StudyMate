@@ -14,15 +14,67 @@
  * Converts LaTeX delimiters and injects KaTeX rendering resources.
  */
 export function postProcessInteractiveHtml(html: string): string {
-  // Convert LaTeX delimiters while protecting script tags
-  let processed = convertLatexDelimiters(html);
+  // Only process if HTML contains LaTeX delimiters
+  const hasLatex = /\$\$[^$]+\$\$|\$[^$\n]+?\$/.test(html);
 
-  // Inject KaTeX resources if not already present
-  if (!processed.toLowerCase().includes('katex')) {
-    processed = injectKatex(processed);
+  if (hasLatex) {
+    // Convert LaTeX delimiters while protecting script tags
+    html = convertLatexDelimiters(html);
   }
 
-  return processed;
+  // Ensure executable scripts run after interactive controls exist in the DOM.
+  // Many generated widgets bind events immediately, so leaving scripts in <head>
+  // causes dead buttons/sliders when those queries run before <body> is parsed.
+  html = normalizeInteractiveScriptExecutionOrder(html);
+
+  // Inject KaTeX resources only if HTML contains LaTeX and KaTeX is not already present
+  if (hasLatex && !html.toLowerCase().includes('katex')) {
+    html = injectKatex(html);
+  }
+
+  return html;
+}
+
+export function normalizeInteractiveScriptExecutionOrder(html: string): string {
+  const executableScripts: string[] = [];
+
+  const withoutExecutableScripts = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, (match) => {
+    const isJsonConfig =
+      /type\s*=\s*["']application\/json["']/i.test(match) ||
+      /id\s*=\s*["']widget-config["']/i.test(match);
+
+    if (isJsonConfig) {
+      return match;
+    }
+
+    executableScripts.push(match);
+    return '';
+  });
+
+  if (executableScripts.length === 0) {
+    return html;
+  }
+
+  const payload = '\n' + executableScripts.join('\n') + '\n';
+  const bodyCloseIdx = withoutExecutableScripts.lastIndexOf('</body>');
+  if (bodyCloseIdx !== -1) {
+    return (
+      withoutExecutableScripts.substring(0, bodyCloseIdx) +
+      payload +
+      withoutExecutableScripts.substring(bodyCloseIdx)
+    );
+  }
+
+  const htmlCloseIdx = withoutExecutableScripts.lastIndexOf('</html>');
+  if (htmlCloseIdx !== -1) {
+    return (
+      withoutExecutableScripts.substring(0, htmlCloseIdx) +
+      payload +
+      withoutExecutableScripts.substring(htmlCloseIdx)
+    );
+  }
+
+  return withoutExecutableScripts + payload;
 }
 
 /**
@@ -72,9 +124,9 @@ function convertLatexDelimiters(html: string): string {
  */
 function injectKatex(html: string): string {
   const katexInjection = `
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="/katex/katex.min.css">
+<script src="/katex/katex.min.js"></script>
+<script src="/katex/contrib/auto-render.min.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const katexOptions = {

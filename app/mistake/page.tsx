@@ -221,13 +221,18 @@ export default function HomeworkPage() {
       const imageStorageKey = await buildPendingRecognizeImageUrl(primaryImage);
 
       // Save extraction result to pending session for recognize page
-      writePendingRecognizeSession({
-        ...extraction,
-        imageUrl: imageStorageKey,
-      });
+      try {
+        writePendingRecognizeSession({
+          ...extraction,
+          imageUrl: imageStorageKey,
+        });
 
-      // Navigate to recognize page to show extraction result
-      router.push('/mistake/recognize');
+        // Navigate to recognize page to show extraction result
+        router.push('/mistake/recognize');
+      } catch (flowError) {
+        setStatus('error');
+        setError(flowError instanceof Error ? flowError.message : '进入讲解失败');
+      }
     } catch (err) {
       console.error('[Mistake] Extract failed:', err);
       setStatus('error');
@@ -269,15 +274,12 @@ export default function HomeworkPage() {
         return;
       }
 
-      // Save generation session and navigate to preview
+      // Navigate to preview
       setStatus('starting_preview');
       saveGenerationPreviewSession({
         sessionId: nanoid(),
         requirements: {
-          requirement: `【核心诉求】\n请为一名小学${activeProfile?.grade || 4}年级学生讲解这道作业题。\n\n【作业题信息】\n题干：${textInput.trim()}\n学生答案：未提供`,
-          grade: activeProfile?.grade || 4,
-          subject: 'math',
-          source: 'manual',
+          requirement: `【核心诉求】\n请为一名小学${activeProfile?.grade || 4}年级学生讲解这道作业题。\n\n【作业题信息】\n题干：${textInput.trim()}\n学生答案：未提供\n正确答案：未提供`,
         },
         pdfText: '',
         currentStep: 'generating',

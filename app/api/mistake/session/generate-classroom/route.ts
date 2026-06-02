@@ -63,6 +63,7 @@ export async function POST(req: NextRequest) {
         '请仔细查看上传的题目图片，识别题目内容并进行讲解。',
         input.problemText ? `补充信息：${input.problemText}` : '',
         `学生答案：${input.studentAnswer ?? '未提供'}`,
+        `正确答案：${input.correctAnswer ?? '未提供'}`
       ].join('\n');
     } else {
       // Text-based generation
@@ -85,7 +86,7 @@ export async function POST(req: NextRequest) {
       ...(resolveMistakeClassroomModelString()
         ? { modelString: resolveMistakeClassroomModelString() }
         : {}),
-      maxScenes: 1, // Only generate 1 scene since it's single-problem focused
+      maxScenes: 5, // Increased to 5 to allow enough space for multi-step math problems
       enableImageGeneration: false,
       enableVideoGeneration: true,
       enableTTS: true,

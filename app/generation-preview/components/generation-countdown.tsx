@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Clock, Zap } from 'lucide-react';
+import { Clock, Zap, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface GenerationCountdownProps {
@@ -16,6 +16,8 @@ interface GenerationCountdownProps {
   isReviewing?: boolean;
   /** Whether the first page has been generated */
   isFirstPageReady?: boolean;
+  /** External start timestamp (ms). When provided, elapsed time is computed from this value instead of internal start */
+  startTime?: number;
   /** Custom className */
   className?: string;
 }
@@ -25,11 +27,14 @@ interface GenerationCountdownProps {
 const STEP_TIME_ESTIMATES: Record<string, number> = {
   'pdf-analysis': 15,
   'web-search': 20,
-  'outline': 45,
+  'outline': 60,
   'agent-generation': 25,
   'slide-content': 35,
   'actions': 25,
 };
+
+// Grace period after estimate expires before showing "still working"
+const GRACE_PERIOD_SECONDS = 30;
 
 function formatTime(seconds: number): string {
   if (seconds <= 0) return '即将完成';
@@ -40,20 +45,35 @@ function formatTime(seconds: number): string {
   return `${minutes}分${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}秒`;
 }
 
+function computeTotalEstimate(totalSteps: number): number {
+  const stepIds = Object.keys(STEP_TIME_ESTIMATES);
+  let total = 0;
+  for (let i = 0; i < totalSteps; i++) {
+    const stepId = stepIds[i] || 'slide-content';
+    total += STEP_TIME_ESTIMATES[stepId] || 30;
+  }
+  return total;
+}
+
 export function GenerationCountdown({
   currentStepIndex,
   totalSteps,
   isActive,
   isReviewing = false,
   isFirstPageReady = false,
+  startTime,
   className,
 }: GenerationCountdownProps) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [totalEstimatedSeconds, setTotalEstimatedSeconds] = useState(0);
-  const startTimeRef = useRef<number>(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const hasStartedRef = useRef(false);
   const isMountedRef = useRef(false);
+
+  const totalEstimatedSeconds = useMemo(() => computeTotalEstimate(totalSteps), [totalSteps]);
+
+  const updateElapsed = useCallback((effectiveStart: number) => {
+    const elapsed = Math.floor((Date.now() - effectiveStart) / 1000);
+    setElapsedSeconds(elapsed);
+  }, []);
 
   // Track mount state
   useEffect(() => {
@@ -63,38 +83,24 @@ export function GenerationCountdown({
     };
   }, []);
 
-  // Calculate total estimated time based on current configuration
-  // Only count steps up to first page generation (slide-content + actions)
+  // Start / stop timer based on isActive and startTime
   useEffect(() => {
-    const stepIds = Object.keys(STEP_TIME_ESTIMATES);
-    let total = 0;
+    if (isActive && !isReviewing) {
+      const effectiveStart = startTime && startTime > 0 ? startTime : Date.now();
 
-    // Add time for each active step until first page is ready
-    for (let i = 0; i < totalSteps; i++) {
-      const stepId = stepIds[i] || 'slide-content';
-      total += STEP_TIME_ESTIMATES[stepId] || 30;
-    }
-
-    setTotalEstimatedSeconds(total);
-  }, [totalSteps]);
-
-  // Start timer only once when generation becomes active
-  useEffect(() => {
-    if (isActive && !isReviewing && !hasStartedRef.current) {
-      hasStartedRef.current = true;
-      startTimeRef.current = Date.now();
+      // Immediate update to reflect elapsed time since generation start
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Timer initialization requires immediate state sync
+      updateElapsed(effectiveStart);
 
       timerRef.current = setInterval(() => {
         if (!isMountedRef.current) {
-          // Clear interval if component is unmounted
           if (timerRef.current) {
             clearInterval(timerRef.current);
             timerRef.current = null;
           }
           return;
         }
-        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-        setElapsedSeconds(elapsed);
+        updateElapsed(effectiveStart);
       }, 1000);
     }
 
@@ -109,21 +115,38 @@ export function GenerationCountdown({
         clearInterval(timerRef.current);
       }
     };
-  }, [isActive, isReviewing, isFirstPageReady]);
+  }, [isActive, isReviewing, isFirstPageReady, startTime, updateElapsed]);
 
-  // Reset when generation starts completely fresh (page reload or new generation)
+  // Reset when generation becomes inactive
   useEffect(() => {
     if (!isActive) {
-      hasStartedRef.current = false;
-      startTimeRef.current = 0;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Reset timer state when generation ends
       setElapsedSeconds(0);
     }
   }, [isActive]);
 
   const remainingSeconds = Math.max(0, totalEstimatedSeconds - elapsedSeconds);
+  const isOverdue = elapsedSeconds > totalEstimatedSeconds + GRACE_PERIOD_SECONDS;
+  
+  // Progress percent: cap at 95% until actually complete to avoid "stuck at 100%" feeling
   const progressPercent = totalEstimatedSeconds > 0
-    ? Math.min(100, (elapsedSeconds / totalEstimatedSeconds) * 100)
+    ? Math.min(95, (elapsedSeconds / totalEstimatedSeconds) * 100)
     : 0;
+
+  // Determine display text
+  const getDisplayText = () => {
+    if (isFirstPageReady) return '课件准备就绪';
+    if (isOverdue) return '仍在努力生成中...';
+    if (remainingSeconds <= 0) return '即将完成';
+    return formatTime(remainingSeconds);
+  };
+
+  // Determine subtext
+  const getSubText = () => {
+    if (isFirstPageReady) return '首页已生成';
+    if (isOverdue) return '请耐心等待，正在处理中';
+    return '预计剩余时间';
+  };
 
   // Don't show if not active or in review
   if (!isActive || isReviewing) return null;
@@ -140,7 +163,10 @@ export function GenerationCountdown({
       )}
     >
       {/* Main countdown display */}
-      <div className="relative flex items-center gap-3 px-5 py-3 rounded-2xl bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-blue-500/10 dark:from-blue-500/20 dark:via-purple-500/20 dark:to-blue-500/20 border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm">
+      <div className={cn(
+        "relative flex items-center gap-3 px-5 py-3 rounded-2xl bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-blue-500/10 dark:from-blue-500/20 dark:via-purple-500/20 dark:to-blue-500/20 border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm",
+        isOverdue && "from-amber-500/10 via-orange-500/10 to-amber-500/10 dark:from-amber-500/20 dark:via-orange-500/20 dark:to-amber-500/20 border-amber-200/50 dark:border-amber-800/50"
+      )}>
         {/* Pulsing clock icon */}
         <motion.div
           animate={{ 
@@ -149,23 +175,35 @@ export function GenerationCountdown({
           }}
           transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
         >
-          <Clock className="size-5 text-blue-500 dark:text-blue-400" />
+          {isOverdue ? (
+            <Loader2 className="size-5 text-amber-500 dark:text-amber-400 animate-spin" />
+          ) : (
+            <Clock className={cn(
+              "size-5",
+              isOverdue ? "text-amber-500 dark:text-amber-400" : "text-blue-500 dark:text-blue-400"
+            )} />
+          )}
         </motion.div>
 
         {/* Time display */}
         <div className="flex flex-col items-start">
           <span className="text-xs text-muted-foreground font-medium">
-            {isFirstPageReady ? '首页已生成' : '预计剩余时间'}
+            {getSubText()}
           </span>
           <AnimatePresence mode="wait">
             <motion.span
-              key={remainingSeconds}
+              key={getDisplayText()}
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 5 }}
-              className="text-lg font-bold text-blue-600 dark:text-blue-400 tabular-nums"
+              className={cn(
+                "text-lg font-bold tabular-nums",
+                isOverdue 
+                  ? "text-amber-600 dark:text-amber-400" 
+                  : "text-blue-600 dark:text-blue-400"
+              )}
             >
-              {isFirstPageReady ? '课件准备就绪' : formatTime(remainingSeconds)}
+              {getDisplayText()}
             </motion.span>
           </AnimatePresence>
         </div>
@@ -187,7 +225,12 @@ export function GenerationCountdown({
       {/* Progress bar */}
       <div className="w-64 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
         <motion.div
-          className="h-full rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-blue-400"
+          className={cn(
+            "h-full rounded-full bg-gradient-to-r",
+            isOverdue 
+              ? "from-amber-500 via-orange-500 to-amber-400" 
+              : "from-blue-500 via-purple-500 to-blue-400"
+          )}
           initial={{ width: 0 }}
           animate={{ width: `${progressPercent}%` }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
@@ -197,24 +240,16 @@ export function GenerationCountdown({
       {/* Step indicator */}
       <div className="flex items-center gap-1.5">
         {Array.from({ length: totalSteps }).map((_, idx) => (
-          <motion.div
+          <div
             key={idx}
             className={cn(
-              'h-1.5 rounded-full transition-all duration-500',
+              'h-1.5 rounded-full transition-all duration-300',
               idx < currentStepIndex
-                ? 'w-1.5 bg-blue-500/40'
+                ? 'w-6 bg-blue-500'
                 : idx === currentStepIndex
-                  ? 'w-6 bg-blue-500'
+                  ? 'w-6 bg-blue-300 animate-pulse'
                   : 'w-1.5 bg-slate-200 dark:bg-slate-700',
             )}
-            animate={idx === currentStepIndex ? {
-              opacity: [1, 0.5, 1],
-            } : {}}
-            transition={idx === currentStepIndex ? {
-              duration: 1.5,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            } : {}}
           />
         ))}
       </div>

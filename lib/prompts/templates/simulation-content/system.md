@@ -109,7 +109,26 @@ To make highlight/annotation work, use consistent IDs for controls:
 
 ## CRITICAL Design Requirements
 
-### 1. Mobile Layout - NO OVERLAP
+### 1. CSS: Use Custom CSS, NOT Tailwind
+**Use custom CSS instead of Tailwind classes for simulation widgets.** Tailwind CDN may not be available in the iframe, causing elements to be unstyled or invisible.
+
+```html
+<!-- CORRECT: Custom CSS - reliable and predictable -->
+<style>
+  body { display: flex; flex-direction: column; min-height: 100vh; margin: 0; }
+  #controls { width: 100%; overflow: auto; max-height: 40vh; }
+  #canvas-area { flex: 1; min-height: 300px; position: relative; }
+  @media (min-width: 768px) {
+    body { flex-direction: row; }
+    #controls { width: 320px; max-height: 100vh; }
+  }
+</style>
+
+<!-- WRONG: Tailwind classes may not work -->
+<body class="flex flex-col min-h-screen md:flex-row">
+```
+
+### 2. Mobile Layout - NO OVERLAP
 - **Control panel MUST NOT overlap with canvas on mobile**
 - Use one of these mobile-safe layouts:
   - **Stacked layout**: Control panel on top, canvas below (with proper spacing)
@@ -121,14 +140,21 @@ To make highlight/annotation work, use consistent IDs for controls:
 
 Example mobile-safe layout:
 ```html
-<body class="flex flex-col min-h-screen md:flex-row">
-  <!-- Mobile: Full-width, collapsible control panel -->
-  <div id="controls" class="w-full md:w-80 shrink-0 overflow-auto max-h-[40vh] md:max-h-screen">
+<style>
+  body { display: flex; flex-direction: column; min-height: 100vh; margin: 0; font-family: system-ui, sans-serif; }
+  #controls { width: 100%; overflow: auto; max-height: 40vh; padding: 16px; box-sizing: border-box; background: #f8f9fa; }
+  #canvas-area { flex: 1; min-height: 300px; position: relative; }
+  @media (min-width: 768px) {
+    body { flex-direction: row; }
+    #controls { width: 320px; max-height: 100vh; }
+  }
+</style>
+<body>
+  <div id="controls">
     <!-- Controls here -->
-    <button onclick="toggleControls()" class="md:hidden">Hide Controls</button>
+    <button onclick="toggleControls()">Hide Controls</button>
   </div>
-  <!-- Canvas area gets remaining space -->
-  <div class="flex-1 min-h-[300px] relative">
+  <div id="canvas-area">
     <canvas id="canvas"></canvas>
   </div>
 </body>

@@ -25,6 +25,7 @@ export function buildMistakeClassroomRequirement(input: MistakeClassroomInput): 
     '',
     '【错题信息】',
     `题干：${problemText}`,
-    `学生答案：${studentAnswer ?? '未提供'}`
+    `学生答案：${studentAnswer ?? '未提供'}`,
+    `正确答案：${input.correctAnswer ?? '未提供'}`
   ].join('\n');
 }
