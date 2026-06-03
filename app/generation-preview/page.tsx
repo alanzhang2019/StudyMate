@@ -30,6 +30,7 @@ import { getCurrentModelConfig } from '@/lib/utils/model-config';
 import { MAX_PDF_CONTENT_CHARS, MAX_VISION_IMAGES } from '@/lib/constants/generation';
 import { buildVideoManifestFromOutlines } from '@/lib/media/video-manifest';
 import { getClassroomNavigationTarget } from '@/lib/mistake/ui/classroom-navigation';
+import { buildInitialStageName } from '@/app/generation-preview/stage-name';
 import {
   clearGenerationPreviewSession,
   loadGenerationPreviewSession,
@@ -449,7 +450,10 @@ function GenerationPreviewContent() {
         const stageId = nanoid(10);
         const s: Stage = {
           id: stageId,
-          name: extractTopicFromRequirement(currentSession.requirements.requirement),
+          name: buildInitialStageName({
+            requirement: currentSession.requirements.requirement,
+            mistakeSessionId: currentSession.mistakeSessionId,
+          }),
           description: '',
           style: 'professional',
           createdAt: Date.now(),
@@ -822,6 +826,9 @@ function GenerationPreviewContent() {
       store.setGeneratingOutlines(outlines);
 
       const firstOutline = outlines[0];
+      if (firstOutline?.title) {
+        stage.name = firstOutline.title;
+      }
 
       // Step 2: Generate content (currentStepIndex is already 2)
       const contentResp = await timing.time('first_scene_content', async () => {
@@ -863,11 +870,11 @@ function GenerationPreviewContent() {
 
       // Mark first page as ready and add scene to store (actions/TTS will be generated in classroom)
       setIsFirstPageReady(true);
-      setIsComplete(true);
+      setStatusMessage('正在进入教室...');
       store.addScene(scene);
       store.setCurrentSceneId(scene.id);
 
-      persistPlayableClassroom({
+      await persistPlayableClassroom({
         stage,
         scenes: [scene],
       }).catch((err) => log.warn('[GenerationPreview] persistPlayableClassroom failed:', err));
@@ -938,14 +945,6 @@ function GenerationPreviewContent() {
     } finally {
       isGeneratingRef.current = false;
     }
-  };
-
-  const extractTopicFromRequirement = (requirement: string): string => {
-    const trimmed = requirement.trim();
-    if (trimmed.length <= 500) {
-      return trimmed;
-    }
-    return trimmed.substring(0, 500).trim() + '...';
   };
 
   const goBackToHome = () => {

@@ -112,7 +112,7 @@ export default function ClassroomDetailPage() {
         sessionStorage.getItem('generationParams'),
       );
 
-      await loadFromStorage(classroomId, { force: true });
+      await loadFromStorage(classroomId);
       if (!shouldCommitClassroomLoadUpdate({ cancelled: Boolean(isCancelled?.()) })) {
         return;
       }

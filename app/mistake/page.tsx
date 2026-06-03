@@ -13,6 +13,7 @@ import { ImageCropper } from '@/components/image-cropper';
 import { saveGenerationPreviewSession } from '@/lib/mistake/ui/generation-preview-storage';
 import { writePendingRecognizeSession } from '@/lib/mistake/ui/recognize-session';
 import { buildPendingRecognizeImageUrl } from '@/lib/mistake/ui/pending-recognize-image';
+import { buildMistakeClassroomRequirement } from '@/lib/mistake/openmaic/build-requirement';
 import { nanoid } from 'nanoid';
 
 import { Camera, History, Sparkles, AlertTriangle, Mic, Loader2, Keyboard, Send, ImagePlus, Crop, Trash2 } from 'lucide-react';
@@ -279,7 +280,14 @@ export default function HomeworkPage() {
       saveGenerationPreviewSession({
         sessionId: nanoid(),
         requirements: {
-          requirement: `【核心诉求】\n请为一名小学${activeProfile?.grade || 4}年级学生讲解这道作业题。\n\n【作业题信息】\n题干：${textInput.trim()}\n学生答案：未提供\n正确答案：未提供`,
+          requirement: buildMistakeClassroomRequirement({
+            grade: activeProfile?.grade || 4,
+            subject: 'math',
+            source: 'manual',
+            problemText: textInput.trim(),
+            studentName: activeProfile?.name || '学生',
+            teachingStyle: activeProfile?.teachingStyle || '幽默风趣',
+          }),
         },
         pdfText: '',
         currentStep: 'generating',

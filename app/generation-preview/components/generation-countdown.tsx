@@ -58,6 +58,13 @@ export function computeFirstPageEstimateSeconds(stepIds: string[]): number {
   return total;
 }
 
+export function getFirstPageReadyCountdownCopy() {
+  return {
+    displayText: '正在进入教室...',
+    subText: '即将开始播放',
+  };
+}
+
 export function GenerationCountdown({
   currentStepIndex,
   stepIds,
@@ -139,7 +146,7 @@ export function GenerationCountdown({
 
   // Determine display text
   const getDisplayText = () => {
-    if (isFirstPageReady) return '课件准备就绪';
+    if (isFirstPageReady) return getFirstPageReadyCountdownCopy().displayText;
     if (isOverdue) return '仍在努力生成中...';
     if (remainingSeconds <= 0) return '即将完成';
     return formatTime(remainingSeconds);
@@ -147,7 +154,7 @@ export function GenerationCountdown({
 
   // Determine subtext
   const getSubText = () => {
-    if (isFirstPageReady) return '首页已生成';
+    if (isFirstPageReady) return getFirstPageReadyCountdownCopy().subText;
     if (isOverdue) return '请耐心等待，正在处理中';
     return '预计剩余时间';
   };

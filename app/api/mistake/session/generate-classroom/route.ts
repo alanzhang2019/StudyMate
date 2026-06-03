@@ -55,15 +55,10 @@ export async function POST(req: NextRequest) {
     if (input.imageData && input.imageData.length > 0) {
       // Vision-based generation: build requirement that instructs LLM to analyze the image
       requirement = [
-        '【核心诉求】',
-        `请为一名小学${input.grade}年级学生（姓名：${input.studentName ?? '同学'}）讲解这道错题。`,
-        `期望的教学风格：${input.teachingStyle ?? '清晰易懂'}。`,
-        '',
-        '【错题信息】',
-        '请仔细查看上传的题目图片，识别题目内容并进行讲解。',
-        input.problemText ? `补充信息：${input.problemText}` : '',
+        `请查看上传的题目图片，为小学${input.grade}年级学生${input.studentName ?? '同学'}讲解这道数学题。`,
+        input.problemText ? `补充题目信息：${input.problemText}` : '',
         `学生答案：${input.studentAnswer ?? '未提供'}`,
-        `正确答案：${input.correctAnswer ?? '未提供'}`
+        `正确答案：${input.correctAnswer ?? '未提供'}`,
       ].join('\n');
     } else {
       // Text-based generation

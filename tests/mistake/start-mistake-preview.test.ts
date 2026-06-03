@@ -58,7 +58,9 @@ describe('startMistakePreview', () => {
     );
 
     const savedSession = saveGenerationPreviewSession.mock.calls[0]?.[0];
-    expect(savedSession.requirements.requirement).toContain('讲解这道作业题');
-    expect(savedSession.requirements.requirement).not.toContain('讲解这道错题');
+    expect(savedSession.requirements.requirement).toContain('讲解这道数学题');
+    expect(savedSession.requirements.requirement).not.toContain('【核心诉求】');
+    expect(savedSession.requirements.requirement).not.toContain('【错题信息】');
+    expect(savedSession.requirements.requirement).not.toContain('讲解过程中统一使用');
   });
 });

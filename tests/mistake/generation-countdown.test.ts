@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { computeFirstPageEstimateSeconds } from '@/app/generation-preview/components/generation-countdown';
+import {
+  computeFirstPageEstimateSeconds,
+  getFirstPageReadyCountdownCopy,
+} from '@/app/generation-preview/components/generation-countdown';
 
 describe('computeFirstPageEstimateSeconds', () => {
   it('ignores actions time because the preview navigates away once first-page content is ready', () => {
@@ -16,5 +19,12 @@ describe('computeFirstPageEstimateSeconds', () => {
         'actions',
       ]),
     ).toBe(63);
+  });
+
+  it('uses classroom-entry copy once the first page is ready', () => {
+    expect(getFirstPageReadyCountdownCopy()).toEqual({
+      displayText: '正在进入教室...',
+      subText: '即将开始播放',
+    });
   });
 });
