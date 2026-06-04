@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { createSseWriter } from './route';
+import { createSseWriter } from '@/lib/server/sse-writer';
 
 describe('createSseWriter', () => {
   it('returns false instead of throwing after the request is aborted', () => {

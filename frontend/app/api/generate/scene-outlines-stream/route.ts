@@ -37,6 +37,7 @@ import { apiError } from '@/lib/server/api-response';
 import { normalizeAiErrorMessage } from '@/lib/server/normalize-ai-error';
 import { createLogger } from '@/lib/logger';
 import { resolveModelFromRequest } from '@/lib/server/resolve-model';
+import { createSseWriter } from '@/lib/server/sse-writer';
 const log = createLogger('Outlines Stream');
 
 export const maxDuration = 300;
@@ -80,59 +81,6 @@ async function generateOutlinesFallback(params: {
     })),
     languageDirective:
       (Array.isArray(parsed) ? undefined : parsed?.languageDirective) || DEFAULT_LANGUAGE_DIRECTIVE,
-  };
-}
-
-export function createSseWriter(params: {
-  controller: ReadableStreamDefaultController<Uint8Array>;
-  encoder: TextEncoder;
-  signal?: AbortSignal;
-  onClose?: () => void;
-}) {
-  const { controller, encoder, signal, onClose } = params;
-  let closed = false;
-
-  const close = () => {
-    if (closed) return false;
-    closed = true;
-    if (signal) {
-      signal.removeEventListener('abort', close);
-    }
-    onClose?.();
-    try {
-      controller.close();
-    } catch {
-      // Ignore duplicate close errors after the client disconnects.
-    }
-    return true;
-  };
-
-  const send = (payload: string) => {
-    if (closed || signal?.aborted) return false;
-    try {
-      controller.enqueue(encoder.encode(payload));
-      return true;
-    } catch {
-      close();
-      return false;
-    }
-  };
-
-  if (signal) {
-    signal.addEventListener('abort', close, { once: true });
-  }
-
-  return {
-    sendComment(comment: string) {
-      return send(`:${comment}\n\n`);
-    },
-    sendEvent(event: unknown) {
-      return send(`data: ${JSON.stringify(event)}\n\n`);
-    },
-    close,
-    isClosed() {
-      return closed || !!signal?.aborted;
-    },
   };
 }
 
