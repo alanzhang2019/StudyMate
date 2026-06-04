@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>AI错题讲解机 vs 竞品分析</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8fafc; color: #334155; margin: 0; padding: 2rem; }
+    h1, h2, h3 { color: #0f172a; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+    
+    .card { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border-top: 4px solid #94a3b8; }
+    .card.competitor { border-top-color: #ef4444; }
+    .card.us { border-top-color: #0ea5e9; box-shadow: 0 10px 15px -3px rgb(14 165 233 / 0.2); transform: translateY(-5px); transition: all 0.3s; }
+    
+    .tag { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; margin-right: 0.5rem; margin-bottom: 0.5rem; }
+    .tag.red { background: #fee2e2; color: #991b1b; }
+    .tag.blue { background: #e0f2fe; color: #075985; }
+    .tag.green { background: #dcfce7; color: #166534; }
+    .tag.yellow { background: #fef9c3; color: #854d0e; }
+    
+    table { w-full; border-collapse: collapse; margin-top: 1rem; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+    th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #e2e8f0; }
+    th { background: #f1f5f9; font-weight: 600; }
+    
+    .strategy-list { list-style: none; padding: 0; }
+    .strategy-list li { margin-bottom: 1rem; padding-left: 2rem; position: relative; }
+    .strategy-list li::before { content: "🎯"; position: absolute; left: 0; top: 2px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📸 竞品分析与差异化策略：AI错题讲解机</h1>
+    
+    <h2>1. 市场现状与竞品格局</h2>
+    <div class="grid">
+      <div class="card competitor">
+        <h3>通用搜索派 (夸克、百度)</h3>
+        <p><strong>核心玩法：</strong> OCR识别 -> 全网搜索 -> 直接给答案。</p>
+        <p><strong>优势：</strong> 速度极快（3秒内），流量入口巨大。</p>
+        <p><strong>劣势：</strong> <span class="tag red">抄袭神器</span> <span class="tag red">缺乏讲解</span> 容易引起家长反感，教育属性弱。</p>
+      </div>
+      
+      <div class="card competitor">
+        <h3>题库教辅派 (作业帮、快对)</h3>
+        <p><strong>核心玩法：</strong> 19亿题库比对 + AI解析 + 视频讲解。</p>
+        <p><strong>优势：</strong> 内容权威，知识点覆盖全，技术壁垒高。</p>
+        <p><strong>劣势：</strong> <span class="tag yellow">大而全</span> <span class="tag yellow">重结果轻过程</span> 依然以“展示解析”为主，缺乏个性化互动。</p>
+      </div>
+      
+      <div class="card competitor">
+        <h3>创新形态派 (阿里AI眼镜、101学问宝)</h3>
+        <p><strong>核心玩法：</strong> 硬件语音实时播报 / 真人教师解答。</p>
+        <p><strong>优势：</strong> 交互新颖解放双手 / 真人解答准确率极高。</p>
+        <p><strong>劣势：</strong> <span class="tag red">硬件门槛</span> <span class="tag red">响应慢/成本高</span> 难以大规模低成本复制。</p>
+      </div>
+    </div>
+
+    <h2>2. 我们的定位 (AI-MATH-MISTAKE)</h2>
+    <div class="card us">
+      <h3>🤖 启发式 AI 错题互动课堂 (聚焦 4-6 年级数学)</h3>
+      <p>我们<strong>不直接给答案</strong>，而是将“错题”转化为一堂<strong>“个性化微课”</strong>。</p>
+      <div>
+        <span class="tag blue">家长主导闭环</span>
+        <span class="tag green">重推导过程</span>
+        <span class="tag blue">多端TTS语音播报</span>
+        <span class="tag green">动态白板推演</span>
+        <span class="tag blue">沉淀为PPTX课件</span>
+      </div>
+    </div>
+
+    <h2>3. 差异化竞争策略 (核心护城河)</h2>
+    <div class="card">
+      <ul class="strategy-list">
+        <li><strong>策略一：从“搜答案”到“启发式互动微课” (反抄袭设计)</strong><br>
+          <span style="color:#64748b">竞品一拍就出答案，家长非常抵触。我们的流程是：拍题 -> AI分析错因 -> <strong>不给答案，先用语音(TTS)反问孩子</strong> -> 引导孩子在动态白板上一步步推导。我们将产品包装为“家长的辅导帮手”，而非“孩子的抄作业神器”。</span>
+        </li>
+        <li><strong>策略二：极致的“家长管控与数据沉淀”生态</strong><br>
+          <span style="color:#64748b">我们的系统是基于“家长主账号 -> 孩子档案”设计的。孩子只能在受控环境（如平板的特定模式）下看微课，家长端能看到详细的《错因诊断报告》和知识漏洞，这打中了中国家长的核心痛点。</span>
+        </li>
+        <li><strong>策略三：深耕垂类（4-6年级数学）打磨体验</strong><br>
+          <span style="color:#64748b">放弃K12全科的贪大求全，只做4-6年级数学。这个阶段数学开始抽象，家长辅导最吃力。我们在此垂直领域将 Prompt 调优到极致，实现最精准的“进位、退位、运算顺序、概念理解”错因诊断。</span>
+        </li>
+        <li><strong>策略四：数字资产化（导出PPTX与实体打印）</strong><br>
+          <span style="color:#64748b">这是我们独有的 OpenMAIC 能力。错题解析可以直接生成 PPTX 或打印成 PDF，方便期末复习时直接形成实体“专属错题本”，这是纯线上 APP 难以提供的物理安全感。</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>
