@@ -3,6 +3,8 @@ set -e
 
 PROJECT_DIR="/opt/studymate"
 NGINX_CONF="/etc/nginx/sites-available/studymate.conf"
+REPO_URL="https://github.com/alanzhang2019/StudyMate.git"
+REPO_BRANCH="master"
 
 echo "=== StudyMate 一键部署脚本 ==="
 
