@@ -185,7 +185,7 @@ function buildFinder(table: string, idColumn: string) {
     upsert: ({ where, update, create }: { where: Row; update: Row; create: Row }) => {
       const [[wcol, wval]] = Object.entries(where)
       const sqlCol = wcol.replace(/([A-Z])/g, '_$1').toLowerCase()
-      const existing = sqlite.prepare(`SELECT id FROM ${table} WHERE ${sqlCol} = ?`).get(wval)
+      const existing = sqlite.prepare(`SELECT id FROM ${table} WHERE ${sqlCol} = ?`).get(wval) as { id: string } | undefined
       if (existing) {
         const setParts: string[] = []
         const params: any[] = []
@@ -211,7 +211,7 @@ function buildFinder(table: string, idColumn: string) {
           .prepare(`INSERT INTO ${table} (${cols.join(', ')}) VALUES (${placeholders})`)
           .run(...values)
       }
-      return { id: (create as Row).id ?? existing?.id }
+      return { id: (create as Row).id ?? existing?.id ?? wval }
     },
     delete: ({ where }: { where: Row }) => {
       const [[wcol, wval]] = Object.entries(where)
