@@ -31,7 +31,8 @@ fi
 echo "[3/6] 拉取最新代码..."
 if [ -d "$PROJECT_DIR/.git" ]; then
     cd "$PROJECT_DIR"
-    git pull origin "$REPO_BRANCH"
+    git fetch origin "$REPO_BRANCH"
+    git reset --hard "origin/$REPO_BRANCH"
 else
     git clone "$REPO_URL" "$PROJECT_DIR"
     cd "$PROJECT_DIR"
