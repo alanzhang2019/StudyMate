@@ -10,7 +10,7 @@ WORKDIR /app
 FROM base AS deps
 
 # Native build tools for sharp, @napi-rs/canvas
-RUN apk add --no-cache python3 build-base g++ cairo-dev pango-dev jpeg-dev giflib-dev librsvg-dev
+RUN apk add --no-cache python3 cairo jpeg giflib librsvg pango
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/ ./packages/
