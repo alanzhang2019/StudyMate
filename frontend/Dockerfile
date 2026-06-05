@@ -14,10 +14,8 @@ RUN apk add --no-cache python3 cairo jpeg giflib librsvg pango
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/ ./packages/
-COPY prisma/ ./prisma/
 
 RUN pnpm install --ignore-scripts && \
-    pnpm exec prisma generate && \
     cd packages/mathml2omml && npm run build
 
 # ---- Stage 3: Builder ----
@@ -25,10 +23,9 @@ FROM base AS builder
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
-COPY prisma/ ./prisma/
 COPY . .
 
-RUN pnpm exec prisma generate && pnpm build
+RUN pnpm build
 
 # ---- Stage 4: Runner ----
 FROM node:22-alpine AS runner
@@ -39,7 +36,12 @@ ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3001
 
-RUN apk add --no-cache libc6-compat cairo pango jpeg giflib librsvg
+# better-sqlite3 native build deps
+RUN apk add --no-cache libc6-compat cairo pango jpeg giflib librsvg python3 build-base
+
+# Copy prebuilt better-sqlite3 native binding from deps
+COPY --from=builder /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3
+COPY --from=builder /app/node_modules/better-sqlite3/build ./node_modules/better-sqlite3/build
 
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
