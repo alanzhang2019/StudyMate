@@ -15,7 +15,8 @@ RUN apk add --no-cache python3 cairo jpeg giflib librsvg pango
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/ ./packages/
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --ignore-scripts && \
+    cd packages/mathml2omml && npm run build
 
 # ---- Stage 3: Builder ----
 FROM base AS builder
