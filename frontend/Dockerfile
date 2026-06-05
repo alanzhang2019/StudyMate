@@ -23,9 +23,10 @@ FROM base AS builder
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
+COPY prisma/ ./prisma/
 COPY . .
 
-RUN pnpm build
+RUN pnpm exec prisma generate && pnpm build
 
 # ---- Stage 4: Runner ----
 FROM node:22-alpine AS runner
