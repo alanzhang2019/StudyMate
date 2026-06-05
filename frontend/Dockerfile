@@ -14,8 +14,10 @@ RUN apk add --no-cache python3 cairo jpeg giflib librsvg pango
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/ ./packages/
+COPY prisma/ ./prisma/
 
 RUN pnpm install --ignore-scripts && \
+    pnpm exec prisma generate && \
     cd packages/mathml2omml && npm run build
 
 # ---- Stage 3: Builder ----
