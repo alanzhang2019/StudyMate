@@ -31,9 +31,9 @@ fi
 echo "[3/6] 拉取最新代码..."
 if [ -d "$PROJECT_DIR/.git" ]; then
     cd "$PROJECT_DIR"
-    git pull origin main
+    git pull origin "$REPO_BRANCH"
 else
-    git clone https://github.com/your-org/studymate.git "$PROJECT_DIR"
+    git clone "$REPO_URL" "$PROJECT_DIR"
     cd "$PROJECT_DIR"
 fi
 
