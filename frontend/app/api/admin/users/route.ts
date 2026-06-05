@@ -10,7 +10,7 @@ export async function GET() {
         email: true,
         createdAt: true,
         _count: {
-          select: { profiles: true }
+          select: { studentProfiles: true }
         }
       }
     });
