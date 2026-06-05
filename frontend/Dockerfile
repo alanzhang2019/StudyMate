@@ -25,7 +25,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
 COPY . .
 
-RUN NEXT_TELEMETRY_DISABLED=1 pnpm exec next build --no-typescript
+RUN NEXT_TELEMETRY_DISABLED=1 pnpm exec next build
 
 # ---- Stage 4: Runner ----
 FROM node:22-alpine AS runner
