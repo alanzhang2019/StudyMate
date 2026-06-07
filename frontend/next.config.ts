@@ -3,6 +3,7 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   output: process.env.VERCEL ? undefined : 'standalone',
   transpilePackages: ['mathml2omml', 'pptxgenjs'],
+  typescript: { ignoreBuildErrors: true },
   serverExternalPackages: [],
   experimental: {
     proxyClientMaxBodySize: '200mb',

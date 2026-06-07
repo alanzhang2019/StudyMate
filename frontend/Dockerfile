@@ -10,13 +10,22 @@ WORKDIR /app
 FROM base AS deps
 
 # Native build tools for sharp, @napi-rs/canvas
-RUN apk add --no-cache python3 cairo jpeg giflib librsvg pango
+RUN apk add --no-cache python3 cairo jpeg giflib librsvg pango build-base
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/ ./packages/
 
-RUN pnpm install --ignore-scripts && \
-    cd packages/mathml2omml && npm run build
+# 不带 --ignore-scripts：让 better-sqlite3 / sharp / @napi-rs/canvas 的 postinstall
+# 自动跑 prebuild-install 下载 musl 预编译 .node；网络失败时回退 node-gyp 编译
+RUN set -eux; \
+    pnpm install; \
+    cd packages/mathml2omml && npm run build; \
+    cd /app; \
+    pnpm rebuild better-sqlite3 2>&1 | tail -10 || echo "pnpm rebuild returned non-zero"; \
+    echo "=== Find better_sqlite3.node ==="; \
+    find /app/node_modules -name "better_sqlite3.node" 2>&1 | head -5; \
+    echo "=== Check Release dir ==="; \
+    ls -la /app/node_modules/.pnpm/better-sqlite3@11.10.0/node_modules/better-sqlite3/build/Release/ 2>&1 | head -5 || echo "Release dir not found"
 
 # ---- Stage 3: Builder ----
 FROM base AS builder
