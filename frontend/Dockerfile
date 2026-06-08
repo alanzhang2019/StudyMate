@@ -21,11 +21,14 @@ RUN set -eux; \
     pnpm install; \
     cd packages/mathml2omml && npm run build; \
     cd /app; \
-    pnpm rebuild better-sqlite3 2>&1 | tail -10 || echo "pnpm rebuild returned non-zero"; \
-    echo "=== Find better_sqlite3.node ==="; \
-    find /app/node_modules -name "better_sqlite3.node" 2>&1 | head -5; \
-    echo "=== Check Release dir ==="; \
-    ls -la /app/node_modules/.pnpm/better-sqlite3@11.10.0/node_modules/better-sqlite3/build/Release/ 2>&1 | head -5 || echo "Release dir not found"
+    # 强制 better-sqlite3 从源码编译（Alpine musl 经常没有匹配的预编译 .node）
+    echo "=== Compiling better-sqlite3 from source ==="; \
+    cd /app/node_modules/.pnpm/better-sqlite3@11.10.0/node_modules/better-sqlite3; \
+    npm run install --build-from-source 2>&1 | tail -40; \
+    echo "=== Locate generated .node files ==="; \
+    find /app -name 'better_sqlite3.node' -ls 2>&1; \
+    echo "=== Verify build/Release ==="; \
+    ls -la build/Release/ 2>&1 || echo "build/Release not found"
 
 # ---- Stage 3: Builder ----
 FROM base AS builder
@@ -36,6 +39,18 @@ COPY . .
 
 RUN NEXT_TELEMETRY_DISABLED=1 pnpm exec next build
 
+# Ensure the prebuilt better-sqlite3 native binding is part of the standalone
+# output. We copy the entire package (including the compiled .node file) into
+# .next/standalone/node_modules so the runtime require() resolves it.
+RUN set -eux; \
+    mkdir -p /app/.next/standalone/node_modules/.pnpm; \
+    cp -r /app/node_modules/.pnpm/better-sqlite3@11.10.0 /app/.next/standalone/node_modules/.pnpm/; \
+    mkdir -p /app/.next/standalone/node_modules/better-sqlite3; \
+    cp -r /app/node_modules/.pnpm/better-sqlite3@11.10.0/node_modules/better-sqlite3/. /app/.next/standalone/node_modules/better-sqlite3/; \
+    echo "=== Standalone better-sqlite3 files ==="; \
+    find /app/.next/standalone/node_modules/better-sqlite3 -name '*.node' -ls; \
+    test -f /app/.next/standalone/node_modules/better-sqlite3/build/Release/better_sqlite3.node || (echo 'FATAL: .node missing in standalone' && exit 1)
+
 # ---- Stage 4: Runner ----
 FROM node:22-alpine AS runner
 
@@ -45,12 +60,8 @@ ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3001
 
-# better-sqlite3 native build deps
-RUN apk add --no-cache libc6-compat cairo pango jpeg giflib librsvg python3 build-base
-
-# Copy prebuilt better-sqlite3 native binding from deps
-COPY --from=builder /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3
-COPY --from=builder /app/node_modules/better-sqlite3/build ./node_modules/better-sqlite3/build
+# better-sqlite3 needs runtime libs (Alpine musl) for any dynamically loaded deps
+RUN apk add --no-cache libc6-compat cairo pango jpeg giflib librsvg python3
 
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs

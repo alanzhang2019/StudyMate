@@ -4,7 +4,13 @@ const nextConfig: NextConfig = {
   output: process.env.VERCEL ? undefined : 'standalone',
   transpilePackages: ['mathml2omml', 'pptxgenjs'],
   typescript: { ignoreBuildErrors: true },
-  serverExternalPackages: [],
+  // better-sqlite3 has a native .node binding; keep it external so Next.js
+  // requires it at runtime (where we control the install location) and
+  // explicitly include it in the standalone output tracing.
+  serverExternalPackages: ['better-sqlite3'],
+  outputFileTracingIncludes: {
+    '/**': ['./node_modules/better-sqlite3/**/*'],
+  },
   experimental: {
     proxyClientMaxBodySize: '200mb',
   },
