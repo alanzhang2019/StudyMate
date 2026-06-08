@@ -902,7 +902,19 @@ async function buildPptxBlob(
         const omml = el.latex ? latexToOmml(el.latex, fontSize) : null;
 
         if (omml) {
-          pptxSlide.addFormula({
+          // addFormula is added in a local fork of pptxgenjs but is not in the
+          // published @types/pptxgenjs. Cast through unknown to keep build green.
+          (pptxSlide as unknown as {
+            addFormula: (opts: {
+              omml: string;
+              x: number;
+              y: number;
+              w: number;
+              h: number;
+              fontSize: number;
+              align?: string;
+            }) => void;
+          }).addFormula({
             omml,
             x: el.left / ratioPx2Inch,
             y: el.top / ratioPx2Inch,
