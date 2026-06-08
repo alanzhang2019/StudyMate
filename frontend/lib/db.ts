@@ -21,6 +21,9 @@ if (!existsSync(DB_DIR)) {
 
 const sqlite = new Database(DB_PATH)
 sqlite.pragma('journal_mode = WAL')
+// 关键：让 SQLite 在锁竞争时最多等 10 秒，避免 build 时多 worker 并发触发 SQLITE_BUSY
+sqlite.pragma('busy_timeout = 10000')
+sqlite.pragma('synchronous = NORMAL')
 
 sqlite.exec(`
   CREATE TABLE IF NOT EXISTS users (
