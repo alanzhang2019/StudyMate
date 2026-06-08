@@ -26,9 +26,9 @@ RUN set -eux; \
     cd /app/node_modules/.pnpm/better-sqlite3@11.10.0/node_modules/better-sqlite3; \
     npm run install --build-from-source 2>&1 | tail -40; \
     echo "=== Locate generated .node files ==="; \
-    find /app -name 'better_sqlite3.node' -ls 2>&1; \
+    (find /app -name 'better_sqlite3.node' 2>/dev/null || echo "find returned non-zero"); \
     echo "=== Verify build/Release ==="; \
-    ls -la build/Release/ 2>&1 || echo "build/Release not found"
+    (ls -la build/Release/ 2>&1 || echo "build/Release not found")
 
 # ---- Stage 3: Builder ----
 FROM base AS builder
@@ -48,7 +48,8 @@ RUN set -eux; \
     mkdir -p /app/.next/standalone/node_modules/better-sqlite3; \
     cp -r /app/node_modules/.pnpm/better-sqlite3@11.10.0/node_modules/better-sqlite3/. /app/.next/standalone/node_modules/better-sqlite3/; \
     echo "=== Standalone better-sqlite3 files ==="; \
-    find /app/.next/standalone/node_modules/better-sqlite3 -name '*.node' -ls; \
+    (find /app/.next/standalone/node_modules/better-sqlite3 -name '*.node' 2>/dev/null || true); \
+    (ls -la /app/.next/standalone/node_modules/better-sqlite3/build/Release/ 2>&1 || echo "build/Release not found"); \
     test -f /app/.next/standalone/node_modules/better-sqlite3/build/Release/better_sqlite3.node || (echo 'FATAL: .node missing in standalone' && exit 1)
 
 # ---- Stage 4: Runner ----
