@@ -33,11 +33,22 @@ RUN set -eux; \
 # ---- Stage 3: Builder ----
 FROM base AS builder
 
+# Build-time defaults for server-side env reads inside API route handlers.
+# These can be overridden via `docker compose build --build-arg` or
+# `build.args` in docker-compose.yml.
+ARG DEFAULT_MODEL=openai:gpt-4o-mini
+ARG MISTAKE_OCR_MODEL=openai:gpt-4o-mini
+ARG LLM_THINKING_DISABLED=false
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
 COPY . .
 
-RUN NEXT_TELEMETRY_DISABLED=1 pnpm build
+RUN NEXT_TELEMETRY_DISABLED=1 \
+    DEFAULT_MODEL=${DEFAULT_MODEL} \
+    MISTAKE_OCR_MODEL=${MISTAKE_OCR_MODEL} \
+    LLM_THINKING_DISABLED=${LLM_THINKING_DISABLED} \
+    pnpm build
 
 # Ensure the prebuilt better-sqlite3 native binding is part of the standalone
 # output. We copy the entire package (including the compiled .node file) into
