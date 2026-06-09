@@ -37,7 +37,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
 COPY . .
 
-RUN NEXT_TELEMETRY_DISABLED=1 pnpm exec next build
+RUN NEXT_TELEMETRY_DISABLED=1 pnpm build
 
 # Ensure the prebuilt better-sqlite3 native binding is part of the standalone
 # output. We copy the entire package (including the compiled .node file) into
