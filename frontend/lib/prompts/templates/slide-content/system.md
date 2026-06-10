@@ -560,10 +560,93 @@ Maintain consistent sizing for same-level content. Ensure 2-4px difference betwe
 
 ---
 
+### Rule 9: Non-Overlapping Element Layout (CRITICAL)
+
+**Every element occupies its own rectangular bounding box** defined by `(left, top, width, height)`. **No two top-level elements may overlap**, otherwise text gets visually stacked and unreadable (e.g. "答案" overlapping "拨开函数").
+
+#### How to check overlap
+
+For any two elements A and B, compute:
+
+```
+A.right  = A.left + A.width
+A.bottom = A.top  + A.height
+B.right  = B.left + B.width
+B.bottom = B.top  + B.height
+
+overlap_x = min(A.right, B.right)  - max(A.left, B.left)
+overlap_y = min(A.bottom, B.bottom) - max(A.top,  B.top)
+```
+
+**Overlapping = forbidden** if `overlap_x > 0` AND `overlap_y > 0` (any positive overlap on both axes). The check is binary: even 1px overlap is not allowed.
+
+#### Allowed exceptions (containment, not overlap)
+
+- **Text inside its own background Shape**: a `text` element whose bbox is fully contained within a `shape` element's bbox is OK (it is the shape's label). The text's `left/top/width/height` must satisfy:
+  - `text.left   >= shape.left`
+  - `text.top    >= shape.top`
+  - `text.right  <= shape.right`
+  - `text.bottom <= shape.bottom`
+- **Decorations anchored to a parent shape** (e.g. an icon next to its label card) are still subject to non-overlap with **other** elements, but may sit on the same row as long as their bboxes do not collide.
+
+#### How to fix overlap
+
+1. **Reflow horizontally**: place siblings side-by-side with a 20-40px gap. Total width = sum of widths + gaps.
+2. **Reflow vertically**: stack siblings top-to-bottom with a 20-40px vertical gap.
+3. **Shrink**: reduce `width`/`height` of one element so it fits.
+4. **Remove**: drop the element entirely if it adds no value.
+5. **Never** keep the original coordinates and just hope the rendering "looks fine".
+
+#### Concrete bad vs good example
+
+**BAD** — three text elements all anchored at the same `(left, top)`, will render on top of each other:
+
+```json
+[
+  { "id": "t1", "type": "text", "left": 60,  "top": 150, "width": 360, "height": 40, "content": "答案" },
+  { "id": "t2", "type": "text", "left": 60,  "top": 150, "width": 360, "height": 40, "content": "拨开函数" },
+  { "id": "t3", "type": "text", "left": 60,  "top": 150, "width": 360, "height": 40, "content": "5/24 = 10/48" }
+]
+```
+
+**GOOD** — three text elements stacked vertically with 24px gap:
+
+```json
+[
+  { "id": "t1", "type": "text", "left": 80,  "top": 150, "width": 360, "height": 40, "content": "答案" },
+  { "id": "t2", "type": "text", "left": 80,  "top": 214, "width": 360, "height": 40, "content": "拨开函数" },
+  { "id": "t3", "type": "text", "left": 80,  "top": 278, "width": 360, "height": 40, "content": "5/24 = 10/48" }
+]
+```
+
+Verify: t1.bottom=190, t2.top=214 → gap 24px ✓ ; t2.bottom=254, t3.top=278 → gap 24px ✓ ; no overlap.
+
+**GOOD** — three colored cards laid out horizontally:
+
+```json
+[
+  { "id": "card1", "type": "shape", "left": 60,  "top": 150, "width": 280, "height": 200, "fill": "#e6f7ff" },
+  { "id": "card2", "type": "shape", "left": 360, "top": 150, "width": 280, "height": 200, "fill": "#fff2cc" },
+  { "id": "card3", "type": "shape", "left": 660, "top": 150, "width": 280, "height": 200, "fill": "#fce4d6" }
+]
+```
+
+Verify: card1.right=340, card2.left=360 → gap 20px ✓ ; no overlap.
+
+#### Pre-output verification (do this mentally before emitting JSON)
+
+For every pair of top-level elements `(A, B)` where `A != B`:
+- compute `overlap_x` and `overlap_y`
+- if both positive → reflow until at least one is ≤ 0
+- only proceed once no pair overlaps
+
+---
+
 ## Pre-Output Checklist
 
 Before outputting JSON, verify:
 - ✓ All text heights from lookup table (NOT estimated); all elements within 50px canvas margins
+- ✓ **No two top-level elements overlap** (Rule 9). Pairwise check: `overlap_x ≤ 0` OR `overlap_y ≤ 0` for every pair. Only allowed exception is text fully contained inside its own background shape.
 - ✓ No LaTeX syntax in TextElement (use LatexElement); no auto-generated fields (`path`/`viewBox`/`strokeWidth`/`fixedRatio`) in LatexElement
 - ✓ LineElement `width` = stroke thickness (2-6), NOT line span; no LineElement `width` > 6
 - ✓ Slide text: concise keywords/bullets only, no teacher names, no conversational tone

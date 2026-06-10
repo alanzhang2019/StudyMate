@@ -4,8 +4,8 @@
  * Validates URLs to prevent requests to internal/private network addresses.
  * Used by any API route that fetches a user-supplied URL server-side.
  */
-import { promises as dns } from 'node:dns';
-import { isIP } from 'node:net';
+import { promises as dns } from 'dns';
+import { isIP } from 'net';
 
 function normalizeAddress(value: string): string {
   let normalized = value.trim().toLowerCase();

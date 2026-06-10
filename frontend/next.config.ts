@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
     proxyClientMaxBodySize: '200mb',
   },
   turbopack: {},
-  webpack: (config, { dev }) => {
+  webpack: (config, { dev, isServer }) => {
     if (dev) {
       config.watchOptions = {
         ...config.watchOptions,
@@ -26,6 +26,52 @@ const nextConfig: NextConfig = {
           'D:/pagefile.sys',
           'D:/System Volume Information/**',
         ],
+      };
+    }
+
+    if (!isServer) {
+      // The client bundle should never need node:* builtins. Map them to
+      // "false" so webpack treats them as empty modules; this silences
+      // the UnhandledSchemeError for transitive imports from server-only
+      // files. The actual server code path that uses these modules runs
+      // in route handlers / server components, never in the browser.
+      const nodeBuiltins = [
+        'fs', 'fs/promises', 'path', 'crypto', 'buffer', 'util', 'stream',
+        'os', 'url', 'querystring', 'events', 'async_hooks', 'dns', 'net',
+        'http', 'https', 'child_process', 'cluster', 'dgram', 'perf_hooks',
+        'process', 'timers', 'tls', 'tty', 'worker_threads', 'zlib',
+        'stream/promises', 'stream/web', 'stream/consumers',
+      ];
+      const alias: Record<string, string> = {};
+      for (const mod of nodeBuiltins) {
+        alias[`node:${mod}`] = mod;
+      }
+      config.resolve = config.resolve || {};
+      config.resolve.alias = {
+        ...(config.resolve.alias || {}),
+        ...alias,
+      };
+      config.resolve.fallback = {
+        ...(config.resolve.fallback || {}),
+        fs: false,
+        path: false,
+        crypto: false,
+        buffer: false,
+        util: false,
+        stream: false,
+        os: false,
+        url: false,
+        querystring: false,
+        events: false,
+        async_hooks: false,
+        dns: false,
+        net: false,
+        http: false,
+        https: false,
+        child_process: false,
+        zlib: false,
+        perf_hooks: false,
+        process: false,
       };
     }
 

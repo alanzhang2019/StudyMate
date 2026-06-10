@@ -14,13 +14,13 @@ export function encodeSlideMediaRels(layout: PresSlide | SlideLayout): Array<Pro
 	// STEP 1: Detect real Node runtime once
 	const isNode = typeof process !== 'undefined' && !!process.versions?.node && process.release?.name === 'node'
 	// These will be filled only when we’re in Node
-	let fs: typeof import('node:fs') | undefined
-	let https: typeof import('node:https') | undefined
+	let fs: typeof import('fs') | undefined
+	let https: typeof import('https') | undefined
 
 	// STEP 2: Lazy-load Node built-ins if needed
 	const loadNodeDeps = isNode
 		? async () => {
-			; ({ default: fs } = await import(/* webpackIgnore: true */ 'node:fs')); ({ default: https } = await import(/* webpackIgnore: true */ 'node:https'))
+			; ({ default: fs } = await import(/* webpackIgnore: true */ 'fs')); ({ default: https } = await import(/* webpackIgnore: true */ 'https'))
 		}
 		: async () => { }
 	// Immediately start it when we know we’re in Node

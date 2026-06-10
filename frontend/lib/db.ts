@@ -6,9 +6,9 @@
 // requiring prisma generate or a schema file.
 
 import Database from 'better-sqlite3'
-import path from 'node:path'
-import { randomUUID } from 'node:crypto'
-import { mkdirSync, existsSync } from 'node:fs'
+import path from 'path'
+import { randomUUID } from 'crypto'
+import { mkdirSync, existsSync } from 'fs'
 
 type Row = Record<string, any>
 
