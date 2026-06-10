@@ -90,7 +90,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 COPY --chown=root:root docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# Normalize line endings in case the file was committed with CRLF (Windows
+# editors / PowerShell). Alpine's /bin/sh does not understand CRLF and
+# would refuse to execute the script.
+RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh && \
+    chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Stay as root so the entrypoint can chown the named volume before
 # dropping privileges via su-exec.

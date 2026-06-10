@@ -1,0 +1,4 @@
+# Ensure shell scripts (and other Unix-only files) are stored with LF
+# so they work correctly when built inside Linux containers.
+*.sh text eol=lf
+frontend/docker-entrypoint.sh text eol=lf
