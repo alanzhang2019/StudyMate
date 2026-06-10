@@ -30,6 +30,8 @@ services:
         required: false
     environment:
       - BACKEND_URL=http://backend:3000
+    volumes:
+      - studymate-frontend-data:/app/data
     networks:
       - studymate-net
     restart: unless-stopped
@@ -37,3 +39,6 @@ services:
 networks:
   studymate-net:
     driver: bridge
+
+volumes:
+  studymate-frontend-data:

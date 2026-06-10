@@ -78,6 +78,11 @@ RUN apk add --no-cache libc6-compat cairo pango jpeg giflib librsvg python3
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
+# Pre-create the data directory and chown it to nextjs so storage modules
+# that use process.cwd()/data (classroom-storage.ts, user-profile-storage.ts)
+# can write to it at runtime.
+RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
+
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
