@@ -1413,6 +1413,9 @@ function GenerationPreviewContent() {
         onAllRevealed={() => {
           agentRevealResolveRef.current?.();
           agentRevealResolveRef.current = null;
+          // Auto-dismiss the modal once all cards have flipped, so the user
+          // doesn't need to click the "继续" button / X icon manually.
+          setShowAgentReveal(false);
         }}
       />
     </div>
