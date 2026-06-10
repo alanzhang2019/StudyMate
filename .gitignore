@@ -20,3 +20,10 @@ temp.tsx
 test*.js
 mistake-page.html
 classroom-test-error.png
+
+# Local artifacts / debug helpers
+package-lock.json
+runner.cjs
+studymate.tar.gz
+take-machine/
+
