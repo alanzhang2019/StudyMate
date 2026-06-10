@@ -80,27 +80,16 @@ RUN addgroup --system --gid 1001 nodejs && \
 
 # Pre-create the data directory and chown it to nextjs so storage modules
 # that use process.cwd()/data (classroom-storage.ts, user-profile-storage.ts)
-# can write to it at runtime. The entrypoint below re-chowns in case the
-# path is bind-mounted as a named volume (which defaults to root ownership).
-RUN apk add --no-cache su-exec && \
-    mkdir -p /app/data && chown -R nextjs:nodejs /app/data
+# can write to it at runtime. The image already has /app/data owned by
+# nextjs, so no entrypoint fixup is needed when no volume is mounted here.
+RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-COPY --chown=root:root docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-# Normalize line endings in case the file was committed with CRLF (Windows
-# editors / PowerShell). Alpine's /bin/sh does not understand CRLF and
-# would refuse to execute the script.
-RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh && \
-    chmod +x /usr/local/bin/docker-entrypoint.sh
-
-# Stay as root so the entrypoint can chown the named volume before
-# dropping privileges via su-exec.
-USER root
+USER nextjs
 
 EXPOSE 3001
 
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["node", "server.js"]
