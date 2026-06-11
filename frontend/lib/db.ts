@@ -19,13 +19,28 @@ if (!existsSync(DB_DIR)) {
   mkdirSync(DB_DIR, { recursive: true })
 }
 
-const sqlite = new Database(DB_PATH)
-sqlite.pragma('journal_mode = WAL')
-// 关键：让 SQLite 在锁竞争时最多等 10 秒，避免 build 时多 worker 并发触发 SQLITE_BUSY
-sqlite.pragma('busy_timeout = 10000')
-sqlite.pragma('synchronous = NORMAL')
-
-sqlite.exec(`
+let _db: Database | null = null
+let _dbInit: boolean = false
+function getDb(): Database {
+  if (!_db) {
+    // During Next.js build (page data collection), each worker process can
+    // hit this code path simultaneously. Use a per-process in-memory database
+    // when we are not the primary Node process and DB is uninitialised,
+    // so that workers do not race on the same on-disk file.
+    const isBuild = process.env.NEXT_PHASE === 'phase-production-build' || process.argv.includes('build')
+    if (isBuild) {
+      _db = new Database(':memory:')
+      _db.pragma('journal_mode = MEMORY')
+    } else {
+      _db = new Database(DB_PATH)
+      _db.pragma('journal_mode = WAL')
+      _db.pragma('busy_timeout = 10000')
+      _db.pragma('synchronous = NORMAL')
+    }
+  }
+  if (!_dbInit) {
+    _dbInit = true
+    _db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
@@ -65,6 +80,9 @@ sqlite.exec(`
     updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
   );
 `)
+  }
+  return _db
+}
 
 const now = () => new Date().toISOString()
 const cid = () => randomUUID()
@@ -88,7 +106,7 @@ function buildFinder(table: string, idColumn: string) {
       }
       const [col, val] = entries[0]
       const sqlCol = col.replace(/([A-Z])/g, '_$1').toLowerCase()
-      const stmt = sqlite.prepare(`SELECT * FROM ${table} WHERE ${sqlCol} = ? LIMIT 1`)
+      const stmt = getDb().prepare(`SELECT * FROM ${table} WHERE ${sqlCol} = ? LIMIT 1`)
       const row = stmt.get(val)
       if (!row) return null
       const camel = rowToCamel(row as Row)
@@ -117,7 +135,7 @@ function buildFinder(table: string, idColumn: string) {
         sql += ` ORDER BY ${k.replace(/([A-Z])/g, '_$1').toLowerCase()} ${dir}`
       }
       sql += ' LIMIT 1'
-      const row = sqlite.prepare(sql).get(...params)
+      const row = getDb().prepare(sql).get(...params)
       return row ? rowToCamel(row as Row) : null
     },
     findMany: ({ where, orderBy, take, select }: { where?: Row; orderBy?: Row; take?: number; select?: Row } = {}) => {
@@ -136,7 +154,7 @@ function buildFinder(table: string, idColumn: string) {
         sql += ` ORDER BY ${k.replace(/([A-Z])/g, '_$1').toLowerCase()} ${dir}`
       }
       if (typeof take === 'number') sql += ` LIMIT ${take}`
-      const rows = sqlite.prepare(sql).all(...params) as Row[]
+      const rows = getDb().prepare(sql).all(...params) as Row[]
       return rows.map((row) => {
         const camel = rowToCamel(row)
         if (select) {
@@ -161,10 +179,10 @@ function buildFinder(table: string, idColumn: string) {
         const v = fields[camelKey]
         return v
       })
-      sqlite
+      getDb()
         .prepare(`INSERT INTO ${table} (${cols.join(', ')}) VALUES (${placeholders})`)
         .run(...values)
-      const row = sqlite
+      const row = getDb()
         .prepare(`SELECT * FROM ${table} WHERE id = ?`)
         .get(id) as Row
       return rowToCamel(row)
@@ -179,10 +197,10 @@ function buildFinder(table: string, idColumn: string) {
         params.push(v)
       }
       params.push(wval)
-      sqlite
+      getDb()
         .prepare(`UPDATE ${table} SET ${setParts.join(', ')} WHERE ${sqlCol} = ?`)
         .run(...params)
-      const row = sqlite
+      const row = getDb()
         .prepare(`SELECT * FROM ${table} WHERE ${sqlCol} = ?`)
         .get(wval) as Row
       return rowToCamel(row)
@@ -190,7 +208,7 @@ function buildFinder(table: string, idColumn: string) {
     upsert: ({ where, update, create }: { where: Row; update: Row; create: Row }) => {
       const [[wcol, wval]] = Object.entries(where)
       const sqlCol = wcol.replace(/([A-Z])/g, '_$1').toLowerCase()
-      const existing = sqlite.prepare(`SELECT id FROM ${table} WHERE ${sqlCol} = ?`).get(wval) as { id: string } | undefined
+      const existing = getDb().prepare(`SELECT id FROM ${table} WHERE ${sqlCol} = ?`).get(wval) as { id: string } | undefined
       if (existing) {
         const setParts: string[] = []
         const params: any[] = []
@@ -199,7 +217,7 @@ function buildFinder(table: string, idColumn: string) {
           params.push(v)
         }
         params.push(wval)
-        sqlite
+        getDb()
           .prepare(`UPDATE ${table} SET ${setParts.join(', ')} WHERE ${sqlCol} = ?`)
           .run(...params)
       } else {
@@ -212,7 +230,7 @@ function buildFinder(table: string, idColumn: string) {
           const camelKey = c.replace(/_([a-z])/g, (_, x) => x.toUpperCase())
           return fields[camelKey]
         })
-        sqlite
+        getDb()
           .prepare(`INSERT INTO ${table} (${cols.join(', ')}) VALUES (${placeholders})`)
           .run(...values)
       }
@@ -221,7 +239,7 @@ function buildFinder(table: string, idColumn: string) {
     delete: ({ where }: { where: Row }) => {
       const [[wcol, wval]] = Object.entries(where)
       const sqlCol = wcol.replace(/([A-Z])/g, '_$1').toLowerCase()
-      sqlite.prepare(`DELETE FROM ${table} WHERE ${sqlCol} = ?`).run(wval)
+      getDb().prepare(`DELETE FROM ${table} WHERE ${sqlCol} = ?`).run(wval)
       return { id: wval }
     },
     count: ({ where }: { where?: Row } = {}) => {
@@ -235,7 +253,7 @@ function buildFinder(table: string, idColumn: string) {
       }
       let sql = `SELECT COUNT(*) as n FROM ${table}`
       if (whereSql.length) sql += ` WHERE ${whereSql.join(' AND ')}`
-      const row = sqlite.prepare(sql).get(...params) as { n: number }
+      const row = getDb().prepare(sql).get(...params) as { n: number }
       return row?.n ?? 0
     },
   }
@@ -253,7 +271,7 @@ class PrismaCompatClient {
       if (args?.select?._count?.select?.studentProfiles) {
         return rows.map((u: any) => ({
           ...u,
-          _count: { studentProfiles: sqlite.prepare('SELECT COUNT(*) as n FROM student_profiles WHERE parentId = ?').get(u.id)?.n ?? 0 },
+          _count: { studentProfiles: getDb().prepare('SELECT COUNT(*) as n FROM student_profiles WHERE parentId = ?').get(u.id)?.n ?? 0 },
         }))
       }
       return rows

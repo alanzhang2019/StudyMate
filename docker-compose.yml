@@ -27,10 +27,8 @@ services:
     ports:
       - "3001:3001"
     env_file:
-      - path: ./frontend/.env
-        required: false
-      - path: ./frontend/.env.local
-        required: false
+      - ./frontend/.env
+      - ./frontend/.env.local
     environment:
       - BACKEND_URL=http://backend:3000
       # Allow oi.aijiangti.cn to embed us via iframe during ICP filing
