@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import pptxgen from 'pptxgenjs';
 import tinycolor from 'tinycolor2';
 import { saveAs } from 'file-saver';
 import { toast } from 'sonner';
@@ -367,6 +366,15 @@ async function buildPptxBlob(
   ratioPx2Inch: number,
   ratioPx2Pt: number,
 ): Promise<Blob> {
+  // Lazy-load `pptxgenjs` only when the user actually exports a PPTX.
+  // The package internally imports `node:fs` / `node:https` for its
+  // Node-only code paths. Because `use-export-pptx.ts` lives in a
+  // `'use client'` file, that static import is dragged into the *client*
+  // webpack bundle, and webpack 5 has no handler for the `node:` URI
+  // scheme. Dynamically importing here keeps the dependency graph out of
+  // the initial build/SSR pass and only pulls it in at runtime, in the
+  // browser, where `pptxgenjs` works fine without the Node builtins.
+  const { default: pptxgen } = await import('pptxgenjs');
   const pptx = new pptxgen();
 
   // Set layout based on aspect ratio
