@@ -21,8 +21,11 @@ services:
         DEFAULT_MODEL: ${DEFAULT_MODEL:-openai:gpt-4o-mini}
         MISTAKE_OCR_MODEL: ${MISTAKE_OCR_MODEL:-openai:gpt-4o-mini}
     container_name: studymate-frontend
+    # Listen on 0.0.0.0 so the oi.aijiangti.cn reverse proxy (Singapore)
+    # can reach us during the ICP filing window. Restrict via Tencent Cloud
+    # security group to oi server IP only.
     ports:
-      - "127.0.0.1:3001:3001"
+      - "3001:3001"
     env_file:
       - path: ./frontend/.env
         required: false
@@ -30,6 +33,8 @@ services:
         required: false
     environment:
       - BACKEND_URL=http://backend:3000
+      # Allow oi.aijiangti.cn to embed us via iframe during ICP filing
+      - ALLOWED_FRAME_ANCESTORS=https://oi.aijiangti.cn
     networks:
       - studymate-net
     restart: unless-stopped
