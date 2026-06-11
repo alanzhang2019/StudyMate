@@ -25,9 +25,15 @@ const comicNeue = Comic_Neue({
 });
 
 export const metadata: Metadata = {
-  title: 'StudyMate | 作业通',
+  title: 'AI讲题 · AI JiangTi | 拍一下就讲明白',
   description:
-    'StudyMate 作业通是一款面向 4-6 年级的 AI 数学错题讲解工具，拍题后即可生成循序渐进的互动讲解。',
+    'AI讲题（AI JiangTi）是一款面向小学 4-6 年级的 AI 数学错题讲解工具，拍题后即可生成循序渐进的互动讲解。',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/logo.svg',
+  },
 };
 
 export default function RootLayout({
