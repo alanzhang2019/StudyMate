@@ -4,6 +4,14 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 
+// Force dynamic rendering on every request. Without this, Next.js prerenders
+// the HTML at build time and caches it for a year (`Cache-Control:
+// s-maxage=31536000`), which means the AccessCodeGuard's runtime check for
+// `process.env.ACCESS_CODE` is frozen at build time. If you ever flip the
+// access code on or off in `.env`, users keep seeing the old behavior until
+// the static cache expires or is manually purged.
+export const dynamic = 'force-dynamic';
+
 import { Card } from '@/components/ui/card';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { getHomeworkHomeContent } from '@/lib/mistake/ui/content';
