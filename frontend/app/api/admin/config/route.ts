@@ -7,11 +7,26 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const body = await req.json();
-  await db.systemConfig.upsert({
-    where: { key: 'default_tts_config' },
-    update: { value: JSON.stringify(body) },
-    create: { key: 'default_tts_config', value: JSON.stringify(body) }
-  });
-  return NextResponse.json({ success: true });
+  try {
+    const body = await req.json();
+    await db.systemConfig.upsert({
+      where: { key: 'default_tts_config' },
+      update: { value: JSON.stringify(body) },
+      create: { key: 'default_tts_config', value: JSON.stringify(body) }
+    });
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    // Surface the underlying error in the server log so we can diagnose
+    // config save failures from `docker logs studymate-frontend` instead
+    // of a bare 500 to the admin panel.
+    console.error('[admin/config POST] failed:', err);
+    return NextResponse.json(
+      {
+        success: false,
+        errorCode: 'INTERNAL_ERROR',
+        error: err instanceof Error ? err.message : String(err),
+      },
+      { status: 500 }
+    );
+  }
 }
