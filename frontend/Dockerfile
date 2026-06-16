@@ -87,22 +87,39 @@ RUN NEXT_TELEMETRY_DISABLED=1 \
 # the native .node file at runtime. These live inside the pnpm package's
 # own node_modules folder (pnpm nests non-conflicting deps there), so we
 # copy the whole pnpm package directory to keep the .pnpm symlink graph
-# intact. (Next.js's output:standalone traces source files but does not
-# automatically pick up the native module's runtime dependencies.)
+# intact.
+#
+# `bindings@1.5.0` itself depends on `file-uri-to-path` which pnpm nests
+# under bindings@1.5.0/node_modules/. We copy the whole pnpm bindings
+# directory so its nested dependencies survive.
 RUN set -eux; \
     mkdir -p /app/.next/standalone/node_modules/.pnpm; \
     cp -r /app/node_modules/.pnpm/better-sqlite3@11.10.0 /app/.next/standalone/node_modules/.pnpm/; \
     mkdir -p /app/.next/standalone/node_modules/better-sqlite3; \
     cp -r /app/node_modules/.pnpm/better-sqlite3@11.10.0/node_modules/better-sqlite3/. /app/.next/standalone/node_modules/better-sqlite3/; \
+    cp -r /app/node_modules/.pnpm/bindings@1.5.0 /app/.next/standalone/node_modules/.pnpm/; \
     mkdir -p /app/.next/standalone/node_modules/bindings; \
-    cp -r /app/node_modules/.pnpm/better-sqlite3@11.10.0/node_modules/bindings/. /app/.next/standalone/node_modules/bindings/ 2>/dev/null || \
-      cp -r /app/node_modules/.pnpm/bindings@1.5.0/node_modules/bindings/. /app/.next/standalone/node_modules/bindings/ 2>/dev/null || true; \
+    cp -r /app/node_modules/.pnpm/bindings@1.5.0/node_modules/bindings/. /app/.next/standalone/node_modules/bindings/; \
+    mkdir -p /app/.next/standalone/node_modules/file-uri-to-path; \
+    if [ -d /app/node_modules/.pnpm/bindings@1.5.0/node_modules/file-uri-to-path ]; then \
+      cp -r /app/node_modules/.pnpm/bindings@1.5.0/node_modules/file-uri-to-path/. /app/.next/standalone/node_modules/file-uri-to-path/; \
+    else \
+      cp -r /app/node_modules/file-uri-to-path/. /app/.next/standalone/node_modules/file-uri-to-path/ 2>/dev/null || \
+        cp -r /app/node_modules/.pnpm/file-uri-to-path@1.0.0/node_modules/file-uri-to-path/. /app/.next/standalone/node_modules/file-uri-to-path/ 2>/dev/null || true; \
+    fi; \
     echo "=== Standalone better-sqlite3 files ==="; \
     (find /app/.next/standalone/node_modules/better-sqlite3 -name '*.node' 2>/dev/null || true); \
     (ls -la /app/.next/standalone/node_modules/better-sqlite3/build/Release/ 2>&1 || echo "build/Release not found"); \
     (ls -la /app/.next/standalone/node_modules/bindings 2>&1 || echo "bindings NOT in standalone"); \
+    (ls -la /app/.next/standalone/node_modules/file-uri-to-path 2>&1 || echo "file-uri-to-path NOT in standalone"); \
     test -f /app/.next/standalone/node_modules/better-sqlite3/build/Release/better_sqlite3.node || (echo 'FATAL: .node missing in standalone' && exit 1); \
-    test -d /app/.next/standalone/node_modules/bindings || (echo 'FATAL: bindings missing in standalone' && exit 1)
+    test -d /app/.next/standalone/node_modules/bindings || (echo 'FATAL: bindings missing in standalone' && exit 1); \
+    test -d /app/.next/standalone/node_modules/file-uri-to-path || (echo 'FATAL: file-uri-to-path missing in standalone' && exit 1)
+
+# Cache-bust marker: change `CACHE_BUST` whenever the copy block above
+# changes so this stage and the runner below are rebuilt.
+ARG CACHE_BUST=1
+RUN echo "cache bust: ${CACHE_BUST} $(date +%s)"
 
 # ---- Stage 4: Runner ----
 FROM node:22-alpine AS runner
