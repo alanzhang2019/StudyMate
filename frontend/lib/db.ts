@@ -288,6 +288,48 @@ class PrismaCompatClient {
   systemConfig = {
     ...buildFinder('system_config', 'key'),
     findUnique: (args: any) => buildFinder('system_config', 'key').findUnique(args),
+    // `system_config` is keyed by `key` (TEXT PRIMARY KEY) and has no `id`
+    // column, unlike the other tables that the generic `buildFinder` was
+    // written for. The shared upsert helper auto-injects a synthetic `id`
+    // into the `create` payload, which then explodes with
+    // `SqliteError: no such column: id` at INSERT time. Implement upsert
+    // locally for this table so we only ever touch the real columns.
+    upsert: ({ where, update, create }: { where: Row; update: Row; create: Row }) => {
+      const [[wcol, wval]] = Object.entries(where)
+      const sqlCol = wcol.replace(/([A-Z])/g, '_$1').toLowerCase()
+      const existing = getDb()
+        .prepare(`SELECT key FROM system_config WHERE ${sqlCol} = ?`)
+        .get(wval) as { key: string } | undefined
+      if (existing) {
+        const setParts: string[] = []
+        const params: any[] = []
+        for (const [k, v] of Object.entries(update)) {
+          setParts.push(`${k.replace(/([A-Z])/g, '_$1').toLowerCase()} = ?`)
+          params.push(v)
+        }
+        params.push(wval)
+        getDb()
+          .prepare(
+            `UPDATE system_config SET ${setParts.join(', ')} WHERE ${sqlCol} = ?`,
+          )
+          .run(...params)
+      } else {
+        const cols = Object.keys(create).map((c) =>
+          c.replace(/([A-Z])/g, '_$1').toLowerCase(),
+        )
+        const placeholders = cols.map(() => '?').join(', ')
+        const values = cols.map((c) => {
+          const camelKey = c.replace(/_([a-z])/g, (_, x) => x.toUpperCase())
+          return (create as Row)[camelKey]
+        })
+        getDb()
+          .prepare(
+            `INSERT INTO system_config (${cols.join(', ')}) VALUES (${placeholders})`,
+          )
+          .run(...values)
+      }
+      return { key: wval }
+    },
   }
 }
 
