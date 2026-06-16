@@ -272,7 +272,7 @@ class PrismaCompatClient {
       if (args?.select?._count?.select?.studentProfiles) {
         return rows.map((u: any) => ({
           ...u,
-          _count: { studentProfiles: getDb().prepare('SELECT COUNT(*) as n FROM student_profiles WHERE parentId = ?').get(u.id)?.n ?? 0 },
+          _count: { profiles: getDb().prepare('SELECT COUNT(*) as n FROM student_profiles WHERE parentId = ?').get(u.id)?.n ?? 0 },
         }))
       }
       return rows
