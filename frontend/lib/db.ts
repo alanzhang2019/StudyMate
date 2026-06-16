@@ -114,7 +114,7 @@ function buildFinder(table: string, idColumn: string) {
         throw new Error(`${table}.findUnique requires a single where clause`)
       }
       const [col, val] = entries[0]
-      const sqlCol = col.replace(/([A-Z])/g, '_$1').toLowerCase()
+      const sqlCol = col
       const stmt = getDb().prepare(`SELECT * FROM ${table} WHERE ${sqlCol} = ? LIMIT 1`)
       const row = stmt.get(val)
       if (!row) return null
@@ -133,7 +133,7 @@ function buildFinder(table: string, idColumn: string) {
       const params: any[] = []
       if (where) {
         for (const [k, v] of Object.entries(where)) {
-          whereSql.push(`${k.replace(/([A-Z])/g, '_$1').toLowerCase()} = ?`)
+          whereSql.push(`${k} = ?`)
           params.push(v)
         }
       }
@@ -141,7 +141,7 @@ function buildFinder(table: string, idColumn: string) {
       if (whereSql.length) sql += ` WHERE ${whereSql.join(' AND ')}`
       if (orderBy) {
         const [[k, dir]] = Object.entries(orderBy) as [string, string][]
-        sql += ` ORDER BY ${k.replace(/([A-Z])/g, '_$1').toLowerCase()} ${dir}`
+        sql += ` ORDER BY ${k} ${dir}`
       }
       sql += ' LIMIT 1'
       const row = getDb().prepare(sql).get(...params)
@@ -152,7 +152,7 @@ function buildFinder(table: string, idColumn: string) {
       const params: any[] = []
       if (where) {
         for (const [k, v] of Object.entries(where)) {
-          whereSql.push(`${k.replace(/([A-Z])/g, '_$1').toLowerCase()} = ?`)
+          whereSql.push(`${k} = ?`)
           params.push(v)
         }
       }
@@ -160,7 +160,7 @@ function buildFinder(table: string, idColumn: string) {
       if (whereSql.length) sql += ` WHERE ${whereSql.join(' AND ')}`
       if (orderBy) {
         const [[k, dir]] = Object.entries(orderBy) as [string, string][]
-        sql += ` ORDER BY ${k.replace(/([A-Z])/g, '_$1').toLowerCase()} ${dir}`
+        sql += ` ORDER BY ${k} ${dir}`
       }
       if (typeof take === 'number') sql += ` LIMIT ${take}`
       const rows = getDb().prepare(sql).all(...params) as Row[]
@@ -181,13 +181,8 @@ function buildFinder(table: string, idColumn: string) {
       const createdAt = data.createdAt ?? now()
       const fields: Row = { id, ...data, createdAt }
       const cols = Object.keys(fields)
-        .map((c) => c.replace(/([A-Z])/g, '_$1').toLowerCase())
       const placeholders = cols.map(() => '?').join(', ')
-      const values = cols.map((c) => {
-        const camelKey = c.replace(/_([a-z])/g, (_, x) => x.toUpperCase())
-        const v = fields[camelKey]
-        return v
-      })
+      const values = cols.map((c) => fields[c])
       getDb()
         .prepare(`INSERT INTO ${table} (${cols.join(', ')}) VALUES (${placeholders})`)
         .run(...values)
@@ -198,11 +193,11 @@ function buildFinder(table: string, idColumn: string) {
     },
     update: ({ where, data }: { where: Row; data: Row }) => {
       const [[wcol, wval]] = Object.entries(where)
-      const sqlCol = wcol.replace(/([A-Z])/g, '_$1').toLowerCase()
+      const sqlCol = wcol
       const setParts: string[] = []
       const params: any[] = []
       for (const [k, v] of Object.entries(data)) {
-        setParts.push(`${k.replace(/([A-Z])/g, '_$1').toLowerCase()} = ?`)
+        setParts.push(`${k} = ?`)
         params.push(v)
       }
       params.push(wval)
@@ -216,13 +211,13 @@ function buildFinder(table: string, idColumn: string) {
     },
     upsert: ({ where, update, create }: { where: Row; update: Row; create: Row }) => {
       const [[wcol, wval]] = Object.entries(where)
-      const sqlCol = wcol.replace(/([A-Z])/g, '_$1').toLowerCase()
+      const sqlCol = wcol
       const existing = getDb().prepare(`SELECT id FROM ${table} WHERE ${sqlCol} = ?`).get(wval) as { id: string } | undefined
       if (existing) {
         const setParts: string[] = []
         const params: any[] = []
         for (const [k, v] of Object.entries(update)) {
-          setParts.push(`${k.replace(/([A-Z])/g, '_$1').toLowerCase()} = ?`)
+          setParts.push(`${k} = ?`)
           params.push(v)
         }
         params.push(wval)
@@ -233,12 +228,9 @@ function buildFinder(table: string, idColumn: string) {
         const id = (create as Row).id ?? cid()
         const createdAt = (create as Row).createdAt ?? now()
         const fields: Row = { id, ...create, createdAt }
-        const cols = Object.keys(fields).map((c) => c.replace(/([A-Z])/g, '_$1').toLowerCase())
+        const cols = Object.keys(fields)
         const placeholders = cols.map(() => '?').join(', ')
-        const values = cols.map((c) => {
-          const camelKey = c.replace(/_([a-z])/g, (_, x) => x.toUpperCase())
-          return fields[camelKey]
-        })
+        const values = cols.map((c) => fields[c])
         getDb()
           .prepare(`INSERT INTO ${table} (${cols.join(', ')}) VALUES (${placeholders})`)
           .run(...values)
@@ -247,7 +239,7 @@ function buildFinder(table: string, idColumn: string) {
     },
     delete: ({ where }: { where: Row }) => {
       const [[wcol, wval]] = Object.entries(where)
-      const sqlCol = wcol.replace(/([A-Z])/g, '_$1').toLowerCase()
+      const sqlCol = wcol
       getDb().prepare(`DELETE FROM ${table} WHERE ${sqlCol} = ?`).run(wval)
       return { id: wval }
     },
@@ -256,7 +248,7 @@ function buildFinder(table: string, idColumn: string) {
       const params: any[] = []
       if (where) {
         for (const [k, v] of Object.entries(where)) {
-          whereSql.push(`${k.replace(/([A-Z])/g, '_$1').toLowerCase()} = ?`)
+          whereSql.push(`${k} = ?`)
           params.push(v)
         }
       }
@@ -305,7 +297,7 @@ class PrismaCompatClient {
     // locally for this table so we only ever touch the real columns.
     upsert: ({ where, update, create }: { where: Row; update: Row; create: Row }) => {
       const [[wcol, wval]] = Object.entries(where)
-      const sqlCol = wcol.replace(/([A-Z])/g, '_$1').toLowerCase()
+      const sqlCol = wcol
       const existing = getDb()
         .prepare(`SELECT key FROM system_config WHERE ${sqlCol} = ?`)
         .get(wval) as { key: string } | undefined
@@ -313,7 +305,7 @@ class PrismaCompatClient {
         const setParts: string[] = []
         const params: any[] = []
         for (const [k, v] of Object.entries(update)) {
-          setParts.push(`${k.replace(/([A-Z])/g, '_$1').toLowerCase()} = ?`)
+          setParts.push(`${k} = ?`)
           params.push(v)
         }
         params.push(wval)
@@ -323,14 +315,9 @@ class PrismaCompatClient {
           )
           .run(...params)
       } else {
-        const cols = Object.keys(create).map((c) =>
-          c.replace(/([A-Z])/g, '_$1').toLowerCase(),
-        )
+        const cols = Object.keys(create)
         const placeholders = cols.map(() => '?').join(', ')
-        const values = cols.map((c) => {
-          const camelKey = c.replace(/_([a-z])/g, (_, x) => x.toUpperCase())
-          return (create as Row)[camelKey]
-        })
+        const values = cols.map((c) => (create as Row)[c])
         getDb()
           .prepare(
             `INSERT INTO system_config (${cols.join(', ')}) VALUES (${placeholders})`,
