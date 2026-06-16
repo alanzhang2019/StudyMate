@@ -15,13 +15,16 @@ const nextConfig: NextConfig = {
   experimental: {
     proxyClientMaxBodySize: '200mb',
   },
-  // We deliberately do NOT opt into Turbopack. Next.js 16's Turbopack
-  // builder is still missing several of the file-tracing behaviours that
-  // `output: 'standalone'` relies on — in particular, dynamic client-only
-  // routes under `app/admin/**` were being dropped from the standalone
-  // output, so the production container served a 404 for them. Falling
-  // back to webpack restores a complete `.next/standalone` tree and is
-  // also what every other production guide currently assumes.
+  // We pass `--webpack` to `next build` (see Dockerfile) instead of
+  // letting Next.js 16 default to Turbopack. Turbopack's output tracing
+  // currently drops dynamic client-only routes from `app/admin/**` when
+  // combined with `output: 'standalone'`, which surfaces in the running
+  // container as a 404 on `/admin/*` even though the page compiles.
+  //
+  // The empty `turbopack: {}` entry below is just here to silence
+  // Next.js 16's "no turbopack config" warning, since the build is
+  // explicitly forced to webpack via the CLI flag.
+  turbopack: {},
   webpack: (config, { dev, isServer }) => {
     if (dev) {
       config.watchOptions = {

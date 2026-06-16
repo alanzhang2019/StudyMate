@@ -15,10 +15,12 @@ WORKDIR /app
 # ---- Stage 2: Dependencies ----
 FROM base AS deps
 
-# Native build tools for sharp / @napi-rs/canvas. NOT needed for
-# better-sqlite3 anymore — we now rely on the prebuilt musl .node
-# binaries shipped by prebuild-install (see comment below).
-RUN apk add --no-cache python3 cairo jpeg giflib librsvg pango
+# Native build tools for sharp / @napi-rs/canvas AND for the
+# better-sqlite3 fallback path (`node-gyp rebuild`) when
+# prebuild-install cannot find a matching prebuilt musl binary.
+# Keeping `build-base` means a missing prebuild only adds a few
+# minutes of C++ compilation instead of failing the layer entirely.
+RUN apk add --no-cache python3 cairo jpeg giflib librsvg pango build-base
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/ ./packages/
@@ -75,7 +77,7 @@ RUN NEXT_TELEMETRY_DISABLED=1 \
     DEFAULT_MODEL=${DEFAULT_MODEL} \
     MISTAKE_OCR_MODEL=${MISTAKE_OCR_MODEL} \
     LLM_THINKING_DISABLED=${LLM_THINKING_DISABLED} \
-    pnpm build
+    pnpm build --webpack
 
 # Ensure the prebuilt better-sqlite3 native binding is part of the standalone
 # output. We copy the entire package (including the compiled .node file) into
