@@ -1,6 +1,12 @@
 # ---- Stage 1: Base ----
 FROM node:22-alpine AS base
 
+# Use Aliyun mirrors for both apk (Alpine package manager) and pnpm/Node
+# package downloads. The default registry endpoints are flaky from most
+# Chinese cloud networks, which previously pushed `apk add` to ~27 minutes
+# and `pnpm install` to several minutes — switching to mirrors drops both
+# into the single-digit seconds range.
+RUN sed -i 's|dl-cdn.alpinelinux.org|mirrors.aliyun.com|g' /etc/apk/repositories
 RUN apk add --no-cache libc6-compat
 RUN corepack enable && corepack prepare pnpm@10.28.0 --activate
 
@@ -26,6 +32,11 @@ COPY packages/ ./packages/
 #      `npm run install --build-from-source` step took ~10 min per build.
 #      Fetching the prebuilt musl binary from better-sqlite3's GitHub
 #      release cuts this to a few seconds.
+#
+# Registry override: route pnpm and prebuild-install through npmmirror.com
+# so we don't burn tens of minutes on cross-border tarball downloads.
+ENV npm_config_registry=https://registry.npmmirror.com
+ENV npm_config_prebuild_binary_host_mirror=https://npmmirror.com/mirrors
 RUN set -eux; \
     pnpm install --frozen-lockfile; \
     cd packages/mathml2omml && npm run build; \
