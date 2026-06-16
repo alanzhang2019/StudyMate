@@ -23,12 +23,21 @@ let _db: Database | null = null
 let _dbInit: boolean = false
 function getDb(): Database {
   if (!_db) {
-    // During Next.js build (page data collection), each worker process can
-    // hit this code path simultaneously. Use a per-process in-memory database
-    // when we are not the primary Node process and DB is uninitialised,
-    // so that workers do not race on the same on-disk file.
-    const isBuild = process.env.NEXT_PHASE === 'phase-production-build' || process.argv.includes('build')
-    if (isBuild) {
+    // During Next.js's `next build` (page data collection), each worker
+    // process can hit this code path simultaneously. Use a per-process
+    // in-memory database in that exact phase so the workers do not race
+    // on the same on-disk file.
+    //
+    // IMPORTANT: only match on the explicit `NEXT_PHASE` env var that
+    // Next.js sets to `phase-production-build` while running `next build`.
+    // We previously also checked `process.argv.includes('build')`, which
+    // silently matched the runtime command line of `next start` (the
+    // Node process tree of `pnpm start` happens to contain the substring
+    // "build") and sent every production request at a throwaway
+    // `:memory:` database — which is why `/api/admin/config` returned
+    // 500s even though the route compiled cleanly.
+    const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build'
+    if (isBuildPhase) {
       _db = new Database(':memory:')
       _db.pragma('journal_mode = MEMORY')
     } else {
