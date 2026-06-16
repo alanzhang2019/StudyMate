@@ -58,7 +58,7 @@ export async function POST(request: Request): Promise<Response> {
     grade: input.grade,
     hasStudentAnswer: Boolean(input.studentAnswer),
     confidence: diagnosis.confidence,
-  });
+  }, { request });
 
   return Response.json(response);
 }

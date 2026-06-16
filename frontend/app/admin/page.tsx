@@ -12,6 +12,8 @@ import { Badge } from '@/components/ui/badge';
 type Stats = {
   totals: Record<string, number>;
   series: { date: string; counts: Record<string, number> }[];
+  uniqueVisitors: number;
+  visitorSeries: { date: string; uv: number }[];
   windowDays: number;
 };
 
@@ -65,6 +67,20 @@ export default function AdminDashboardPage() {
     {},
   );
 
+  // PV = total events, UV = unique visitors in the same window.
+  // We compare against the previous day to make the trend obvious
+  // without a chart library.
+  const totalPV = Object.values(totals).reduce((s, n) => s + n, 0);
+  const totalUV = stats?.uniqueVisitors ?? 0;
+  const visitorSeries = stats?.visitorSeries ?? [];
+  const todayUV = visitorSeries[visitorSeries.length - 1]?.uv ?? 0;
+  const yesterdayUV =
+    visitorSeries[visitorSeries.length - 2]?.uv ?? 0;
+  const uvDelta =
+    yesterdayUV === 0
+      ? null
+      : ((todayUV - yesterdayUV) / yesterdayUV) * 100;
+
   // Build a tiny SVG sparkline from the 30-day series so the dashboard
   // has some visual signal without dragging in a chart library.
   const sparkline = (() => {
@@ -89,6 +105,23 @@ export default function AdminDashboardPage() {
     return { W, H, points, max };
   })();
 
+  // Second sparkline for UV (independent scale).
+  const uvSparkline = (() => {
+    if (!stats || visitorSeries.length === 0) return null;
+    const max = Math.max(1, ...visitorSeries.map((d) => d.uv));
+    const W = 600;
+    const H = 80;
+    const step = W / Math.max(1, visitorSeries.length - 1);
+    const points = visitorSeries
+      .map((d, i) => {
+        const x = i * step;
+        const y = H - (d.uv / max) * (H - 8) - 4;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      })
+      .join(' ');
+    return { W, H, points, max };
+  })();
+
   return (
     <div className="space-y-6 max-w-6xl">
       <div className="flex items-center justify-between">
@@ -102,6 +135,86 @@ export default function AdminDashboardPage() {
         <div className="text-red-500 py-8">{error}</div>
       ) : (
         <>
+          {/* Headline: 30-day UV/PV. UV is the north star for a
+              no-signup product — it tells us how many real humans
+              we reached. PV is downstream of UV and event volume. */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-3xl mb-1">👥</div>
+                <div className="text-sm text-gray-500">
+                  独立访客（30 天）
+                </div>
+                <div className="text-4xl font-semibold text-gray-900 mt-1">
+                  {totalUV}
+                </div>
+                <div className="text-xs text-gray-400 mt-1">
+                  今日 {todayUV} · 昨日 {yesterdayUV}
+                  {uvDelta !== null
+                    ? ` · ${uvDelta >= 0 ? '+' : ''}${uvDelta.toFixed(0)}%`
+                    : ''}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-3xl mb-1">⚡</div>
+                <div className="text-sm text-gray-500">
+                  行为事件（30 天）
+                </div>
+                <div className="text-4xl font-semibold text-gray-900 mt-1">
+                  {totalPV}
+                </div>
+                <div className="text-xs text-gray-400 mt-1">
+                  PV · 含埋点全部
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-3xl mb-1">🎯</div>
+                <div className="text-sm text-gray-500">人均行为</div>
+                <div className="text-4xl font-semibold text-gray-900 mt-1">
+                  {totalUV === 0
+                    ? '0'
+                    : (totalPV / totalUV).toFixed(1)}
+                </div>
+                <div className="text-xs text-gray-400 mt-1">
+                  PV / UV · 用户活跃度
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* UV trend */}
+          <Card>
+            <CardHeader>
+              <CardTitle>独立访客趋势</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {uvSparkline ? (
+                <svg
+                  viewBox={`0 0 ${uvSparkline.W} ${uvSparkline.H}`}
+                  className="w-full h-20"
+                  preserveAspectRatio="none"
+                >
+                  <polyline
+                    points={uvSparkline.points}
+                    fill="none"
+                    stroke="#10b981"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ) : null}
+              <div className="text-xs text-gray-400 mt-2 flex justify-between">
+                <span>30 天前</span>
+                <span>今天</span>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Priority KPIs */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {PRIORITY_EVENTS.map((evt) => {

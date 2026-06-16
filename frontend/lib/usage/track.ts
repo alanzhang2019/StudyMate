@@ -23,8 +23,26 @@ export type UsageEventName =
 export async function trackEvent(
   eventName: UsageEventName,
   payload?: Record<string, unknown>,
+  options?: { visitorId?: string | null; request?: Request },
 ): Promise<void> {
   try {
+    // Lazy import to avoid pulling next/headers in when the caller
+    // already has a visitorId in hand (e.g. from the cookie set by
+    // the root layout). The import is cheap but a hard dep would
+    // make this helper harder to test.
+    const { getOrCreateVisitorId } = await import('@/lib/visitor/server');
+
+    let visitorId: string | null | undefined = options?.visitorId;
+    if (!visitorId && options?.request) {
+      visitorId =
+        options.request.headers.get('x-visitor-id') ||
+        options.request.headers.get('X-Visitor-Id');
+    }
+    if (!visitorId) {
+      const { visitorId: minted } = await getOrCreateVisitorId();
+      visitorId = minted;
+    }
+
     const id = randomUUID();
     const json = payload ? JSON.stringify(payload) : null;
     // Use the Prisma-compat `db` shim so we go through the same WAL
@@ -35,6 +53,7 @@ export async function trackEvent(
         id,
         eventName,
         payload: json as any,
+        visitorId: visitorId as string,
       } as any,
     });
   } catch (err) {

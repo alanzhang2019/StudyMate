@@ -93,11 +93,27 @@ function getDb(): Database {
     id TEXT PRIMARY KEY,
     eventName TEXT NOT NULL,
     payload TEXT,
+    visitorId TEXT,
     createdAt TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
+  -- Idempotent column add: the table may have been created before
+  -- we introduced visitor attribution. We can't add it inside the
+  -- CREATE TABLE block above because `IF NOT EXISTS` skips the
+  -- whole statement when the table already exists. Wrap the ALTER
+  -- in a try/catch (older better-sqlite3 throws if the column is
+  -- already there) so this block is safe to run on every boot.
+  try {
+    _db.exec(`ALTER TABLE usage_events ADD COLUMN visitorId TEXT`)
+  } catch {
+    // column already exists — that's the common case after the
+    // first deploy with this migration.
+  }
+
   CREATE INDEX IF NOT EXISTS idx_usage_events_name_time
     ON usage_events (eventName, createdAt);
+  CREATE INDEX IF NOT EXISTS idx_usage_events_visitor_time
+    ON usage_events (visitorId, createdAt);
 `)
   }
   return _db

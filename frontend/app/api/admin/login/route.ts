@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     secure: process.env.NODE_ENV === 'production',
   });
 
-  void trackEvent('admin.login', { username: validUsername });
+  void trackEvent('admin.login', { username: validUsername }, { request });
 
   return apiSuccess({ valid: true });
 }

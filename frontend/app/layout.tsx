@@ -10,6 +10,8 @@ import { Toaster } from '@/components/ui/sonner';
 import { ServerProvidersInit } from '@/components/server-providers-init';
 import { AccessCodeGuard } from '@/components/access-code-guard';
 import { NextAuthProvider } from '@/components/providers/session-provider';
+import { VisitorBootstrap } from '@/components/VisitorBootstrap';
+import { getOrCreateVisitorId } from '@/lib/visitor/server';
 
 const baloo = Baloo_2({ 
   subsets: ["latin"],
@@ -75,17 +77,24 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Every request gets a stable, anonymous visitor id. We mint it
+  // here in the root server layout (not in middleware) so we can
+  // hand the same value to both the cookie *and* the client-side
+  // `VisitorBootstrap` component that copies it into localStorage
+  // for fetch() attribution.
+  const { visitorId } = await getOrCreateVisitorId();
   return (
     <html lang="zh-CN" className={`${baloo.variable} ${comicNeue.variable}`} suppressHydrationWarning>
       <body
         className={`${GeistMono.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
+        <VisitorBootstrap visitorId={visitorId} />
         <ThemeProvider>
           <I18nProvider>
             <NextAuthProvider>

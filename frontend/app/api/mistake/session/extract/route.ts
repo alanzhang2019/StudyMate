@@ -93,12 +93,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Track successful OCR extractions so we can see how many real
-    // user interactions the landing page is producing.
+    // user interactions the landing page is producing. Pass the
+    // raw `request` so `trackEvent` can attribute the event to
+    // the anonymous visitor cookie set in the root layout.
     void trackEvent('mistake.extract', {
       confidence: extraction.confidence,
       hasProblemText: Boolean(extraction.problemText),
       additionalImages: validAdditionalImages.length,
-    });
+    }, { request });
 
     return apiSuccess({ extraction });
   } catch (error) {

@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
       grade: input.grade,
       hasSessionId: Boolean(input.sessionId),
       source: input.source,
-    });
+    }, { request: req });
 
     return apiSuccess(
       {
