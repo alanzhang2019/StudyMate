@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { setClientVisitorId } from './client';
+import { setClientVisitorId } from '@/lib/visitor/client';
 
 /**
  * Hydrates the client-side `localStorage` shadow of the visitor id

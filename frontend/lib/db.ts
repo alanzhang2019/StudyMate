@@ -99,7 +99,7 @@ function getDb(): Database {
 
   -- Idempotent column add: the table may have been created before
   -- we introduced visitor attribution. We can't add it inside the
-  -- CREATE TABLE block above because `IF NOT EXISTS` skips the
+  -- CREATE TABLE block above because 'IF NOT EXISTS' skips the
   -- whole statement when the table already exists. Wrap the ALTER
   -- in a try/catch (older better-sqlite3 throws if the column is
   -- already there) so this block is safe to run on every boot.

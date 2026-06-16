@@ -146,6 +146,13 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Prompt templates are loaded at runtime from `lib/prompts/templates/`
+# via `process.cwd()`. Next.js standalone tracing cannot follow
+# `process.cwd()`-based file reads, so we copy the directory explicitly
+# into the runner image. Without this, /api/generate/* routes return
+# "Prompt template not found" (visible on /generation-preview).
+COPY --from=builder --chown=nextjs:nodejs /app/lib/prompts ./lib/prompts
+
 USER nextjs
 
 EXPOSE 3001
