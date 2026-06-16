@@ -82,15 +82,27 @@ RUN NEXT_TELEMETRY_DISABLED=1 \
 # Ensure the prebuilt better-sqlite3 native binding is part of the standalone
 # output. We copy the entire package (including the compiled .node file) into
 # .next/standalone/node_modules so the runtime require() resolves it.
+#
+# better-sqlite3 also requires `bindings` and `prebuild-install` to locate
+# the native .node file at runtime. These live inside the pnpm package's
+# own node_modules folder (pnpm nests non-conflicting deps there), so we
+# copy the whole pnpm package directory to keep the .pnpm symlink graph
+# intact. (Next.js's output:standalone traces source files but does not
+# automatically pick up the native module's runtime dependencies.)
 RUN set -eux; \
     mkdir -p /app/.next/standalone/node_modules/.pnpm; \
     cp -r /app/node_modules/.pnpm/better-sqlite3@11.10.0 /app/.next/standalone/node_modules/.pnpm/; \
     mkdir -p /app/.next/standalone/node_modules/better-sqlite3; \
     cp -r /app/node_modules/.pnpm/better-sqlite3@11.10.0/node_modules/better-sqlite3/. /app/.next/standalone/node_modules/better-sqlite3/; \
+    mkdir -p /app/.next/standalone/node_modules/bindings; \
+    cp -r /app/node_modules/.pnpm/better-sqlite3@11.10.0/node_modules/bindings/. /app/.next/standalone/node_modules/bindings/ 2>/dev/null || \
+      cp -r /app/node_modules/.pnpm/bindings@1.5.0/node_modules/bindings/. /app/.next/standalone/node_modules/bindings/ 2>/dev/null || true; \
     echo "=== Standalone better-sqlite3 files ==="; \
     (find /app/.next/standalone/node_modules/better-sqlite3 -name '*.node' 2>/dev/null || true); \
     (ls -la /app/.next/standalone/node_modules/better-sqlite3/build/Release/ 2>&1 || echo "build/Release not found"); \
-    test -f /app/.next/standalone/node_modules/better-sqlite3/build/Release/better_sqlite3.node || (echo 'FATAL: .node missing in standalone' && exit 1)
+    (ls -la /app/.next/standalone/node_modules/bindings 2>&1 || echo "bindings NOT in standalone"); \
+    test -f /app/.next/standalone/node_modules/better-sqlite3/build/Release/better_sqlite3.node || (echo 'FATAL: .node missing in standalone' && exit 1); \
+    test -d /app/.next/standalone/node_modules/bindings || (echo 'FATAL: bindings missing in standalone' && exit 1)
 
 # ---- Stage 4: Runner ----
 FROM node:22-alpine AS runner
