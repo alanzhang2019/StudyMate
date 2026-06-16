@@ -9,6 +9,7 @@ import { type GenerateClassroomInput } from '@/lib/server/classroom-generation';
 import { runClassroomGenerationJob } from '@/lib/server/classroom-job-runner';
 import { createClassroomGenerationJob } from '@/lib/server/classroom-job-store';
 import { buildRequestOrigin } from '@/lib/server/classroom-storage';
+import { trackEvent } from '@/lib/usage/track';
 
 const requestSchema = z.object({
   sessionId: z.string().min(1).optional(),
@@ -98,6 +99,15 @@ export async function POST(req: NextRequest) {
     const pollUrl = `${baseUrl}/api/generate-classroom/${jobId}`;
 
     after(() => runClassroomGenerationJob(jobId, classroomInput, baseUrl, { sessionId: input.sessionId }));
+
+    // Fire-and-forget tracking. We log the *start* of a generation, not
+    // the completion, so we can see both how many users initiated the
+    // flow and (later) how many actually completed it.
+    void trackEvent('mistake.session.generate_classroom', {
+      grade: input.grade,
+      hasSessionId: Boolean(input.sessionId),
+      source: input.source,
+    });
 
     return apiSuccess(
       {

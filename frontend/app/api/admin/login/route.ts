@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { timingSafeEqual } from 'crypto';
 import { apiError, apiSuccess } from '@/lib/server/api-response';
 import { signAdminToken } from '@/lib/admin/auth';
+import { trackEvent } from '@/lib/usage/track';
 
 export async function POST(request: Request) {
   const validUsername = process.env.ADMIN_USERNAME || 'admin';
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
 
   const token = await signAdminToken();
   const cookieStore = await cookies();
-  
+
   cookieStore.set('admin_token', token, {
     httpOnly: true,
     sameSite: 'lax',
@@ -48,6 +49,8 @@ export async function POST(request: Request) {
     maxAge: 60 * 60 * 24, // 24 hours
     secure: process.env.NODE_ENV === 'production',
   });
+
+  void trackEvent('admin.login', { username: validUsername });
 
   return apiSuccess({ valid: true });
 }

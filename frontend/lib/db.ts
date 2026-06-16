@@ -88,6 +88,16 @@ function getDb(): Database {
     value TEXT NOT NULL,
     updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS usage_events (
+    id TEXT PRIMARY KEY,
+    eventName TEXT NOT NULL,
+    payload TEXT,
+    createdAt TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_usage_events_name_time
+    ON usage_events (eventName, createdAt);
 `)
   }
   return _db
@@ -286,6 +296,10 @@ class PrismaCompatClient {
     },
   }
   mistakeRecord = buildFinder('mistake_records', 'id')
+  // usage_events has no `id` column in the schema (wait — it does, it's
+  // a UUID primary key), so buildFinder works as-is. The `eventName`
+  // column is what we filter on in /api/admin/stats.
+  usageEvent = buildFinder('usage_events', 'id')
   systemConfig = {
     ...buildFinder('system_config', 'key'),
     findUnique: (args: any) => buildFinder('system_config', 'key').findUnique(args),

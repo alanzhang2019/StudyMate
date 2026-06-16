@@ -28,6 +28,45 @@ export const metadata: Metadata = {
   title: 'AI讲题 · AI JiangTi | 拍一下就讲明白',
   description:
     'AI讲题（AI JiangTi）是一款面向小学 4-6 年级的 AI 数学错题讲解工具，拍题后即可生成循序渐进的互动讲解。',
+  keywords: [
+    'AI 错题本',
+    'AI 讲题',
+    '数学错题',
+    '拍照讲题',
+    '错题讲解',
+    '小学数学',
+    'AI JiangTi',
+  ],
+  authors: [{ name: 'AI 错题本' }],
+  creator: 'AI 错题本',
+  openGraph: {
+    type: 'website',
+    locale: 'zh_CN',
+    url: 'https://aijiangti.cn',
+    siteName: 'AI 错题本',
+    title: 'AI 错题本 · 拍一下就讲明白',
+    description:
+      '拍照识别数学错题，AI 生成互动讲解视频，举一反三练习。无需注册，即开即用。',
+    images: [
+      {
+        url: '/og-cover.png',
+        width: 1200,
+        height: 630,
+        alt: 'AI 错题本',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'AI 错题本 · 拍一下就讲明白',
+    description:
+      '拍照识别数学错题，AI 生成互动讲解视频，举一反三练习。',
+    images: ['/og-cover.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },

@@ -14,7 +14,7 @@ export default function AdminLogin() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
     });
-    if (res.ok) router.push('/admin/settings');
+    if (res.ok) router.push('/admin');
     else alert('Login failed');
   };
 

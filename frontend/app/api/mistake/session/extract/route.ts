@@ -6,6 +6,7 @@ import { normalizeExtraction } from '@/lib/mistake/ocr/normalize-extraction';
 import { apiError, apiSuccess } from '@/lib/server/api-response';
 import { normalizeAiErrorMessage } from '@/lib/server/normalize-ai-error';
 import { resolveModelFromHeaders } from '@/lib/server/resolve-model';
+import { trackEvent } from '@/lib/usage/track';
 
 const bodySchema = z.object({
   subject: z.literal('math'),
@@ -90,6 +91,14 @@ export async function POST(request: NextRequest) {
     if (extraction.confidence === 0 && extraction.rawModelText?.includes('ocr-error')) {
       return apiSuccess({ extraction });
     }
+
+    // Track successful OCR extractions so we can see how many real
+    // user interactions the landing page is producing.
+    void trackEvent('mistake.extract', {
+      confidence: extraction.confidence,
+      hasProblemText: Boolean(extraction.problemText),
+      additionalImages: validAdditionalImages.length,
+    });
 
     return apiSuccess({ extraction });
   } catch (error) {

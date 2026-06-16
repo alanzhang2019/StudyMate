@@ -4,6 +4,7 @@ import type { AnalyzeSessionResponse, ProblemInput } from '@/lib/mistake/domain/
 import { diagnoseMistake } from '@/lib/mistake/diagnosis/diagnose';
 import { explainForChild } from '@/lib/mistake/explain/explain';
 import { generatePractice } from '@/lib/mistake/practice/generate-practice';
+import { trackEvent } from '@/lib/usage/track';
 
 const problemInputSchema = z.object({
   grade: z.number().int().min(1).max(12),
@@ -52,6 +53,12 @@ export async function POST(request: Request): Promise<Response> {
       parentSummary: diagnosis.parentSummary,
     },
   };
+
+  void trackEvent('mistake.session.analyze', {
+    grade: input.grade,
+    hasStudentAnswer: Boolean(input.studentAnswer),
+    confidence: diagnosis.confidence,
+  });
 
   return Response.json(response);
 }
