@@ -9,22 +9,38 @@ WORKDIR /app
 # ---- Stage 2: Dependencies ----
 FROM base AS deps
 
-# Native build tools for sharp, @napi-rs/canvas
-RUN apk add --no-cache python3 cairo jpeg giflib librsvg pango build-base
+# Native build tools for sharp / @napi-rs/canvas. NOT needed for
+# better-sqlite3 anymore — we now rely on the prebuilt musl .node
+# binaries shipped by prebuild-install (see comment below).
+RUN apk add --no-cache python3 cairo jpeg giflib librsvg pango
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/ ./packages/
 
-# 不带 --ignore-scripts：让 better-sqlite3 / sharp / @napi-rs/canvas 的 postinstall
-# 自动跑 prebuild-install 下载 musl 预编译 .node；网络失败时回退 node-gyp 编译
+# Layer order matters for build cache:
+#   1. `pnpm install` from lockfile — cache hit when package.json/pnpm-lock.yaml unchanged.
+#   2. Build workspace package `mathml2omml`.
+#   3. Force-install better-sqlite3 without rebuilding from source — the
+#      pnpm hoisted layout puts it at a deep path that `pnpm install`
+#      does not always wire up prebuild-install for, and the previous
+#      `npm run install --build-from-source` step took ~10 min per build.
+#      Fetching the prebuilt musl binary from better-sqlite3's GitHub
+#      release cuts this to a few seconds.
 RUN set -eux; \
-    pnpm install; \
+    pnpm install --frozen-lockfile; \
     cd packages/mathml2omml && npm run build; \
     cd /app; \
-    # 强制 better-sqlite3 从源码编译（Alpine musl 经常没有匹配的预编译 .node）
-    echo "=== Compiling better-sqlite3 from source ==="; \
+    echo "=== Install better-sqlite3 prebuilt musl binary ==="; \
     cd /app/node_modules/.pnpm/better-sqlite3@11.10.0/node_modules/better-sqlite3; \
-    npm run install --build-from-source 2>&1 | tail -40; \
+    npm_config_build_from_source=false \
+    npm_config_prebuild_from_source=false \
+    npm_config_target=$(node -p "process.versions.node") \
+    npm_config_runtime=node \
+    npm_config_target_arch=$(node -p "process.arch") \
+    npm_config_target_platform=linuxmusl \
+    npx --yes prebuild-install || \
+      (echo "prebuild-install failed, falling back to source build"; \
+       npm run install --build-from-source 2>&1 | tail -40); \
     echo "=== Locate generated .node files ==="; \
     (find /app -name 'better_sqlite3.node' 2>/dev/null || echo "find returned non-zero"); \
     echo "=== Verify build/Release ==="; \
