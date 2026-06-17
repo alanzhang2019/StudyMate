@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminToken } from '@/lib/admin/auth';
-import { randomUUID } from 'node:crypto';
 
 const VISITOR_COOKIE = 'sm_visitor_id';
 const VISITOR_COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
@@ -62,7 +61,10 @@ export async function middleware(request: NextRequest) {
   // browser still gets attributed.
   const existingVisitor = request.cookies.get(VISITOR_COOKIE);
   if (!existingVisitor?.value) {
-    response.cookies.set(VISITOR_COOKIE, randomUUID(), {
+    // Web Crypto API is available in both Node 18+ and the Edge
+    // Runtime that Next.js middleware uses. We can't pull in
+    // node:crypto here because webpack would refuse to bundle it.
+    response.cookies.set(VISITOR_COOKIE, crypto.randomUUID(), {
       httpOnly: true,
       sameSite: 'lax',
       path: '/',
