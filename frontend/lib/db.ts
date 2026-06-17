@@ -105,9 +105,9 @@ function getDb(): Database {
   -- already there) so this block is safe to run on every boot.
   try {
     // NOTE: single quotes here on purpose. The outer block is a big
-    // template-string SQL literal; a nested `ALTER ...` template here
+    // template-string SQL literal; a nested template-string here
     // makes the SWC parser end the outer template prematurely, which
-    // surfaces as "Expected ',', got 'ALTER'" at build time.
+    // surfaces as a syntax error at build time.
     _db.exec('ALTER TABLE usage_events ADD COLUMN visitorId TEXT')
   } catch {
     // column already exists — that's the common case after the
