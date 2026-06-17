@@ -104,7 +104,11 @@ function getDb(): Database {
   -- in a try/catch (older better-sqlite3 throws if the column is
   -- already there) so this block is safe to run on every boot.
   try {
-    _db.exec(`ALTER TABLE usage_events ADD COLUMN visitorId TEXT`)
+    // NOTE: single quotes here on purpose. The outer block is a big
+    // template-string SQL literal; a nested `ALTER ...` template here
+    // makes the SWC parser end the outer template prematurely, which
+    // surfaces as "Expected ',', got 'ALTER'" at build time.
+    _db.exec('ALTER TABLE usage_events ADD COLUMN visitorId TEXT')
   } catch {
     // column already exists — that's the common case after the
     // first deploy with this migration.
