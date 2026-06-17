@@ -11,7 +11,7 @@ import { ServerProvidersInit } from '@/components/server-providers-init';
 import { AccessCodeGuard } from '@/components/access-code-guard';
 import { NextAuthProvider } from '@/components/providers/session-provider';
 import { VisitorBootstrap } from '@/components/VisitorBootstrap';
-import { getOrCreateVisitorId } from '@/lib/visitor/server';
+import { getOrGenerateVisitorId } from '@/lib/visitor/server';
 
 const baloo = Baloo_2({ 
   subsets: ["latin"],
@@ -87,7 +87,7 @@ export default async function RootLayout({
   // hand the same value to both the cookie *and* the client-side
   // `VisitorBootstrap` component that copies it into localStorage
   // for fetch() attribution.
-  const { visitorId } = await getOrCreateVisitorId();
+  const visitorId = await getOrGenerateVisitorId();
   return (
     <html lang="zh-CN" className={`${baloo.variable} ${comicNeue.variable}`} suppressHydrationWarning>
       <body

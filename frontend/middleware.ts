@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminToken } from '@/lib/admin/auth';
+import { randomUUID } from 'node:crypto';
+
+const VISITOR_COOKIE = 'sm_visitor_id';
+const VISITOR_COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 
 /** Convert string to Uint8Array */
 function encode(str: string): Uint8Array {
@@ -45,6 +49,35 @@ async function verifyToken(token: string, accessCode: string): Promise<boolean> 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Build a response by running the existing access-control pipeline
+  // first, then attach the visitor cookie to whatever the pipeline
+  // decides to return. This keeps the visitor-id contract in one
+  // place and means every code path (page, API, redirect, json)
+  // ends up setting the cookie on the first hit.
+  const response = await runAccessControl(request, pathname);
+
+  // Mint a visitor id once per request, only if the browser hasn't
+  // sent one yet. We do this for *every* response (including 401s
+  // and redirects) so that the very first API call from a new
+  // browser still gets attributed.
+  const existingVisitor = request.cookies.get(VISITOR_COOKIE);
+  if (!existingVisitor?.value) {
+    response.cookies.set(VISITOR_COOKIE, randomUUID(), {
+      httpOnly: true,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: VISITOR_COOKIE_MAX_AGE,
+      secure: process.env.NODE_ENV === 'production',
+    });
+  }
+
+  return response;
+}
+
+async function runAccessControl(
+  request: NextRequest,
+  pathname: string,
+): Promise<NextResponse> {
   // Protect admin API routes (excluding login)
   if (pathname.startsWith('/api/admin') && pathname !== '/api/admin/login') {
     const adminToken = request.cookies.get('admin_token');
