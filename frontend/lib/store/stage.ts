@@ -64,6 +64,7 @@ interface StageState {
   generationStatus: 'idle' | 'generating' | 'paused' | 'completed' | 'error';
   currentGeneratingOrder: number;
   failedOutlines: SceneOutline[];
+  failedOutlineReason: string | null;
 
   // Actions
   setStage: (stage: Stage) => void;
@@ -86,7 +87,7 @@ interface StageState {
   setGenerationStatus: (status: 'idle' | 'generating' | 'paused' | 'completed' | 'error') => void;
   setCurrentGeneratingOrder: (order: number) => void;
   bumpGenerationEpoch: () => void;
-  addFailedOutline: (outline: SceneOutline) => void;
+  addFailedOutline: (outline: SceneOutline, reason?: string) => void;
   clearFailedOutlines: () => void;
   retryFailedOutline: (outlineId: string) => void;
 
@@ -115,6 +116,7 @@ const useStageStoreBase = create<StageState>()((set, get) => ({
   generationStatus: 'idle' as const,
   currentGeneratingOrder: -1,
   failedOutlines: [],
+  failedOutlineReason: null,
 
   // Actions
   setStage: (stage) => {
@@ -234,17 +236,27 @@ const useStageStoreBase = create<StageState>()((set, get) => ({
 
   bumpGenerationEpoch: () => set((s) => ({ generationEpoch: s.generationEpoch + 1 })),
 
-  addFailedOutline: (outline) => {
+  addFailedOutline: (outline, reason) => {
     const existed = get().failedOutlines.some((o) => o.id === outline.id);
-    if (existed) return;
-    set({ failedOutlines: [...get().failedOutlines, outline] });
+    if (existed) {
+      // Even if the id is already tracked, refresh the reason so the
+      // most recent error message is what the user sees.
+      if (reason) set({ failedOutlineReason: reason });
+      return;
+    }
+    set({
+      failedOutlines: [...get().failedOutlines, outline],
+      failedOutlineReason: reason ?? null,
+    });
   },
 
-  clearFailedOutlines: () => set({ failedOutlines: [] }),
+  clearFailedOutlines: () => set({ failedOutlines: [], failedOutlineReason: null }),
 
   retryFailedOutline: (outlineId) => {
+    const remaining = get().failedOutlines.filter((o) => o.id !== outlineId);
     set({
-      failedOutlines: get().failedOutlines.filter((o) => o.id !== outlineId),
+      failedOutlines: remaining,
+      failedOutlineReason: remaining.length === 0 ? null : get().failedOutlineReason,
     });
   },
 
@@ -335,6 +347,7 @@ const useStageStoreBase = create<StageState>()((set, get) => ({
       generationStatus: 'idle' as const,
       currentGeneratingOrder: -1,
       failedOutlines: [],
+      failedOutlineReason: null,
       generatingOutlines: [],
     }));
     log.info('Store cleared');

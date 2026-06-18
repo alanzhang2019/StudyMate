@@ -69,6 +69,7 @@ export function Stage({
     outlines,
   } = useStageStore();
   const failedOutlines = useStageStore.use.failedOutlines();
+  const failedOutlineReason = useStageStore.use.failedOutlineReason();
 
   const currentScene = getCurrentScene();
 
@@ -1136,6 +1137,7 @@ export function Stage({
             isGenerationFailed={
               isPendingScene && failedOutlines.some((f) => f.id === generatingOutlines[0]?.id)
             }
+            generationFailureReason={failedOutlineReason}
             hasVisibleLectureContent={Boolean(lectureSpeech || liveSpeech || firstSpeechText)}
             onRetryGeneration={
               onRetryOutline && generatingOutlines[0]

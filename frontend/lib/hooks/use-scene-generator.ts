@@ -382,7 +382,7 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
               pausedByFailureOrAbort = true;
               break;
             }
-            store.getState().addFailedOutline(outline);
+            store.getState().addFailedOutline(outline, contentResult.error || 'Content generation failed');
             options.onSceneFailed?.(outline, contentResult.error || 'Content generation failed');
             store.getState().setGenerationStatus('paused');
             pausedByFailureOrAbort = true;
@@ -454,7 +454,7 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
               pausedByFailureOrAbort = true;
               break;
             }
-            store.getState().addFailedOutline(outline);
+            store.getState().addFailedOutline(outline, actionsResult.error || 'Actions generation failed');
             options.onSceneFailed?.(outline, actionsResult.error || 'Actions generation failed');
             store.getState().setGenerationStatus('paused');
             pausedByFailureOrAbort = true;
@@ -538,7 +538,7 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
         );
 
         if (!contentResult.success || !contentResult.content) {
-          store.getState().addFailedOutline(outline);
+          store.getState().addFailedOutline(outline, contentResult.error || 'Content generation failed');
           return;
         }
 
@@ -566,7 +566,7 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
         );
 
         if (!actionsResult.success || !actionsResult.scene) {
-          store.getState().addFailedOutline(outline);
+          store.getState().addFailedOutline(outline, actionsResult.error || 'Actions generation failed');
           return;
         }
 
@@ -595,7 +595,8 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
         }
       } catch (err) {
         if (!(err instanceof DOMException && err.name === 'AbortError')) {
-          store.getState().addFailedOutline(outline);
+          const message = err instanceof Error ? err.message : 'Unexpected error during scene generation';
+          store.getState().addFailedOutline(outline, message);
         }
       }
     },

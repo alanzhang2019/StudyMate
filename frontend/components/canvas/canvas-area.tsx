@@ -23,6 +23,7 @@ interface CanvasAreaProps extends CanvasToolbarProps {
   readonly isPendingScene?: boolean;
   readonly isCourseComplete?: boolean;
   readonly isGenerationFailed?: boolean;
+  readonly generationFailureReason?: string | null;
   readonly onRetryGeneration?: () => void;
   readonly hasVisibleLectureContent?: boolean;
   readonly whiteboardEnabled?: boolean;
@@ -53,6 +54,7 @@ export function CanvasArea({
   isPendingScene,
   isCourseComplete,
   isGenerationFailed,
+  generationFailureReason,
   onRetryGeneration,
   hasVisibleLectureContent = false,
   whiteboardEnabled = true,
@@ -199,7 +201,7 @@ export function CanvasArea({
                 className="absolute inset-0 z-[105] flex flex-col items-center justify-center bg-white dark:bg-gray-800"
               >
                 {isGenerationFailed ? (
-                  <div className="flex flex-col items-center gap-3">
+                  <div className="flex flex-col items-center gap-3 max-w-md px-6">
                     <div className="w-12 h-12 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
                       <svg
                         className="w-6 h-6 text-red-400 dark:text-red-500"
@@ -218,6 +220,14 @@ export function CanvasArea({
                     <span className="text-sm text-red-500 dark:text-red-400 font-medium">
                       {t('stage.generationFailed')}
                     </span>
+                    {generationFailureReason && (
+                      <p
+                        className="text-xs text-slate-500 dark:text-slate-400 text-center break-words max-w-sm"
+                        title={generationFailureReason}
+                      >
+                        {generationFailureReason}
+                      </p>
+                    )}
                     {onRetryGeneration && (
                       <button
                         onClick={onRetryGeneration}
