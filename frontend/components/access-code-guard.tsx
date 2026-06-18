@@ -25,8 +25,16 @@ export function AccessCodeGuard({ children }: { children: ReactNode }) {
       })
       .catch(() => {
         if (!cancelled) {
-          // Default to requiring auth on error — safer than silently disabling
-          setStatus({ enabled: true, authenticated: false, loading: false });
+          // On network / parse failure, fall back to "access code NOT
+          // enabled" rather than forcing the modal. The previous default
+          // of `enabled: true` was a no-auth fallback: when ACCESS_CODE
+          // is genuinely unset on the server, that path traps the user
+          // in a modal that the server can never accept. Opting into
+          // "no gate" is the correct UX for the "open by default"
+          // deployment the project ships with; admins who DO want a
+          // gate should be told the gate is broken via the server
+          // response, not a stuck modal.
+          setStatus({ enabled: false, authenticated: false, loading: false });
         }
       });
     return () => {
