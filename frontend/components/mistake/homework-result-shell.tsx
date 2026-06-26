@@ -10,12 +10,30 @@ import { getHomeworkResultShellLayout } from '@/lib/mistake/ui/homework-result-l
 import type { ExplanationSummary } from '@/lib/mistake/ui/types';
 import { useExportPPTX } from '@/lib/export/use-export-pptx';
 import { Download, Loader2 } from 'lucide-react';
+import { AddToMistakeBookButton } from '@/components/mistake-book/add-to-mistake-book-button';
 
 type HomeworkResultShellProps = {
   summary: ExplanationSummary;
   mistakeSessionId: string;
   summaryVisible: boolean;
   children: ReactNode;
+  /**
+   * The original problem text. When provided together with the
+   * optional fields below, the summary panel renders an
+   * "加入错题本" button that lets the visitor add the current
+   * question to their personal mistake book. All fields are
+   * optional except `problemText` — passing it enables the button.
+   */
+  mistakeBookEntry?: {
+    problemText: string;
+    userAnswer?: string;
+    correctAnswer?: string;
+    imageUrl?: string;
+    classroomId?: string;
+    sessionId?: string;
+    subject?: string;
+    grade?: string;
+  };
 };
 
 export function HomeworkResultShell({
@@ -23,6 +41,7 @@ export function HomeworkResultShell({
   mistakeSessionId,
   summaryVisible,
   children,
+  mistakeBookEntry,
 }: HomeworkResultShellProps) {
   const { t } = useI18n();
   const [showSimple, setShowSimple] = useState(false);
@@ -78,6 +97,21 @@ export function HomeworkResultShell({
                 <Button asChild size="sm" type="button" variant="ghost">
                   <Link href={`/parent/${mistakeSessionId}`}>{t('homeworkParent.title')}</Link>
                 </Button>
+                {mistakeBookEntry?.problemText ? (
+                  <AddToMistakeBookButton
+                    data={{
+                      problemText: mistakeBookEntry.problemText,
+                      userAnswer: mistakeBookEntry.userAnswer,
+                      correctAnswer: mistakeBookEntry.correctAnswer,
+                      imageUrl: mistakeBookEntry.imageUrl,
+                      classroomId:
+                        mistakeBookEntry.classroomId ?? mistakeSessionId,
+                      sessionId: mistakeBookEntry.sessionId,
+                      subject: mistakeBookEntry.subject,
+                      grade: mistakeBookEntry.grade,
+                    }}
+                  />
+                ) : null}
                 <Button
                   onClick={exportPPTX}
                   disabled={exporting}

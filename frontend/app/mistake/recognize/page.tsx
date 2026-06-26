@@ -20,6 +20,7 @@ import {
 import { shouldShowRecognizeFailure } from '@/lib/mistake/ui/recognize-state';
 import { startMistakePreview } from '@/lib/mistake/ui/start-mistake-preview';
 import { useProfileStore } from '@/lib/store/profile';
+import { AddToMistakeBookButton } from '@/components/mistake-book/add-to-mistake-book-button';
 
 export default function MistakeRecognizePage() {
   const router = useRouter();
@@ -167,6 +168,22 @@ export default function MistakeRecognizePage() {
             >
               {submitting ? t('homeworkLoading.title') : t('homeworkRecognize.confirm')}
             </Button>
+            <AddToMistakeBookButton
+              data={{
+                problemText: problemText.trim(),
+                userAnswer: studentAnswer.trim() || undefined,
+                correctAnswer: correctAnswer.trim() || undefined,
+                imageUrl: imageUrl || pending?.imageUrl || undefined,
+                subject: 'math',
+                grade: activeProfile?.grade ? String(activeProfile.grade) : undefined,
+              }}
+              disabled={problemText.trim().length === 0}
+              title={
+                problemText.trim().length === 0
+                  ? '请先确认题目内容'
+                  : undefined
+              }
+            />
             <Button
               onClick={() => {
                 clearPendingRecognizeSession();

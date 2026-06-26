@@ -69,6 +69,34 @@ function getDb(): Database {
   );
   CREATE INDEX IF NOT EXISTS idx_student_profiles_parentId ON student_profiles(parentId);
 
+  -- mistake_book: a per-visitor "favourites" / "saved mistakes" list.
+  -- Separate from mistake_records (which is bound to a logged-in
+  -- parent/student pair) so anonymous users can still build up a
+  -- personal collection before signing in. Once a visitor signs in,
+  -- a future migration can copy rows whose visitorId matches their
+  -- account into mistake_records if the user wants them merged.
+  CREATE TABLE IF NOT EXISTS mistake_book (
+    id TEXT PRIMARY KEY,
+    visitorId TEXT NOT NULL,
+    imageUrl TEXT,
+    problemText TEXT NOT NULL,
+    userAnswer TEXT,
+    correctAnswer TEXT,
+    classroomId TEXT,
+    sessionId TEXT,
+    subject TEXT,
+    grade TEXT,
+    title TEXT,
+    isResolved INTEGER NOT NULL DEFAULT 0,
+    resolvedAt TEXT,
+    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+    updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_mistake_book_visitor_created
+    ON mistake_book (visitorId, createdAt DESC);
+  CREATE INDEX IF NOT EXISTS idx_mistake_book_visitor_resolved
+    ON mistake_book (visitorId, isResolved);
+
   CREATE TABLE IF NOT EXISTS mistake_records (
     id TEXT PRIMARY KEY,
     studentId TEXT NOT NULL,
@@ -316,6 +344,7 @@ class PrismaCompatClient {
     },
   }
   mistakeRecord = buildFinder('mistake_records', 'id')
+  mistakeBook = buildFinder('mistake_book', 'id')
   // usage_events has no `id` column in the schema (wait — it does, it's
   // a UUID primary key), so buildFinder works as-is. The `eventName`
   // column is what we filter on in /api/admin/stats.
