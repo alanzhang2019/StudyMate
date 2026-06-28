@@ -1089,8 +1089,8 @@ export function Stage({
         {/* Canvas Area */}
         <div
           className={cn(
-            'overflow-hidden relative isolate min-h-0 flex-1',
-            currentScene?.type === 'interactive' && 'h-auto',
+            'flex-1 min-h-0 overflow-hidden relative isolate',
+            currentScene?.type === 'interactive' && 'min-h-0',
           )}
           suppressHydrationWarning
         >

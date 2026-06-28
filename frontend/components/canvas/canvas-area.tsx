@@ -137,8 +137,7 @@ export function CanvasArea({
 
   return (
     <div className={cn(
-      'w-full flex flex-col bg-gray-50 dark:bg-gray-900 group/canvas',
-      'h-full',
+      'absolute inset-0 w-full flex flex-col bg-gray-50 dark:bg-gray-900 group/canvas',
     )}>
       {/* Slide area — takes remaining space */}
       <div
