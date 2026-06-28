@@ -189,11 +189,14 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-slate-500">
           <div>© {new Date().getFullYear()} AI 错题本 · 让孩子真正学会</div>
           <div className="flex items-center gap-5">
+            <Link href="/mistake-book" className="hover:text-slate-900">
+              错题本
+            </Link>
             <Link href="/history" className="hover:text-slate-900">
               学习历史
             </Link>
             <Link href="/parent/dashboard" className="hover:text-slate-900">
-              家长看板
+              我是父母
             </Link>
             <Link href="/admin/login" className="hover:text-slate-900">
               管理后台

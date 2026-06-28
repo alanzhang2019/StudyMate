@@ -4,6 +4,8 @@ import { ArrowLeft, BookMarked } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { MistakeBookList } from '@/components/mistake-book/mistake-book-list';
+import { BindingsList } from '@/components/parent/bindings-list';
+import { InviteCodeDialog } from '@/components/parent/invite-code-dialog';
 import { VISITOR_COOKIE } from '@/lib/visitor/server';
 import {
   listMistakeBookServer,
@@ -32,7 +34,12 @@ export default async function MistakeBookPage() {
   let initial: MistakeBookListResponse | null = null;
   if (visitorId) {
     try {
-      initial = await listMistakeBookServer(visitorId, { limit: 100 });
+      // 传 includeResolved: true，server 端把全部（已掌握 + 未掌握）都
+      // 注入进来，由前端的「仅显示未掌握」开关做客户端过滤。
+      initial = await listMistakeBookServer(visitorId, {
+        limit: 100,
+        includeResolved: true,
+      });
     } catch (err) {
       // The list page has its own error UI; a server failure here
       // just means we render the empty state with a retry button.
@@ -59,12 +66,22 @@ export default async function MistakeBookPage() {
             </p>
           </div>
         </div>
-        <Button asChild>
-          <Link href="/mistake">去拍题</Link>
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <InviteCodeDialog />
+          <Button asChild>
+            <Link href="/mistake">去拍题</Link>
+          </Button>
+        </div>
       </div>
 
       <MistakeBookList initial={initial} />
+
+      <div className="mt-6">
+        <BindingsList
+          role="student"
+          title="已邀请的父母"
+        />
+      </div>
     </div>
   );
 }

@@ -61,7 +61,9 @@ export function MistakeBookList({ initial }: MistakeBookListProps) {
   const [data, setData] = useState<MistakeBookListResponse | null>(
     initial ?? null,
   );
-  const [onlyUnresolved, setOnlyUnresolved] = useState(true);
+  // server 端已经把已掌握 + 未掌握都注入到 initial；这里默认 false
+  // （「仅显示未掌握」开关 = 关），和 SSR 出来的初始视图一致。
+  const [onlyUnresolved, setOnlyUnresolved] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>('');
 
@@ -84,23 +86,13 @@ export function MistakeBookList({ initial }: MistakeBookListProps) {
   }, [onlyUnresolved]);
 
   useEffect(() => {
-    if (initial) {
-      // The server-rendered initial payload was injected with the
-      // `includeResolved=false` default; if the user toggled the
-      // switch, refetch with the new filter.
-      setOnlyUnresolved((prev) => {
-        if (prev === true) {
-          // we already have unresolved-only; no need to refetch
-        } else {
-          fetchList({ silent: true });
-        }
-        return prev;
-      });
-    } else {
+    // SSR 注入的 initial 已经包含全部（已掌握 + 未掌握），
+    // 不需要再发一次请求去拿同形状的数据。
+    if (!initial) {
       fetchList();
     }
-    // We intentionally only run on mount — `initial` is set once and
-    // subsequent toggles trigger fetchList via the dependency above.
+    // We intentionally only run on mount — `initial` is set once
+    // and subsequent toggles trigger fetchList via the dependency above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

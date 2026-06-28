@@ -1,69 +1,62 @@
-"use client";
-import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { redirect } from 'next/navigation';
 
-export default function ParentDashboard() {
-  const { data: session } = useSession();
-  const [profiles, setProfiles] = useState<any[]>([]);
-  const [reports, setReports] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState<string | null>(null);
+import { getParentVisitorId } from '@/lib/parent/visitor';
+import { getDashboardForParent } from '@/lib/parent/dashboard';
+import { KpiGrid } from '@/components/parent/kpi-grid';
+import { SubjectPieChart } from '@/components/parent/subject-pie-chart';
+import { DailyTrendChart } from '@/components/parent/daily-trend-chart';
+import { MistakeList } from '@/components/parent/mistake-list';
+import { AiInsightCard } from '@/components/parent/ai-insight-card';
 
-  useEffect(() => {
-    if (session?.user?.id) {
-      fetch("/api/profiles").then(res => res.json()).then(setProfiles);
-    }
-  }, [session]);
+export const dynamic = 'force-dynamic';
 
-  const generateReport = async (studentId: string) => {
-    setLoading(studentId);
-    try {
-      const res = await fetch("/api/parent/evaluation", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ studentId })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setReports(prev => ({ ...prev, [studentId]: data.summary }));
-      }
-    } catch (e) {
-      console.error(e);
-    }
-    setLoading(null);
-  };
+/**
+ * Server-rendered parent dashboard.
+ *
+ * - No parent cookie → /parent/bind (we never silently render
+ *   an empty page; this is the only way the parent reaches
+ *   the bind flow from a deep link).
+ * - Cookie but no active binding → /parent/bind (e.g. they
+ *   revoked the only binding and refreshed).
+ * - Otherwise render the full dashboard.
+ */
+export default async function ParentDashboardPage() {
+  const parentVisitorId = await getParentVisitorId();
+  if (!parentVisitorId) {
+    redirect('/parent/bind');
+  }
+
+  const dashboard = await getDashboardForParent(parentVisitorId);
+  if (!dashboard) {
+    redirect('/parent/bind');
+  }
 
   return (
-    <div className="space-y-8 text-black">
-      <h2 className="text-2xl font-bold">Analytics Overview</h2>
-      
-      {profiles.length === 0 && (
-        <div className="bg-white p-6 rounded-lg shadow">
-          <p>No profiles found. Go to <a href="/select-profile" className="text-blue-600 underline">Switch Profile</a> to create one.</p>
+    <div className="space-y-6">
+      <header>
+        <h2 className="text-2xl font-bold text-slate-800">学习看板</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          实时查看孩子的错题趋势、学科分布与最近学习活动。
+        </p>
+      </header>
+
+      <KpiGrid kpis={dashboard.kpis} />
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <AiInsightCard initialInsight={dashboard.insight} />
+        <DailyTrendChart dailyTrend={dashboard.dailyTrend} />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-1">
+          <SubjectPieChart
+            subjectDistribution={dashboard.subjectDistribution}
+          />
         </div>
-      )}
-
-      {profiles.map(profile => (
-        <div key={profile.id} className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-xl font-bold mb-4">{profile.name} - Grade {profile.grade}</h3>
-          
-          <button 
-            onClick={() => generateReport(profile.id)}
-            disabled={loading === profile.id}
-            className="px-4 py-2 bg-blue-600 text-white rounded mb-4 hover:bg-blue-500 disabled:opacity-50"
-          >
-            {loading === profile.id ? "Generating..." : "Generate AI Report"}
-          </button>
-
-          {reports[profile.id] && (
-            <div className="p-4 bg-blue-50 rounded text-gray-800 mb-4 border border-blue-100">
-              <h4 className="font-bold mb-2">AI Analysis</h4>
-              <p>{reports[profile.id]}</p>
-            </div>
-          )}
-
-          <p className="text-gray-500 italic">Knowledge Graphs coming in future iterations...</p>
+        <div className="lg:col-span-2">
+          <MistakeList mistakes={dashboard.recentMistakes} />
         </div>
-      ))}
+      </div>
     </div>
   );
 }
