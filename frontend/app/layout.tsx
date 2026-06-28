@@ -27,6 +27,9 @@ const comicNeue = Comic_Neue({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || 'https://aijiangti.cn',
+  ),
   title: 'AI讲题 · AI JiangTi | 拍一下就讲明白',
   description:
     'AI讲题（AI JiangTi）是一款面向小学 4-6 年级的 AI 数学错题讲解工具，拍题后即可生成循序渐进的互动讲解。',
