@@ -1053,13 +1053,6 @@ export function Stage({
       }
     : null;
 
-  // Calculate scene viewer height (subtract Header's 80px height)
-  const sceneViewerHeight = (() => {
-    const headerHeight = isPresenting ? 0 : 80; // Header h-20 = 80px
-    const roundtableHeight = mode === 'playback' && !isPresenting ? 192 : 0;
-    return `calc(100% - ${headerHeight + roundtableHeight}px)`;
-  })();
-
   return (
     <>
       <div
@@ -1096,12 +1089,9 @@ export function Stage({
         {/* Canvas Area */}
         <div
           className={cn(
-            'overflow-hidden relative isolate',
-            currentScene?.type === 'interactive' ? 'h-auto' : 'flex-1 min-h-0',
+            'overflow-hidden relative isolate min-h-0 flex-1',
+            currentScene?.type === 'interactive' && 'h-auto',
           )}
-          style={
-            currentScene?.type === 'interactive' ? undefined : { height: sceneViewerHeight }
-          }
           suppressHydrationWarning
         >
           <CanvasArea
