@@ -541,7 +541,7 @@ export default function ClassroomDetailPage() {
   return (
     <ThemeProvider>
       <MediaStageProvider value={classroomId}>
-        <div className="h-screen flex flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <div className="h-dvh flex flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
           {/* Decorative background */}
           {showLoadingOverlay && (
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
