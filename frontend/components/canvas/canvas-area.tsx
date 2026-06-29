@@ -139,25 +139,27 @@ export function CanvasArea({
     <div className={cn(
       'w-full flex-1 min-h-0 flex flex-col bg-gray-50 dark:bg-gray-900 group/canvas',
     )}>
-      {/* Slide area — takes remaining space */}
+      {/* Slide area — fills remaining space above the toolbar */}
       <div
         className={cn(
-          'relative overflow-hidden flex p-2 transition-colors duration-500',
+          'relative overflow-hidden flex flex-col p-2 transition-colors duration-500 min-h-0',
           currentScene?.type === 'interactive'
-            ? 'flex-1 min-h-0 bg-blue-100/50 dark:bg-blue-950/20 items-center justify-center'
-            : 'flex-1 min-h-0 bg-slate-200/95 dark:bg-slate-950/70 items-center justify-center',
+            ? 'flex-1 bg-blue-100/50 dark:bg-blue-950/20'
+            : 'flex-1 bg-slate-200/95 dark:bg-slate-950/70',
         )}
       >
-        <div
-          className={cn(
-            'max-w-full bg-white dark:bg-gray-800 shadow-2xl rounded-lg relative transition-all duration-700 border-2 border-slate-400 dark:border-slate-600',
-            currentScene?.type === 'interactive'
+        {/* Inner container — flex-1 so aspect-ratio slide can center inside */}
+        <div className="flex-1 min-h-0 flex items-center justify-center">
+          <div
+            className={cn(
+              'max-w-full bg-white dark:bg-gray-800 shadow-2xl rounded-lg relative transition-all duration-700 border-2 border-slate-400 dark:border-slate-600',
+              currentScene?.type === 'interactive'
               ? 'aspect-[16/9] w-full max-h-full max-w-full overflow-hidden shadow-blue-200/60 dark:shadow-blue-900/50 ring-2 ring-blue-300/40 dark:ring-blue-500/20'
               : 'aspect-[16/9] w-full max-h-full max-w-full overflow-hidden shadow-slate-400/60 dark:shadow-slate-950/70 ring-2 ring-white/80 dark:ring-slate-800/90',
-            showControls && !isLiveSession && currentScene?.type === 'slide' && 'cursor-pointer',
-          )}
-          onClick={handleSlideClick}
-        >
+              showControls && !isLiveSession && currentScene?.type === 'slide' && 'cursor-pointer',
+            )}
+            onClick={handleSlideClick}
+          >
           {/* Whiteboard Layer */}
           <div className="absolute inset-0 z-[110] pointer-events-none">
             <SceneProvider>
