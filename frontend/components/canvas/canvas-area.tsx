@@ -294,6 +294,7 @@ export function CanvasArea({
           </AnimatePresence>
         </div>
       </div>
+      </div>
 
       {/* ── Canvas Toolbar — in document flow, only when not merged into roundtable ── */}
       {!hideToolbar && (
