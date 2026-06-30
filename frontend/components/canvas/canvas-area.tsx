@@ -117,19 +117,25 @@ export function CanvasArea({
 
   // Throttled playback save: persist current scene position for resume banner.
   // Only save for slide scenes (avoid mid-quiz or mid-interactive interruption).
-  // Skip the very first effect run: it would overwrite a saved session with the
-  // default first scene on every refresh, making "continue" a no-op.
+  // We must skip the very first scene we see AND not save when the effect re-runs
+  // for unrelated reasons (e.g. engineState prop changing). Otherwise a refresh
+  // would silently overwrite the saved session with the default first scene.
   const saveThrottleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const hasSeenFirstSceneRef = useRef(false);
+  const isFirstSaveRunRef = useRef(true);
+  const lastSavedSceneIdRef = useRef<string | null>(null);
   useEffect(() => {
     if (!stageId || !currentScene) return;
     if (currentScene.type !== 'slide') return;
     if (typeof currentSceneIndex !== 'number') return;
 
-    if (!hasSeenFirstSceneRef.current) {
-      hasSeenFirstSceneRef.current = true;
+    if (isFirstSaveRunRef.current) {
+      isFirstSaveRunRef.current = false;
+      lastSavedSceneIdRef.current = currentScene.id;
       return;
     }
+
+    if (lastSavedSceneIdRef.current === currentScene.id) return;
+    lastSavedSceneIdRef.current = currentScene.id;
 
     if (saveThrottleRef.current) {
       clearTimeout(saveThrottleRef.current);
