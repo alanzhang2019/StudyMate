@@ -114,8 +114,18 @@ export default function ClassroomDetailPage() {
     const saved = playbackResume;
     setPlaybackResume(null);
     if (!saved) return;
-    // Jump to the saved scene by setting currentSceneId on the stage store
-    useStageStore.getState().setCurrentSceneId?.(saved.sceneId);
+    const stageState = useStageStore.getState();
+    // Prefer sceneId; fall back to index in case IDs changed between sessions
+    const byId = stageState.scenes.find((s) => s.id === saved.sceneId);
+    if (byId) {
+      stageState.setCurrentSceneId(byId.id);
+      return;
+    }
+    const byIndex =
+      typeof saved.sceneIndex === 'number' ? stageState.scenes[saved.sceneIndex] : null;
+    if (byIndex) {
+      stageState.setCurrentSceneId(byIndex.id);
+    }
   }, [playbackResume]);
 
   const handleDiscardPlayback = useCallback(() => {
