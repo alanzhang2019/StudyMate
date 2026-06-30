@@ -31,6 +31,13 @@ import { generateMediaForOutlines } from '@/lib/media/media-orchestrator';
 import { updateMistakeSession } from '@/lib/mistake/session/client';
 import type { MistakeSession } from '@/lib/mistake/session/types';
 import { AlertCircle } from 'lucide-react';
+import { usePromptLeaving } from '@/lib/hooks/use-prompt-leaving';
+import {
+  loadPlaybackSession,
+  clearPlaybackSession,
+  type PlaybackResumeState,
+} from '@/lib/mistake/ui/playback-session-storage';
+import { ResumeBanner } from '@/components/common/resume-banner';
 import { warmSceneTTSWithinBudget } from '@/lib/audio/warm-scene-tts';
 import { getCurrentModelConfig } from '@/lib/utils/model-config';
 import { useSettingsStore } from '@/lib/store/settings';
@@ -79,6 +86,42 @@ export default function ClassroomDetailPage() {
   // No longer used in this mode
   // const [lectureCompleted, setLectureCompleted] = useState(false);
   const stageName = useStageStore((s) => s.stage?.name ?? '');
+  const currentScene = useStageStore((s) => {
+    const id = s.currentSceneId;
+    return id ? s.scenes.find((sc) => sc.id === id) ?? null : null;
+  });
+  const totalScenes = useStageStore((s) => s.scenes.length);
+  const isAtEnd = useStageStore((s) => {
+    if (!s.currentSceneId) return false;
+    const idx = s.scenes.findIndex((sc) => sc.id === s.currentSceneId);
+    return idx >= 0 && idx >= s.scenes.length - 1;
+  });
+
+  // Guard against accidental navigation while a scene is loaded and not at the end.
+  usePromptLeaving(!!currentScene && !isAtEnd);
+
+  // Detect a saved playback session for this classroom on mount
+  const [playbackResume, setPlaybackResume] = useState<PlaybackResumeState | null>(null);
+  useEffect(() => {
+    if (loading) return;
+    const saved = loadPlaybackSession();
+    if (saved && saved.classroomId === classroomId) {
+      setPlaybackResume(saved);
+    }
+  }, [classroomId, loading]);
+
+  const handleResumePlayback = useCallback(() => {
+    const saved = playbackResume;
+    setPlaybackResume(null);
+    if (!saved) return;
+    // Jump to the saved scene by setting currentSceneId on the stage store
+    useStageStore.getState().setCurrentSceneId?.(saved.sceneId);
+  }, [playbackResume]);
+
+  const handleDiscardPlayback = useCallback(() => {
+    clearPlaybackSession(classroomId);
+    setPlaybackResume(null);
+  }, [classroomId]);
 
   const generationStartedRef = useRef(false);
   const loadLifecycleIdRef = useRef(0);
@@ -542,6 +585,14 @@ export default function ClassroomDetailPage() {
     <ThemeProvider>
       <MediaStageProvider value={classroomId}>
         <div className="h-dvh flex flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+          {playbackResume && (
+            <ResumeBanner
+              variant="playback"
+              state={playbackResume}
+              onResume={handleResumePlayback}
+              onDiscard={handleDiscardPlayback}
+            />
+          )}
           {/* Decorative background */}
           {showLoadingOverlay && (
             <div className="fixed inset-0 overflow-hidden pointer-events-none">

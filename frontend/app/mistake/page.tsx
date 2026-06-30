@@ -13,12 +13,17 @@ import { motion, AnimatePresence } from 'motion/react';
 export const dynamic = 'force-dynamic';
 
 import { Card } from '@/components/ui/card';
+import { ResumeBanner } from '@/components/common/resume-banner';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { getHomeworkHomeContent } from '@/lib/mistake/ui/content';
 import { useProfileStore } from '@/lib/store/profile';
 import { useAudioRecorder } from '@/lib/hooks/use-audio-recorder';
 import { ImageCropper } from '@/components/image-cropper';
-import { saveGenerationPreviewSession } from '@/lib/mistake/ui/generation-preview-storage';
+import {
+  saveGenerationPreviewSession,
+  loadGenerationPreviewSession,
+  clearGenerationPreviewSession,
+} from '@/lib/mistake/ui/generation-preview-storage';
 import { writePendingRecognizeSession } from '@/lib/mistake/ui/recognize-session';
 import { buildPendingRecognizeImageUrl } from '@/lib/mistake/ui/pending-recognize-image';
 import { buildMistakeClassroomRequirement } from '@/lib/mistake/openmaic/build-requirement';
@@ -55,8 +60,28 @@ export default function HomeworkPage() {
   const [error, setError] = useState('');
   const [cropImageUrl, setCropImageUrl] = useState<string | null>(null);
   const [cropImageIndex, setCropImageIndex] = useState<number>(-1);
+  const [hasResumableSession, setHasResumableSession] = useState(false);
   const activeProfile = useProfileStore((s) => s.activeProfile);
   const homeContent = getHomeworkHomeContent(t);
+
+  // Detect an unfinished generation session on mount
+  useEffect(() => {
+    const saved = loadGenerationPreviewSession();
+    if (saved) {
+      const phase = saved.previewPhase;
+      setHasResumableSession(phase === 'generating-content' || phase === 'review');
+    }
+  }, []);
+
+  const handleResumeGeneration = useCallback(() => {
+    setHasResumableSession(false);
+    router.push('/generation-preview');
+  }, [router]);
+
+  const handleDiscardGeneration = useCallback(() => {
+    clearGenerationPreviewSession();
+    setHasResumableSession(false);
+  }, []);
 
   const { isRecording, isProcessing, startRecording, stopRecording } = useAudioRecorder({
     onTranscription: (text) => {
@@ -333,6 +358,13 @@ export default function HomeworkPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex flex-col">
+      {hasResumableSession && (
+        <ResumeBanner
+          variant="generation"
+          onResume={handleResumeGeneration}
+          onDiscard={handleDiscardGeneration}
+        />
+      )}
       {/* Decorative background elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-20 -right-20 w-80 h-80 bg-blue-200/30 rounded-full blur-3xl" />

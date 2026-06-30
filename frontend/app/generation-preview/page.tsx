@@ -41,6 +41,7 @@ import type { Stage } from '@/lib/types/stage';
 import type { SceneOutline, PdfImage, ImageMapping } from '@/lib/types/generation';
 import { AgentRevealModal } from '@/components/agent/agent-reveal-modal';
 import { createLogger } from '@/lib/logger';
+import { usePromptLeaving } from '@/lib/hooks/use-prompt-leaving';
 import { buildSceneFromGeneratedContent } from '@/lib/generation/scene-assembly';
 import { type GenerationSessionState, ALL_STEPS, getActiveSteps } from './types';
 import { buildGenerationApiHeaders } from './api-headers';
@@ -94,6 +95,13 @@ function GenerationPreviewContent() {
   const agentRevealResolveRef = useRef<(() => void) | null>(null);
   const reviewOutlineEnabled = useSettingsStore((s) => s.reviewOutlineEnabled);
   const setReviewOutlineEnabled = useSettingsStore((s) => s.setReviewOutlineEnabled);
+
+  // Guard against accidental navigation while generation is in progress or under review.
+  usePromptLeaving(
+    !!session &&
+      !isComplete &&
+      (session.previewPhase === 'generating-content' || session.previewPhase === 'review'),
+  );
 
   // Compute active steps based on session state
   const activeSteps = getActiveSteps(session);

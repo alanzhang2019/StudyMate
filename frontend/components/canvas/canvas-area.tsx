@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,8 @@ import { useI18n } from '@/lib/hooks/use-i18n';
 import { ClassroomCompletePageConnected } from '@/components/scene-renderers/classroom-complete';
 import { sendDebugEvent } from '@/lib/utils/debug-event';
 import { useGenerationProgress, getPhaseText } from '@/lib/hooks/use-generation-progress';
+import { savePlaybackSession } from '@/lib/mistake/ui/playback-session-storage';
+import { useStageStore } from '@/lib/store/stage';
 
 interface CanvasAreaProps extends CanvasToolbarProps {
   readonly currentScene: Scene | null;
@@ -61,6 +63,8 @@ export function CanvasArea({
   isAutoStarting = false,
 }: CanvasAreaProps) {
   const { t } = useI18n();
+  const stageId = useStageStore((s) => s.stage?.id ?? null);
+  const isPlaying = engineState === 'playing';
   const showControls = mode === 'playback' && !whiteboardOpen;
   const showPlayHint = shouldShowCanvasPlayHint({
     showControls,
@@ -110,6 +114,35 @@ export function CanvasArea({
     whiteboardEnabled,
     whiteboardOpen,
   ]);
+
+  // Throttled playback save: persist current scene position for resume banner.
+  // Only save for slide scenes (avoid mid-quiz or mid-interactive interruption).
+  const saveThrottleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!stageId || !currentScene) return;
+    if (currentScene.type !== 'slide') return;
+    if (typeof currentSceneIndex !== 'number') return;
+
+    if (saveThrottleRef.current) {
+      clearTimeout(saveThrottleRef.current);
+    }
+    saveThrottleRef.current = setTimeout(() => {
+      savePlaybackSession({
+        classroomId: stageId,
+        sceneId: currentScene.id,
+        sceneIndex: currentSceneIndex,
+        isPlaying,
+        savedAt: Date.now(),
+      });
+    }, 500);
+
+    return () => {
+      if (saveThrottleRef.current) {
+        clearTimeout(saveThrottleRef.current);
+        saveThrottleRef.current = null;
+      }
+    };
+  }, [stageId, currentScene?.id, currentScene?.type, currentSceneIndex, isPlaying]);
 
   const handleSlideClick = useCallback(
     (e: React.MouseEvent) => {
