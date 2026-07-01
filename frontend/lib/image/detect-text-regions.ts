@@ -53,7 +53,7 @@ const GROUP_GAP_RATIO = 0.12; // 12% of image height
 const VERTICAL_DILATE_PX = 12;
 // Build tag — printed by prewarm so a quick console glance can confirm
 // whether the latest code is actually running on a given deployment.
-const BUILD_TAG = 'dbnet-2026-07-02-r6-disable-shape-verify';
+const BUILD_TAG = 'dbnet-2026-07-02-r7-dynamic-output-meta';
 
 let cvPromise: Promise<typeof OpenCVNamespace> | null = null;
 let sessionPromise: Promise<ORTSession> | null = null;
