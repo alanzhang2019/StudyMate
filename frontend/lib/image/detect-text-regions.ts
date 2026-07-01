@@ -26,7 +26,19 @@ const INPUT_SIZE = 640; // model input — dynamic but we use fixed for speed
 const OUTPUT_SIZE = 320; // model output is fixed 320x320
 const TEXT_THRESHOLD = 0.3;
 const MIN_BOX_AREA = 200; // px² in original image coords
-const GROUP_GAP_RATIO = 0.04; // 4% of image height
+// Vertical gap threshold for merging nearby text regions into one "problem".
+// Math content often has multiple visually-close rows: section header + equation,
+// or an equation with a fraction whose numerator and denominator are read as
+// separate rows. We want a generous gap so these stay in one block.
+const GROUP_GAP_RATIO = 0.12; // 12% of image height
+// Fraction glyphs (numerator/denominator) extend below the baseline that
+// DBNet learns. We dilate the binary mask vertically by this many pixels
+// (in original-image coords) before finding contours, so the resulting
+// bounding rect covers the full extent of the math content.
+const VERTICAL_DILATE_PX = 12;
+// Build tag — printed by prewarm so a quick console glance can confirm
+// whether the latest code is actually running on a given deployment.
+const BUILD_TAG = 'dbnet-2026-07-01-r2';
 
 let cvPromise: Promise<typeof OpenCVNamespace> | null = null;
 let modelPromise: Promise<any> | null = null;
@@ -56,21 +68,21 @@ async function getDBNetModel(cv: OpenCVValue): Promise<any> {
 
 export async function prewarmDBNet(): Promise<void> {
   try {
-    console.log('[detect-text] prewarm: importing OpenCV…');
+    console.log(`[detect-text] prewarm [${BUILD_TAG}]: importing OpenCV…`);
     const cv = await loadOpenCV();
-    console.log('[detect-text] prewarm: cv loaded, has dnn?', !!cv?.dnn,
+    console.log(`[detect-text] prewarm [${BUILD_TAG}]: cv loaded, has dnn?`, !!cv?.dnn,
       'has readNetFromONNX?', !!cv?.dnn?.readNetFromONNX);
     if (!cv?.dnn?.readNetFromONNX) {
-      console.warn('[detect-text] prewarm: cv.dnn.readNetFromONNX is missing — DBNet unavailable');
+      console.warn(`[detect-text] prewarm [${BUILD_TAG}]: cv.dnn.readNetFromONNX missing — DBNet unavailable, will fall back to edge-based`);
       return;
     }
-    console.log('[detect-text] prewarm: loading dbnet.onnx…');
+    console.log(`[detect-text] prewarm [${BUILD_TAG}]: loading dbnet.onnx…`);
     const net = await getDBNetModel(cv);
-    console.log('[detect-text] prewarm: net =', net,
+    console.log(`[detect-text] prewarm [${BUILD_TAG}]: net =`, net,
       'setInput?', typeof net?.setInput, 'forward?', typeof net?.forward);
-    console.log('[detect-text] DBNet pre-warmed');
+    console.log(`[detect-text] DBNet pre-warmed [${BUILD_TAG}]`);
   } catch (err) {
-    console.warn('[detect-text] prewarm failed:', err);
+    console.warn(`[detect-text] prewarm [${BUILD_TAG}] failed:`, err);
   }
 }
 
@@ -143,9 +155,22 @@ function runDBNet(cv: OpenCVValue, net: any, img: HTMLImageElement): CropBox | n
   const binary = new cv.Mat();
   cv.threshold(probMap, binary, TEXT_THRESHOLD, 255, cv.THRESH_BINARY);
 
+  // 5b. Dilate vertically (in 320×320 output space). Math fractions have
+  // tall glyph extents that DBNet's tight thresholding tends to fragment;
+  // dilating ~3px in 320-space corresponds to ~6px in a typical 640px
+  // input, and ~12px in a full-resolution original. We dilate here
+  // (output space) rather than after resize to original coords, so the
+  // fixed kernel works across input sizes.
+  const dilateKernel = cv.Mat.ones(3, 1, cv.CV_8U);
+  const dilated = new cv.Mat();
+  cv.dilate(binary, dilated, dilateKernel);
+  dilateKernel.delete();
+  binary.delete();
+
   // 6. Resize mask back to original image size
   const binaryFull = new cv.Mat();
-  cv.resize(binary, binaryFull, new cv.Size(origW, origH), 0, 0, cv.INTER_NEAREST);
+  cv.resize(dilated, binaryFull, new cv.Size(origW, origH), 0, 0, cv.INTER_NEAREST);
+  dilated.delete();
 
   // 7. Find contours of text regions
   const contours = new cv.MatVector();
@@ -171,20 +196,19 @@ function runDBNet(cv: OpenCVValue, net: any, img: HTMLImageElement): CropBox | n
   resized.delete();
   blob.delete();
   probMap.delete();
-  binary.delete();
   binaryFull.delete();
   contours.delete();
   hierarchy.delete();
 
   if (boxes.length === 0) {
-    console.warn(`[detect-text] no text regions (${contours.size()} contours, all < ${MIN_BOX_AREA}px²)`);
+    console.warn(`[detect-text] [${BUILD_TAG}] no text regions (${contours.size()} contours, all < ${MIN_BOX_AREA}px²)`);
     return null;
   }
 
   // 8. Group boxes by vertical proximity to form "problem" blocks
   const result = groupAndPickBest(boxes, origH, origW);
   console.log(
-    `[detect-text] ${boxes.length} text regions, ${result.groups} problem group(s), best = ${result.best.width}×${result.best.height}`,
+    `[detect-text] [${BUILD_TAG}] ${boxes.length} text regions, ${result.groups} problem group(s), best = ${result.best.width}×${result.best.height}`,
   );
   return result.best;
 }

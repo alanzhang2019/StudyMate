@@ -51,7 +51,7 @@ export async function detectProblemRegion(
   img: HTMLImageElement,
   options: DetectionOptions = {},
 ): Promise<CropBox | null> {
-  const { timeoutMs = 6000, minAreaFraction = 0.04, paddingFraction = 0.05 } = options;
+  const { timeoutMs = 6000, minAreaFraction = 0.04, paddingFraction = 0.1 } = options;
 
   if (!img.naturalWidth || !img.naturalHeight) return null;
 
@@ -179,11 +179,13 @@ function runEdgeDetection(
     //    The gap is relative to image height so the same threshold works
     //    across different photo resolutions.
     lineRects.sort((a, b) => a.y - b.y);
-    // Generous gap: ~5% of image height (60px for 1200px photo). This
-    // covers typical line spacing within a multi-line problem, even when
-    // the problem has short lines or sparse text. Gaps larger than this
-    // indicate a new problem (or a section header).
-    const groupGap = Math.max(40, imageH * 0.05);
+    // Generous gap: ~8% of image height (96px for 1200px photo). This
+    // covers typical line spacing within a multi-line problem AND the
+    // visual distance between a section header and the equation below,
+    // even when the equation has tall fraction glyphs. Gaps larger than
+    // this indicate a new problem (or a section header that's farther
+    // away from the problem block than usual).
+    const groupGap = Math.max(60, imageH * 0.08);
     const groups: CropBox[][] = [];
     let current: CropBox[] = [lineRects[0]];
     for (let i = 1; i < lineRects.length; i++) {
