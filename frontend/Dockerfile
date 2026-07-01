@@ -142,7 +142,22 @@ RUN addgroup --system --gid 1001 nodejs && \
 # nextjs, so no entrypoint fixup is needed when no volume is mounted here.
 RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
 
+# Copy the public/ directory in two passes:
+#
+#   1. COPY the whole public/ tree. This handles favicon/logos/etc. and
+#      is what Next.js's standalone output expects to see.
+#   2. THEN explicitly COPY the dbnet.onnx model file on top.
+#
+# Why two passes: BuildKit computes a content hash for the source
+# directory and reuses the cached layer if the hash matches an older
+# build. Even with `--no-cache` and `docker builder prune -a`, we hit
+# a case where the cached public/ layer was from a build before
+# models/ existed — so a single `COPY public ./public` was a 0.1s
+# no-op that left /app/public/models/ empty in the runner.
+# Forcing a separate explicit COPY of the model file invalidates
+# just that sub-step and guarantees the file lands in the image.
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/public/models ./public/models
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
