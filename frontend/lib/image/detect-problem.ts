@@ -102,9 +102,11 @@ function runDetection(
   const edges = new cv.Mat();
   const contours = new cv.MatVector();
   const hierarchy = new cv.Mat();
-  // Wide+short kernel: merges characters in a line, plus a small vertical
-  // extent so consecutive problem rows close together also connect.
-  const kernel = cv.Mat.ones(40, 5, cv.CV_8U);
+  // Wide+short kernel: merges characters within a single line of text.
+  // Vertical extent is 1 (no vertical merge) so that consecutive problem
+  // rows in a column do NOT merge into one giant block — we group them
+  // explicitly below based on vertical gap, which is more robust.
+  const kernel = cv.Mat.ones(40, 1, cv.CV_8U);
 
   try {
     // 1. Grayscale
@@ -131,34 +133,70 @@ function runDetection(
 
     const imageArea = img.naturalWidth * img.naturalHeight;
     const minArea = imageArea * minAreaFraction;
-    const candidates: Candidate[] = [];
+    const imageH = img.naturalHeight;
 
+    // 7. Collect per-line rects (each line of text is a separate contour)
+    const lineRects: CropBox[] = [];
     for (let i = 0; i < contours.size(); i++) {
       const contour = contours.get(i);
       const rect = cv.boundingRect(contour);
       const area = rect.width * rect.height;
       if (area < minArea) continue;
-
-      // Density = Canny edge pixels inside the rect. Text has high density
-      // (many strokes per character). A solid object (phone, hand) has
-      // low density (only the outer outline).
-      const density = countNonZeroInRect(cv, edges, rect);
-      // density² × area: heavily favors text regions
-      const score = density * density * area;
-      candidates.push({ rect, area, density, score });
+      // Skip very thin / very wide strips (likely artifacts of the kernel)
+      const aspect = rect.width / Math.max(1, rect.height);
+      if (aspect < 0.3) continue;
+      lineRects.push({ x: rect.x, y: rect.y, width: rect.width, height: rect.height });
     }
 
+    if (lineRects.length === 0) {
+      console.warn(`[detect-problem] no line rects. ${contours.size()} contours, min area = ${minArea}px²`);
+      return null;
+    }
+
+    // 8. Sort by y, then group by vertical gap.
+    //    Lines that are close together (gap < groupGap) belong to the
+    //    same problem; a larger gap means a new problem starts.
+    //    The gap is relative to image height so the same threshold works
+    //    across different photo resolutions.
+    lineRects.sort((a, b) => a.y - b.y);
+    const groupGap = Math.max(20, imageH * 0.025); // 2.5% of image height, min 20px
+    const groups: CropBox[][] = [];
+    let current: CropBox[] = [lineRects[0]];
+    for (let i = 1; i < lineRects.length; i++) {
+      const prev = current[current.length - 1];
+      const curr = lineRects[i];
+      const gap = curr.y - (prev.y + prev.height);
+      if (gap < groupGap) {
+        current.push(curr);
+      } else {
+        groups.push(current);
+        current = [curr];
+      }
+    }
+    groups.push(current);
+
+    // 9. For each group, compute the bounding rect + density score.
+    const candidates: Candidate[] = groups.map((group) => {
+      const x = Math.min(...group.map((r) => r.x));
+      const y = Math.min(...group.map((r) => r.y));
+      const right = Math.max(...group.map((r) => r.x + r.width));
+      const bottom = Math.max(...group.map((r) => r.y + r.height));
+      const rect: CropBox = { x, y, width: right - x, height: bottom - y };
+      const density = countNonZeroInRect(cv, edges, rect);
+      const area = rect.width * rect.height;
+      return { rect, area, density, score: density * density * area };
+    });
+
     if (candidates.length === 0) {
-      console.warn(
-        `[detect-problem] no candidates. ${contours.size()} contours, min area = ${minArea}px²`,
-      );
+      console.warn('[detect-problem] no grouped candidates');
       return null;
     }
 
     candidates.sort((a, b) => b.score - a.score);
     const best = candidates[0];
     console.log(
-      `[detect-problem] ${candidates.length} candidates, best area=${best.area}px² density=${best.density}`,
+      `[detect-problem] ${lineRects.length} lines, ${groups.length} problem(s), ` +
+        `best area=${best.area}px² (${best.rect.width}×${best.rect.height}) density=${best.density}`,
     );
 
     return padCropBox(best.rect, img.naturalWidth, img.naturalHeight, paddingFraction);
