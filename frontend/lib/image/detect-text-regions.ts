@@ -125,7 +125,20 @@ async function runDBNet(
   session: ORTSession,
   img: HTMLImageElement,
 ): Promise<CropBox | null> {
-  const mat = cv.imread(img);
+  // cv.imread returns a 4-channel BGRA Mat when the source has alpha
+  // (PNG, screenshots, certain camera outputs). DBNet's input is
+  // strictly [1, 3, 640, 640] — an extra channel would silently make
+  // the tensor shape mismatch, so we collapse to 3-channel BGR here.
+  const matRaw = cv.imread(img);
+  const mat =
+    matRaw.channels() === 4
+      ? (() => {
+          const out = new cv.Mat();
+          cv.cvtColor(matRaw, out, cv.COLOR_BGRA2BGR);
+          matRaw.delete();
+          return out;
+        })()
+      : matRaw;
   const origW = mat.cols;
   const origH = mat.rows;
 
