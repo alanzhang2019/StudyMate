@@ -53,7 +53,7 @@ const GROUP_GAP_RATIO = 0.12; // 12% of image height
 const VERTICAL_DILATE_PX = 12;
 // Build tag — printed by prewarm so a quick console glance can confirm
 // whether the latest code is actually running on a given deployment.
-const BUILD_TAG = 'dbnet-2026-07-02-r5-dynamic-output';
+const BUILD_TAG = 'dbnet-2026-07-02-r6-disable-shape-verify';
 
 let cvPromise: Promise<typeof OpenCVNamespace> | null = null;
 let sessionPromise: Promise<ORTSession> | null = null;
@@ -70,9 +70,24 @@ async function getDBNetSession(): Promise<ORTSession> {
       // ORT picks the first available provider from this list. WASM is
       // universally available, so the user always gets a working session
       // even on iOS Safari or older browsers.
+      //
+      // `extra.session.disable_shape_verification = '1'` is required for
+      // this particular dbnet.onnx: the model graph declares its output
+      // shape as {1,1,320,320} (the strided-down sample), but at runtime
+      // ORT's chosen implementation elides the downsample and produces
+      // {1,1,640,640}. ORT 1.27.0's `VerifyOutputSizes` promotes that
+      // mismatch to a thrown error (error code ~2452360) and the
+      // previous `r5` build surfaced `[detect-text] inference failed`.
+      // Disabling the check lets the actual tensor through; we then read
+      // `outTensor.dims` for the real H×W in the postprocess step.
       const session = await ort.InferenceSession.create(MODEL_URL, {
         executionProviders: ['wasm'],
         graphOptimizationLevel: 'all',
+        extra: {
+          session: {
+            disable_shape_verification: '1',
+          },
+        },
       });
       return session;
     })();
