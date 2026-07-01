@@ -5,8 +5,9 @@ import { createMistakeSession } from '@/lib/mistake/session/store';
 import { apiError, apiSuccess } from '@/lib/server/api-response';
 
 const requestSchema = z.object({
+  subject: z.union([z.literal('math'), z.literal('cpp')]).optional(),
   studentProfileId: z.string().optional(),
-  source: z.union([z.literal('photo'), z.literal('upload')]),
+  source: z.union([z.literal('photo'), z.literal('upload'), z.literal('integration')]),
   imageUrl: z.string().optional(),
   ocr: z.object({
     problemText: z.string().min(1),

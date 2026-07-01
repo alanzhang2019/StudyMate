@@ -184,6 +184,32 @@ function getDb(): Database {
   );
   CREATE INDEX IF NOT EXISTS idx_ai_insights_student_generated
     ON parent_ai_insights (studentVisitorId, generatedAt DESC);
+
+  -- integration_jobs: third-party integrations (e.g. Vjudge-AI-report).
+  -- Each row represents one externally-submitted problem. We kick off
+  -- an in-process job that prepares a mistake session, then let the
+  -- browser load /generation-preview to drive the LLM + media pipeline.
+  CREATE TABLE IF NOT EXISTS integration_jobs (
+    id TEXT PRIMARY KEY,
+    subject TEXT NOT NULL,
+    source TEXT,
+    request_payload TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'queued',
+    stage TEXT,
+    session_id TEXT,
+    classroom_id TEXT,
+    error_code TEXT,
+    error_message TEXT,
+    ip TEXT,
+    ua TEXT,
+    expires_at TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_integration_jobs_ip_time
+    ON integration_jobs (ip, created_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_integration_jobs_status
+    ON integration_jobs (status, created_at DESC);
 `)
 
     // Idempotent column migration for usage_events. We can't add
@@ -423,6 +449,7 @@ class PrismaCompatClient {
   parentInviteCode = buildFinder('parent_invite_codes', 'id')
   parentBinding = buildFinder('parent_bindings', 'id')
   parentAiInsight = buildFinder('parent_ai_insights', 'id')
+  integrationJob = buildFinder('integration_jobs', 'id')
   systemConfig = {
     ...buildFinder('system_config', 'key'),
     findUnique: (args: any) => buildFinder('system_config', 'key').findUnique(args),

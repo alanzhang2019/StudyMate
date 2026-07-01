@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getMistakeLabel } from '@/lib/mistake/taxonomy/mistake-taxonomy';
+import { getMistakeLabel } from '@/lib/mistake/taxonomy';
 
 describe('getMistakeLabel', () => {
   it('returns the expected chinese labels for every mistake code', () => {

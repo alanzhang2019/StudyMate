@@ -1,5 +1,9 @@
-import type { DiagnosisResult, MistakeCode, ProblemInput } from '@/lib/mistake/domain/types';
-import { getMistakeLabel } from '@/lib/mistake/taxonomy/mistake-taxonomy';
+import type {
+  DiagnosisResult,
+  MathMistakeCode,
+  ProblemInput,
+} from '@/lib/mistake/domain/types';
+import { getMistakeLabel } from '@/lib/mistake/taxonomy';
 
 type DiagnosisSummary = Pick<
   DiagnosisResult,
@@ -52,7 +56,7 @@ function isUnitConversionContext(text: string, lower: string): boolean {
   return hasConversionMeaning || distinctUnits.size >= 2;
 }
 
-function inferMistakeCode(input: ProblemInput): { code: MistakeCode; confidence: number } {
+function inferMathMistakeCode(input: ProblemInput): { code: MathMistakeCode; confidence: number } {
   const text = normalizeText(input.problemText);
   const lower = text.toLowerCase();
   const studentAnswer = toNumber(input.studentAnswer);
@@ -75,9 +79,9 @@ function inferMistakeCode(input: ProblemInput): { code: MistakeCode; confidence:
   return { code: 'concept_gap', confidence: 0.6 };
 }
 
-export function diagnoseMistake(input: ProblemInput): DiagnosisSummary {
+export function diagnoseMathMistake(input: ProblemInput): DiagnosisSummary {
   const normalizedProblemText = normalizeText(input.problemText);
-  const { code, confidence } = inferMistakeCode({
+  const { code, confidence } = inferMathMistakeCode({
     ...input,
     problemText: normalizedProblemText,
   });
@@ -89,8 +93,8 @@ export function diagnoseMistake(input: ProblemInput): DiagnosisSummary {
     confidence,
     knowledgePoint: mistakeLabel.name,
     parentSummary: {
-      headline: `本次错题更接近“${mistakeLabel.name}”。`,
-      nextStep: `优先复习“${mistakeLabel.name}”，并完成 2 道同类题验证是否真正改正。`,
+      headline: `本次错题更接近\u201c${mistakeLabel.name}\u201d。`,
+      nextStep: `优先复习\u201c${mistakeLabel.name}\u201d，并完成 2 道同类题验证是否真正改正。`,
     },
   };
 }

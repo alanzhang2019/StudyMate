@@ -1,4 +1,4 @@
-import type { MistakeCode } from '@/lib/mistake/domain/types';
+import type { MathMistakeCode } from '@/lib/mistake/domain/types';
 
 export type MistakeLabel = {
   name: string;
@@ -6,7 +6,7 @@ export type MistakeLabel = {
   triggers: string[];
 };
 
-export const mistakeTaxonomy: Record<MistakeCode, MistakeLabel> = {
+export const mathMistakeTaxonomy: Record<MathMistakeCode, MistakeLabel> = {
   carry_mistake: {
     name: '进位错误',
     description: '加法进位时漏加或进错位。',
@@ -38,7 +38,3 @@ export const mistakeTaxonomy: Record<MistakeCode, MistakeLabel> = {
     triggers: ['不知道题目在考什么概念', '会套步骤但说不清原因'],
   },
 };
-
-export function getMistakeLabel(code: MistakeCode): MistakeLabel {
-  return mistakeTaxonomy[code];
-}

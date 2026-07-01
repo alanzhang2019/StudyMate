@@ -1,8 +1,10 @@
+import type { InputSource, Subject } from '@/lib/mistake/domain/types';
+
 export interface MistakeClassroomInput {
   sessionId?: string;
   grade: number;
-  subject: 'math';
-  source: 'photo' | 'manual';
+  subject: Subject;
+  source: InputSource;
   problemText: string;
   studentAnswer?: string;
   correctAnswer?: string;

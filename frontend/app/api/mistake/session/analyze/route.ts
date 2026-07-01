@@ -1,18 +1,31 @@
 import { z } from 'zod';
 
 import type { AnalyzeSessionResponse, ProblemInput } from '@/lib/mistake/domain/types';
-import { diagnoseMistake } from '@/lib/mistake/diagnosis/diagnose';
-import { explainForChild } from '@/lib/mistake/explain/explain';
-import { generatePractice } from '@/lib/mistake/practice/generate-practice';
+import { diagnoseMistake } from '@/lib/mistake/diagnosis';
+import { explainForChild } from '@/lib/mistake/explain';
+import { generatePractice } from '@/lib/mistake/practice';
 import { trackEvent } from '@/lib/usage/track';
 
 const problemInputSchema = z.object({
   grade: z.number().int().min(1).max(12),
-  subject: z.literal('math'),
-  source: z.union([z.literal('photo'), z.literal('manual')]),
+  subject: z.union([z.literal('math'), z.literal('cpp')]),
+  source: z.union([z.literal('photo'), z.literal('manual'), z.literal('integration')]),
   problemText: z.string().min(1),
   studentAnswer: z.string().optional(),
   correctAnswer: z.string().optional(),
+  verdict: z
+    .union([
+      z.literal('AC'), z.literal('WA'), z.literal('TLE'),
+      z.literal('RE'), z.literal('CE'), z.literal('MLE'), z.literal('PE'),
+    ])
+    .optional(),
+  problemType: z
+    .union([
+      z.literal('dp'), z.literal('greedy'), z.literal('brute'),
+      z.literal('graph'), z.literal('string'), z.literal('math'), z.literal('other'),
+    ])
+    .optional(),
+  title: z.string().optional(),
 });
 
 export async function POST(request: Request): Promise<Response> {

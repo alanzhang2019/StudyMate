@@ -1,12 +1,12 @@
-import type { MistakeCode } from '@/lib/mistake/domain/types';
-import { getMistakeLabel } from '@/lib/mistake/taxonomy/mistake-taxonomy';
+import type { MathMistakeCode } from '@/lib/mistake/domain/types';
+import { getMistakeLabel } from '@/lib/mistake/taxonomy';
 
-export function explainForChild(code: MistakeCode, problemText?: string): string {
+export function explainMathForChild(code: MathMistakeCode, _problemText?: string): string {
   if (code === 'concept_gap') {
     return `这道题不只是算错，更像是${getMistakeLabel(code).name}。先把题目在问什么、已知什么说清楚，再开始列式。`;
   }
 
-  const explanationMap: Record<Exclude<MistakeCode, 'concept_gap'>, string> = {
+  const explanationMap: Record<Exclude<MathMistakeCode, 'concept_gap'>, string> = {
     carry_mistake:
       '这道题像是在加法进位时漏掉了前一位要多加 1。先把个位相加，满十以后把 1 送到十位，再算十位会更稳。',
     borrow_mistake:

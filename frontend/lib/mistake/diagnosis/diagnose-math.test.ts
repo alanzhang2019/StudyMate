@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { diagnoseMistake } from '@/lib/mistake/diagnosis/diagnose';
+import { diagnoseMistake } from '@/lib/mistake/diagnosis';
 
 describe('diagnoseMistake', () => {
   it('detects carry_mistake from normalized addition text and answer gap', () => {

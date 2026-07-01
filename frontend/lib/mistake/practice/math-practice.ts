@@ -1,6 +1,6 @@
-import type { MistakeCode, PracticeSuggestion } from '@/lib/mistake/domain/types';
+import type { MathMistakeCode, PracticeSuggestion } from '@/lib/mistake/domain/types';
 
-const practiceMap: Record<MistakeCode, [PracticeSuggestion, PracticeSuggestion]> = {
+const practiceMap: Record<MathMistakeCode, [PracticeSuggestion, PracticeSuggestion]> = {
   carry_mistake: [
     { prompt: '试一试：48 + 27 = ?', answer: '75' },
     { prompt: '再做一道：56 + 18 = ?', answer: '74' },
@@ -27,6 +27,6 @@ const practiceMap: Record<MistakeCode, [PracticeSuggestion, PracticeSuggestion]>
   ],
 };
 
-export function generatePractice(code: MistakeCode): PracticeSuggestion[] {
+export function generateMathPractice(code: MathMistakeCode): PracticeSuggestion[] {
   return practiceMap[code];
 }

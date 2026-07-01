@@ -1,4 +1,5 @@
 import type { ExplanationSummary } from '@/lib/mistake/ui/types';
+import type { InputSource, Subject } from '@/lib/mistake/domain/types';
 
 export type MistakeSessionStatus =
   | 'draft'
@@ -17,8 +18,9 @@ export interface ParentSummary {
 
 export interface MistakeSession {
   id: string;
+  subject?: Subject;
   studentProfileId?: string;
-  source: 'photo' | 'upload';
+  source: InputSource;
   imageUrl?: string;
   ocr: {
     problemText: string;
@@ -43,8 +45,9 @@ export interface MistakeSession {
 }
 
 export interface CreateMistakeSessionInput {
+  subject?: Subject;
   studentProfileId?: string;
-  source: 'photo' | 'upload';
+  source: InputSource;
   imageUrl?: string;
   ocr: MistakeSession['ocr'];
   confirmed: MistakeSession['confirmed'];
