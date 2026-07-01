@@ -10,6 +10,9 @@ interface ImageCropperProps {
   /** Pre-detected crop box in original image coordinates. When set, the
    * cropper will open with this region pre-selected. The user can adjust. */
   initialCrop?: CropBox | null;
+  /** True while a background detection (auto or re-detect) is in flight.
+   * The cropper shows a "识别中" indicator next to the title. */
+  isDetecting?: boolean;
   /** Optional callback to re-run detection (e.g. user taps "smart select" again).
    * Should return a new image-coordinate box, or null if nothing found. */
   onReDetect?: () => Promise<CropBox | null>;

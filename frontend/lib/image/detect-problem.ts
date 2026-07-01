@@ -2,28 +2,25 @@
 // math-problem image. Used to pre-fill the crop box so the user only has
 // to confirm or fine-tune — not redraw the box from scratch.
 //
-// Algorithm (OpenCV):
-//   1. Grayscale + median blur (handles noisy phone photos well)
-//   2. Adaptive threshold (handles uneven lighting from flash/shadow)
-//   3. Morphological DILATE with a wide horizontal kernel — connects
-//      characters in the same line into a single horizontal block.
-//      This is the key step: it makes problem rows become single
-//      rectangles while smooth areas (hands, devices, blank space)
-//      stay as sparse or unconnected regions.
-//   4. findContours on the dilated binary image
-//   5. Filter candidates by area (min 4% of image) and aspect ratio
-//   6. For each candidate, count edges in the ORIGINAL grayscale inside
-//      its bounding rect — this gives the "edge density" score
-//   7. Score = density² × area  (favors dense text regions over large
-//      smooth areas like hands or page backgrounds)
-//   8. Return the best rect with 5% padding, clipped to image bounds
-//
-// Returns null on any failure so the caller can fall back to a centered
-// default crop.
+// Algorithm (DBNet → edge-based fallback):
+//   1. DBNet (chineseocr_lite's dbnet.onnx via OpenCV.js DNN).
+//      A learned text detector that explicitly models text regions, so it
+//      handles photos of homework with hands/devices/backgrounds much
+//      better than pure edge detection. Returns the bounding box of the
+//      largest grouped text region (multi-line problems are favored over
+//      isolated fragments like headers or page numbers).
+//   2. Edge-based fallback. Adaptive threshold + Canny density scoring.
+//      Used when DBNet is unavailable (slow connection, no model, etc.).
+//   3. Pad the final box with 5% breathing margin and clip to image bounds.
 
 import type * as OpenCVNamespace from '@techstark/opencv-js';
+import { detectTextRegion, prewarmDBNet } from './detect-text-regions';
 
 export type CropBox = { x: number; y: number; width: number; height: number };
+
+// Re-export so callers (e.g. /mistake page) can pre-warm the DBNet model on
+// mount in a single import.
+export { prewarmDBNet };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type OpenCVValue = any;
@@ -54,12 +51,28 @@ export async function detectProblemRegion(
   img: HTMLImageElement,
   options: DetectionOptions = {},
 ): Promise<CropBox | null> {
-  // Detection is timeboxed generously because OpenCV is pre-warmed on page
-  // mount. The timebox here is for the algorithm itself, not the wasm load.
-  const { timeoutMs = 3000, minAreaFraction = 0.04, paddingFraction = 0.05 } = options;
+  const { timeoutMs = 6000, minAreaFraction = 0.04, paddingFraction = 0.05 } = options;
 
   if (!img.naturalWidth || !img.naturalHeight) return null;
 
+  // 1. DBNet (preferred). Returns the bounding box of the largest grouped
+  //    text region. Timebox is generous because the first call also loads
+  //    the 3.6MB ONNX model. Subsequent calls reuse the cached model and
+  //    usually finish in <500ms.
+  try {
+    const dbnetBox = await detectTextRegion(img, timeoutMs);
+    if (dbnetBox) {
+      console.log('[detect-problem] using DBNet result');
+      return padCropBox(dbnetBox, img.naturalWidth, img.naturalHeight, paddingFraction);
+    }
+    console.warn('[detect-problem] DBNet returned null, falling back to edge-based');
+  } catch (err) {
+    console.warn('[detect-problem] DBNet failed, falling back to edge-based:', err);
+  }
+
+  // 2. Edge-based fallback. Faster (~100-500ms) but less accurate on
+  //    photos with hands/devices/backgrounds. Also serve as a graceful
+  //    degradation path if the ONNX model is blocked or fails to load.
   let cv;
   try {
     cv = await loadOpenCV();
@@ -68,23 +81,24 @@ export async function detectProblemRegion(
     return null;
   }
 
+  const fallbackTimeout = Math.min(3000, timeoutMs);
   return Promise.race([
     new Promise<CropBox | null>((resolve) => {
       setTimeout(() => {
         try {
-          const result = runDetection(cv, img, minAreaFraction, paddingFraction);
+          const result = runEdgeDetection(cv, img, minAreaFraction, paddingFraction);
           resolve(result);
         } catch (err) {
-          console.warn('[detect-problem] detection failed:', err);
+          console.warn('[detect-problem] edge-based detection failed:', err);
           resolve(null);
         }
       }, 0);
     }),
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs)),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), fallbackTimeout)),
   ]);
 }
 
-function runDetection(
+function runEdgeDetection(
   cv: OpenCVValue,
   img: HTMLImageElement,
   minAreaFraction: number,

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
-import { detectProblemRegion, loadOpenCV, type CropBox } from '@/lib/image/detect-problem';
+import { detectProblemRegion, loadOpenCV, prewarmDBNet, type CropBox } from '@/lib/image/detect-problem';
 
 // Force dynamic rendering on every request. Without this, Next.js prerenders
 // the HTML at build time and caches it for a year (`Cache-Control:
@@ -74,6 +74,15 @@ export default function HomeworkPage() {
       const phase = saved.previewPhase;
       setHasResumableSession(phase === 'generating-content' || phase === 'review');
     }
+  }, []);
+
+  // Pre-warm the DBNet text detection model in the background so the first
+  // auto-crop on a freshly uploaded photo is instant (saves ~1-2s of model
+  // load + parse on the first call). Safe to ignore failures — the detection
+  // function will fall back to the edge-based algorithm if the model isn't
+  // ready in time.
+  useEffect(() => {
+    prewarmDBNet();
   }, []);
 
   const handleResumeGeneration = useCallback(() => {
