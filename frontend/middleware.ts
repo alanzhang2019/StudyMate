@@ -48,12 +48,36 @@ async function verifyToken(token: string, accessCode: string): Promise<boolean> 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Short-circuit CORS preflight for integration endpoints. The browser
+  // sends OPTIONS before the real POST/GET, and we want to answer with
+  // the CORS headers directly from middleware so the real route handler
+  // never has to think about it.
+  if (
+    pathname.startsWith('/api/integrations/') &&
+    request.method === 'OPTIONS'
+  ) {
+    return new NextResponse(null, {
+      status: 204,
+      headers: buildCorsHeaders(request, pathname),
+    });
+  }
+
   // Build a response by running the existing access-control pipeline
   // first, then attach the visitor cookie to whatever the pipeline
   // decides to return. This keeps the visitor-id contract in one
   // place and means every code path (page, API, redirect, json)
   // ends up setting the cookie on the first hit.
   const response = await runAccessControl(request, pathname);
+
+  // Attach CORS headers to every response on the integration surface,
+  // including error responses (401/429/etc.) so the browser can read
+  // the JSON body from a cross-origin caller.
+  if (pathname.startsWith('/api/integrations/')) {
+    const corsHeaders = buildCorsHeaders(request, pathname);
+    for (const [key, value] of corsHeaders.entries()) {
+      response.headers.set(key, value);
+    }
+  }
 
   // Mint a visitor id once per request, only if the browser hasn't
   // sent one yet. We do this for *every* response (including 401s
@@ -74,6 +98,41 @@ export async function middleware(request: NextRequest) {
   }
 
   return response;
+}
+
+function parseAllowedOrigins(): string[] | '*' {
+  const raw = process.env.INTEGRATION_CORS_ORIGINS?.trim();
+  if (!raw) return [];
+  if (raw === '*') return '*';
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+}
+
+function buildCorsHeaders(request: NextRequest, _pathname: string): Headers {
+  const allowed = parseAllowedOrigins();
+  const requestOrigin = request.headers.get('origin');
+  const headers = new Headers();
+
+  if (allowed === '*') {
+    headers.set('Access-Control-Allow-Origin', '*');
+    headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    headers.set('Access-Control-Max-Age', '86400');
+    return headers;
+  }
+
+  if (requestOrigin && allowed.includes(requestOrigin)) {
+    headers.set('Access-Control-Allow-Origin', requestOrigin);
+    headers.set('Access-Control-Allow-Credentials', 'true');
+    headers.set('Vary', 'Origin');
+    headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    headers.set('Access-Control-Max-Age', '86400');
+  }
+
+  return headers;
 }
 
 async function runAccessControl(

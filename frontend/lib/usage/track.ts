@@ -18,7 +18,9 @@ export type UsageEventName =
   | 'mistake.session.generate_classroom'
   | 'mistake.session.complete'
   | 'admin.login'
-  | 'landing.cta_click';
+  | 'landing.cta_click'
+  | 'integration.mistake.create'
+  | 'integration.jobs.poll';
 
 export async function trackEvent(
   eventName: UsageEventName,

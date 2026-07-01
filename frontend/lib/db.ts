@@ -193,23 +193,23 @@ function getDb(): Database {
     id TEXT PRIMARY KEY,
     subject TEXT NOT NULL,
     source TEXT,
-    request_payload TEXT NOT NULL,
+    requestPayload TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'queued',
     stage TEXT,
-    session_id TEXT,
-    classroom_id TEXT,
-    error_code TEXT,
-    error_message TEXT,
+    sessionId TEXT,
+    classroomId TEXT,
+    errorCode TEXT,
+    errorMessage TEXT,
     ip TEXT,
     ua TEXT,
-    expires_at TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    expiresAt TEXT NOT NULL,
+    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+    updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
   );
   CREATE INDEX IF NOT EXISTS idx_integration_jobs_ip_time
-    ON integration_jobs (ip, created_at DESC);
+    ON integration_jobs (ip, createdAt DESC);
   CREATE INDEX IF NOT EXISTS idx_integration_jobs_status
-    ON integration_jobs (status, created_at DESC);
+    ON integration_jobs (status, createdAt DESC);
 `)
 
     // Idempotent column migration for usage_events. We can't add
