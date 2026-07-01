@@ -1,20 +1,23 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import { X, Check, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { X, Check, ZoomIn, ZoomOut, RotateCcw, Sparkles, Loader2 } from 'lucide-react';
+import { imageBoxToDisplayBox } from '@/lib/image/coordinates';
+import type { CropBox } from '@/lib/image/detect-problem';
 
 interface ImageCropperProps {
   imageUrl: string;
+  /** Pre-detected crop box in original image coordinates. When set, the
+   * cropper will open with this region pre-selected. The user can adjust. */
+  initialCrop?: CropBox | null;
+  /** Optional callback to re-run detection (e.g. user taps "smart select" again).
+   * Should return a new image-coordinate box, or null if nothing found. */
+  onReDetect?: () => Promise<CropBox | null>;
   onCrop: (croppedBlob: Blob) => void;
   onCancel: () => void;
 }
 
-interface CropBox {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
+type DisplayBox = CropBox;
 
 type DragType =
   | null
@@ -25,15 +28,23 @@ type DragType =
 
 const MIN_BOX = 80;
 
-export function ImageCropper({ imageUrl, onCrop, onCancel }: ImageCropperProps) {
+export function ImageCropper({
+  imageUrl,
+  initialCrop,
+  onReDetect,
+  onCrop,
+  onCancel,
+}: ImageCropperProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
 
   const [imgSize, setImgSize] = useState({ w: 0, h: 0 });
   const [baseDisplay, setBaseDisplay] = useState({ w: 0, h: 0 });
   const [imagePos, setImagePos] = useState({ x: 0, y: 0 });
-  const [cropBox, setCropBox] = useState<CropBox>({ x: 0, y: 0, width: 0, height: 0 });
+  const [cropBox, setCropBox] = useState<DisplayBox>({ x: 0, y: 0, width: 0, height: 0 });
   const [scale, setScale] = useState(1);
+  const [isAutoDetected, setIsAutoDetected] = useState(false);
+  const [isReDetecting, setIsReDetecting] = useState(false);
 
   const containerSize = useMemo(() => {
     if (typeof window === 'undefined') return { w: 360, h: 360 };
@@ -58,12 +69,54 @@ export function ImageCropper({ imageUrl, onCrop, onCancel }: ImageCropperProps) 
       const offX = (containerSize.w - dispW) / 2;
       const offY = (containerSize.h - dispH) / 2;
       setImagePos({ x: offX, y: offY });
-      // 默认裁剪框 = 整张图片
-      setCropBox({ x: offX, y: offY, width: dispW, height: dispH });
       setScale(1);
+
+      if (initialCrop) {
+        const db = imageBoxToDisplayBox(
+          initialCrop,
+          { w: nw, h: nh },
+          { w: dispW, h: dispH },
+          { x: offX, y: offY },
+        );
+        setCropBox(db);
+        setIsAutoDetected(true);
+      } else {
+        setCropBox({ x: offX, y: offY, width: dispW, height: dispH });
+        setIsAutoDetected(false);
+      }
     };
     img.src = imageUrl;
-  }, [imageUrl, containerSize]);
+  }, [imageUrl, containerSize, initialCrop]);
+
+  const handleReDetect = useCallback(async () => {
+    if (!onReDetect || isReDetecting) return;
+    setIsReDetecting(true);
+    try {
+      const result = await onReDetect();
+      if (result && imgRef.current) {
+        const nw = imgRef.current.naturalWidth;
+        const nh = imgRef.current.naturalHeight;
+        const ratio = Math.min(containerSize.w / nw, containerSize.h / nh);
+        const dispW = nw * ratio;
+        const dispH = nh * ratio;
+        const offX = (containerSize.w - dispW) / 2;
+        const offY = (containerSize.h - dispH) / 2;
+        const db = imageBoxToDisplayBox(
+          result,
+          { w: nw, h: nh },
+          { w: dispW, h: dispH },
+          { x: offX, y: offY },
+        );
+        setImagePos({ x: offX, y: offY });
+        setBaseDisplay({ w: dispW, h: dispH });
+        setScale(1);
+        setCropBox(db);
+        setIsAutoDetected(true);
+      }
+    } finally {
+      setIsReDetecting(false);
+    }
+  }, [onReDetect, isReDetecting, containerSize]);
 
   const displayW = baseDisplay.w * scale;
   const displayH = baseDisplay.h * scale;
@@ -236,7 +289,15 @@ export function ImageCropper({ imageUrl, onCrop, onCancel }: ImageCropperProps) 
         >
           <X className="w-5 h-5" />
         </button>
-        <span className="text-white font-medium">裁剪图片</span>
+        <div className="flex items-center gap-2">
+          <span className="text-white font-medium">裁剪图片</span>
+          {isAutoDetected && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-blue-500/20 text-blue-200 border border-blue-400/30">
+              <Sparkles className="w-3 h-3" />
+              智能
+            </span>
+          )}
+        </div>
         <button
           onClick={handleCrop}
           className="p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white transition-colors"
@@ -375,6 +436,20 @@ export function ImageCropper({ imageUrl, onCrop, onCancel }: ImageCropperProps) 
         >
           <ZoomIn className="w-5 h-5" />
         </button>
+        {onReDetect && (
+          <button
+            onClick={handleReDetect}
+            disabled={isReDetecting}
+            className="px-3 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm transition-colors disabled:opacity-50 inline-flex items-center gap-1.5"
+          >
+            {isReDetecting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4" />
+            )}
+            智能框选
+          </button>
+        )}
       </div>
 
       <p className="text-white/70 text-sm mt-3">

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
+import { detectProblemRegion, type CropBox } from '@/lib/image/detect-problem';
 
 // Force dynamic rendering on every request. Without this, Next.js prerenders
 // the HTML at build time and caches it for a year (`Cache-Control:
@@ -60,6 +61,8 @@ export default function HomeworkPage() {
   const [error, setError] = useState('');
   const [cropImageUrl, setCropImageUrl] = useState<string | null>(null);
   const [cropImageIndex, setCropImageIndex] = useState<number>(-1);
+  const [autoCropBox, setAutoCropBox] = useState<CropBox | null>(null);
+  const [isDetecting, setIsDetecting] = useState(false);
   const [hasResumableSession, setHasResumableSession] = useState(false);
   const activeProfile = useProfileStore((s) => s.activeProfile);
   const homeContent = getHomeworkHomeContent(t);
@@ -112,7 +115,8 @@ export default function HomeworkPage() {
     }
   }, [textInput]);
 
-  // Handle file selection
+  // Handle file selection — auto-opens the cropper for each new image so the
+  // user can confirm or fine-tune the auto-detected problem region.
   const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
@@ -127,7 +131,20 @@ export default function HomeworkPage() {
       });
     });
 
-    setImages(prev => [...prev, ...newImages]);
+    setImages((prev) => {
+      const startIndex = prev.length;
+      const updated = [...prev, ...newImages];
+      // Auto-open the cropper for the first newly added image. The cropper
+      // will use a centered default crop; detection happens in the background
+      // and replaces the crop box when complete.
+      const first = newImages[0];
+      if (first) {
+        setCropImageUrl(first.previewUrl);
+        setCropImageIndex(startIndex);
+        setAutoCropBox(null);
+      }
+      return updated;
+    });
     setIsTextMode(false);
     setStatus('idle');
     setError('');
@@ -135,6 +152,52 @@ export default function HomeworkPage() {
     // Reset input so same file can be selected again
     event.target.value = '';
   }, []);
+
+  // Run detection whenever a new image is opened in the cropper. The result
+  // is the initial crop box pre-selected for the user.
+  useEffect(() => {
+    if (cropImageIndex < 0 || !cropImageUrl) return;
+    let cancelled = false;
+    setIsDetecting(true);
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = async () => {
+      const box = await detectProblemRegion(img);
+      if (cancelled) return;
+      setAutoCropBox(box);
+      setIsDetecting(false);
+    };
+    img.onerror = () => {
+      if (cancelled) return;
+      setIsDetecting(false);
+    };
+    img.src = cropImageUrl;
+    return () => {
+      cancelled = true;
+    };
+  }, [cropImageIndex, cropImageUrl]);
+
+  // Re-detect handler used by the "智能框选" button in the cropper.
+  const handleReDetect = useCallback(async (): Promise<CropBox | null> => {
+    if (cropImageIndex < 0 || !cropImageUrl) return null;
+    const img = new Image();
+    img.src = cropImageUrl;
+    await new Promise((r) => {
+      img.onload = r;
+      img.onerror = r;
+    });
+    const box = await detectProblemRegion(img);
+    if (box) setAutoCropBox(box);
+    return box;
+  }, [cropImageIndex, cropImageUrl]);
+
+  // Find the next image that hasn't been cropped yet (after the current one).
+  const findNextUncropped = useCallback((fromIndex: number): number => {
+    for (let i = fromIndex + 1; i < images.length; i++) {
+      if (!images[i].cropped) return i;
+    }
+    return -1;
+  }, [images]);
 
   // Remove image
   const removeImage = useCallback((index: number) => {
@@ -146,13 +209,14 @@ export default function HomeworkPage() {
     });
   }, []);
 
-  // Start crop
+  // Start crop (manual trigger from the image card's 截图 button)
   const startCrop = useCallback((index: number) => {
     setCropImageUrl(images[index].previewUrl);
     setCropImageIndex(index);
+    setAutoCropBox(null);
   }, [images]);
 
-  // Handle crop complete
+  // Handle crop complete — update image, then auto-queue to next uncropped.
   const handleCropComplete = useCallback((croppedBlob: Blob) => {
     if (cropImageIndex < 0) return;
 
@@ -163,7 +227,7 @@ export default function HomeworkPage() {
 
     const newPreviewUrl = URL.createObjectURL(croppedBlob);
 
-    setImages(prev => {
+    setImages((prev) => {
       const newImages = [...prev];
       URL.revokeObjectURL(newImages[cropImageIndex].previewUrl);
       newImages[cropImageIndex] = {
@@ -175,15 +239,35 @@ export default function HomeworkPage() {
       return newImages;
     });
 
-    setCropImageUrl(null);
-    setCropImageIndex(-1);
-  }, [cropImageIndex, images]);
+    // Auto-queue: if there are more uncropped images in this batch, open the
+    // cropper for the next one immediately.
+    const nextIdx = findNextUncropped(cropImageIndex);
+    if (nextIdx >= 0) {
+      setCropImageIndex(nextIdx);
+      setCropImageUrl(images[nextIdx].previewUrl);
+      setAutoCropBox(null);
+    } else {
+      setCropImageUrl(null);
+      setCropImageIndex(-1);
+      setAutoCropBox(null);
+    }
+  }, [cropImageIndex, images, findNextUncropped]);
 
-  // Cancel crop
+  // Cancel crop — discard the image entirely (per design: cancel = remove)
   const handleCropCancel = useCallback(() => {
+    if (cropImageIndex >= 0 && cropImageIndex < images.length) {
+      const target = images[cropImageIndex];
+      // Only discard if this image hasn't been cropped yet (i.e. user is in
+      // the new-image auto-flow). If they manually opened the cropper from
+      // a card, just close the modal and keep the image.
+      if (!target.cropped) {
+        removeImage(cropImageIndex);
+      }
+    }
     setCropImageUrl(null);
     setCropImageIndex(-1);
-  }, []);
+    setAutoCropBox(null);
+  }, [cropImageIndex, images, removeImage]);
 
   // Convert file to base64
   async function fileToBase64(file: File): Promise<string> {
@@ -387,6 +471,8 @@ export default function HomeworkPage() {
         {cropImageUrl && (
           <ImageCropper
             imageUrl={cropImageUrl}
+            initialCrop={autoCropBox}
+            onReDetect={handleReDetect}
             onCrop={handleCropComplete}
             onCancel={handleCropCancel}
           />
