@@ -53,7 +53,21 @@ const GROUP_GAP_RATIO = 0.12; // 12% of image height
 const VERTICAL_DILATE_PX = 12;
 // Build tag — printed by prewarm so a quick console glance can confirm
 // whether the latest code is actually running on a given deployment.
-const BUILD_TAG = 'dbnet-2026-07-02-r7-dynamic-output-meta';
+const BUILD_TAG = 'dbnet-2026-07-02-r8-aligned-input';
+
+// ORT 1.27.0 WASM tensors require 16-byte aligned backing buffers. A
+// `new Float32Array(n)` allocates from V8's normal heap, which is only
+// guaranteed 8-byte aligned — on some browsers the SIMD memcpy op in
+// ORT then traps and surfaces as error code 2472980 with no message.
+// Allocating a `ArrayBuffer` with explicit 16-byte alignment first
+// guarantees the float32 view is properly aligned for ORT's WASM SIMD.
+function allocAlignedFloat32(length: number): Float32Array {
+  const BYTES_PER_F32 = 4;
+  const ALIGN = 16;
+  const stride = Math.ceil((length * BYTES_PER_F32) / ALIGN) * ALIGN;
+  const ab = new ArrayBuffer(stride);
+  return new Float32Array(ab);
+}
 
 let cvPromise: Promise<typeof OpenCVNamespace> | null = null;
 let sessionPromise: Promise<ORTSession> | null = null;
@@ -66,23 +80,32 @@ export function loadOpenCV(): Promise<typeof OpenCVNamespace> {
 async function getDBNetSession(): Promise<ORTSession> {
   if (!sessionPromise) {
     sessionPromise = (async () => {
-      // Try WebGPU first (modern Chrome/Edge), then WebGL, then WASM.
-      // ORT picks the first available provider from this list. WASM is
-      // universally available, so the user always gets a working session
-      // even on iOS Safari or older browsers.
+      // Provider order is significant. On modern Chrome/Edge ORT will
+      // pick WebGPU → WebGL → WASM. On Safari/Firefox it'll fall back
+      // to WASM. We list all three so ORT picks the best one available
+      // instead of failing outright when the user's environment
+      // doesn't support WASM SIMD/threads (which previously surfaced
+      // as error code 2472980 with no usable message).
       //
-      // `extra.session.disable_shape_verification = '1'` is required for
-      // this particular dbnet.onnx: the model graph declares its output
-      // shape as {1,1,320,320} (the strided-down sample), but at runtime
-      // ORT's chosen implementation elides the downsample and produces
-      // {1,1,640,640}. ORT 1.27.0's `VerifyOutputSizes` promotes that
-      // mismatch to a thrown error (error code ~2452360) and the
-      // previous `r5` build surfaced `[detect-text] inference failed`.
-      // Disabling the check lets the actual tensor through; we then read
-      // `outTensor.dims` for the real H×W in the postprocess step.
+      // `enableCpuMemArena: false` works around a known ORT 1.27.0
+      // bug where the arena allocator in WASM thread mode returns
+      // a tensor pointer that downstream Conv kernels reject.
+      //
+      // `executionMode: 'sequential'` makes the run deterministic
+      // and skips a parallel-execution path that has been observed
+      // to fail shape checks for some dbnet graphs.
+      //
+      // `disable_shape_verification: '1'` is required because this
+      // model graph declares output as {1,1,320,320} but at runtime
+      // ORT's chosen implementation elides the downsample and
+      // produces {1,1,640,640}. We read `outTensor.dims` for the
+      // real H×W in the postprocess step.
       const session = await ort.InferenceSession.create(MODEL_URL, {
-        executionProviders: ['wasm'],
+        executionProviders: ['webgpu', 'webgl', 'wasm'],
         graphOptimizationLevel: 'all',
+        enableCpuMemArena: false,
+        executionMode: 'sequential',
+        logSeverityLevel: 3,
         extra: {
           session: {
             disable_shape_verification: '1',
@@ -132,12 +155,27 @@ export async function detectTextRegion(
         const result = await runDBNet(cv, session, img);
         resolve(result);
       } catch (err) {
-        console.warn('[detect-text] inference failed:', err);
+        // ORT 1.27.0 throws `Error("… ERROR_CODE: <num>, ERROR_MESSAGE: …")`
+        // from native bindings. Logging the raw object loses the message
+        // because Chrome collapses it; we extract the salient bits so the
+        // console shows the human-readable cause, not just an integer.
+        const e = err as unknown as { message?: string; name?: string; code?: number; stack?: string };
+        const msg = e?.message ?? String(err);
+        const code = typeof e?.code === 'number' ? e.code : extractOrtCode(msg);
+        console.warn(
+          `[detect-text] [${BUILD_TAG}] inference failed: code=${code} name=${e?.name ?? '?'} message=${msg}`,
+          e?.stack ?? '',
+        );
         resolve(null);
       }
     }),
     new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs)),
   ]);
+}
+
+function extractOrtCode(msg: string): number | null {
+  const m = msg.match(/ERROR_CODE:\s*(\d+)/);
+  return m ? Number(m[1]) : null;
 }
 
 async function runDBNet(
@@ -187,11 +225,13 @@ async function runDBNet(
   }
 
   // 4. Build ORT tensor (chw is a Float32Array view over the OpenCV blob)
-  //    We copy into a fresh Float32Array because ORT may retain the buffer
-  //    across the await call, and OpenCV will free `blob` in the cleanup
-  //    step below.
+  //    We copy into a *16-byte aligned* Float32Array because ORT's WASM
+  //    SIMD memcpy trap on unaligned buffers surfaces as a bare
+  //    `2472980` code with no message (a `new Float32Array(chw)` is
+  //    only 8-byte aligned on V8's normal heap). See `allocAlignedFloat32`.
   const inputName = session.inputNames[0];
-  const inputData = new Float32Array(chw);
+  const inputData = allocAlignedFloat32(3 * INPUT_SIZE * INPUT_SIZE);
+  inputData.set(chw);
   const inputTensor = new ort.Tensor('float32', inputData, [
     1,
     3,
