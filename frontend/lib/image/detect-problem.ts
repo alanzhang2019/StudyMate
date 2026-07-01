@@ -102,11 +102,17 @@ function runDetection(
   const edges = new cv.Mat();
   const contours = new cv.MatVector();
   const hierarchy = new cv.Mat();
-  // Wide+short kernel: merges characters within a single line of text.
-  // Vertical extent is 1 (no vertical merge) so that consecutive problem
-  // rows in a column do NOT merge into one giant block — we group them
-  // explicitly below based on vertical gap, which is more robust.
-  const kernel = cv.Mat.ones(40, 1, cv.CV_8U);
+  // OpenCV kernel: cv.Mat.ones(rows, cols) → a kernel of `rows` height
+  // and `cols` width. We use a TALL × narrow kernel (60 rows × 1 col)
+  // so it merges all foreground pixels within 60px vertically — this
+  // connects consecutive lines of a problem (typical 30-60px line
+  // spacing) into a single contour per problem, while gaps > 60px
+  // (between problems or near solid objects) remain separate.
+  //
+  // Edge density (from Canny) is what differentiates text contours
+  // (high density, many internal edges) from solid object contours
+  // (low density, only outer outline).
+  const kernel = cv.Mat.ones(60, 1, cv.CV_8U);
 
   try {
     // 1. Grayscale
@@ -159,7 +165,11 @@ function runDetection(
     //    The gap is relative to image height so the same threshold works
     //    across different photo resolutions.
     lineRects.sort((a, b) => a.y - b.y);
-    const groupGap = Math.max(20, imageH * 0.025); // 2.5% of image height, min 20px
+    // Generous gap: ~5% of image height (60px for 1200px photo). This
+    // covers typical line spacing within a multi-line problem, even when
+    // the problem has short lines or sparse text. Gaps larger than this
+    // indicate a new problem (or a section header).
+    const groupGap = Math.max(40, imageH * 0.05);
     const groups: CropBox[][] = [];
     let current: CropBox[] = [lineRects[0]];
     for (let i = 1; i < lineRects.length; i++) {
@@ -175,8 +185,21 @@ function runDetection(
     }
     groups.push(current);
 
-    // 9. For each group, compute the bounding rect + density score.
-    const candidates: Candidate[] = groups.map((group) => {
+    // 9. For each group, compute the bounding rect + score.
+    //    Score = line_count × density² × area.
+    //    The line_count factor favors groups with MORE lines (i.e. a
+    //    complete multi-line problem) over groups with just 1-2 lines
+    //    (which might be a fragment like "下午孵出 107 只" or a section
+    //    header). A complete problem is more useful to crop.
+    type ScoredGroup = {
+      group: CropBox[];
+      rect: CropBox;
+      area: number;
+      density: number;
+      lineCount: number;
+      score: number;
+    };
+    const candidates: ScoredGroup[] = groups.map((group) => {
       const x = Math.min(...group.map((r) => r.x));
       const y = Math.min(...group.map((r) => r.y));
       const right = Math.max(...group.map((r) => r.x + r.width));
@@ -184,7 +207,15 @@ function runDetection(
       const rect: CropBox = { x, y, width: right - x, height: bottom - y };
       const density = countNonZeroInRect(cv, edges, rect);
       const area = rect.width * rect.height;
-      return { rect, area, density, score: density * density * area };
+      const lineCount = group.length;
+      return {
+        group,
+        rect,
+        area,
+        density,
+        lineCount,
+        score: lineCount * density * density * area,
+      };
     });
 
     if (candidates.length === 0) {
@@ -196,7 +227,8 @@ function runDetection(
     const best = candidates[0];
     console.log(
       `[detect-problem] ${lineRects.length} lines, ${groups.length} problem(s), ` +
-        `best area=${best.area}px² (${best.rect.width}×${best.rect.height}) density=${best.density}`,
+        `best = ${best.lineCount} lines area=${best.area}px² ` +
+        `(${best.rect.width}×${best.rect.height}) density=${best.density}`,
     );
 
     return padCropBox(best.rect, img.naturalWidth, img.naturalHeight, paddingFraction);
