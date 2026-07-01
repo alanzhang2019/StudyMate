@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
-import { detectProblemRegion, type CropBox } from '@/lib/image/detect-problem';
+import { detectProblemRegion, loadOpenCV, type CropBox } from '@/lib/image/detect-problem';
 
 // Force dynamic rendering on every request. Without this, Next.js prerenders
 // the HTML at build time and caches it for a year (`Cache-Control:
@@ -160,7 +160,11 @@ export default function HomeworkPage() {
     let cancelled = false;
     setIsDetecting(true);
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    // No crossOrigin for blob URLs (would fail to load); only set for
+    // remote URLs where CORS matters.
+    if (!cropImageUrl.startsWith('blob:')) {
+      img.crossOrigin = 'anonymous';
+    }
     img.onload = async () => {
       const box = await detectProblemRegion(img);
       if (cancelled) return;
@@ -472,6 +476,7 @@ export default function HomeworkPage() {
           <ImageCropper
             imageUrl={cropImageUrl}
             initialCrop={autoCropBox}
+            isDetecting={isDetecting}
             onReDetect={handleReDetect}
             onCrop={handleCropComplete}
             onCancel={handleCropCancel}

@@ -31,6 +31,7 @@ const MIN_BOX = 80;
 export function ImageCropper({
   imageUrl,
   initialCrop,
+  isDetecting = false,
   onReDetect,
   onCrop,
   onCancel,
@@ -291,7 +292,13 @@ export function ImageCropper({
         </button>
         <div className="flex items-center gap-2">
           <span className="text-white font-medium">裁剪图片</span>
-          {isAutoDetected && (
+          {isDetecting && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-white/10 text-white/80">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              识别中
+            </span>
+          )}
+          {!isDetecting && isAutoDetected && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-blue-500/20 text-blue-200 border border-blue-400/30">
               <Sparkles className="w-3 h-3" />
               智能
