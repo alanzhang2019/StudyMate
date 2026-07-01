@@ -33,7 +33,12 @@ type ORTSession = ort.InferenceSession;
 
 const MODEL_URL = '/models/dbnet.onnx';
 const INPUT_SIZE = 640; // model input — dynamic but we use fixed for speed
-const OUTPUT_SIZE = 320; // model output is fixed 320x320
+// DBNet downsamples by 2x, so the default output is 320x320 for a 640x640
+// input. But the model advertises dynamic output dims, and ORT will
+// happily give us back the same spatial size as the input if the runtime
+// didn't apply the downsample op. We read the actual dims from the tensor
+// at runtime so the postprocessing pipeline stays correct in either case.
+const DEFAULT_OUTPUT_SIZE = 320; // expected output H/W for INPUT_SIZE=640
 const TEXT_THRESHOLD = 0.3;
 const MIN_BOX_AREA = 200; // px² in original image coords
 // Vertical gap threshold for merging nearby text regions into one "problem".
@@ -48,7 +53,7 @@ const GROUP_GAP_RATIO = 0.12; // 12% of image height
 const VERTICAL_DILATE_PX = 12;
 // Build tag — printed by prewarm so a quick console glance can confirm
 // whether the latest code is actually running on a given deployment.
-const BUILD_TAG = 'dbnet-2026-07-01-r4';
+const BUILD_TAG = 'dbnet-2026-07-02-r5-dynamic-output';
 
 let cvPromise: Promise<typeof OpenCVNamespace> | null = null;
 let sessionPromise: Promise<ORTSession> | null = null;
@@ -184,30 +189,45 @@ async function runDBNet(
   const outputName = session.outputNames[0];
   const outTensor = outputs[outputName] ?? outputs[Object.keys(outputs)[0]];
   const outData = outTensor.data as Float32Array;
-  // Model output is [1, 1, 320, 320] — 102400 floats, row-major.
-  if (outData.length !== OUTPUT_SIZE * OUTPUT_SIZE) {
+  // Read the actual output shape from the tensor. DBNet's graph declares
+  // dynamic spatial dims; in practice we see either {1,1,320,320} (after
+  // the stride-2 downsample) or {1,1,640,640} (when ORT's optimization
+  // elides the downsample for the chosen input size). Both shapes are
+  // legitimate — the rest of the pipeline only needs H×W.
+  const outDims = (outTensor.dims as readonly number[]) ?? [];
+  let outH = DEFAULT_OUTPUT_SIZE;
+  let outW = DEFAULT_OUTPUT_SIZE;
+  if (outDims.length === 4) {
+    outH = outDims[2];
+    outW = outDims[3];
+  } else if (outDims.length === 3) {
+    outH = outDims[1];
+    outW = outDims[2];
+  } else if (outDims.length === 2) {
+    outH = outDims[0];
+    outW = outDims[1];
+  }
+  if (outData.length !== outH * outW) {
     throw new Error(
-      `unexpected ORT output length ${outData.length} (expected ${OUTPUT_SIZE * OUTPUT_SIZE})`,
+      `unexpected ORT output length ${outData.length} (expected ${outH * outW} for shape ${JSON.stringify(outDims)})`,
     );
   }
 
-  // 6. Wrap output in a 320×320 Float32 Mat for postprocessing
-  const probMap = cv.matFromArray(
-    OUTPUT_SIZE,
-    OUTPUT_SIZE,
-    cv.CV_32F,
-    outData,
-  );
+  // 6. Wrap output in a (outH×outW) Float32 Mat for postprocessing
+  const probMap = cv.matFromArray(outH, outW, cv.CV_32F, outData);
 
   // 7. Threshold probability map
   const binary = new cv.Mat();
   cv.threshold(probMap, binary, TEXT_THRESHOLD, 255, cv.THRESH_BINARY);
 
-  // 7b. Dilate vertically (in 320×320 output space). Math fractions have
-  // tall glyph extents that DBNet's tight thresholding tends to fragment;
-  // dilating ~3px in 320-space corresponds to ~6px in a typical 640px
-  // input, and ~12px in a full-resolution original.
-  const dilateKernel = cv.Mat.ones(3, 1, cv.CV_8U);
+  // 7b. Dilate vertically (in the model's output space). Math fractions
+  // have tall glyph extents that DBNet's tight thresholding tends to
+  // fragment; dilating a few pixels in the output space merges nearby
+  // text rows back into a single contour. We size the kernel to be ~0.5%
+  // of the output dimension, so it works for both 320×320 and 640×640
+  // output shapes (1–3 px).
+  const dilateSize = Math.max(1, Math.round(Math.min(outH, outW) * 0.005));
+  const dilateKernel = cv.Mat.ones(dilateSize, 1, cv.CV_8U);
   const dilated = new cv.Mat();
   cv.dilate(binary, dilated, dilateKernel);
   dilateKernel.delete();

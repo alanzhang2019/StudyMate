@@ -180,6 +180,30 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: `frame-ancestors ${frameAncestors}`,
           },
+          // Cross-Origin-Opener-Policy + Cross-Origin-Embedder-Policy enable
+          // SharedArrayBuffer in the browser. ONNX Runtime Web 1.27.x only
+          // ships the *-threaded-* WASM variant, which REQUIRES SAB to
+          // initialize — without these headers, DBNet inference throws
+          // "ort-wasm-threaded.wasm was not compiled with multi-threading
+          // support. It requires SharedArrayBuffer and Atomics" and we
+          // fall back to the inaccurate edge-based detector.
+          //
+          // COEP `credentialless` is used instead of `require-corp` so that
+          // cross-origin subresources (the ORT WASM from a CDN, the
+          // OpenCV.js WASM, the model file, any future assets) still load
+          // without each upstream having to set Cross-Origin-Resource-Policy.
+          // Modern browsers (Chrome 96+, Firefox 119+, Safari 17+) support
+          // `credentialless`; older browsers fall back to requiring CORP,
+          // which is more restrictive but still functional for same-origin
+          // assets like our /models/dbnet.onnx and the bundled OpenCV.js.
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin',
+          },
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'credentialless',
+          },
         ],
       },
     ];
