@@ -53,7 +53,20 @@ const GROUP_GAP_RATIO = 0.12; // 12% of image height
 const VERTICAL_DILATE_PX = 12;
 // Build tag — printed by prewarm so a quick console glance can confirm
 // whether the latest code is actually running on a given deployment.
-const BUILD_TAG = 'dbnet-2026-07-02-r9-sharedarraybuf-input';
+const BUILD_TAG = 'dbnet-2026-07-02-r10-disabled-edge-only';
+
+// DBNet is currently disabled. The ORT 1.27.0 + onnxruntime-web +
+// current dbnet.onnx combination throws a bare `2472980` error code from
+// the WASM SIMD memcpy path in this user's browser environment, and the
+// real root cause has not been identified yet. r7–r9 tried various
+// alignment fixes (Float32Array direct → aligned ArrayBuffer → aligned
+// SharedArrayBuffer) and none of them resolved it. To unblock the app
+// we just skip DBNet entirely; the edge-based detector in
+// `detect-problem.ts` produces a usable crop box (the user can also
+// adjust it manually on the cropping UI). The DBNet code below is
+// preserved so we can re-enable it once the root cause is found — see
+// the long comment block in `getDBNetSession` for the relevant
+// ORT runtime configuration that was attempted.
 
 // ORT 1.27.0 WASM tensors require 16-byte aligned backing buffers. A
 // `new Float32Array(n)` allocates from V8's normal heap, which is only
@@ -124,58 +137,23 @@ async function getDBNetSession(): Promise<ORTSession> {
 }
 
 export async function prewarmDBNet(): Promise<void> {
-  try {
-    console.log(`[detect-text] prewarm [${BUILD_TAG}]: loading ORT session…`);
-    const session = await getDBNetSession();
-    console.log(
-      `[detect-text] prewarm [${BUILD_TAG}]: ORT session ready,`,
-      'inputNames=', session.inputNames,
-      'outputNames=', session.outputNames,
-    );
-    console.log(`[detect-text] DBNet pre-warmed [${BUILD_TAG}]`);
-  } catch (err) {
-    console.warn(`[detect-text] prewarm [${BUILD_TAG}] failed:`, err);
-  }
+  // Disabled — see comment block above the BUILD_TAG. We log the
+  // disabled state once so the console still confirms the new bundle
+  // is actually live, then return immediately. No ORT session is
+  // created, so the onnxruntime-web WASM (~6MB) and the 1.8MB
+  // dbnet.onnx model are never downloaded.
+  console.log(`[detect-text] prewarm [${BUILD_TAG}]: DBNet disabled, skipping`);
 }
 
 export async function detectTextRegion(
   img: HTMLImageElement,
-  timeoutMs = 6000,
+  _timeoutMs = 6000,
 ): Promise<CropBox | null> {
+  // Disabled — see comment block above the BUILD_TAG. The caller
+  // (detect-problem.ts) already falls back to the edge-based detector
+  // when this returns null, so the app keeps working.
   if (!img.naturalWidth || !img.naturalHeight) return null;
-
-  let cv: any;
-  let session: ORTSession;
-  try {
-    cv = await loadOpenCV();
-    session = await getDBNetSession();
-  } catch (err) {
-    console.warn('[detect-text] failed to load deps:', err);
-    return null;
-  }
-
-  return Promise.race([
-    new Promise<CropBox | null>(async (resolve) => {
-      try {
-        const result = await runDBNet(cv, session, img);
-        resolve(result);
-      } catch (err) {
-        // ORT 1.27.0 throws `Error("… ERROR_CODE: <num>, ERROR_MESSAGE: …")`
-        // from native bindings. Logging the raw object loses the message
-        // because Chrome collapses it; we extract the salient bits so the
-        // console shows the human-readable cause, not just an integer.
-        const e = err as unknown as { message?: string; name?: string; code?: number; stack?: string };
-        const msg = e?.message ?? String(err);
-        const code = typeof e?.code === 'number' ? e.code : extractOrtCode(msg);
-        console.warn(
-          `[detect-text] [${BUILD_TAG}] inference failed: code=${code} name=${e?.name ?? '?'} message=${msg}`,
-          e?.stack ?? '',
-        );
-        resolve(null);
-      }
-    }),
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs)),
-  ]);
+  return null;
 }
 
 function extractOrtCode(msg: string): number | null {
