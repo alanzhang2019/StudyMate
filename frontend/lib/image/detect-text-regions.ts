@@ -53,20 +53,25 @@ const GROUP_GAP_RATIO = 0.12; // 12% of image height
 const VERTICAL_DILATE_PX = 12;
 // Build tag — printed by prewarm so a quick console glance can confirm
 // whether the latest code is actually running on a given deployment.
-const BUILD_TAG = 'dbnet-2026-07-02-r8-aligned-input';
+const BUILD_TAG = 'dbnet-2026-07-02-r9-sharedarraybuf-input';
 
 // ORT 1.27.0 WASM tensors require 16-byte aligned backing buffers. A
 // `new Float32Array(n)` allocates from V8's normal heap, which is only
 // guaranteed 8-byte aligned — on some browsers the SIMD memcpy op in
 // ORT then traps and surfaces as error code 2472980 with no message.
-// Allocating a `ArrayBuffer` with explicit 16-byte alignment first
-// guarantees the float32 view is properly aligned for ORT's WASM SIMD.
+//
+// r8 attempted to fix this with `new ArrayBuffer(stride)`, but V8 aligns
+// regular ArrayBuffer to 8 bytes too, so the trap persisted. The
+// definitive fix is `new SharedArrayBuffer(stride)`: V8 backs SABs with
+// page-aligned memory (4096B), which is way more than the 16B ORT needs.
+// The COOP/COEP headers in next.config.ts make SharedArrayBuffer
+// available in the browser, so we can rely on it here.
 function allocAlignedFloat32(length: number): Float32Array {
   const BYTES_PER_F32 = 4;
   const ALIGN = 16;
-  const stride = Math.ceil((length * BYTES_PER_F32) / ALIGN) * ALIGN;
-  const ab = new ArrayBuffer(stride);
-  return new Float32Array(ab);
+  const totalBytes = length * BYTES_PER_F32;
+  const stride = Math.ceil(totalBytes / ALIGN) * ALIGN;
+  return new Float32Array(new SharedArrayBuffer(stride));
 }
 
 let cvPromise: Promise<typeof OpenCVNamespace> | null = null;
