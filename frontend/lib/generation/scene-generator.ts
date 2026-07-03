@@ -53,6 +53,7 @@ import type {
   AgentInfo,
   SceneGenerationContext,
   GeneratedSlideData,
+  GeneratedQuizData,
   AICallFn,
   GenerationResult,
   GenerationCallbacks,
@@ -159,12 +160,13 @@ function checkFastGenerationEnabled(): boolean {
 }
 
 /**
- * Generate a single scene (two-step process)
+ * Generate a single scene.
  *
- * Step 3.1: Generate content
- * Step 3.2: Generate Actions
- *
- * In fast mode, steps are merged for fewer API calls
+ * r12+ — content + actions are produced in a SINGLE LLM call for slide,
+ * quiz, and interactive scenes. PBL scenes still go through the legacy
+ * two-step path (see `generateSceneActions`). This halves the per-scene
+ * call count from 2 to 1, which is what got us back under the upstream
+ * per-job quota.
  */
 async function generateSingleScene(
   outline: SceneOutline,
@@ -172,20 +174,32 @@ async function generateSingleScene(
   aiCall: AICallFn,
   languageDirective?: string,
 ): Promise<string | null> {
-  // Step 3.1: Generate content
-  log.info(`Step 3.1: Generating content for: ${outline.title}`);
-  const content = await generateSceneContent(outline, aiCall, { languageDirective });
+  log.info(`Generating content + actions in a single LLM call for: ${outline.title}`);
+
+  const { content, actions: combinedActions } = await generateSceneContentAndActions(
+    outline,
+    aiCall,
+    { languageDirective },
+  );
+
   if (!content) {
     log.error(`Failed to generate content for: ${outline.title}`);
     return null;
   }
 
-  // Step 3.2: Generate Actions
-  log.info(`Step 3.2: Generating actions for: ${outline.title}`);
-  const actions = await generateSceneActions(outline, content, aiCall, { languageDirective });
-  log.info(`Generated ${actions.length} actions for: ${outline.title}`);
+  // For PBL (and any future scene type that the combined path can't handle),
+  // `combinedActions` will be empty and we fall back to the legacy
+  // generateSceneActions call to keep behavior identical to pre-r12.
+  let actions = combinedActions;
+  if (actions.length === 0) {
+    log.info(
+      `Combined path produced no actions for "${outline.title}" (type=${outline.type}); falling back to separate actions call`,
+    );
+    actions = await generateSceneActions(outline, content, aiCall, { languageDirective });
+  }
 
-  // Create complete Scene
+  log.info(`Got ${actions.length} actions for: ${outline.title}`);
+
   return createSceneWithActions(outline, content, actions, api);
 }
 
@@ -295,6 +309,47 @@ export async function generateSceneContent(
   | GeneratedPBLContent
   | null
 > {
+  // Backward-compatible wrapper. New callers should use
+  // `generateSceneContentAndActions` directly so they can avoid the second
+  // LLM call for actions.
+  const { content } = await generateSceneContentAndActions(outline, aiCall, options);
+  return content;
+}
+
+/**
+ * Combined scene content + actions generation (r12+).
+ *
+ * The whole point of this refactor is to halve the per-scene LLM call count
+ * (from 2N to N+1 for an N-scene course) and stay under the upstream
+ * provider's per-job quota. For slide and quiz scenes, the LLM now returns
+ * `actions` in the same response, so we do not need a follow-up call.
+ *
+ * For interactive scenes, the widget content already carries
+ * `teacherActions` in the same response, so we just convert those — no
+ * additional LLM call was happening for them anyway.
+ *
+ * PBL scenes are rare and their action generation is structurally different;
+ * we keep the existing two-step path for PBL (call `generateSceneActions`
+ * separately). The new pipeline still skips the second call when this
+ * function is the entry point and the scene type is PBL — the caller is
+ * expected to handle the PBL case.
+ *
+ * Returns `{ content, actions }`. If content generation fails outright,
+ * `content` is null and `actions` is an empty array.
+ */
+export async function generateSceneContentAndActions(
+  outline: SceneOutline,
+  aiCall: AICallFn,
+  options: SceneContentOptions = {},
+): Promise<{
+  content:
+    | GeneratedSlideContent
+    | GeneratedQuizContent
+    | GeneratedInteractiveContent
+    | GeneratedPBLContent
+    | null;
+  actions: Action[];
+}> {
   const {
     assignedImages,
     imageMapping,
@@ -306,33 +361,35 @@ export async function generateSceneContent(
     thinkingConfig,
   } = options;
 
-  // Unified path for interactive scenes (both normal and ultra mode)
+  // Interactive (widget) scenes: content + teacherActions already come back
+  // in the same response. Convert the teacherActions and return them as
+  // the actions — we never needed a second LLM call here.
   if (outline.type === 'interactive') {
-    // Backward compatibility: convert legacy interactiveConfig
-    if (!outline.widgetType && outline.interactiveConfig) {
+    let widgetOutline = outline;
+    if (!widgetOutline.widgetType && widgetOutline.interactiveConfig) {
       log.info(`Converting legacy interactiveConfig for: ${outline.title}`);
-      outline = convertInteractiveConfigToWidget(outline);
+      widgetOutline = convertInteractiveConfigToWidget(widgetOutline);
     }
-
-    // If still no widgetType after conversion, fallback to simulation
-    if (!outline.widgetType) {
-      log.warn(
-        `Interactive outline "${outline.title}" has no widgetType, falling back to simulation`,
-      );
-      outline = {
-        ...outline,
+    if (!widgetOutline.widgetType) {
+      widgetOutline = {
+        ...widgetOutline,
         widgetType: 'simulation' as WidgetType,
-        widgetOutline: { concept: outline.title },
+        widgetOutline: { concept: widgetOutline.title },
       };
     }
 
-    // Route to widget generation (handles all 5 types)
-    return generateWidgetContent(outline, aiCall, languageDirective);
+    const content = await generateWidgetContent(widgetOutline, aiCall, languageDirective);
+    if (!content) return { content: null, actions: [] };
+
+    const hasHtml = 'html' in content;
+    const teacherActions = hasHtml ? content.teacherActions ?? [] : [];
+    const actions = teacherActions.length > 0 ? convertTeacherActionsToActions(teacherActions) : [];
+    return { content, actions };
   }
 
   switch (outline.type) {
     case 'slide':
-      return generateSlideContent(
+      return generateSlideContentAndActions(
         outline,
         aiCall,
         assignedImages,
@@ -343,11 +400,25 @@ export async function generateSceneContent(
         languageDirective,
       );
     case 'quiz':
-      return generateQuizContent(outline, aiCall, languageDirective);
-    case 'pbl':
-      return generatePBLSceneContent(outline, languageModel, languageDirective, thinkingConfig);
+      return generateQuizContentAndActions(outline, aiCall, languageDirective);
+    case 'pbl': {
+      // PBL is not covered by the combined path yet. Generate content only;
+      // the caller (e.g. generateSingleScene) is responsible for the
+      // follow-up actions call. We return an empty actions array to make
+      // the contract uniform, but in practice the caller will overwrite it.
+      log.debug(
+        `PBL outline "${outline.title}" — combined path not yet supported, returning content only`,
+      );
+      const content = await generatePBLSceneContent(
+        outline,
+        languageModel,
+        languageDirective,
+        thinkingConfig,
+      );
+      return { content, actions: [] };
+    }
     default:
-      return null;
+      return { content: null, actions: [] };
   }
 }
 
@@ -705,9 +776,19 @@ function processLatexElements(
 }
 
 /**
- * Generate slide content
+ * Raw slide generator. Returns the post-processed content alongside the
+ * ai-id → real-id mapping and the raw action objects the LLM emitted in
+ * the same response. The combined function `generateSlideContentAndActions`
+ * consumes all three pieces; the legacy `generateSlideContent` wrapper
+ * discards the action pieces for backward compat.
  */
-async function generateSlideContent(
+export type RawSlideResult = {
+  content: GeneratedSlideContent;
+  aiIdToRealId: Map<string, string>;
+  rawActions?: Array<Record<string, unknown>>;
+} | null;
+
+async function generateSlideContentRaw(
   outline: SceneOutline,
   aiCall: AICallFn,
   assignedImages?: PdfImage[],
@@ -716,7 +797,7 @@ async function generateSlideContent(
   generatedMediaMapping?: ImageMapping,
   agents?: AgentInfo[],
   languageDirective?: string,
-): Promise<GeneratedSlideContent | null> {
+): Promise<RawSlideResult> {
   // Build assigned images description for the prompt
   let assignedImagesText = '无可用图片，禁止插入任何 image 元素';
   let visionImages: Array<{ id: string; src: string }> | undefined;
@@ -842,6 +923,16 @@ async function generateSlideContent(
     log.debug(`imageMapping keys:`, imageMapping ? Object.keys(imageMapping).length : '0 keys');
   }
 
+  // Tag each AI element with its original id BEFORE post-processing so we can
+  // build a stable ai-id → real-id mapping for the action remap step. The
+  // post-processing pipeline (fixElementDefaults → sanitizeRawLatexInTextElements
+  // → processLatexElements → resolveImageIds → normalizeGeneratedVideoRefs) may
+  // filter or transform elements, but it never strips unknown custom fields,
+  // so the tag travels with the surviving element.
+  for (const el of generatedData.elements) {
+    (el as Record<string, unknown>)._aiId = el.id;
+  }
+
   // Fix elements with missing required fields + aspect ratio correction (while src is still img_id)
   const fixedElements = fixElementDefaults(generatedData.elements, assignedImages);
   log.debug(`After element fixing: ${fixedElements.length} elements`);
@@ -874,6 +965,20 @@ async function generateSlideContent(
     rotate: 0,
   })) as PPTElement[];
 
+  // Build the AI-id → real-id mapping from the tagged original ids. The
+  // matching key is the `_aiId` we stashed at the top of this function; the
+  // value is the freshly assigned nanoid id. Both arrays are in the same
+  // surviving order, so we can zip them.
+  const aiIdToRealId = new Map<string, string>();
+  for (let i = 0; i < processedElements.length; i++) {
+    const aiId = (videoNormalizedElements[i] as Record<string, unknown>)._aiId as
+      | string
+      | undefined;
+    if (aiId) {
+      aiIdToRealId.set(aiId, processedElements[i].id);
+    }
+  }
+
   // Process background
   let background: SlideBackground | undefined;
   if (generatedData.background) {
@@ -888,11 +993,168 @@ async function generateSlideContent(
   }
 
   return {
-    elements: processedElements,
-    background,
-    remark: generatedData.remark || outline.description,
+    content: {
+      elements: processedElements,
+      background,
+      remark: generatedData.remark || outline.description,
+    },
+    aiIdToRealId,
+    rawActions: generatedData.actions,
   };
 }
+
+/**
+ * Remap a list of raw AI action objects so their `elementId` / `params.elementId`
+ * references point to the post-processed nanoid ids.
+ *
+ * Walks every action object and every params value, replacing any string that
+ * appears as a key in `aiIdToRealId`. Non-string values and unknown ids are
+ * left untouched — `processActions` will later validate the resulting ids
+ * against the real element set and drop anything that no longer resolves.
+ */
+function remapActionElementIds(
+  rawActions: ReadonlyArray<Record<string, unknown>>,
+  aiIdToRealId: Map<string, string>,
+): Array<Record<string, unknown>> {
+  const remapped: Array<Record<string, unknown>> = [];
+  for (const action of rawActions) {
+    const next: Record<string, unknown> = { ...action };
+    for (const key of Object.keys(next)) {
+      const value = next[key];
+      if (typeof value === 'string' && aiIdToRealId.has(value)) {
+        next[key] = aiIdToRealId.get(value);
+        continue;
+      }
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        const remappedParams: Record<string, unknown> = { ...(value as Record<string, unknown>) };
+        let touched = false;
+        for (const pk of Object.keys(remappedParams)) {
+          const pv = remappedParams[pk];
+          if (typeof pv === 'string' && aiIdToRealId.has(pv)) {
+            remappedParams[pk] = aiIdToRealId.get(pv);
+            touched = true;
+          }
+        }
+        if (touched) next[key] = remappedParams;
+      }
+    }
+    remapped.push(next);
+  }
+  return remapped;
+}
+
+/**
+ * Combined slide content + actions generation. The SLIDE_CONTENT prompt now
+ * asks the LLM to emit a `actions` array in the same response, so we get
+ * both pieces in one round-trip.
+ *
+ * Returns the post-processed content alongside the (validated, ID-remapped)
+ * teaching actions. If the LLM did not return actions (older model, partial
+ * response, fallback), `actions` is filled with deterministic defaults — we
+ * do NOT issue a second LLM call to recover, because the whole point of
+ * this refactor is to stay under the upstream per-job quota.
+ */
+async function generateSlideContentAndActions(
+  outline: SceneOutline,
+  aiCall: AICallFn,
+  assignedImages?: PdfImage[],
+  imageMapping?: ImageMapping,
+  visionEnabled?: boolean,
+  generatedMediaMapping?: ImageMapping,
+  agents?: AgentInfo[],
+  languageDirective?: string,
+): Promise<{
+  content: GeneratedSlideContent | null;
+  actions: Action[];
+}> {
+  const result = await generateSlideContentRaw(
+    outline,
+    aiCall,
+    assignedImages,
+    imageMapping,
+    visionEnabled,
+    generatedMediaMapping,
+    agents,
+    languageDirective,
+  );
+
+  if (!result) {
+    return { content: null, actions: [] };
+  }
+
+  // Default actions — used when the LLM did not emit any in this response.
+  const defaultActions = getOptimizedActionCount(
+    generateDefaultSlideActions(outline, result.content.elements),
+  );
+
+  if (!result.rawActions || result.rawActions.length === 0) {
+    log.debug(
+      `LLM did not include actions for slide "${outline.title}" — using defaults (${defaultActions.length})`,
+    );
+    return { content: result.content, actions: defaultActions };
+  }
+
+  // Remap the AI's `elementId` references to the post-processed nanoid ids.
+  const remapped = remapActionElementIds(result.rawActions, result.aiIdToRealId);
+
+  // Parse the remapped array through the standard structured-output parser so
+  // we get a normalized Action[] (speech / spotlight / laser / etc.).
+  const parsed = parseActionsFromStructuredOutput(JSON.stringify(remapped), 'slide');
+
+  if (parsed.length === 0) {
+    log.warn(
+      `Failed to parse actions from LLM response for slide "${outline.title}" — using defaults`,
+    );
+    return { content: result.content, actions: defaultActions };
+  }
+
+  const processed = processActions(parsed, result.content.elements, agents);
+  return { content: result.content, actions: getOptimizedActionCount(processed) };
+}
+
+/**
+ * Backward-compatible wrapper around `generateSlideContentAndActions` that
+ * discards the actions and returns only the content. Older callers and tests
+ * rely on this signature, so we keep it.
+ */
+async function generateSlideContent(
+  outline: SceneOutline,
+  aiCall: AICallFn,
+  assignedImages?: PdfImage[],
+  imageMapping?: ImageMapping,
+  visionEnabled?: boolean,
+  generatedMediaMapping?: ImageMapping,
+  agents?: AgentInfo[],
+  languageDirective?: string,
+): Promise<GeneratedSlideContent | null> {
+  const { content } = await generateSlideContentAndActions(
+    outline,
+    aiCall,
+    assignedImages,
+    imageMapping,
+    visionEnabled,
+    generatedMediaMapping,
+    agents,
+    languageDirective,
+  );
+  return content;
+}
+
+/**
+ * Raw quiz generator. Returns the post-processed questions plus the raw
+ * (unparsed) action objects the LLM emitted in the same response. Callers
+ * that want only `GeneratedQuizContent` should use `generateQuizContent`
+ * below; callers that want both pieces should use
+ * `generateQuizContentAndActions`.
+ *
+ * `rawActions` is intentionally `Array<Record<string, unknown>>` rather
+ * than `Action[]` — the raw LLM output still needs to be run through
+ * `parseActionsFromStructuredOutput` + `processActions` to validate ids
+ * and discussion / allowedActions rules.
+ */
+type RawQuizResult =
+  | { content: GeneratedQuizContent; rawActions?: Array<Record<string, unknown>> }
+  | null;
 
 /**
  * Generate quiz content
@@ -901,7 +1163,7 @@ async function generateQuizContent(
   outline: SceneOutline,
   aiCall: AICallFn,
   languageDirective?: string,
-): Promise<GeneratedQuizContent | null> {
+): Promise<RawQuizResult> {
   const quizConfig = outline.quizConfig || {
     questionCount: 3,
     difficulty: 'medium',
@@ -924,9 +1186,33 @@ async function generateQuizContent(
 
   log.debug(`Generating quiz content for: ${outline.title}`);
   const response = await aiCall(prompts.system, prompts.user);
-  const generatedQuestions = parseJsonResponse<QuizQuestion[]>(response);
 
-  if (!generatedQuestions || !Array.isArray(generatedQuestions)) {
+  // r12+ — quiz content and quiz actions are now returned in the same JSON:
+  //   { questions: QuizQuestion[], actions: [{type, name, params}, {type:"text", content}] }
+  //
+  // We accept three shapes for backward compatibility with older LLMs:
+  //   1. New shape: { questions: [...], actions?: [...] }
+  //   2. Legacy bare array: [...]      (no actions — caller will fill defaults)
+  //   3. Anything else: rejected
+  const parsed = parseJsonResponse<GeneratedQuizData | QuizQuestion[]>(response);
+
+  let generatedQuestions: QuizQuestion[] | null = null;
+  let rawActions: Array<Record<string, unknown>> | undefined;
+
+  if (parsed && !Array.isArray(parsed) && Array.isArray((parsed as GeneratedQuizData).questions)) {
+    generatedQuestions = (parsed as GeneratedQuizData).questions as unknown as QuizQuestion[];
+    rawActions = (parsed as GeneratedQuizData).actions;
+  } else if (Array.isArray(parsed)) {
+    // Legacy bare-array response. We still avoid burning a second LLM call —
+    // the caller will derive deterministic default actions.
+    log.debug(`Quiz response for "${outline.title}" came back as a bare array (legacy shape)`);
+    generatedQuestions = parsed as unknown as QuizQuestion[];
+  } else {
+    log.error(`Failed to parse AI response for: ${outline.title}`);
+    return null;
+  }
+
+  if (!generatedQuestions || generatedQuestions.length === 0) {
     log.error(`Failed to parse AI response for: ${outline.title}`);
     return null;
   }
@@ -945,7 +1231,49 @@ async function generateQuizContent(
     };
   });
 
-  return { questions };
+  return { content: { questions }, rawActions };
+}
+
+/**
+ * Combined quiz content + actions generation. Wraps `generateQuizContent`
+ * and turns the raw action objects the LLM emitted in the same response
+ * into a validated `Action[]`. Falls back to deterministic defaults if the
+ * LLM did not return actions (e.g. legacy bare-array response).
+ */
+async function generateQuizContentAndActions(
+  outline: SceneOutline,
+  aiCall: AICallFn,
+  languageDirective?: string,
+): Promise<{
+  content: GeneratedQuizContent | null;
+  actions: Action[];
+}> {
+  const result = await generateQuizContent(outline, aiCall, languageDirective);
+  if (!result) return { content: null, actions: [] };
+
+  const defaults = generateDefaultQuizActions(outline);
+
+  if (!result.rawActions || result.rawActions.length === 0) {
+    log.debug(
+      `LLM did not include actions for quiz "${outline.title}" — using defaults (${defaults.length})`,
+    );
+    return { content: result.content, actions: defaults };
+  }
+
+  const parsed = parseActionsFromStructuredOutput(
+    JSON.stringify(result.rawActions),
+    'quiz',
+  );
+
+  if (parsed.length === 0) {
+    log.warn(
+      `Failed to parse actions from LLM response for quiz "${outline.title}" — using defaults`,
+    );
+    return { content: result.content, actions: defaults };
+  }
+
+  const processed = processActions(parsed, [], undefined);
+  return { content: result.content, actions: processed };
 }
 
 /**

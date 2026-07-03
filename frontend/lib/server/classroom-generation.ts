@@ -9,7 +9,7 @@ import {
 import {
   createSceneWithActions,
   generateSceneActions,
-  generateSceneContent,
+  generateSceneContentAndActions,
 } from '@/lib/generation/scene-generator';
 import type { AICallFn } from '@/lib/generation/pipeline-types';
 import type { AgentInfo } from '@/lib/generation/pipeline-types';
@@ -459,16 +459,28 @@ export async function generateClassroom(
           ? `Student: ${requirements.userNickname || 'Unknown'}${requirements.userBio ? ` — ${requirements.userBio}` : ''}`
           : undefined;
 
-      const content = await generateSceneContent(safeOutline, aiCall, { agents, languageDirective });
+      // r12+ — content and actions come back in a single LLM call for slide,
+      // quiz, and interactive scenes. The combined function falls back to the
+      // legacy two-step path automatically for PBL scenes (combinedActions
+      // is empty) — in that case we re-issue the actions call below to
+      // preserve pre-r12 behavior.
+      const { content, actions: combinedActions } = await generateSceneContentAndActions(
+        safeOutline,
+        aiCall,
+        { agents, languageDirective },
+      );
       if (!content) {
         log.warn(`Skipping scene "${safeOutline.title}" — content generation failed`);
         pendingResults.set(index, null);
       } else {
-        const actions = await generateSceneActions(safeOutline, content, aiCall, {
-          agents,
-          languageDirective,
-          userProfile,
-        });
+        let actions = combinedActions;
+        if (actions.length === 0) {
+          actions = await generateSceneActions(safeOutline, content, aiCall, {
+            agents,
+            languageDirective,
+            userProfile,
+          });
+        }
         log.info(`Scene "${safeOutline.title}": ${actions.length} actions`);
         pendingResults.set(index, { safeOutline, content, actions });
       }

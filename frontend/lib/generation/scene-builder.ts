@@ -16,7 +16,10 @@ import type {
 import type { LanguageModel } from 'ai';
 import type { Scene } from '@/lib/types/stage';
 import { applyOutlineFallbacks } from './outline-generator';
-import { generateSceneContent, generateSceneActions } from './scene-generator';
+import {
+  generateSceneActions,
+  generateSceneContentAndActions,
+} from './scene-generator';
 import type { AgentInfo, SceneGenerationContext, AICallFn } from './pipeline-types';
 import { buildLanguageText } from './prompt-formatters';
 import { buildCompleteScene } from './scene-assembly';
@@ -83,39 +86,41 @@ export async function buildSceneFromOutline(
 
   const langText = buildLanguageText(languageDirective, outline.languageNote);
 
-  // Step 1: Generate content (with images if available)
-  onPhaseChange?.('content');
-  log.debug(`Step 1: Generating content for: ${outline.title}`);
-  if (assignedImages && assignedImages.length > 0) {
-    log.debug(
-      `Using ${assignedImages.length} assigned images: ${assignedImages.map((img) => img.id).join(', ')}`,
-    );
-  }
-  log.debug(
-    `imageMapping available: ${imageMapping ? Object.keys(imageMapping).length + ' keys' : 'undefined'}`,
+  // r12+ — content and actions are produced in a single LLM call for slide,
+  // quiz, and interactive scenes. We still keep the legacy two-step fallback
+  // for PBL (and any future scene type the combined path can't handle yet) —
+  // when the combined function returns an empty actions array, we issue the
+  // separate actions call to preserve pre-r12 behavior.
+  const { content, actions: combinedActions } = await generateSceneContentAndActions(
+    outline,
+    aiCall,
+    {
+      assignedImages,
+      imageMapping,
+      languageModel,
+      visionEnabled,
+      agents,
+      languageDirective: langText,
+    },
   );
-  const content = await generateSceneContent(outline, aiCall, {
-    assignedImages,
-    imageMapping,
-    languageModel,
-    visionEnabled,
-    agents,
-    languageDirective: langText,
-  });
   if (!content) {
     log.error(`Failed to generate content for: ${outline.title}`);
     return null;
   }
 
-  // Step 2: Generate Actions
   onPhaseChange?.('actions');
-  log.debug(`Step 2: Generating actions for: ${outline.title}`);
-  const actions = await generateSceneActions(outline, content, aiCall, {
-    ctx,
-    agents,
-    userProfile,
-    languageDirective: langText,
-  });
+  let actions = combinedActions;
+  if (actions.length === 0) {
+    log.debug(
+      `Combined path produced no actions for "${outline.title}"; falling back to separate actions call`,
+    );
+    actions = await generateSceneActions(outline, content, aiCall, {
+      ctx,
+      agents,
+      userProfile,
+      languageDirective: langText,
+    });
+  }
   log.debug(`Generated ${actions.length} actions for: ${outline.title}`);
 
   // Build complete Scene object

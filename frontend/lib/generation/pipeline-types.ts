@@ -29,6 +29,13 @@ export interface SceneGenerationContext {
 /**
  * AI-generated slide data structure
  * Used to parse AI responses
+ *
+ * The `actions` field was added in r12 (content+actions merge) — it carries
+ * the teaching action sequence the LLM produced in the same response, so the
+ * pipeline does NOT need a second LLM call to fetch actions.
+ *
+ * If absent (e.g. older LLM, malformed response, or fallback), the caller
+ * derives default actions locally without burning another LLM call.
  */
 export interface GeneratedSlideData {
   elements: Array<{
@@ -49,6 +56,24 @@ export interface GeneratedSlideData {
     };
   };
   remark?: string;
+  /**
+   * Teaching action sequence (raw, AI-typed element IDs). The pipeline
+   * remaps `elementId` references to the post-processed nanoid IDs before
+   * running them through `processActions`.
+   */
+  actions?: Array<Record<string, unknown>>;
+}
+
+/**
+ * AI-generated quiz data structure (r12+).
+ *
+ * Quiz content and quiz actions are now returned in the same JSON:
+ *
+ *   { questions: QuizQuestion[], actions: [{type, name, params}, {type:"text", content}] }
+ */
+export interface GeneratedQuizData {
+  questions: Array<Record<string, unknown>>;
+  actions?: Array<Record<string, unknown>>;
 }
 
 // ==================== Types ====================
