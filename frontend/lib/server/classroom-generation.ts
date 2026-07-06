@@ -233,7 +233,15 @@ export async function generateClassroom(
   }
 
   // Optimize for faster generation on slow networks
-  const optimizedMaxTokens = getOptimizedMaxTokens(modelInfo?.outputWindow);
+  // r13 — cap at 2048. With r12's combined content+actions response, slide
+  // outputs are ~1k tokens and quiz ~1.5k; the model's full outputWindow
+  // (16384 for kimi-k2.5) is wildly over-budget and inflates the TPM bill.
+  // 2048 is a safe ceiling that lets r12 responses fit comfortably while
+  // cutting worst-case TPM by ~8x.
+  const optimizedMaxTokens = Math.min(
+    getOptimizedMaxTokens(modelInfo?.outputWindow) ?? 16384,
+    2048,
+  );
   const fastMode = isFastGenerationEnabled();
 
   if (fastMode) {
@@ -438,101 +446,98 @@ export async function generateClassroom(
   let generatedScenes = 0;
   let playablePersisted = false;
 
-  let nextIndexToInsert = 0;
-  const pendingResults = new Map<number, { safeOutline: any; content: any; actions: any } | null>();
+  // r13 — scenes are generated SERIALLY (one at a time) instead of via
+  // Promise.all. The previous parallel fan-out fired all 8 scene LLM calls
+  // in the same millisecond, which burst past qnaigc.com's per-key RPM
+  // quota and triggered 429 for the integration path. Serializing brings
+  // the per-task instantaneous concurrency from N (8) back to 1, matching
+  // what the photo-recognition path already does. The `pendingResults`
+  // map and `nextIndexToInsert` ordering cursor are no longer needed —
+  // we insert into the store immediately after each scene finishes.
+  // Trade-off: total task latency goes from ~max(per-scene) to ~sum(per-scene).
+  for (let index = 0; index < outlines.length; index++) {
+    const outline = outlines[index];
+    const safeOutline = applyOutlineFallbacks(outline, true);
+    const progressStart = 30 + Math.floor((index / Math.max(outlines.length, 1)) * 60);
 
-  await Promise.all(
-    outlines.map(async (outline, index) => {
-      const safeOutline = applyOutlineFallbacks(outline, true);
-      const progressStart = 30 + Math.floor((index / Math.max(outlines.length, 1)) * 60);
+    await options.onProgress?.({
+      step: 'generating_scenes',
+      progress: Math.max(progressStart, 31),
+      message: `Generating scene ${index + 1}/${outlines.length}: ${safeOutline.title}`,
+      scenesGenerated: generatedScenes,
+      totalScenes: outlines.length,
+    });
 
-      await options.onProgress?.({
-        step: 'generating_scenes',
-        progress: Math.max(progressStart, 31),
-        message: `Generating scene ${index + 1}/${outlines.length}: ${safeOutline.title}`,
-        scenesGenerated: generatedScenes,
-        totalScenes: outlines.length,
+    const userProfile =
+      requirements.userNickname || requirements.userBio
+        ? `Student: ${requirements.userNickname || 'Unknown'}${requirements.userBio ? ` — ${requirements.userBio}` : ''}`
+        : undefined;
+
+    // r12+ — content and actions come back in a single LLM call for slide,
+    // quiz, and interactive scenes. The combined function falls back to the
+    // legacy two-step path automatically for PBL scenes (combinedActions
+    // is empty) — in that case we re-issue the actions call below to
+    // preserve pre-r12 behavior.
+    const { content, actions: combinedActions } = await generateSceneContentAndActions(
+      safeOutline,
+      aiCall,
+      { agents, languageDirective },
+    );
+    if (!content) {
+      log.warn(`Skipping scene "${safeOutline.title}" — content generation failed`);
+      continue;
+    }
+
+    let actions = combinedActions;
+    if (actions.length === 0) {
+      actions = await generateSceneActions(safeOutline, content, aiCall, {
+        agents,
+        languageDirective,
+        userProfile,
       });
+    }
+    log.info(`Scene "${safeOutline.title}": ${actions.length} actions`);
 
-      const userProfile =
-        requirements.userNickname || requirements.userBio
-          ? `Student: ${requirements.userNickname || 'Unknown'}${requirements.userBio ? ` — ${requirements.userBio}` : ''}`
-          : undefined;
+    // Insert into the store immediately. Serial loop means we always write
+    // in order, so no synchronization map is needed.
+    const sceneId = createSceneWithActions(safeOutline, content, actions, api);
+    if (!sceneId) {
+      log.warn(`Skipping scene "${safeOutline.title}" — scene creation failed`);
+      continue;
+    }
+    generatedScenes += 1;
+    const progressEnd = 30 + Math.floor(((index + 1) / Math.max(outlines.length, 1)) * 60);
+    await options.onProgress?.({
+      step: 'generating_scenes',
+      progress: Math.min(progressEnd, 90),
+      message: `Generated ${generatedScenes}/${outlines.length} scenes`,
+      scenesGenerated: generatedScenes,
+      totalScenes: outlines.length,
+    });
 
-      // r12+ — content and actions come back in a single LLM call for slide,
-      // quiz, and interactive scenes. The combined function falls back to the
-      // legacy two-step path automatically for PBL scenes (combinedActions
-      // is empty) — in that case we re-issue the actions call below to
-      // preserve pre-r12 behavior.
-      const { content, actions: combinedActions } = await generateSceneContentAndActions(
-        safeOutline,
-        aiCall,
-        { agents, languageDirective },
+    if (shouldPersistPlayableClassroom(generatedScenes, playablePersisted)) {
+      const playableScenes = store.getState().scenes;
+      const persisted = await persistClassroom(
+        {
+          id: stageId,
+          stage,
+          scenes: playableScenes,
+        },
+        options.baseUrl,
       );
-      if (!content) {
-        log.warn(`Skipping scene "${safeOutline.title}" — content generation failed`);
-        pendingResults.set(index, null);
-      } else {
-        let actions = combinedActions;
-        if (actions.length === 0) {
-          actions = await generateSceneActions(safeOutline, content, aiCall, {
-            agents,
-            languageDirective,
-            userProfile,
-          });
-        }
-        log.info(`Scene "${safeOutline.title}": ${actions.length} actions`);
-        pendingResults.set(index, { safeOutline, content, actions });
-      }
 
-      // Synchronize insertion into the store in order
-      while (pendingResults.has(nextIndexToInsert)) {
-        const res = pendingResults.get(nextIndexToInsert);
-        pendingResults.delete(nextIndexToInsert);
-        
-        if (res) {
-          const sceneId = createSceneWithActions(res.safeOutline, res.content, res.actions, api);
-          if (!sceneId) {
-            log.warn(`Skipping scene "${res.safeOutline.title}" — scene creation failed`);
-          } else {
-            generatedScenes += 1;
-            const progressEnd = 30 + Math.floor(((nextIndexToInsert + 1) / Math.max(outlines.length, 1)) * 60);
-            await options.onProgress?.({
-              step: 'generating_scenes',
-              progress: Math.min(progressEnd, 90),
-              message: `Generated ${generatedScenes}/${outlines.length} scenes`,
-              scenesGenerated: generatedScenes,
-              totalScenes: outlines.length,
-            });
+      playablePersisted = true;
 
-            if (shouldPersistPlayableClassroom(generatedScenes, playablePersisted)) {
-              const playableScenes = store.getState().scenes;
-              const persisted = await persistClassroom(
-                {
-                  id: stageId,
-                  stage,
-                  scenes: playableScenes,
-                },
-                options.baseUrl,
-              );
-
-              playablePersisted = true;
-
-              await options.onPlayable?.({
-                id: persisted.id,
-                url: persisted.url,
-                stage,
-                scenes: playableScenes,
-                scenesCount: playableScenes.length,
-                createdAt: persisted.createdAt,
-              });
-            }
-          }
-        }
-        nextIndexToInsert++;
-      }
-    })
-  );
+      await options.onPlayable?.({
+        id: persisted.id,
+        url: persisted.url,
+        stage,
+        scenes: playableScenes,
+        scenesCount: playableScenes.length,
+        createdAt: persisted.createdAt,
+      });
+    }
+  }
 
   const scenes = store.getState().scenes;
   log.info(`Pipeline complete: ${scenes.length} scenes generated`);
