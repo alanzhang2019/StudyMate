@@ -4,6 +4,11 @@
 // (those that the admin uploaded through /admin/csp-lecture) so
 // students can browse and play the lectures without logging in.
 //
+// Each card can be expanded to show its chapter list (one row per
+// scene, in `scene.order` order). Clicking a chapter deep-links into
+// the player at that scene via the `?scene=<order>` URL parameter
+// that the classroom page honours.
+//
 // Reads directly from the filesystem instead of going through the
 // admin API to avoid pulling admin-only auth middleware into the
 // public surface. If the directory is empty, the page still renders
@@ -15,10 +20,18 @@ import path from 'path';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CLASSROOMS_DIR } from '@/lib/server/classroom-storage';
-import type { Stage } from '@/lib/types/stage';
+import type { Scene, Stage } from '@/lib/types/stage';
+import { ExpandChapterList } from './ExpandChapterList';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+
+type Chapter = {
+  id: string;
+  order: number;
+  title: string;
+  type: Scene['type'];
+};
 
 type Lecture = {
   id: string;
@@ -26,6 +39,7 @@ type Lecture = {
   description?: string;
   sceneCount: number;
   createdAt: string;
+  chapters: Chapter[];
 };
 
 async function listCspLectures(): Promise<Lecture[]> {
@@ -38,32 +52,49 @@ async function listCspLectures(): Promise<Lecture[]> {
   }
   const items: Lecture[] = [];
   for (const name of entries) {
-      if (!name.endsWith('.json')) continue;
-      const id = name.slice(0, -'.json'.length);
-      const filePath = path.join(CLASSROOMS_DIR, name);
-      try {
-        // Strip UTF-8 BOM if present — PowerShell's `ConvertTo-Json`
-        // emits a BOM, and `JSON.parse` rejects it as a syntax error.
-        const raw = (await fs.readFile(filePath, 'utf-8')).replace(/^\ufeff/, '');
-        const data = JSON.parse(raw) as {
-          id: string;
-          stage: Stage;
-          scenes: unknown[];
-          createdAt: string;
-          collection?: string;
-        };
-        if (data.collection !== 'csp-lecture') continue;
-        items.push({
-          id: data.id || id,
-          title: data.stage?.name ?? '未命名课件',
-          description: data.stage?.description,
-          sceneCount: Array.isArray(data.scenes) ? data.scenes.length : 0,
-          createdAt: data.createdAt,
-        });
-      } catch {
-        // skip corrupted file
-      }
+    if (!name.endsWith('.json')) continue;
+    const id = name.slice(0, -'.json'.length);
+    const filePath = path.join(CLASSROOMS_DIR, name);
+    try {
+      // Strip UTF-8 BOM if present — PowerShell's `ConvertTo-Json`
+      // emits a BOM, and `JSON.parse` rejects it as a syntax error.
+      const raw = (await fs.readFile(filePath, 'utf-8')).replace(/^\ufeff/, '');
+      const data = JSON.parse(raw) as {
+        id: string;
+        stage: Stage;
+        scenes: Scene[];
+        createdAt: string;
+        collection?: string;
+      };
+      if (data.collection !== 'csp-lecture') continue;
+
+      // Build the chapter list. We always sort by `order` even though
+      // most importers write scenes in order — defence in depth for
+      // legacy / hand-edited JSONs.
+      const chapters: Chapter[] = (Array.isArray(data.scenes) ? data.scenes : [])
+        .slice()
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        .map((s) => ({
+          id: s.id,
+          order: s.order ?? 0,
+          title: s.title || `第 ${s.order ?? '?'} 节`,
+          type: s.type,
+        }));
+
+      items.push({
+        id: data.id || id,
+        title: data.stage?.name ?? '未命名课件',
+        description: data.stage?.description,
+        sceneCount: chapters.length,
+        createdAt: data.createdAt,
+        chapters,
+      });
+    } catch {
+      // skip corrupted file
     }
+  }
+  // Newest first — the public list isn't order-aware (the admin
+  // doesn't have a "set order" UI yet); the latest upload bubbles up.
   items.sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
   return items;
 }
@@ -120,7 +151,7 @@ export default async function CspLecturePage() {
         <p className="mt-5 text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
           {lectures.length === 0
             ? '暂无课件，敬请期待。'
-            : `共 ${lectures.length} 个课件 · ${totalScenes} 个讲解场景。点击任意卡片开始学习。`}
+            : `共 ${lectures.length} 个课件 · ${totalScenes} 个讲解场景。点击任意课件展开章节，按顺序学习。`}
         </p>
       </section>
 
@@ -146,40 +177,7 @@ export default async function CspLecturePage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {lectures.map((l) => (
-              <Link
-                key={l.id}
-                href={`/classroom/${l.id}`}
-                className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-2xl"
-              >
-                <Card className="h-full bg-white/80 backdrop-blur border-slate-200/60 hover:shadow-md hover:-translate-y-0.5 transition-all">
-                  <CardContent className="pt-6 flex flex-col h-full">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-[10px] uppercase tracking-wider text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded">
-                        CSP初赛
-                      </span>
-                      <span className="text-xs text-slate-400">
-                        {formatDate(l.createdAt)}
-                      </span>
-                    </div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-2 group-hover:text-blue-600 line-clamp-2">
-                      {l.title}
-                    </h3>
-                    {l.description && (
-                      <p className="text-sm text-slate-600 line-clamp-3 mb-4 flex-1">
-                        {l.description}
-                      </p>
-                    )}
-                    <div className="mt-auto flex items-center justify-between text-sm">
-                      <span className="text-slate-500">
-                        {l.sceneCount} 个场景
-                      </span>
-                      <span className="text-blue-600 group-hover:underline">
-                        开始学习 →
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+              <LectureCard key={l.id} lecture={l} />
             ))}
           </div>
         )}
@@ -203,5 +201,31 @@ export default async function CspLecturePage() {
         </div>
       </footer>
     </main>
+  );
+}
+
+function LectureCard({ lecture }: { lecture: Lecture }) {
+  return (
+    <Card className="h-full bg-white/80 backdrop-blur border-slate-200/60 hover:shadow-md hover:-translate-y-0.5 transition-all">
+      <CardContent className="pt-6 flex flex-col h-full">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-[10px] uppercase tracking-wider text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded">
+            CSP初赛
+          </span>
+          <span className="text-xs text-slate-400">{formatDate(lecture.createdAt)}</span>
+        </div>
+        <h3 className="text-lg font-semibold text-slate-900 mb-2 line-clamp-2">
+          {lecture.title}
+        </h3>
+        {lecture.description && (
+          <p className="text-sm text-slate-600 line-clamp-3 mb-4">
+            {lecture.description}
+          </p>
+        )}
+        <div className="mt-auto">
+          <ExpandChapterList lectureId={lecture.id} chapters={lecture.chapters} />
+        </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -21,7 +21,7 @@ import {
 import { useStageStore } from '@/lib/store';
 import { loadImageMapping } from '@/lib/utils/image-storage';
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { generateAndStoreTTS, useSceneGenerator } from '@/lib/hooks/use-scene-generator';
 import { useMediaGenerationStore } from '@/lib/store/media-generation';
 import { useWhiteboardHistoryStore } from '@/lib/store/whiteboard-history';
@@ -77,6 +77,16 @@ function withThinkingConfig<T extends Record<string, unknown>>(body: T): T {
 export default function ClassroomDetailPage() {
   const params = useParams();
   const classroomId = params?.id as string;
+  // Read `?scene=<order>` from the URL so the public /csp-lecture
+  // chapter list can deep-link into a specific scene. The actual
+  // jump happens after scenes are loaded — see the useEffect below.
+  const searchParams = useSearchParams();
+  const deepLinkSceneOrder = (() => {
+    const raw = searchParams?.get('scene');
+    if (raw === null || raw === undefined) return null;
+    const n = Number.parseInt(raw, 10);
+    return Number.isInteger(n) && n > 0 ? n : null;
+  })();
 
   const { loadFromStorage } = useStageStore();
 
@@ -521,6 +531,30 @@ export default function ClassroomDetailPage() {
 
     return () => abortController.abort();
   }, [loading, error]);
+
+  // Honour `?scene=<order>` deep links from the public /csp-lecture
+  // chapter list. We run AFTER scenes are loaded (loading === false
+  // and the store has the matching stage id) and short-circuit on
+  // no-op so re-renders don't bounce the player. The Stage component
+  // is mounted with `autoPlay={true}` so the normal scene-change
+  // effect will kick off playback on the targeted scene.
+  useEffect(() => {
+    if (loading || error) return;
+    if (deepLinkSceneOrder === null) return;
+    const state = useStageStore.getState();
+    if (!state.stage || state.stage.id !== classroomId) return;
+    if (state.scenes.length === 0) return;
+    const target = state.scenes.find((s) => s.order === deepLinkSceneOrder);
+    if (!target) {
+      log.warn(`[Classroom] ?scene=${deepLinkSceneOrder} not found in this classroom`);
+      return;
+    }
+    if (state.currentSceneId === target.id) return;
+    log.info(
+      `[Classroom] Deep-link jump: order=${deepLinkSceneOrder} → sceneId=${target.id}`,
+    );
+    state.setCurrentSceneId(target.id);
+  }, [classroomId, deepLinkSceneOrder, error, loading]);
 
   // Auto-resume generation for pending outlines
   useEffect(() => {

@@ -4,7 +4,16 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Upload, Trash2, ExternalLink, RefreshCw, FileArchive } from 'lucide-react';
+import {
+  Upload,
+  Trash2,
+  ExternalLink,
+  RefreshCw,
+  FileArchive,
+  Pencil,
+  Check,
+  X,
+} from 'lucide-react';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('AdminClassroomView');
@@ -28,6 +37,7 @@ type UploadState =
   | { kind: 'error'; message: string };
 
 const MAX_UPLOAD_MB = 100;
+const TITLE_MAX = 200;
 
 export type AdminClassroomViewProps = {
   /**
@@ -63,7 +73,16 @@ export default function AdminClassroomView({
   // because changes are infrequent and the list reload after a
   // successful change re-renders the new state anyway.
   const [busyCollectionId, setBusyCollectionId] = useState<string | null>(null);
+  // Inline-title-edit state. While `editingTitleId === item.id` the
+  // title is rendered as an input; we PATCH on Enter / blur, cancel
+  // on Escape. The input is uncontrolled-on-mount (initial value
+  // from `editingTitleDraft`) so the user's caret position isn't
+  // reset on every keystroke.
+  const [editingTitleId, setEditingTitleId] = useState<string | null>(null);
+  const [editingTitleDraft, setEditingTitleDraft] = useState('');
+  const [savingTitleId, setSavingTitleId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
 
   const listUrl =
     '/api/admin/classroom' + (collection ? `?collection=${encodeURIComponent(collection)}` : '');
@@ -85,6 +104,78 @@ export default function AdminClassroomView({
   useEffect(() => {
     void load();
   }, [load]);
+
+  // Auto-focus the inline-edit input when entering edit mode.
+  useEffect(() => {
+    if (editingTitleId && editInputRef.current) {
+      editInputRef.current.focus();
+      editInputRef.current.select();
+    }
+  }, [editingTitleId]);
+
+  const beginEditTitle = useCallback((it: ImportItem) => {
+    setEditingTitleId(it.id);
+    setEditingTitleDraft(it.title ?? '');
+  }, []);
+
+  const cancelEditTitle = useCallback(() => {
+    setEditingTitleId(null);
+    setEditingTitleDraft('');
+  }, []);
+
+  const saveEditTitle = useCallback(
+    async (id: string) => {
+      const trimmed = editingTitleDraft.trim();
+      const current = items.find((x) => x.id === id)?.title ?? '';
+      // No-op: empty input or unchanged value. We treat empty as
+      // "cancel" so the user can't accidentally wipe the title.
+      if (trimmed.length === 0) {
+        cancelEditTitle();
+        return;
+      }
+      if (trimmed === current) {
+        cancelEditTitle();
+        return;
+      }
+      if (savingTitleId) return; // another row is mid-save
+      setSavingTitleId(id);
+      try {
+        const res = await fetch(
+          `/api/admin/classroom/${encodeURIComponent(id)}`,
+          {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: trimmed }),
+          },
+        );
+        const data = (await res.json().catch(() => ({}))) as {
+          success?: boolean;
+          error?: string;
+          name?: string | null;
+        };
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || `HTTP ${res.status}`);
+        }
+        // Optimistically reflect the new title in the local list so
+        // the row doesn't visibly "snap back" to the old value while
+        // the next list fetch is in flight.
+        setItems((prev) =>
+          prev.map((x) => (x.id === id ? { ...x, title: data.name ?? trimmed } : x)),
+        );
+        cancelEditTitle();
+        // Also nudge RSC caches so the public `/csp-lecture` page
+        // picks up the new title on the next render.
+        router.refresh();
+      } catch (err) {
+        alert(
+          `保存标题失败：${err instanceof Error ? err.message : String(err)}`,
+        );
+      } finally {
+        setSavingTitleId(null);
+      }
+    },
+    [cancelEditTitle, editingTitleDraft, items, router, savingTitleId],
+  );
 
   const handleFile = useCallback(
     async (file: File) => {
@@ -342,57 +433,134 @@ export default function AdminClassroomView({
             <div className="text-gray-500 py-8 text-center text-sm">{emptyHint}</div>
           ) : (
             <div className="divide-y">
-              {items.map((it) => (
-                <div
-                  key={it.id}
-                  className="grid grid-cols-12 gap-3 items-center py-3"
-                >
-                  <div className="col-span-6">
-                    <div className="font-medium text-gray-900 flex items-center gap-2">
-                      {it.title}
-                      {it.imported && (
-                        <span className="text-[10px] uppercase tracking-wider text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded">
-                          导入
-                        </span>
+              {items.map((it) => {
+                const isEditing = editingTitleId === it.id;
+                const isSaving = savingTitleId === it.id;
+                return (
+                  <div
+                    key={it.id}
+                    className="grid grid-cols-12 gap-3 items-center py-3"
+                  >
+                    <div className="col-span-6">
+                      {isEditing ? (
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            ref={editInputRef}
+                            type="text"
+                            value={editingTitleDraft}
+                            maxLength={TITLE_MAX}
+                            disabled={isSaving}
+                            onChange={(e) => setEditingTitleDraft(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                void saveEditTitle(it.id);
+                              } else if (e.key === 'Escape') {
+                                e.preventDefault();
+                                cancelEditTitle();
+                              }
+                            }}
+                            onBlur={() => {
+                              // Defer slightly so a click on the
+                              // "save" / "cancel" buttons (rendered
+                              // next to the input) lands before we
+                              // exit edit mode.
+                              window.setTimeout(() => {
+                                if (editingTitleId === it.id) {
+                                  void saveEditTitle(it.id);
+                                }
+                              }, 120);
+                            }}
+                            className="flex-1 min-w-0 px-2 py-1 text-sm border border-sky-400 rounded
+                                       focus:outline-none focus:ring-2 focus:ring-sky-300
+                                       disabled:bg-gray-50 disabled:text-gray-400"
+                            placeholder="课件标题"
+                          />
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault() /* keep focus, no blur double-fire */}
+                            onClick={() => void saveEditTitle(it.id)}
+                            disabled={isSaving || editingTitleDraft.trim().length === 0}
+                            className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded
+                                       disabled:opacity-40 disabled:hover:bg-transparent"
+                            title="保存"
+                            aria-label="保存标题"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={cancelEditTitle}
+                            disabled={isSaving}
+                            className="p-1.5 text-gray-500 hover:bg-gray-100 rounded
+                                       disabled:opacity-40"
+                            title="取消"
+                            aria-label="取消编辑"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => beginEditTitle(it)}
+                          className="group flex items-center gap-2 text-left max-w-full
+                                     rounded px-1 -mx-1 py-0.5 hover:bg-sky-50 transition-colors"
+                          title="点击修改标题"
+                        >
+                          <span className="font-medium text-gray-900 truncate">
+                            {it.title || '未命名'}
+                          </span>
+                          {it.imported && (
+                            <span className="shrink-0 text-[10px] uppercase tracking-wider text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded">
+                              导入
+                            </span>
+                          )}
+                          <Pencil
+                            className="shrink-0 w-3.5 h-3.5 text-gray-300 group-hover:text-sky-600 transition-colors"
+                            aria-hidden
+                          />
+                        </button>
+                      )}
+                      {it.description && !isEditing && (
+                        <div className="text-xs text-gray-500 line-clamp-1 mt-0.5 px-1">
+                          {it.description}
+                        </div>
                       )}
                     </div>
-                    {it.description && (
-                      <div className="text-xs text-gray-500 line-clamp-1 mt-0.5">
-                        {it.description}
-                      </div>
-                    )}
+                    <div className="col-span-2 text-sm text-gray-600 text-center">
+                      {it.sceneCount} 场景
+                    </div>
+                    <div className="col-span-2 text-xs text-gray-500 text-center">
+                      {formatDate(it.createdAt)}
+                    </div>
+                    <div className="col-span-2 flex justify-end gap-1 items-center">
+                      <CollectionSelect
+                        value={it.collection}
+                        disabled={busyCollectionId === it.id}
+                        onChange={(next) => void onChangeCollection(it.id, next)}
+                      />
+                      <a
+                        href={`/classroom/${it.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="p-1.5 text-gray-500 hover:text-sky-600 hover:bg-gray-100 rounded"
+                        title="打开"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                      <button
+                        onClick={() => void onDelete(it.id, it.title)}
+                        className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded"
+                        title="删除"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="col-span-2 text-sm text-gray-600 text-center">
-                    {it.sceneCount} 场景
-                  </div>
-                  <div className="col-span-2 text-xs text-gray-500 text-center">
-                    {formatDate(it.createdAt)}
-                  </div>
-                  <div className="col-span-2 flex justify-end gap-1 items-center">
-                    <CollectionSelect
-                      value={it.collection}
-                      disabled={busyCollectionId === it.id}
-                      onChange={(next) => void onChangeCollection(it.id, next)}
-                    />
-                    <a
-                      href={`/classroom/${it.id}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="p-1.5 text-gray-500 hover:text-sky-600 hover:bg-gray-100 rounded"
-                      title="打开"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
-                    <button
-                      onClick={() => void onDelete(it.id, it.title)}
-                      className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded"
-                      title="删除"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>
