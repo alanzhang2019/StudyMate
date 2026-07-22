@@ -2,6 +2,29 @@
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 
+/*
+ * Tailwind v4 source detection.
+ *
+ * Next.js 16's `outputFileTracingRoot` does not affect Tailwind's
+ * source detection — Tailwind v4 uses its own walker rooted at the
+ * CSS file's directory. In a workspace where the CSS lives at
+ * `frontend/app/globals.css`, the default walker only sees `app/`,
+ * missing `components/`, `lib/`, etc. With an empty scan, Tailwind
+ * emits an empty `@layer utilities;` and every utility class on the
+ * page (flex, mx-auto, max-w-6xl, min-h-screen, ...) silently drops,
+ * collapsing the layout to block flow.
+ *
+ * The explicit `@source` directives below force a full scan of all
+ * directories that contain TSX/TS source. Glob patterns are relative
+ * to this file (frontend/app/globals.css).
+ *
+ *   ./        → frontend/app/**
+ *   ../       → frontend/**
+ */
+@source "./**/*.{ts,tsx,js,jsx,mdx,html}";
+@source "../components/**/*.{ts,tsx,js,jsx,mdx,html}";
+@source "../lib/**/*.{ts,tsx,js,jsx,mdx,html}";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

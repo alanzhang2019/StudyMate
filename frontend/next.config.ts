@@ -1,9 +1,20 @@
 import type { NextConfig } from 'next';
+import path from 'path';
 import webpack from 'webpack';
 
 const nextConfig: NextConfig = {
   output: process.env.VERCEL ? undefined : 'standalone',
   transpilePackages: ['mathml2omml', 'pptxgenjs'],
+  // Pin the workspace root to the frontend directory. The repo has a
+  // stray `package-lock.json` at the parent (`D:\AItrade\ai-math-mistake-machine`)
+  // which makes Next.js infer the parent as the workspace root; that, in
+  // turn, makes Tailwind v4 (which uses `outputFileTracingRoot` to scope
+  // its source scan) look for `app/` / `components/` in the parent —
+  // where they don't exist — and emit a CSS file with zero utility
+  // classes. Symptoms: every Tailwind class is silently dropped, layouts
+  // collapse, and Chinese text wraps to one character per line because
+  // `flex` / `mx-auto` / `max-w-6xl` / `min-h-screen` etc. don't apply.
+  outputFileTracingRoot: path.join(__dirname),
   typescript: { ignoreBuildErrors: true },
   // better-sqlite3 has a native .node binding; keep it external so Next.js
   // requires it at runtime (where we control the install location) and

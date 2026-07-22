@@ -1,4 +1,12 @@
-import { useState, useEffect, useRef, useMemo, useCallback, type RefObject } from 'react';
+import {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useMemo,
+  useCallback,
+  type RefObject,
+} from 'react';
 import { useCanvasStore } from '@/lib/store';
 import { sendDebugEvent } from '@/lib/utils/debug-event';
 
@@ -222,8 +230,13 @@ export function useViewportSize(canvasRef: RefObject<HTMLElement | null>) {
     }
   }, [canvasPercentage, setViewportPosition]);
 
-  // Reset viewport position when viewport ratio or size changes
-  useEffect(() => {
+  // Reset viewport position when viewport ratio or size changes.
+  // useLayoutEffect runs after DOM layout but before paint, so the canvas
+  // ref's clientWidth is already populated (a plain useEffect sometimes fires
+  // before the parent finishes laying out, leaving clientWidth=0 and silently
+  // skipping the scale computation — which leaves canvasScale at its store
+  // default of 1 and causes the slide to overflow the container).
+  useLayoutEffect(() => {
     initViewportPosition();
   }, [viewportRatio, viewportSize, initViewportPosition]);
 
@@ -234,17 +247,19 @@ export function useViewportSize(canvasRef: RefObject<HTMLElement | null>) {
     }
   }, [canvasDragged, initViewportPosition]);
 
-  // Reset viewport position when canvas is resized
+  // Reset viewport position when canvas is resized.
+  // The ResizeObserver fires for every layout change including the post-mount
+  // sizing — that picks up the case where neither the layout effect above nor
+  // the previous observer registration saw a non-zero clientWidth.
   useEffect(() => {
     const el = canvasRef.current;
-    const resizeObserver = new ResizeObserver(initViewportPosition);
-    if (el) {
-      resizeObserver.observe(el);
-    }
+    if (!el) return;
+    const resizeObserver = new ResizeObserver(() => {
+      initViewportPosition();
+    });
+    resizeObserver.observe(el);
     return () => {
-      if (el) {
-        resizeObserver.unobserve(el);
-      }
+      resizeObserver.disconnect();
     };
   }, [canvasRef, initViewportPosition]);
 

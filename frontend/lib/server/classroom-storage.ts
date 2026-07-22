@@ -44,6 +44,14 @@ export interface PersistedClassroomData {
   stage: Stage;
   scenes: Scene[];
   createdAt: string;
+  /**
+   * Optional logical grouping key (e.g. "csp-lecture" for the
+   * "CSP初赛要点精讲" collection). Omitted / empty means it belongs
+   * to the default global classroom pool. Collections are mutually
+   * exclusive at the classroom level — a classroom lives in at most
+   * one collection.
+   */
+  collection?: string;
 }
 
 export function isValidClassroomId(id: string): boolean {
@@ -68,6 +76,7 @@ export async function persistClassroom(
     id: string;
     stage: Stage;
     scenes: Scene[];
+    collection?: string;
   },
   baseUrl: string,
 ): Promise<PersistedClassroomData & { url: string }> {
@@ -76,6 +85,7 @@ export async function persistClassroom(
     stage: data.stage,
     scenes: data.scenes,
     createdAt: new Date().toISOString(),
+    collection: data.collection?.trim() || undefined,
   };
 
   await ensureClassroomsDir();

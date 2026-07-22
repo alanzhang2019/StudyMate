@@ -15,12 +15,15 @@ export type UsageEventName =
   | 'mistake.extract'
   | 'mistake.session.create'
   | 'mistake.session.analyze'
+  | 'integration.jobs.poll'
+  | 'admin.classroom.import'
+  | 'admin.classroom.list'
+  | 'admin.classroom.delete'
   | 'mistake.session.generate_classroom'
   | 'mistake.session.complete'
   | 'admin.login'
   | 'landing.cta_click'
-  | 'integration.mistake.create'
-  | 'integration.jobs.poll';
+  | 'integration.mistake.create';
 
 export async function trackEvent(
   eventName: UsageEventName,
