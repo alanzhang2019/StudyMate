@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -182,6 +182,41 @@ export function CanvasArea({
     [showControls, isLiveSession, onPlayPause, currentScene?.type],
   );
 
+  // ── Letterbox the slide at 16:9 inside the available canvas area ──
+  // The CSS `aspect-[16/9] w-full max-h-full` shortcut only works when
+  // the parent is taller than 16:9 (height-driven). In a wide parent
+  // (e.g. chat sidebar visible) the slide gets squeezed horizontally
+  // and leaves a lot of empty space at the bottom. Compute the
+  // largest 16:9 box that fits the parent in both dimensions and
+  // apply it as inline styles. useLayoutEffect runs before paint so
+  // there's no visible flash on mount.
+  const slideContainerRef = useRef<HTMLDivElement>(null);
+  const [slideDims, setSlideDims] = useState<{ width: number; height: number } | null>(null);
+  useLayoutEffect(() => {
+    const el = slideContainerRef.current;
+    if (!el) return;
+    const TARGET_RATIO = 16 / 9;
+    const update = () => {
+      const cw = el.clientWidth;
+      const ch = el.clientHeight;
+      if (cw <= 0 || ch <= 0) {
+        setSlideDims(null);
+        return;
+      }
+      if (cw / ch > TARGET_RATIO) {
+        // Container is wider than 16:9 → height is the limiting dim
+        setSlideDims({ width: ch * TARGET_RATIO, height: ch });
+      } else {
+        // Container is taller (or equal) than 16:9 → width is the limiting dim
+        setSlideDims({ width: cw, height: cw / TARGET_RATIO });
+      }
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   return (
     <div className={cn(
       'w-full flex-1 min-h-0 flex flex-col bg-gray-50 dark:bg-gray-900 group/canvas',
@@ -196,15 +231,21 @@ export function CanvasArea({
         )}
       >
         {/* Inner container — flex-1 so aspect-ratio slide can center inside */}
-        <div className="flex-1 min-h-0 flex items-center justify-center">
+        <div
+          ref={slideContainerRef}
+          className="flex-1 min-h-0 flex items-center justify-center"
+        >
           <div
             className={cn(
-              'bg-white dark:bg-gray-800 shadow-2xl rounded-lg relative transition-all duration-700 border-2 border-slate-400 dark:border-slate-600 max-w-full',
+              'bg-white dark:bg-gray-800 shadow-2xl rounded-lg relative transition-all duration-700 border-2 border-slate-400 dark:border-slate-600',
               currentScene?.type === 'interactive'
-              ? 'aspect-[16/9] w-full max-h-full overflow-hidden shadow-blue-200/60 dark:shadow-blue-900/50 ring-2 ring-blue-300/40 dark:ring-blue-500/20'
-              : 'aspect-[16/9] w-full max-h-full overflow-hidden shadow-slate-400/60 dark:shadow-slate-950/70 ring-2 ring-white/80 dark:ring-slate-800/90',
+              ? 'overflow-hidden shadow-blue-200/60 dark:shadow-blue-900/50 ring-2 ring-blue-300/40 dark:ring-blue-500/20'
+              : 'overflow-hidden shadow-slate-400/60 dark:shadow-slate-950/70 ring-2 ring-white/80 dark:ring-slate-800/90',
               showControls && !isLiveSession && currentScene?.type === 'slide' && 'cursor-pointer',
             )}
+            style={slideDims
+              ? { width: `${slideDims.width}px`, height: `${slideDims.height}px` }
+              : { visibility: 'hidden' }}
             onClick={handleSlideClick}
           >
           {/* Whiteboard Layer */}
