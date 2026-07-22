@@ -1,5 +1,17 @@
 # ---- Stage 1: Base ----
-FROM node:22-alpine AS base
+# Pinned to 20.18.1-alpine (LTS). Using `node:22-alpine` (a moving tag)
+# was previously pulling in whatever the latest 22.x happened to be, and
+# `node:22.23.1-alpine` broke two things at once:
+#   1. better-sqlite3@11.10.0 has no prebuilt for 22.23.1, so prebuild-install
+#      falls back to source build, which then times out trying to fetch
+#      Node headers from `unofficial-builds.nodejs.org`.
+#   2. The corepack bundled with that image doesn't have the signing key
+#      for pnpm@10.28.0, so `corepack prepare` fails with
+#      "Cannot find matching keyid" before pnpm even gets installed.
+# Pinning to 20.18.1-alpine (released 2024-10, LTS through 2026-04) gives
+# us a known-good corepack + a Node ABI (NODE_MODULE_VERSION 115) that
+# better-sqlite3@11.x has prebuilts for on npmmirror.
+FROM node:20.18.1-alpine AS base
 
 # Use Aliyun mirrors for both apk (Alpine package manager) and pnpm/Node
 # package downloads. The default registry endpoints are flaky from most
@@ -8,7 +20,13 @@ FROM node:22-alpine AS base
 # into the single-digit seconds range.
 RUN sed -i 's|dl-cdn.alpinelinux.org|mirrors.aliyun.com|g' /etc/apk/repositories
 RUN apk add --no-cache libc6-compat
-RUN corepack enable && corepack prepare pnpm@10.28.0 --activate
+# Update corepack before using it. The corepack shipped with the base
+# image may not include signing keys for the latest pnpm releases, which
+# causes `corepack prepare pnpm@X` to fail with "Cannot find matching keyid".
+# Pulling the latest corepack first ensures the trusted-keys set is current.
+RUN npm install -g corepack@latest && \
+    corepack enable && \
+    corepack prepare pnpm@10.28.0 --activate
 
 WORKDIR /app
 
