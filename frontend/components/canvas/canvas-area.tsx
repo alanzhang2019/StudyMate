@@ -199,8 +199,7 @@ export function CanvasArea({
         <div className="flex-1 min-h-0 flex items-center justify-center">
           <div
             className={cn(
-              'bg-white dark:bg-gray-800 shadow-2xl rounded-lg relative transition-all duration-700 border-2 border-slate-400 dark:border-slate-600',
-              isPresenting ? 'max-w-full' : 'max-w-4xl',
+              'bg-white dark:bg-gray-800 shadow-2xl rounded-lg relative transition-all duration-700 border-2 border-slate-400 dark:border-slate-600 max-w-full',
               currentScene?.type === 'interactive'
               ? 'aspect-[16/9] w-full max-h-full overflow-hidden shadow-blue-200/60 dark:shadow-blue-900/50 ring-2 ring-blue-300/40 dark:ring-blue-500/20'
               : 'aspect-[16/9] w-full max-h-full overflow-hidden shadow-slate-400/60 dark:shadow-slate-950/70 ring-2 ring-white/80 dark:ring-slate-800/90',

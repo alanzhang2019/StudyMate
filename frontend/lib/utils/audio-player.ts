@@ -11,6 +11,59 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('AudioPlayer');
 
+// ---------------------------------------------------------------------------
+// Autoplay-policy unlock
+// ---------------------------------------------------------------------------
+// Chrome / Safari / Edge all block `new Audio().play()` that is not initiated
+// inside a user-gesture event handler (mousedown / keydown / touchstart).
+// The first autoplay call from `engine.start()` therefore throws
+// `NotAllowedError` and the audio element is left in `paused` state with the
+// src already loaded. The user then has to click "play" (which the engine
+// interprets as a toggle, so the *first* click actually pauses the
+// already-running-but-silent playback, and the *second* click is the one that
+// actually plays audio with a fresh user gesture).
+//
+// Fix: as soon as the user makes ANY gesture on the page, we create a muted,
+// inaudible Audio object and call play() on it. The browser records that as
+// a successful "user-gesture audio start" for the document, and every
+// subsequent `new Audio().play()` (even from non-gesture code paths like
+// `engine.start()` after a scene change) succeeds without throwing.
+//
+// This is the standard "silent WAV unlock" pattern; it has no audible side
+// effect because the WAV contains 0 samples.
+let audioUnlocked = false;
+function unlockAudioOnFirstGesture() {
+  if (audioUnlocked || typeof document === 'undefined') return;
+  audioUnlocked = true;
+  try {
+    const a = new Audio();
+    a.muted = true;
+    a.volume = 0;
+    // Minimal valid WAV: 44-byte RIFF header + 0 PCM samples.
+    a.src =
+      'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+    a.play()
+      .then(() => {
+        a.pause();
+      })
+      .catch(() => {
+        // Browser refused the silent play too — try again on the next gesture.
+        audioUnlocked = false;
+      });
+  } catch {
+    audioUnlocked = false;
+  }
+}
+
+if (typeof document !== 'undefined') {
+  const onGesture = () => unlockAudioOnFirstGesture();
+  // capture: true so we run before React's synthetic listeners and before
+  // any stopPropagation() in app code.
+  document.addEventListener('pointerdown', onGesture, { capture: true });
+  document.addEventListener('keydown', onGesture, { capture: true });
+  document.addEventListener('touchstart', onGesture, { capture: true, passive: true });
+}
+
 function isPlaybackInterruptionError(error: unknown) {
   if (!(error instanceof DOMException || error instanceof Error)) {
     return false;
