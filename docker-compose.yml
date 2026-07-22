@@ -33,6 +33,14 @@ services:
       - BACKEND_URL=http://backend:3000
       # Allow oi.aijiangti.cn to embed us via iframe during ICP filing
       - ALLOWED_FRAME_ANCESTORS=https://oi.aijiangti.cn
+    # Persist /app/data (classroom JSONs, mistake-sessions, generated audio
+    # recordings, etc.) on a named volume. Without this, every
+    # `docker compose up -d --force-recreate` destroys the writable layer
+    # and erases all imported classrooms + user data. The first run after
+    # this change is a one-time migration: existing in-container data is
+    # copied out to the new volume on the server (see deploy runbook).
+    volumes:
+      - studymate-frontend-data:/app/data
     networks:
       - studymate-net
     restart: unless-stopped
@@ -40,3 +48,6 @@ services:
 networks:
   studymate-net:
     driver: bridge
+
+volumes:
+  studymate-frontend-data:
