@@ -58,6 +58,11 @@ export default function AdminClassroomView({
   const [loading, setLoading] = useState(true);
   const [upload, setUpload] = useState<UploadState>({ kind: 'idle' });
   const [dragging, setDragging] = useState(false);
+  // Single-flight guard: only one row's collection change is in flight
+  // at a time. Stored as the id, or null when idle. We don't queue
+  // because changes are infrequent and the list reload after a
+  // successful change re-renders the new state anyway.
+  const [busyCollectionId, setBusyCollectionId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const listUrl =
@@ -184,6 +189,45 @@ export default function AdminClassroomView({
       }
     },
     [load, router],
+  );
+
+  const onChangeCollection = useCallback(
+    async (id: string, next: string | null) => {
+      if (busyCollectionId) return;
+      setBusyCollectionId(id);
+      try {
+        const res = await fetch(
+          `/api/admin/classroom/${encodeURIComponent(id)}/collection`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ collection: next }),
+          },
+        );
+        const data = (await res.json().catch(() => ({}))) as {
+          success?: boolean;
+          error?: string;
+          changed?: boolean;
+        };
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || `HTTP ${res.status}`);
+        }
+        // After moving, the active list filter may no longer include
+        // this item (e.g. moved out of the current collection, or moved
+        // INTO it from the default pool when viewing /admin/csp-lecture
+        // with a filter). Either way, a full reload + RSC refresh is
+        // the simplest correct behaviour.
+        await load();
+        router.refresh();
+      } catch (err) {
+        alert(
+          `更新集合失败：${err instanceof Error ? err.message : String(err)}`,
+        );
+      } finally {
+        setBusyCollectionId(null);
+      }
+    },
+    [busyCollectionId, load, router],
   );
 
   return (
@@ -324,7 +368,12 @@ export default function AdminClassroomView({
                   <div className="col-span-2 text-xs text-gray-500 text-center">
                     {formatDate(it.createdAt)}
                   </div>
-                  <div className="col-span-2 flex justify-end gap-1">
+                  <div className="col-span-2 flex justify-end gap-1 items-center">
+                    <CollectionSelect
+                      value={it.collection}
+                      disabled={busyCollectionId === it.id}
+                      onChange={(next) => void onChangeCollection(it.id, next)}
+                    />
                     <a
                       href={`/classroom/${it.id}`}
                       target="_blank"
@@ -368,4 +417,50 @@ function formatDate(iso: string): string {
   } catch {
     return iso;
   }
+}
+
+// Options the admin can pick from. Mirrors the whitelist enforced on
+// the server in `app/api/admin/classroom/[id]/collection/route.ts`.
+// The empty string maps to "default pool" (no `collection` tag on
+// the persisted JSON) which is what /admin/classroom shows.
+const COLLECTION_OPTIONS: ReadonlyArray<{ value: string; label: string }> = [
+  { value: '', label: '默认池' },
+  { value: 'csp-lecture', label: 'CSP初赛' },
+];
+
+function CollectionSelect({
+  value,
+  disabled,
+  onChange,
+}: {
+  value?: string;
+  disabled: boolean;
+  onChange: (next: string | null) => void;
+}) {
+  // The select is uncontrolled-free: we always render the current
+  // `value` (defaulting to "" for the default pool), so a server
+  // rejection reverts the visual state too.
+  return (
+    <select
+      value={value ?? ''}
+      disabled={disabled}
+      onChange={(e) => {
+        const v = e.target.value;
+        onChange(v.length === 0 ? null : v);
+      }}
+      title="移动到集合"
+      aria-label="移动到集合"
+      className={[
+        'h-7 text-xs rounded border border-gray-200 bg-white px-1.5 pr-1',
+        'focus:outline-none focus:ring-1 focus:ring-sky-400 focus:border-sky-400',
+        disabled ? 'opacity-50 cursor-wait' : 'cursor-pointer hover:border-gray-400',
+      ].join(' ')}
+    >
+      {COLLECTION_OPTIONS.map((opt) => (
+        <option key={opt.value} value={opt.value}>
+          {opt.label}
+        </option>
+      ))}
+    </select>
+  );
 }
