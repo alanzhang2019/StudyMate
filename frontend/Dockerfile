@@ -27,21 +27,14 @@ RUN apk add --no-cache libc6-compat
 # `corepack prepare` before pnpm even downloads. 0.34.0 is the last
 # release with `engines.node` `^20.10.0 || ^22.11.0 || >=24.0.0`.
 #
-# Route npm + corepack through npmmirror. corepack 0.34.0 reads its
-# registry from `npm config get registry`, NOT from a `COREPACK_REGISTRY`
-# env var (that one's a hallucination — the corepack source has no such
-# branch). The reliable path is:
-#   1. Set the registry via `npm config set` (writes to /root/.npmrc).
-#   2. Also write /etc/npmrc so even fresh shell sessions / subshells
-#      spawned by `corepack prepare` pick it up.
-RUN npm config set registry https://registry.npmmirror.com && \
-    { \
-      echo 'registry=https://registry.npmmirror.com'; \
-      echo 'fetch-retries=5'; \
-      echo 'fetch-retry-mintimeout=20000'; \
-      echo 'fetch-retry-maxtimeout=120000'; \
-    } > /etc/npmrc && \
-    npm install -g corepack@0.34.0 && \
+# Route corepack through npmmirror. The env var is COREPACK_NPM_REGISTRY
+# (NOT COREPACK_REGISTRY — that one is a hallucination). corepack builds
+# the tarball URL as `https://registry.npmjs.org/pnpm/-/<v>.tgz` and
+# when COREPACK_NPM_REGISTRY is set, it string-replaces the
+# `registry.npmjs.org` prefix with the env var value. Source:
+# corepackUtils.ts getRegistryFromPackageManagerSpec / installVersion.
+ENV COREPACK_NPM_REGISTRY=https://registry.npmmirror.com
+RUN npm install -g corepack@0.34.0 && \
     corepack enable && \
     corepack prepare pnpm@10.28.0 --activate
 
