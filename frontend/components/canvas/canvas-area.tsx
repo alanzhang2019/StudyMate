@@ -201,8 +201,15 @@ export function CanvasArea({
             className={cn(
               'bg-white dark:bg-gray-800 shadow-2xl rounded-lg relative transition-all duration-700 border-2 border-slate-400 dark:border-slate-600 max-w-full',
               currentScene?.type === 'interactive'
-              ? 'aspect-[16/9] w-full max-h-full overflow-hidden shadow-blue-200/60 dark:shadow-blue-900/50 ring-2 ring-blue-300/40 dark:ring-blue-500/20'
-              : 'aspect-[16/9] w-full max-h-full overflow-hidden shadow-slate-400/60 dark:shadow-slate-950/70 ring-2 ring-white/80 dark:ring-slate-800/90',
+              // height-driven: the parent canvas wrapper now has an explicit
+              // `calc(100% - 272px)` height (see stage.tsx), so `h-full`
+              // resolves to that real value and `aspect-[16/9]` derives
+              // the width from it. `max-w-full` is a safety net for narrow
+              // viewports. This is the OpenMAIC pattern ported correctly —
+              // previous attempt at 1a055df had the right CSS but the parent
+              // had no explicit height, so the flex chain collapsed to 0.
+              ? 'aspect-[16/9] h-full max-h-full max-w-full overflow-hidden shadow-blue-200/60 dark:shadow-blue-900/50 ring-2 ring-blue-300/40 dark:ring-blue-500/20'
+              : 'aspect-[16/9] h-full max-h-full max-w-full overflow-hidden shadow-slate-400/60 dark:shadow-slate-950/70 ring-2 ring-white/80 dark:ring-slate-800/90',
               showControls && !isLiveSession && currentScene?.type === 'slide' && 'cursor-pointer',
             )}
             onClick={handleSlideClick}
