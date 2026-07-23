@@ -20,11 +20,17 @@ FROM node:20.18.1-alpine AS base
 # into the single-digit seconds range.
 RUN sed -i 's|dl-cdn.alpinelinux.org|mirrors.aliyun.com|g' /etc/apk/repositories
 RUN apk add --no-cache libc6-compat
-# Update corepack before using it. The corepack shipped with the base
-# image may not include signing keys for the latest pnpm releases, which
-# causes `corepack prepare pnpm@X` to fail with "Cannot find matching keyid".
-# Pulling the latest corepack first ensures the trusted-keys set is current.
-RUN npm install -g corepack@latest && \
+# Pin corepack to the latest version that still supports Node 20.
+# corepack@0.35.0 (current `latest`) bumped its `engines.node` to
+# `^22.22.2 || ^24.15.0 || >=26.0.0`, and on Node 20.18.1 it installs
+# with an EBADENGINE warning then throws an "Internal Error" inside
+# `corepack prepare` before pnpm even downloads. 0.34.0 is the last
+# release with `engines.node` `^20.10.0 || ^22.11.0 || >=24.0.0`.
+# Also route npm + corepack through npmmirror: corepack ignores
+# `npm_config_registry` and reads `COREPACK_REGISTRY` instead.
+ENV npm_config_registry=https://registry.npmmirror.com
+ENV COREPACK_REGISTRY=https://registry.npmmirror.com
+RUN npm install -g corepack@0.34.0 && \
     corepack enable && \
     corepack prepare pnpm@10.28.0 --activate
 
