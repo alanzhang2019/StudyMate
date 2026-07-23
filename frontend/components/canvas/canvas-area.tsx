@@ -201,14 +201,8 @@ export function CanvasArea({
             className={cn(
               'bg-white dark:bg-gray-800 shadow-2xl rounded-lg relative transition-all duration-700 border-2 border-slate-400 dark:border-slate-600 max-w-full',
               currentScene?.type === 'interactive'
-              // height-driven: `h-full` plus `aspect-[16/9]` derives the width
-              // from the available height. `max-w-full` keeps the slide from
-              // overflowing horizontally when the available width is narrower
-              // than 16:9 of the available height. This avoids the previous
-              // width-driven `w-full` layout that pushed the slide past the
-              // viewport in wide chat-sidebar viewports.
-              ? 'aspect-[16/9] h-full max-h-full max-w-full overflow-hidden shadow-blue-200/60 dark:shadow-blue-900/50 ring-2 ring-blue-300/40 dark:ring-blue-500/20'
-              : 'aspect-[16/9] h-full max-h-full max-w-full overflow-hidden shadow-slate-400/60 dark:shadow-slate-950/70 ring-2 ring-white/80 dark:ring-slate-800/90',
+              ? 'aspect-[16/9] w-full max-h-full overflow-hidden shadow-blue-200/60 dark:shadow-blue-900/50 ring-2 ring-blue-300/40 dark:ring-blue-500/20'
+              : 'aspect-[16/9] w-full max-h-full overflow-hidden shadow-slate-400/60 dark:shadow-slate-950/70 ring-2 ring-white/80 dark:ring-slate-800/90',
               showControls && !isLiveSession && currentScene?.type === 'slide' && 'cursor-pointer',
             )}
             onClick={handleSlideClick}
