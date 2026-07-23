@@ -207,7 +207,12 @@ export default function AdminClassroomView({
           method: 'POST',
           body: form,
         });
-        const data = (await res.json().catch(() => ({}))) as {
+        // Read the body once, as text, then try to parse it as JSON.
+        // Some failures (proxy timeouts, body-size limits upstream)
+        // return a 500 with an empty / non-JSON body, which would
+        // otherwise surface as the useless "HTTP 500" fallback.
+        const rawBody = await res.text();
+        let data: {
           success?: boolean;
           error?: string;
           errorCode?: string;
@@ -217,11 +222,21 @@ export default function AdminClassroomView({
           sceneCount?: number;
           mediaCount?: number;
           warnings?: string[];
-        };
+        } = {};
+        try {
+          data = rawBody ? JSON.parse(rawBody) : {};
+        } catch {
+          // Non-JSON body. Fall through with `data = {}` and surface
+          // the raw text in the error message below.
+        }
         if (!res.ok || !data.success) {
+          const fallback =
+            rawBody && rawBody.length > 0 && rawBody.length < 500
+              ? `HTTP ${res.status}: ${rawBody}`
+              : `HTTP ${res.status}`;
           setUpload({
             kind: 'error',
-            message: data.error || `HTTP ${res.status}`,
+            message: data.error || fallback,
           });
           return;
         }
