@@ -1171,9 +1171,16 @@ export function Stage({
         {/* Canvas Area */}
         <div
           className={cn(
-            'flex-1 min-h-0 flex flex-col overflow-hidden relative isolate',
+            'overflow-hidden relative flex-1 min-h-0 isolate',
             currentScene?.type === 'interactive' && 'min-h-0',
           )}
+          // Compute an explicit pixel height so the inner CanvasArea's
+          // `h-full` resolves to a real value (a bare `flex-1` parent gives
+          // Chrome a "flex-allocated" height which `height: 100%` cannot
+          // resolve against). Mirrors the OpenMAIC pattern verbatim.
+          style={{
+            height: `calc(100% - ${(isPresenting ? 0 : 80) + (mode === 'playback' && !isPresenting ? 192 : 0)}px)`,
+          }}
           suppressHydrationWarning
         >
           <CanvasArea
