@@ -682,6 +682,7 @@ export default function ClassroomDetailPage() {
                 const stageNode = (
                   <Stage
                     defaultPresentation={false}
+                    autoFullscreen={true}
                     autoPlay={true}
                     onLectureComplete={() => {}}
                     onRetryOutline={retrySingleOutline}

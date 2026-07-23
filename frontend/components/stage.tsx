@@ -52,11 +52,22 @@ export function Stage({
   onLectureComplete,
   defaultPresentation = false,
   autoPlay = false,
+  autoFullscreen = false,
 }: {
   onRetryOutline?: (outlineId: string) => Promise<void>;
   onLectureComplete?: () => void;
   defaultPresentation?: boolean;
   autoPlay?: boolean;
+  /**
+   * When true, the stage attempts to enter fullscreen + collapse the
+   * sidebar/chat on mount. Most browsers will reject the auto-fullscreen
+   * request without a user gesture — in that case the UI still collapses
+   * (sidebar/chat hidden, header hidden via isPresenting) and the user
+   * can press F11 to enter fullscreen manually. Has no effect on the
+   * homework/homework-presentation flows (those keep their own
+   * defaultPresentation path).
+   */
+  autoFullscreen?: boolean;
 }) {
   const { t } = useI18n();
   const {
@@ -319,6 +330,42 @@ export function Stage({
       console.warn('[Presentation] Fullscreen request denied — browser policy');
     }
   }, [setChatAreaCollapsed, setSidebarCollapsed]);
+
+  // Auto-enter presentation on mount. Unlike `togglePresentation`, this
+  // applies the UI changes (collapsed sidebar/chat, visible controls)
+  // BEFORE the fullscreen request, so a browser rejection still leaves
+  // the user in a presentation-style layout instead of dropping them
+  // back to the normal chrome-heavy view.
+  const enterPresentation = useCallback(async () => {
+    const stageElement = stageRef.current;
+    if (!stageElement) return;
+
+    setControlsVisible(true);
+    setSidebarCollapsed(true);
+    setChatAreaCollapsed(true);
+
+    try {
+      await stageElement.requestFullscreen();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (navigator as any).keyboard?.lock?.(['Escape']).catch(() => {});
+    } catch {
+      // Most browsers reject auto-fullscreen without a user gesture;
+      // the UI is already in presentation mode so the user just needs
+      // to press F11 (or click) to upgrade to real fullscreen.
+      console.warn('[Presentation] Auto-fullscreen denied — browser policy');
+    }
+  }, [setChatAreaCollapsed, setSidebarCollapsed]);
+
+  // Fire enterPresentation on mount when autoFullscreen is enabled.
+  // We defer with a short timeout so the first paint lands before the
+  // browser popup, and so the stageRef is guaranteed to be attached.
+  useEffect(() => {
+    if (!autoFullscreen) return;
+    const t = window.setTimeout(() => {
+      void enterPresentation();
+    }, 250);
+    return () => window.clearTimeout(t);
+  }, [autoFullscreen, enterPresentation]);
 
   useEffect(() => {
     const onFullscreenChange = () => {
