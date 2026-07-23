@@ -184,38 +184,41 @@ export function CanvasArea({
 
   return (
     <div className={cn(
-      'w-full flex-1 min-h-0 flex flex-col bg-gray-50 dark:bg-gray-900 group/canvas',
+      'w-full h-full flex flex-col bg-gray-50 dark:bg-gray-900 group/canvas',
     )}>
-      {/* Slide area — fills remaining space above the toolbar */}
+      {/* Slide area — takes remaining space. Single flex-1 wrapper
+          that ALSO provides centering (no nested flex-1 layer). This
+          is the OpenMAIC pattern verbatim — the previous double-
+          flex-1 layer caused the inner wrapper to collapse to 0,
+          making the slide invisible. The `h-full` on the slide can
+          only resolve against a definite parent height, and a
+          flex-1→flex-1 chain with padding in between had no
+          well-defined height for `h-full` to use. */}
       <div
         className={cn(
-          'relative overflow-hidden flex flex-col p-2 transition-colors duration-500 min-h-0',
+          'flex-1 min-h-0 relative overflow-hidden flex items-center justify-center p-2 transition-colors duration-500',
           currentScene?.type === 'interactive'
-            ? 'flex-1 bg-blue-100/50 dark:bg-blue-950/20'
-            : 'flex-1 bg-slate-200/95 dark:bg-slate-950/70',
+            ? 'bg-blue-100/50 dark:bg-blue-950/20'
+            : 'bg-slate-200/95 dark:bg-slate-950/70',
         )}
       >
-        {/* Inner container — flex-1 so aspect-ratio slide can center inside */}
-        <div className="flex-1 min-h-0 flex items-center justify-center">
-          <div
-            className={cn(
-              'bg-white dark:bg-gray-800 shadow-2xl rounded-lg relative transition-all duration-700 border-2 border-slate-400 dark:border-slate-600 max-w-full',
-              currentScene?.type === 'interactive'
-              // Height-driven (OpenMAIC pattern). The parent
-              // canvas wrapper (stage.tsx) provides an explicit
-              // `calc(100% - 80 - 192)px` height so the flex-1
-              // chain inside CanvasArea has a definite height
-              // for `h-full` to resolve against. `aspect-[16/9]`
-              // then derives the width from the real pixel
-              // value. `max-w-full` caps width when the parent
-              // is narrower than 16:9 would suggest (e.g.
-              // sidebar expanded).
-              ? 'aspect-[16/9] h-full max-w-full overflow-hidden shadow-blue-200/60 dark:shadow-blue-900/50 ring-2 ring-blue-300/40 dark:ring-blue-500/20'
-              : 'aspect-[16/9] h-full max-w-full overflow-hidden shadow-slate-400/60 dark:shadow-slate-950/70 ring-2 ring-white/80 dark:ring-slate-800/90',
-              showControls && !isLiveSession && currentScene?.type === 'slide' && 'cursor-pointer',
-            )}
-            onClick={handleSlideClick}
-          >
+        <div
+          className={cn(
+            // OpenMAIC pattern: `h-full max-h-full max-w-full`
+            // makes aspect-ratio height-driven, so the width is
+            // derived from the real pixel height of the parent
+            // (which is the calc(100% - 80 - 192) wrapper above
+            // this component). `max-h-full` clamps the height
+            // back to the parent if 16:9 would suggest a wider
+            // box than the parent can accommodate.
+            'aspect-[16/9] h-full max-h-full max-w-full bg-white dark:bg-gray-800 shadow-2xl rounded-lg overflow-hidden relative transition-all duration-700',
+            currentScene?.type === 'interactive'
+              ? 'shadow-blue-200/60 dark:shadow-blue-900/50 ring-2 ring-blue-300/40 dark:ring-blue-500/20'
+              : 'shadow-slate-400/60 dark:shadow-slate-950/70 ring-2 ring-white/80 dark:ring-slate-800/90',
+            showControls && !isLiveSession && currentScene?.type === 'slide' && 'cursor-pointer',
+          )}
+          onClick={handleSlideClick}
+        >
           {/* Whiteboard Layer */}
           <div className="absolute inset-0 z-[110] pointer-events-none">
             <SceneProvider>
@@ -349,7 +352,6 @@ export function CanvasArea({
             )}
           </AnimatePresence>
         </div>
-      </div>
       </div>
 
       {/* ── Canvas Toolbar — in document flow, only when not merged into roundtable ── */}

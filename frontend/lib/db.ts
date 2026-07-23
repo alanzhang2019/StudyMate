@@ -218,15 +218,15 @@ function getDb(): Database {
     ON integration_jobs (status, createdAt DESC);
 
   -- csp_progress: per-user classroom viewing progress. One row per
-  -- (userId, classroomId). `viewedScenes` is a JSON array of
+  -- (userId, classroomId). viewedScenes is a JSON array of
   -- sceneIds the user has fully watched (TTS/audio ended at least
-  -- once for that scene). `watchSeconds` is cumulative wall-clock
+  -- once for that scene). watchSeconds is cumulative wall-clock
   -- time the user has spent on this classroom, accumulated by
-  -- 30s heartbeats. `coveragePct` is denormalised as
+  -- 30s heartbeats. coveragePct is denormalised as
   -- viewedScenes.length / totalScenes for fast sort/filter.
-  -- `lastViewedSceneId` and `lastViewedAt` are convenience fields
+  -- lastViewedSceneId and lastViewedAt are convenience fields
   -- for "continue where you left off" links on /student/home.
-  -- `completedAt` is set when coveragePct reaches 1.0, so
+  -- completedAt is set when coveragePct reaches 1.0, so
   -- we can quickly count "completed" students for the teacher
   -- dashboard without scanning all scene views.
   CREATE TABLE IF NOT EXISTS csp_progress (
@@ -250,8 +250,8 @@ function getDb(): Database {
   -- csp_quiz_submissions: per-user quiz answers. One row per
   -- (userId, classroomId, sceneId) — we use upsert semantics so a
   -- student can re-take a quiz and only the latest submission
-  -- counts. `answersJson` is the full per-question detail
-  -- [{questionId, choice, correct, ms}]; `score` is pre-computed
+  -- counts. answersJson is the full per-question detail
+  -- [{questionId, choice, correct, ms}]; score is pre-computed
   -- server-side (0-100, = correctCount / totalQuestions * 100) so
   -- the teacher dashboard can sum and average without re-scoring.
   CREATE TABLE IF NOT EXISTS csp_quiz_submissions (
