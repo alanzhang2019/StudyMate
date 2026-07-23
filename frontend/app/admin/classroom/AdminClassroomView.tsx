@@ -36,7 +36,7 @@ type UploadState =
   | { kind: 'success'; item: ImportItem; url: string; warnings: string[] }
   | { kind: 'error'; message: string };
 
-const MAX_UPLOAD_MB = 100;
+const MAX_UPLOAD_MB = 1024;
 const TITLE_MAX = 200;
 
 export type AdminClassroomViewProps = {

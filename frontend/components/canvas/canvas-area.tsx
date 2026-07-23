@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -182,54 +182,12 @@ export function CanvasArea({
     [showControls, isLiveSession, onPlayPause, currentScene?.type],
   );
 
-  // The slide inside has `aspect-[16/9]` and the height is
-  // derived from the centering container's actual measured height
-  // (set via ResizeObserver below). This is more reliable than
-  // `h-full` because the flex-1 chain on the wrapper chain
-  // (CanvasArea -> centering container) doesn't always give a
-  // resolvable definite height for `height: 100%` in Chrome.
-  const slideContainerRef = useRef<HTMLDivElement>(null);
-  const slideRef = useRef<HTMLDivElement>(null);
-  useLayoutEffect(() => {
-    const container = slideContainerRef.current;
-    const slide = slideRef.current;
-    if (!container || !slide) return;
-    const setH = () => {
-      // Available height for the slide = container's height - container's
-      // vertical padding. p-2 = 8px each side = 16px total.
-      const rect = container.getBoundingClientRect();
-      const cs = window.getComputedStyle(container);
-      const padY =
-        (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
-      const avail = Math.max(0, Math.round(rect.height - padY));
-      if (avail > 0) slide.style.height = `${avail}px`;
-    };
-    setH();
-    const ro = new ResizeObserver(setH);
-    ro.observe(container);
-    // Re-run on fullscreen commit (where the layout may change
-    // after the observer's initial fire).
-    const onFs = () => {
-      requestAnimationFrame(() => requestAnimationFrame(setH));
-      setTimeout(setH, 50);
-      setTimeout(setH, 250);
-    };
-    document.addEventListener('fullscreenchange', onFs);
-    window.addEventListener('resize', setH);
-    return () => {
-      ro.disconnect();
-      document.removeEventListener('fullscreenchange', onFs);
-      window.removeEventListener('resize', setH);
-    };
-  }, []);
-
   return (
     <div className={cn(
       'w-full flex-1 min-h-0 flex flex-col bg-gray-50 dark:bg-gray-900 group/canvas',
     )}>
       {/* Slide area — fills remaining space above the toolbar */}
       <div
-        ref={slideContainerRef}
         className={cn(
           'relative overflow-hidden flex flex-col p-2 transition-colors duration-500 min-h-0',
           currentScene?.type === 'interactive'
@@ -240,19 +198,20 @@ export function CanvasArea({
         {/* Inner container — flex-1 so aspect-ratio slide can center inside */}
         <div className="flex-1 min-h-0 flex items-center justify-center">
           <div
-            ref={slideRef}
             className={cn(
               'bg-white dark:bg-gray-800 shadow-2xl rounded-lg relative transition-all duration-700 border-2 border-slate-400 dark:border-slate-600 max-w-full',
               currentScene?.type === 'interactive'
-              // Height-driven: the ResizeObserver above sets
-              // `style.height` to the actual measured pixel value
-              // (not a percentage), so `aspect-[16/9]` derives the
-              // width from it reliably regardless of the flex chain
-              // state. `max-w-full` caps width when the parent is
-              // narrower than 16:9 would suggest (e.g. sidebar
-              // expanded).
-              ? 'aspect-[16/9] max-w-full overflow-hidden shadow-blue-200/60 dark:shadow-blue-900/50 ring-2 ring-blue-300/40 dark:ring-blue-500/20'
-              : 'aspect-[16/9] max-w-full overflow-hidden shadow-slate-400/60 dark:shadow-slate-950/70 ring-2 ring-white/80 dark:ring-slate-800/90',
+              // Height-driven (OpenMAIC pattern). The parent
+              // canvas wrapper (stage.tsx) provides an explicit
+              // `calc(100% - 80 - 192)px` height so the flex-1
+              // chain inside CanvasArea has a definite height
+              // for `h-full` to resolve against. `aspect-[16/9]`
+              // then derives the width from the real pixel
+              // value. `max-w-full` caps width when the parent
+              // is narrower than 16:9 would suggest (e.g.
+              // sidebar expanded).
+              ? 'aspect-[16/9] h-full max-w-full overflow-hidden shadow-blue-200/60 dark:shadow-blue-900/50 ring-2 ring-blue-300/40 dark:ring-blue-500/20'
+              : 'aspect-[16/9] h-full max-w-full overflow-hidden shadow-slate-400/60 dark:shadow-slate-950/70 ring-2 ring-white/80 dark:ring-slate-800/90',
               showControls && !isLiveSession && currentScene?.type === 'slide' && 'cursor-pointer',
             )}
             onClick={handleSlideClick}

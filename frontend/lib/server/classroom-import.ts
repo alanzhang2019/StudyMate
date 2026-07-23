@@ -30,7 +30,7 @@ import {
   type MediaIndexEntry,
 } from './classroom-zip-types';
 
-const MAX_ZIP_BYTES = 100 * 1024 * 1024; // 100 MB hard cap
+const MAX_ZIP_BYTES = 1024 * 1024 * 1024; // 1 GB hard cap
 
 export interface ImportResult {
   id: string;

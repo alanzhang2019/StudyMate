@@ -1135,6 +1135,23 @@ export function Stage({
       }
     : null;
 
+  // Computed pixel height for the canvas wrapper, mirroring the
+  // OpenMAIC PlaybackChromeRoot pattern verbatim. The 80px
+  // reservation accounts for the non-presenting header; the 192px
+  // reservation accounts for the roundtable in playback mode
+  // (also only when not presenting). In presenting mode both are
+  // zeroed so the canvas fills the full Main Content height.
+  //
+  // The Roundtable is INSIDE Main Content Area in this project
+  // (same as OpenMAIC — see line 1229), so the 80+192 subtraction
+  // correctly accounts for the total non-canvas vertical space
+  // inside Main Content.
+  const sceneViewerHeight = (() => {
+    const headerHeight = isPresenting ? 0 : 80;
+    const roundtableHeight = mode === 'playback' && !isPresenting ? 192 : 0;
+    return `calc(100% - ${headerHeight + roundtableHeight}px)`;
+  })();
+
   return (
     <>
       <div
@@ -1174,20 +1191,17 @@ export function Stage({
             'overflow-hidden relative flex-1 min-h-0 isolate',
             currentScene?.type === 'interactive' && 'min-h-0',
           )}
-          // Layout note: This wrapper is `flex-1 min-h-0` in a flex
-          // column (Main Content). The flex chain gives it a definite
-          // height that the inner slide's `h-full` can resolve
-          // against. We intentionally do NOT add an explicit
-          // `style={{ height: ... }}` here — previous attempts at
-          // `calc(100% - 80 - 192)px` (the OpenMAIC pattern) collapsed
-          // the wrapper to 0 in this project because the Roundtable
-          // is a SIBLING of Main Content in this project, not a
-          // child (so Main Content is already squeezed by the
-          // Roundtable, and subtracting another 80/192 produced
-          // negative values that CSS clamped to 0). The slide is
-          // additionally measured in canvas-area.tsx via
-          // ResizeObserver to apply a precise pixel height that
-          // works regardless of the flex chain state.
+          // OpenMAIC pattern: explicit pixel height so the inner
+          // CanvasArea's `h-full` resolves to a real value (a bare
+          // `flex-1` parent gives Chrome a "flex-allocated" height
+          // which `height: 100%` cannot resolve against). The calc
+          // subtracts 80 (header) + 192 (roundtable) from Main
+          // Content's height in non-presenting playback mode. The
+          // 100% here resolves to Main Content Area's height, which
+          // IS a real value because motion.div is absolute inset-0
+          // (definite) and the flex-1 chain from there down gives
+          // each level a definite height.
+          style={{ height: sceneViewerHeight }}
           suppressHydrationWarning
         >
           <CanvasArea
