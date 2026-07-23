@@ -201,8 +201,16 @@ export function CanvasArea({
             className={cn(
               'bg-white dark:bg-gray-800 shadow-2xl rounded-lg relative transition-all duration-700 border-2 border-slate-400 dark:border-slate-600 max-w-full',
               currentScene?.type === 'interactive'
-              ? 'aspect-[16/9] w-full max-h-full overflow-hidden shadow-blue-200/60 dark:shadow-blue-900/50 ring-2 ring-blue-300/40 dark:ring-blue-500/20'
-              : 'aspect-[16/9] w-full max-h-full overflow-hidden shadow-slate-400/60 dark:shadow-slate-950/70 ring-2 ring-white/80 dark:ring-slate-800/90',
+              // Height-driven (OpenMAIC pattern): the inner `flex-1 min-h-0 flex
+              // items-center justify-center` wrapper above gives us a definite
+              // height from the flex chain, so `h-full` resolves to a real
+              // pixel value and `aspect-[16/9]` derives the width from it.
+              // `max-w-full` caps width when the parent is narrower than 16:9
+              // would suggest (e.g. sidebar expanded). Previous `w-full
+              // max-h-full` made the slide wider than 16:9 and overflow the
+              // screen edge in that case.
+              ? 'aspect-[16/9] h-full max-w-full overflow-hidden shadow-blue-200/60 dark:shadow-blue-900/50 ring-2 ring-blue-300/40 dark:ring-blue-500/20'
+              : 'aspect-[16/9] h-full max-w-full overflow-hidden shadow-slate-400/60 dark:shadow-slate-950/70 ring-2 ring-white/80 dark:ring-slate-800/90',
               showControls && !isLiveSession && currentScene?.type === 'slide' && 'cursor-pointer',
             )}
             onClick={handleSlideClick}
