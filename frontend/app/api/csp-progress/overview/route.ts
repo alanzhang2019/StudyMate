@@ -1,0 +1,84 @@
+import { NextResponse } from 'next/server';
+import { auth } from '@/auth';
+import { db } from '@/lib/db';
+import { apiError } from '@/lib/api/error';
+import { listClassroomSummaries } from '@/lib/server/classroom-storage';
+
+// GET /api/csp-progress/overview
+// Returns the current user's progress across ALL CSP classrooms.
+// Powers the /student/home dashboard. Each entry is enriched
+// with the classroom's title and total scene count so the client
+// doesn't have to fetch each classroom's JSON file separately.
+export async function GET() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return apiError('Not signed in', 401);
+  }
+  const userId = session.user.id;
+  const rows = db.cspProgress.findManyByUser(userId);
+
+  // Build a map of classroomId -> { title, totalScenes } using
+  // listClassroomSummaries. We fetch the full list once and
+  // index it by id — much cheaper than reading each classroom
+  // file separately (which is what an early draft did).
+  const summaries = await listClassroomSummaries('csp-lecture');
+  const summaryById = new Map(summaries.map((s) => [s.id, s]));
+
+  const entries = rows.map((r) => {
+    const summary = summaryById.get(r.classroomId);
+    const title = summary?.title ?? r.classroomId;
+    const totalScenes = summary?.sceneCount ?? r.totalScenes;
+    let viewedScenes: string[] = [];
+    try {
+      const arr = JSON.parse(r.viewedScenes || '[]');
+      viewedScenes = Array.isArray(arr) ? arr : [];
+    } catch {
+      viewedScenes = [];
+    }
+    return {
+      classroomId: r.classroomId,
+      title,
+      totalScenes,
+      viewedScenes,
+      watchSeconds: r.watchSeconds,
+      coveragePct: r.coveragePct,
+      completed: !!r.completedAt,
+      lastViewedSceneId: r.lastViewedSceneId,
+      lastViewedAt: r.lastViewedAt,
+      completedAt: r.completedAt,
+      updatedAt: r.updatedAt,
+    };
+  });
+
+  // Sort: in-progress first (most recently updated), then
+  // completed. Untouched classrooms go in `notStarted` below.
+  entries.sort((a, b) => {
+    if (a.completed !== b.completed) return a.completed ? 1 : -1;
+    return (b.updatedAt ?? '').localeCompare(a.updatedAt ?? '');
+  });
+
+  // "未开始" list: every CSP classroom the user has never
+  // opened. We diff the on-disk summary list against the
+  // user's progress rows.
+  const startedIds = new Set(rows.map((r) => r.classroomId));
+  const notStarted = summaries
+    .filter((s) => !startedIds.has(s.id))
+    .map((s) => ({
+      classroomId: s.id,
+      title: s.title,
+      totalScenes: s.sceneCount,
+    }));
+  notStarted.sort((a, b) => a.title.localeCompare(b.title, 'zh-Hans-CN'));
+
+  return NextResponse.json({
+    inProgress: entries.filter((e) => !e.completed),
+    completed: entries.filter((e) => e.completed),
+    notStarted,
+    summary: {
+      total: summaries.length,
+      started: rows.length,
+      completed: entries.filter((e) => e.completed).length,
+      inProgress: entries.filter((e) => !e.completed).length,
+    },
+  });
+}

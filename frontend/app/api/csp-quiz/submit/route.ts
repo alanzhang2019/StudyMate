@@ -1,0 +1,102 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/auth';
+import { db } from '@/lib/db';
+import { apiError } from '@/lib/api/error';
+import { readClassroom } from '@/lib/server/classroom-storage';
+
+// POST /api/csp-quiz/submit
+// Persist a student's quiz answers for one quiz scene. Idempotent
+// in the database sense (UNIQUE on userId+classroomId+sceneId means
+// re-submissions overwrite the previous attempt) but NOT in the
+// network sense — clients should still debounce submit-button
+// clicks themselves.
+//
+// Body: {
+//   classroomId: string,
+//   sceneId: string,
+//   answers: [{ questionId: string, choice: string, correct: boolean, ms: number }],
+//   totalQuestions: number  // optional; defaults to answers.length
+// }
+// Auth: required.
+//
+// Server-side scoring: we trust the client's `correct` boolean
+// for each answer and sum to get `correctCount`. We deliberately
+// do NOT re-derive correctness from the question bank on the
+// server because (a) the classroom JSON's quiz definitions are
+// authored client-side and we don't want to ship them through
+// the API, and (b) the client has already shown the student
+// feedback in real time. Trust the client; score = (correct /
+// total) * 100.
+export async function POST(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return apiError('Not signed in', 401);
+  }
+  const userId = session.user.id;
+
+  let body: {
+    classroomId?: string;
+    sceneId?: string;
+    answers?: { questionId?: string; choice?: string; correct?: boolean; ms?: number }[];
+    totalQuestions?: number;
+  };
+  try {
+    body = await req.json();
+  } catch {
+    return apiError('Invalid JSON body', 400);
+  }
+  const { classroomId, sceneId, answers, totalQuestions } = body;
+  if (!classroomId || !sceneId || !Array.isArray(answers)) {
+    return apiError('classroomId, sceneId, and answers[] are required', 400);
+  }
+  if (answers.length === 0) {
+    return apiError('answers cannot be empty', 400);
+  }
+
+  // Verify classroom exists. We deliberately skip per-question
+  // validation (matching the answer against the classroom's
+  // question bank) for the same reason we don't re-score:
+  // question definitions are authored client-side and shipping
+  // them through the API just adds bytes for no security
+  // benefit. If the classroom doesn't exist, fail here; if the
+  // sceneId is wrong, the student will just not see their
+  // submission on the teacher dashboard.
+  const classroom = await readClassroom(classroomId);
+  if (!classroom) {
+    return apiError('Classroom not found', 404);
+  }
+
+  const total = totalQuestions ?? answers.length;
+  const correctCount = answers.filter((a) => a?.correct === true).length;
+  const score = total > 0 ? Math.round((correctCount / total) * 10000) / 100 : 0;
+  // Store the full per-question detail so the teacher dashboard
+  // can show "which questions did this student get wrong" and
+  // "which option did they pick" without re-fetching the
+  // classroom.
+  const answersJson = JSON.stringify(
+    answers.map((a) => ({
+      questionId: a.questionId ?? '',
+      choice: a.choice ?? '',
+      correct: a.correct === true,
+      ms: typeof a.ms === 'number' ? a.ms : 0,
+    })),
+  );
+
+  const row = db.cspQuizSubmission.upsert({
+    userId,
+    classroomId,
+    sceneId,
+    totalQuestions: total,
+    correctCount,
+    score,
+    answersJson,
+  });
+
+  return NextResponse.json({
+    ok: true,
+    id: row?.id,
+    score,
+    correctCount,
+    totalQuestions: total,
+  });
+}

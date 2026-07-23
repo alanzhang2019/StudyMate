@@ -71,6 +71,57 @@ export async function readClassroom(id: string): Promise<PersistedClassroomData 
   }
 }
 
+// listClassroomSummaries returns lightweight metadata for every
+// classroom on disk, optionally filtered by `collection` (e.g.
+// 'csp-lecture'). Used by the student-progress overview API to
+// compute the "未开始" list without re-reading every classroom
+// file twice. We deliberately return only fields the API needs
+// (id, title, sceneCount, collection) — not the full
+// PersistedClassroomData — to keep the payload small.
+export async function listClassroomSummaries(
+  collection?: string,
+): Promise<{ id: string; title: string; sceneCount: number; collection?: string }[]> {
+  let entries: string[] = [];
+  try {
+    entries = await fs.readdir(CLASSROOMS_DIR);
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return [];
+    throw err;
+  }
+  const out: { id: string; title: string; sceneCount: number; collection?: string }[] = [];
+  for (const name of entries) {
+    if (!name.endsWith('.json')) continue;
+    const id = name.slice(0, -'.json'.length);
+    const filePath = path.join(CLASSROOMS_DIR, name);
+    try {
+      // Strip UTF-8 BOM (PowerShell's ConvertTo-Json emits one)
+      // and parse with a permissive shape — fields like `title`
+      // and `scenes` may live in either `data` or `data.stage`
+      // depending on importer, so we probe both.
+      const raw = (await fs.readFile(filePath, 'utf-8')).replace(/^\ufeff/, '');
+      const data = JSON.parse(raw) as {
+        id: string;
+        title?: string;
+        name?: string;
+        collection?: string;
+        scenes?: unknown[];
+        stage?: { title?: string; name?: string; scenes?: unknown[] };
+      };
+      if (collection && data.collection !== collection) continue;
+      const title =
+        data.title ?? data.name ?? data.stage?.title ?? data.stage?.name ?? id;
+      const sceneCount =
+        (Array.isArray(data.scenes) ? data.scenes.length : 0) ||
+        (Array.isArray(data.stage?.scenes) ? (data.stage!.scenes as unknown[]).length : 0);
+      out.push({ id, title, sceneCount, collection: data.collection });
+    } catch {
+      // Skip unreadable / malformed classroom files instead of
+      // failing the whole list.
+    }
+  }
+  return out;
+}
+
 export async function persistClassroom(
   data: {
     id: string;

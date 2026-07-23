@@ -216,6 +216,60 @@ function getDb(): Database {
     ON integration_jobs (ip, createdAt DESC);
   CREATE INDEX IF NOT EXISTS idx_integration_jobs_status
     ON integration_jobs (status, createdAt DESC);
+
+  -- csp_progress: per-user classroom viewing progress. One row per
+  -- (userId, classroomId). `viewedScenes` is a JSON array of
+  -- sceneIds the user has fully watched (TTS/audio ended at least
+  -- once for that scene). `watchSeconds` is cumulative wall-clock
+  -- time the user has spent on this classroom, accumulated by
+  -- 30s heartbeats. `coveragePct` is denormalised as
+  -- viewedScenes.length / totalScenes for fast sort/filter.
+  -- `lastViewedSceneId` and `lastViewedAt` are convenience fields
+  -- for "continue where you left off" links on /student/home.
+  -- `completedAt` is set when coveragePct reaches 1.0, so
+  -- we can quickly count "completed" students for the teacher
+  -- dashboard without scanning all scene views.
+  CREATE TABLE IF NOT EXISTS csp_progress (
+    userId TEXT NOT NULL,
+    classroomId TEXT NOT NULL,
+    totalScenes INTEGER NOT NULL DEFAULT 0,
+    viewedScenes TEXT NOT NULL DEFAULT '[]',
+    watchSeconds INTEGER NOT NULL DEFAULT 0,
+    coveragePct REAL NOT NULL DEFAULT 0,
+    lastViewedSceneId TEXT,
+    lastViewedAt TEXT,
+    completedAt TEXT,
+    updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (userId, classroomId)
+  );
+  CREATE INDEX IF NOT EXISTS idx_csp_progress_classroom_coverage
+    ON csp_progress (classroomId, coveragePct DESC);
+  CREATE INDEX IF NOT EXISTS idx_csp_progress_user_updated
+    ON csp_progress (userId, updatedAt DESC);
+
+  -- csp_quiz_submissions: per-user quiz answers. One row per
+  -- (userId, classroomId, sceneId) — we use upsert semantics so a
+  -- student can re-take a quiz and only the latest submission
+  -- counts. `answersJson` is the full per-question detail
+  -- [{questionId, choice, correct, ms}]; `score` is pre-computed
+  -- server-side (0-100, = correctCount / totalQuestions * 100) so
+  -- the teacher dashboard can sum and average without re-scoring.
+  CREATE TABLE IF NOT EXISTS csp_quiz_submissions (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    classroomId TEXT NOT NULL,
+    sceneId TEXT NOT NULL,
+    totalQuestions INTEGER NOT NULL,
+    correctCount INTEGER NOT NULL,
+    score REAL NOT NULL,
+    answersJson TEXT NOT NULL,
+    submittedAt TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (userId, classroomId, sceneId)
+  );
+  CREATE INDEX IF NOT EXISTS idx_csp_quiz_user_classroom
+    ON csp_quiz_submissions (userId, classroomId);
+  CREATE INDEX IF NOT EXISTS idx_csp_quiz_classroom_score
+    ON csp_quiz_submissions (classroomId, score DESC);
 `)
 
     // Idempotent column migration for usage_events. We can't add
@@ -472,6 +526,141 @@ class PrismaCompatClient {
   parentBinding = buildFinder('parent_bindings', 'id')
   parentAiInsight = buildFinder('parent_ai_insights', 'id')
   integrationJob = buildFinder('integration_jobs', 'id')
+  // csp_progress has a composite primary key (userId, classroomId),
+  // so it can't use buildFinder directly. We expose a tiny model
+  // that uses raw SQL for the upsert/read operations the progress
+  // API needs. All other access should go through this object so
+  // the composite-key convention stays in one place.
+  cspProgress = {
+    findByUserClass: (userId: string, classroomId: string) => {
+      const row = getDb()
+        .prepare('SELECT * FROM csp_progress WHERE userId = ? AND classroomId = ? LIMIT 1')
+        .get(userId, classroomId) as any
+      return row ?? null
+    },
+    findManyByUser: (userId: string) => {
+      return getDb()
+        .prepare('SELECT * FROM csp_progress WHERE userId = ? ORDER BY updatedAt DESC')
+        .all(userId) as any[]
+    },
+    upsertViewedScene: (params: {
+      userId: string
+      classroomId: string
+      sceneId: string
+      totalScenes: number
+      viewedScenes: string  // JSON
+      coveragePct: number
+      lastViewedAt: string
+      completedAt: string | null
+    }) => {
+      // Upsert: if the row exists, preserve its `watchSeconds`
+      // (heartbeats write that column separately) and only
+      // update scene-related fields. If not, create with 0
+      // watchSeconds and let heartbeats fill it in.
+      const sql = `
+        INSERT INTO csp_progress
+          (userId, classroomId, totalScenes, viewedScenes, watchSeconds, coveragePct, lastViewedSceneId, lastViewedAt, completedAt, updatedAt)
+        VALUES (?, ?, ?, ?, 0, ?, ?, ?, ?, ?)
+        ON CONFLICT(userId, classroomId) DO UPDATE SET
+          totalScenes = excluded.totalScenes,
+          viewedScenes = excluded.viewedScenes,
+          coveragePct = excluded.coveragePct,
+          lastViewedSceneId = excluded.lastViewedSceneId,
+          lastViewedAt = excluded.lastViewedAt,
+          completedAt = excluded.completedAt,
+          updatedAt = excluded.updatedAt
+      `
+      getDb()
+        .prepare(sql)
+        .run(
+          params.userId,
+          params.classroomId,
+          params.totalScenes,
+          params.viewedScenes,
+          params.coveragePct,
+          params.sceneId,
+          params.lastViewedAt,
+          params.completedAt,
+          params.lastViewedAt,
+        )
+      return cspProgress.findByUserClass(params.userId, params.classroomId)
+    },
+    addWatchSeconds: (userId: string, classroomId: string, deltaSeconds: number) => {
+      // Heartbeat accumulator. We clamp the value at 0 in case
+      // a buggy client sends a negative delta. Total classroom
+      // time should never be negative.
+      getDb()
+        .prepare(
+          `UPDATE csp_progress
+             SET watchSeconds = MAX(0, watchSeconds + ?),
+                 updatedAt = datetime('now')
+           WHERE userId = ? AND classroomId = ?`,
+        )
+        .run(deltaSeconds, userId, classroomId)
+      return cspProgress.findByUserClass(userId, classroomId)
+    },
+  }
+  cspQuizSubmission = {
+    findByUser: (userId: string, classroomId: string) => {
+      return getDb()
+        .prepare(
+          'SELECT * FROM csp_quiz_submissions WHERE userId = ? AND classroomId = ? ORDER BY submittedAt DESC',
+        )
+        .all(userId, classroomId) as any[]
+    },
+    findByUserScene: (userId: string, classroomId: string, sceneId: string) => {
+      const row = getDb()
+        .prepare(
+          'SELECT * FROM csp_quiz_submissions WHERE userId = ? AND classroomId = ? AND sceneId = ? LIMIT 1',
+        )
+        .get(userId, classroomId, sceneId) as any
+      return row ?? null
+    },
+    upsert: (params: {
+      userId: string
+      classroomId: string
+      sceneId: string
+      totalQuestions: number
+      correctCount: number
+      score: number
+      answersJson: string
+    }) => {
+      // Re-take semantics: a student can re-submit a quiz, and
+      // we keep only the latest score (UNIQUE on the
+      // userId+classroomId+sceneId tuple).
+      const id = `qsub_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
+      getDb()
+        .prepare(
+          `INSERT INTO csp_quiz_submissions
+             (id, userId, classroomId, sceneId, totalQuestions, correctCount, score, answersJson, submittedAt)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+           ON CONFLICT(userId, classroomId, sceneId) DO UPDATE SET
+             totalQuestions = excluded.totalQuestions,
+             correctCount = excluded.correctCount,
+             score = excluded.score,
+             answersJson = excluded.answersJson,
+             submittedAt = excluded.submittedAt`,
+        )
+        .run(
+          id,
+          params.userId,
+          params.classroomId,
+          params.sceneId,
+          params.totalQuestions,
+          params.correctCount,
+          params.score,
+          params.answersJson,
+        )
+      return cspQuizSubmission.findByUserScene(params.userId, params.classroomId, params.sceneId)
+    },
+    listByClassroom: (classroomId: string) => {
+      return getDb()
+        .prepare(
+          'SELECT * FROM csp_quiz_submissions WHERE classroomId = ? ORDER BY submittedAt DESC',
+        )
+        .all(classroomId) as any[]
+    },
+  }
   systemConfig = {
     ...buildFinder('system_config', 'key'),
     findUnique: (args: any) => buildFinder('system_config', 'key').findUnique(args),

@@ -15,6 +15,7 @@ import type { EngineMode, TriggerEvent, Effect } from '@/lib/playback';
 import { ActionEngine } from '@/lib/action/engine';
 import { createAudioPlayer } from '@/lib/utils/audio-player';
 import { useDiscussionTTS } from '@/lib/hooks/use-discussion-tts';
+import { useCspProgress } from '@/lib/hooks/use-csp-progress';
 import { useWidgetIframeStore } from '@/lib/store/widget-iframe';
 import type { AudioIndicatorState } from '@/components/roundtable/audio-indicator';
 import type { Action, DiscussionAction, SpeechAction } from '@/lib/types/action';
@@ -204,6 +205,18 @@ export function Stage({
   const sceneEpochRef = useRef(0);
   // When true, the next engine init will auto-start playback (for auto-play scene advance)
   const autoStartRef = useRef(false);
+  // CSP progress reporting (scene-complete / heartbeat / quiz-submit).
+  // The hook sets up the 30s heartbeat and exposes the imperative
+  // reporting methods. We call `reportSceneComplete` when the engine
+  // transitions between scenes — the *previous* sceneId is the one
+  // whose audio/TTS just finished naturally, and that's the moment
+  // we credit the student for "viewing" it.
+  const cspProgress = useCspProgress();
+  // The sceneId the engine is currently processing. We track it
+  // separately from `currentSceneId` (which moves on user click)
+  // so we only credit scenes that the engine actually played
+  // through to the end, not scenes the user just skipped past.
+  const inFlightSceneIdRef = useRef<string | null>(null);
   // Discussion buffer-level pause state (distinct from soft-pause which aborts SSE)
   const [isDiscussionPaused, setIsDiscussionPaused] = useState(false);
 
@@ -549,8 +562,19 @@ export function Stage({
       onModeChange: (mode) => {
         setEngineMode(mode);
       },
-      onSceneChange: (_sceneId) => {
-        // Scene change handled by engine
+      onSceneChange: (sceneId) => {
+        // CSP progress: the previous scene just finished its natural
+        // playback (TTS reached the end of the last action). Credit
+        // it now. We don't fire on the very first onSceneChange of
+        // a freshly-mounted engine (inFlightSceneIdRef is null),
+        // because no scene has actually completed yet — the engine
+        // is just starting. For multi-scene classrooms this fires
+        // N-1 times; the Nth scene is credited in onComplete below.
+        const previous = inFlightSceneIdRef.current;
+        if (previous && previous !== sceneId) {
+          void cspProgress.reportSceneComplete(previous);
+        }
+        inFlightSceneIdRef.current = sceneId;
       },
       onSpeechStart: (text) => {
         setLectureSpeech(text);
@@ -645,6 +669,17 @@ export function Stage({
         // until scene transition (auto-play) or user restarts. Scene change
         // effect handles the reset.
         setPlaybackCompleted(true);
+
+        // CSP progress: the last scene's playback has finished.
+        // onSceneChange credited every other scene; this one only
+        // reaches us via onComplete. Clear the ref afterwards so
+        // a subsequent re-play (e.g. user clicks restart) starts
+        // from a clean slate.
+        const lastSceneId = inFlightSceneIdRef.current;
+        if (lastSceneId) {
+          void cspProgress.reportSceneComplete(lastSceneId);
+          inFlightSceneIdRef.current = null;
+        }
 
         // End lecture session on playback complete
         if (lectureSessionIdRef.current) {

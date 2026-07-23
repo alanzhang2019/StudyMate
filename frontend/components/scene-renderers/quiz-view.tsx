@@ -21,6 +21,7 @@ import { createLogger } from '@/lib/logger';
 const log = createLogger('QuizView');
 import type { QuizQuestion } from '@/lib/types/stage';
 import { useDraftCache } from '@/lib/hooks/use-draft-cache';
+import { useCspProgress, type ReportQuizPayload } from '@/lib/hooks/use-csp-progress';
 import { SpeechButton } from '@/components/audio/speech-button';
 import { gradeChoiceQuestions, isShortAnswer, type QuestionResult } from '@/lib/quiz/grading';
 import {
@@ -31,6 +32,19 @@ import {
   writeSubmittedResults,
   type SubmittedState,
 } from '@/lib/quiz/persistence';
+
+/**
+ * Stringify a user's answer to a single field for the
+ * /api/csp-quiz/submit payload. Single-choice questions
+ * store a string, multiple-choice questions store a
+ * string[] — we join multi-select answers with a comma so
+ * the teacher dashboard can render them in one cell.
+ */
+function pickChoice(value: string | string[] | undefined): string {
+  if (value === undefined) return '';
+  if (Array.isArray(value)) return value.join(',');
+  return value;
+}
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -648,6 +662,7 @@ function ScoreBanner({
 
 export function QuizView({ questions, sceneId }: QuizViewProps) {
   const { t, locale } = useI18n();
+  const cspProgress = useCspProgress();
 
   // Rehydrate submitted state from localStorage on first mount. Runs once.
   const [initialSubmitted] = useState<SubmittedState>(() => readSubmittedState(sceneId));
@@ -754,6 +769,54 @@ export function QuizView({ questions, sceneId }: QuizViewProps) {
       cancelled = true;
     };
   }, [phase, questions, answers, locale, sceneId]);
+
+  // CSP progress: when the quiz finishes grading and we have
+  // authoritative results, push them to the server. We do this
+  // here (and not in handleSubmit) because we need the per-
+  // question `correct` flags from the AI grading pass. The
+  // server trusts the client-side `correct` boolean (see
+  // /api/csp-quiz/submit/route.ts), so the worst case for a
+  // lying client is inflated personal stats — not other students'
+  // coverage. Idempotency comes from the UNIQUE
+  // (userId, classroomId, sceneId) constraint; the same user
+  // re-submitting the same scene overwrites the previous row.
+  //
+  // We also fire `reportSceneComplete` so the quiz is credited
+  // as a "viewed" scene on the teacher dashboard even though
+  // the engine's onSceneChange path doesn't fire for quiz
+  // scenes (the student answers directly in the UI, the
+  // engine's speech never gets a chance to "complete" the
+  // scene via the natural TTS-end path).
+  const quizSubmitSentRef = useRef(false);
+  useEffect(() => {
+    if (phase !== 'reviewing') return;
+    if (results.length === 0) return;
+    if (quizSubmitSentRef.current) return;
+    quizSubmitSentRef.current = true;
+    const payload: ReportQuizPayload = {
+      sceneId,
+      totalQuestions: questions.length,
+      answers: results.map((r, i) => ({
+        // Use the original question's `id` from the question
+        // bank (not the result's, which is identical but we
+        // want to be explicit) and the user's chosen value
+        // from `answers`. If the user didn't answer a
+        // question (shouldn't happen — handleSubmit is
+        // disabled until allAnswered) we still send an
+        // empty string so the row is created.
+        questionId: r.questionId,
+        choice: pickChoice(answers[r.questionId]),
+        correct: r.status === 'correct',
+        ms: 0,
+      })),
+    };
+    void cspProgress.reportQuizSubmit(payload);
+    void cspProgress.reportSceneComplete(sceneId);
+    // intentionally no deps on `cspProgress` — the hook
+    // returns a stable object keyed on classroomId, and we
+    // only want this to fire once per grading cycle.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, results, sceneId, questions]);
 
   const handleRetry = useCallback(() => {
     setPhase('not_started');

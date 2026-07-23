@@ -15,12 +15,14 @@
 // with a friendly "coming soon" placeholder.
 
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CLASSROOMS_DIR } from '@/lib/server/classroom-storage';
 import type { Scene, Stage } from '@/lib/types/stage';
+import { auth } from '@/auth';
 import { ExpandChapterList } from './ExpandChapterList';
 
 export const dynamic = 'force-dynamic';
@@ -112,6 +114,18 @@ function formatDate(iso: string): string {
 }
 
 export default async function CspLecturePage() {
+  // Auth guard. /csp-lecture now requires a signed-in user so
+  // we can attribute view progress to a real userId. The
+  // student journey is: visit any classroom → if not signed
+  // in, redirected here with `?redirect=/csp-lecture&as=student`
+  // so the login page knows to set up a student account.
+  const session = await auth();
+  if (!session?.user) {
+    redirect('/auth/login?redirect=/csp-lecture&as=student');
+  }
+  const userName = (session.user as any).name ?? session.user.email ?? '同学';
+  const userRole = (session.user as any).role ?? 'student';
+
   const lectures = await listCspLectures();
   const totalScenes = lectures.reduce((s, l) => s + l.sceneCount, 0);
 
@@ -128,6 +142,14 @@ export default async function CspLecturePage() {
           </Link>
         </div>
         <div className="flex items-center gap-3">
+          {userRole === 'student' && (
+            <Button asChild size="sm" variant="ghost">
+              <Link href="/student/home">我的学习</Link>
+            </Button>
+          )}
+          <span className="text-xs text-slate-500 hidden sm:inline">
+            {userName}
+          </span>
           <Link
             href="/"
             className="text-sm text-slate-600 hover:text-slate-900 hidden sm:inline"
