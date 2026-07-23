@@ -367,6 +367,41 @@ export function Stage({
     return () => window.clearTimeout(t);
   }, [autoFullscreen, enterPresentation]);
 
+  // Most browsers reject requestFullscreen() without a user gesture,
+  // so the mount-time attempt above usually fails. Retry on the
+  // first pointerdown / keydown so fullscreen kicks in as soon as
+  // the student interacts with the page (which they always do to
+  // start the slideshow anyway). Uses capture phase + { once: true }
+  // so the listener fires exactly once and is then cleaned up.
+  useEffect(() => {
+    if (!autoFullscreen) return;
+    if (typeof document === 'undefined') return;
+
+    const tryFullscreen = () => {
+      const stageElement = stageRef.current;
+      if (!stageElement) return;
+      if (document.fullscreenElement === stageElement) return;
+      stageElement
+        .requestFullscreen()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .then(() => (navigator as any).keyboard?.lock?.(['Escape']).catch(() => {}))
+        .catch(() => {
+          /* still no user gesture — will retry on next interaction */
+        });
+    };
+
+    const opts: AddEventListenerOptions = { capture: true, once: false };
+    document.addEventListener('pointerdown', tryFullscreen, opts);
+    document.addEventListener('keydown', tryFullscreen, opts);
+    document.addEventListener('touchstart', tryFullscreen, opts);
+
+    return () => {
+      document.removeEventListener('pointerdown', tryFullscreen, opts);
+      document.removeEventListener('keydown', tryFullscreen, opts);
+      document.removeEventListener('touchstart', tryFullscreen, opts);
+    };
+  }, [autoFullscreen]);
+
   useEffect(() => {
     const onFullscreenChange = () => {
       const active = document.fullscreenElement === stageRef.current;
