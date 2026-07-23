@@ -184,27 +184,29 @@ export function CanvasArea({
 
   return (
     <div className={cn(
-      'w-full h-full flex flex-col bg-gray-50 dark:bg-gray-900 group/canvas',
+      'w-full flex-1 min-h-0 flex flex-col bg-gray-50 dark:bg-gray-900 group/canvas',
     )}>
-      {/* Slide area — takes remaining space */}
+      {/* Slide area — fills remaining space above the toolbar */}
       <div
         className={cn(
-          'flex-1 min-h-0 relative overflow-hidden flex items-center justify-center p-2 transition-colors duration-500',
+          'relative overflow-hidden flex flex-col p-2 transition-colors duration-500 min-h-0',
           currentScene?.type === 'interactive'
-            ? 'bg-blue-100/50 dark:bg-blue-950/20'
-            : 'bg-slate-200/95 dark:bg-slate-950/70',
+            ? 'flex-1 bg-blue-100/50 dark:bg-blue-950/20'
+            : 'flex-1 bg-slate-200/95 dark:bg-slate-950/70',
         )}
       >
-        <div
-          className={cn(
-            'aspect-[16/9] h-full max-h-full max-w-full bg-white dark:bg-gray-800 shadow-2xl rounded-lg overflow-hidden relative transition-all duration-700 border-2 border-slate-400 dark:border-slate-600',
-            currentScene?.type === 'interactive'
-              ? 'shadow-blue-200/60 dark:shadow-blue-900/50 ring-2 ring-blue-300/40 dark:ring-blue-500/20'
-              : 'shadow-slate-400/60 dark:shadow-slate-950/70 ring-2 ring-white/80 dark:ring-slate-800/90',
-            showControls && !isLiveSession && currentScene?.type === 'slide' && 'cursor-pointer',
-          )}
-          onClick={handleSlideClick}
-        >
+        {/* Inner container — flex-1 so aspect-ratio slide can center inside */}
+        <div className="flex-1 min-h-0 flex items-center justify-center">
+          <div
+            className={cn(
+              'bg-white dark:bg-gray-800 shadow-2xl rounded-lg relative transition-all duration-700 border-2 border-slate-400 dark:border-slate-600 max-w-full',
+              currentScene?.type === 'interactive'
+              ? 'aspect-[16/9] w-full max-h-full overflow-hidden shadow-blue-200/60 dark:shadow-blue-900/50 ring-2 ring-blue-300/40 dark:ring-blue-500/20'
+              : 'aspect-[16/9] w-full max-h-full overflow-hidden shadow-slate-400/60 dark:shadow-slate-950/70 ring-2 ring-white/80 dark:ring-slate-800/90',
+              showControls && !isLiveSession && currentScene?.type === 'slide' && 'cursor-pointer',
+            )}
+            onClick={handleSlideClick}
+          >
           {/* Whiteboard Layer */}
           <div className="absolute inset-0 z-[110] pointer-events-none">
             <SceneProvider>
@@ -338,6 +340,7 @@ export function CanvasArea({
             )}
           </AnimatePresence>
         </div>
+      </div>
       </div>
 
       {/* ── Canvas Toolbar — in document flow, only when not merged into roundtable ── */}
