@@ -64,6 +64,12 @@ function getDb(): Database {
     id TEXT PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
     passwordHash TEXT NOT NULL,
+    name TEXT,
+    -- role: 'parent' (default for legacy accounts), 'student' (direct-login
+    -- student account for /csp-lecture and similar), 'admin' (backstage).
+    -- Backward-compat: existing rows have NULL and the helper getRole()
+    -- below returns 'parent' for them.
+    role TEXT,
     createdAt TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
@@ -221,6 +227,22 @@ function getDb(): Database {
     // deploy with this migration.
     try {
       _db.exec('ALTER TABLE usage_events ADD COLUMN visitorId TEXT')
+    } catch {
+      // column already exists
+    }
+
+    // Idempotent column migration for users: add `name` and `role`
+    // to existing databases. The CREATE TABLE above already includes
+    // them for fresh installs. The role column stays nullable so
+    // existing accounts don't need a backfill — application code
+    // falls back to 'parent' for NULL values (see getRole helper).
+    try {
+      _db.exec("ALTER TABLE users ADD COLUMN name TEXT")
+    } catch {
+      // column already exists
+    }
+    try {
+      _db.exec("ALTER TABLE users ADD COLUMN role TEXT")
     } catch {
       // column already exists
     }

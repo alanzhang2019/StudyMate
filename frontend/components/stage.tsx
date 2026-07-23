@@ -1174,13 +1174,20 @@ export function Stage({
             'overflow-hidden relative flex-1 min-h-0 isolate',
             currentScene?.type === 'interactive' && 'min-h-0',
           )}
-          // Compute an explicit pixel height so the inner CanvasArea's
-          // `h-full` resolves to a real value (a bare `flex-1` parent gives
-          // Chrome a "flex-allocated" height which `height: 100%` cannot
-          // resolve against). Mirrors the OpenMAIC pattern verbatim.
-          style={{
-            height: `calc(100% - ${(isPresenting ? 0 : 80) + (mode === 'playback' && !isPresenting ? 192 : 0)}px)`,
-          }}
+          // Layout note: This wrapper is `flex-1 min-h-0` in a flex
+          // column (Main Content). The flex chain gives it a definite
+          // height that the inner slide's `h-full` can resolve
+          // against. We intentionally do NOT add an explicit
+          // `style={{ height: ... }}` here — previous attempts at
+          // `calc(100% - 80 - 192)px` (the OpenMAIC pattern) collapsed
+          // the wrapper to 0 in this project because the Roundtable
+          // is a SIBLING of Main Content in this project, not a
+          // child (so Main Content is already squeezed by the
+          // Roundtable, and subtracting another 80/192 produced
+          // negative values that CSS clamped to 0). The slide is
+          // additionally measured in canvas-area.tsx via
+          // ResizeObserver to apply a precise pixel height that
+          // works regardless of the flex chain state.
           suppressHydrationWarning
         >
           <CanvasArea
