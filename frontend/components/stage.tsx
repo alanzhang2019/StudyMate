@@ -1092,16 +1092,6 @@ export function Stage({
             'flex-1 min-h-0 flex flex-col overflow-hidden relative isolate',
             currentScene?.type === 'interactive' && 'min-h-0',
           )}
-          style={{
-            // Explicit height is required so the slide's `h-full` resolves to
-            // a real pixel value (not 0). A pure `flex-1` chain collapsed to
-            // 0 in the wide chat-sidebar layout and swallowed the slide
-            // (see commit 1a055df). Matches the OpenMAIC pattern in
-            // components/edit/PlaybackChromeRoot.tsx: sceneViewerHeight.
-            //   - Header is h-20 (80px) when not isPresenting.
-            //   - Roundtable is h-[192px] (192px) in playback mode, non-presenting.
-            height: `calc(100% - ${(isPresenting ? 0 : 80) + (mode === 'playback' && !isPresenting ? 192 : 0)}px)`,
-          }}
           suppressHydrationWarning
         >
           <CanvasArea
