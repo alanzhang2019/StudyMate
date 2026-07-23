@@ -26,11 +26,22 @@ RUN apk add --no-cache libc6-compat
 # with an EBADENGINE warning then throws an "Internal Error" inside
 # `corepack prepare` before pnpm even downloads. 0.34.0 is the last
 # release with `engines.node` `^20.10.0 || ^22.11.0 || >=24.0.0`.
-# Also route npm + corepack through npmmirror: corepack ignores
-# `npm_config_registry` and reads `COREPACK_REGISTRY` instead.
-ENV npm_config_registry=https://registry.npmmirror.com
-ENV COREPACK_REGISTRY=https://registry.npmmirror.com
-RUN npm install -g corepack@0.34.0 && \
+#
+# Route npm + corepack through npmmirror. corepack 0.34.0 reads its
+# registry from `npm config get registry`, NOT from a `COREPACK_REGISTRY`
+# env var (that one's a hallucination — the corepack source has no such
+# branch). The reliable path is:
+#   1. Set the registry via `npm config set` (writes to /root/.npmrc).
+#   2. Also write /etc/npmrc so even fresh shell sessions / subshells
+#      spawned by `corepack prepare` pick it up.
+RUN npm config set registry https://registry.npmmirror.com && \
+    { \
+      echo 'registry=https://registry.npmmirror.com'; \
+      echo 'fetch-retries=5'; \
+      echo 'fetch-retry-mintimeout=20000'; \
+      echo 'fetch-retry-maxtimeout=120000'; \
+    } > /etc/npmrc && \
+    npm install -g corepack@0.34.0 && \
     corepack enable && \
     corepack prepare pnpm@10.28.0 --activate
 
@@ -142,7 +153,7 @@ RUN set -eux; \
 
 # Cache-bust marker: change `CACHE_BUST` whenever the copy block above
 # changes so this stage and the runner below are rebuilt.
-ARG CACHE_BUST=1
+ARG CACHE_BUST=2
 RUN echo "cache bust: ${CACHE_BUST} $(date +%s)"
 
 # ---- Stage 4: Runner ----
