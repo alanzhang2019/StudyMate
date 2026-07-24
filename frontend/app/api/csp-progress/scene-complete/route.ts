@@ -3,6 +3,7 @@ import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { apiError } from '@/lib/api/error';
 import { readClassroom } from '@/lib/server/classroom-storage';
+import { reevaluateCompletedAt } from '@/lib/server/csp-completion';
 
 // POST /api/csp-progress/scene-complete
 // Mark a scene as fully watched. Called by the client when the
@@ -14,6 +15,13 @@ import { readClassroom } from '@/lib/server/classroom-storage';
 // Auth: required (any signed-in user; role check intentionally
 // omitted so a future 'teacher preview as student' mode can reuse
 // this endpoint without changes).
+//
+// Completion ("完成打卡") status is no longer derived inline from
+// coveragePct — it now requires (a) coverage >= 0.8 AND (b) every
+// quiz scene in the classroom has a 100%-correct submission (see
+// /lib/server/csp-completion.ts). After we update viewedScenes, we
+// call reevaluateCompletedAt to potentially set csp_progress.completedAt
+// (latch semantic: never cleared once set).
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -70,8 +78,11 @@ export async function POST(req: NextRequest) {
   if (!viewed.includes(sceneId)) viewed.push(sceneId);
   const coveragePct = totalScenes > 0 ? viewed.length / totalScenes : 0;
   const now = new Date().toISOString();
-  const completedAt = coveragePct >= 1 ? now : existing?.completedAt ?? null;
 
+  // completedAt is no longer written here — it is owned by
+  // csp-completion.ts. We pass null so the upsert only touches
+  // the progress columns and leaves the (latched) completedAt
+  // alone. The reevaluation below will set it if appropriate.
   const row = db.cspProgress.upsertViewedScene({
     userId,
     classroomId,
@@ -80,13 +91,22 @@ export async function POST(req: NextRequest) {
     viewedScenes: JSON.stringify(viewed),
     coveragePct,
     lastViewedAt: now,
-    completedAt,
+    completedAt: null,
   });
+
+  // Re-evaluate completion with the new view state. This is
+  // cheap (one read of progress + one read of submissions + one
+  // classroom JSON read that's almost certainly already warm
+  // in the page cache from the validation above). It only
+  // writes to DB if the criteria are met AND completedAt was
+  // not previously set (latch).
+  const completion = await reevaluateCompletedAt(userId, classroomId);
 
   return NextResponse.json({
     ok: true,
     coveragePct: row?.coveragePct ?? coveragePct,
-    completedAt: row?.completedAt ?? completedAt,
+    completedAt: row?.completedAt ?? null,
     viewedScenes: viewed,
+    completion,
   });
 }

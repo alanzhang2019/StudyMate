@@ -18,6 +18,7 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { listClassroomSummaries } from '@/lib/server/classroom-storage';
+import { evaluateCompletion, type CompletionResult } from '@/lib/server/csp-completion';
 
 type Entry = {
   classroomId: string;
@@ -29,6 +30,7 @@ type Entry = {
   completed: boolean;
   lastViewedSceneId: string | null;
   lastViewedAt: string | null;
+  completion: CompletionResult;
 };
 
 function formatDuration(s: number): string {
@@ -80,7 +82,13 @@ export default async function StudentHomePage() {
 
   const inProgress: Entry[] = [];
   const completed: Entry[] = [];
-  for (const r of rows) {
+  // Evaluate completion per row in parallel. Each call reads
+  // the classroom JSON + this user's submissions, so it's
+  // bounded by the page-cache hit rate on small directories.
+  const completions = await Promise.all(
+    rows.map((r) => evaluateCompletion(userId, r.classroomId)),
+  );
+  rows.forEach((r, i) => {
     const summary = summaryById.get(r.classroomId);
     const title = summary?.title ?? r.classroomId;
     const totalScenes = summary?.sceneCount ?? r.totalScenes;
@@ -91,6 +99,7 @@ export default async function StudentHomePage() {
     } catch {
       viewedScenes = [];
     }
+    const completion = completions[i];
     const entry: Entry = {
       classroomId: r.classroomId,
       title,
@@ -98,13 +107,14 @@ export default async function StudentHomePage() {
       watchedScenes: viewedScenes.length,
       coveragePct: r.coveragePct,
       watchSeconds: r.watchSeconds,
-      completed: !!r.completedAt,
+      completed: completion.completed,
       lastViewedSceneId: r.lastViewedSceneId,
       lastViewedAt: r.lastViewedAt,
+      completion,
     };
     if (entry.completed) completed.push(entry);
     else inProgress.push(entry);
-  }
+  });
   inProgress.sort(
     (a, b) => (b.lastViewedAt ?? '').localeCompare(a.lastViewedAt ?? ''),
   );
@@ -173,7 +183,7 @@ export default async function StudentHomePage() {
           accent="indigo"
         />
         <SummaryCard
-          label="已完成"
+          label="已打卡"
           value={`${summary.completed}`}
           sub="个课件"
           accent="emerald"
@@ -300,6 +310,7 @@ function ClassroomRow({
   completed?: boolean;
 }) {
   const pct = Math.round(entry.coveragePct * 100);
+  const completion = entry.completion;
   // Resume-link deep-links to the last scene the student
   // watched. We pass `?resume=1` so the classroom page can
   // auto-skip the prologue and drop the student where they
@@ -310,20 +321,49 @@ function ClassroomRow({
   const resumeHref = entry.lastViewedSceneId
     ? `/classroom/${entry.classroomId}?scene=${encodeURIComponent(entry.lastViewedSceneId)}&resume=1`
     : `/classroom/${entry.classroomId}`;
+
+  // CTA label adapts to the "unfinished reason" so the
+  // student knows what to do next without reading the body
+  // text. Priority: quiz failures > progress shortfall >
+  // generic "continue". Once completed, the parent passes a
+  // custom label (eg "重新学习") which we keep verbatim.
+  const adaptiveLabel = completed
+    ? ctaLabel
+    : !completion.quizzesMet
+      ? '去刷题'
+      : !completion.progressMet
+        ? '继续观看'
+        : ctaLabel;
+
   return (
     <div className="bg-white rounded-2xl border border-slate-200 px-5 py-4 flex items-center gap-4">
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <h3 className="font-semibold text-slate-800 truncate">
             {entry.title}
           </h3>
           {completed && (
-            <span className="text-[10px] font-semibold rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5">
-              已完成
+            <span
+              data-testid="punch-in-badge"
+              className="text-[10px] font-semibold rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5"
+            >
+              完成打卡
+            </span>
+          )}
+          {!completed && completion.quizScenesCount > 0 && (
+            <span
+              data-testid="quiz-pill"
+              className={`text-[10px] font-semibold rounded-full px-2 py-0.5 ${
+                completion.quizzesMet
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                  : 'bg-amber-50 text-amber-700 border border-amber-100'
+              }`}
+            >
+              做題 {completion.passedQuizCount}/{completion.quizScenesCount} 通過
             </span>
           )}
         </div>
-        <div className="mt-2 flex items-center gap-3 text-xs text-slate-500">
+        <div className="mt-2 flex items-center gap-3 text-xs text-slate-500 flex-wrap">
           <span>
             {entry.watchedScenes ?? 0}/{entry.totalScenes} 节
           </span>
@@ -336,6 +376,27 @@ function ClassroomRow({
             </>
           )}
         </div>
+        {/* Unfinished reasons (amber hint). Only shown when
+            the row is NOT completed. Skip the hint when the
+            student has simply not started (0 节 watched, no
+            quiz attempts) — the CTA + section title is
+            enough. */}
+        {!completed && completion.reasons.length > 0 && (entry.watchedScenes ?? 0) > 0 && (
+          <div
+            data-testid="unfinished-reasons"
+            className="mt-2 flex items-center gap-1 text-[11px] text-amber-700"
+          >
+            <span className="font-semibold">差：</span>
+            {completion.reasons.map((r) => (
+              <span
+                key={r}
+                className="inline-flex items-center rounded-full bg-amber-50 border border-amber-100 px-1.5 py-0.5"
+              >
+                {r}
+              </span>
+            ))}
+          </div>
+        )}
         <div className="mt-2 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
           <div
             className={`h-full ${completed ? 'bg-emerald-500' : 'bg-indigo-500'}`}
@@ -347,7 +408,7 @@ function ClassroomRow({
         href={resumeHref}
         className="shrink-0 inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800"
       >
-        {ctaLabel} →
+        {adaptiveLabel} →
       </Link>
     </div>
   );

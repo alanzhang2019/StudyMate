@@ -599,6 +599,29 @@ class PrismaCompatClient {
         .run(deltaSeconds, userId, classroomId)
       return cspProgress.findByUserClass(userId, classroomId)
     },
+    // setCompletedAt: write the "first time the student met the
+    // completion criteria" timestamp. Idempotent and
+    // intentionally NEVER cleared by this module — the latch
+    // semantic is enforced by the caller (csp-completion.ts),
+    // which checks `!existing.completedAt` before calling this.
+    // A null `completedAt` argument is accepted for symmetry
+    // (future use: e.g. a teacher-side "uncomplete" tool) but
+    // is NOT part of the normal write path; don't call it
+    // without a product reason.
+    setCompletedAt: (
+      userId: string,
+      classroomId: string,
+      completedAt: string | null,
+    ) => {
+      getDb()
+        .prepare(
+          `UPDATE csp_progress
+             SET completedAt = ?, updatedAt = datetime('now')
+           WHERE userId = ? AND classroomId = ?`,
+        )
+        .run(completedAt, userId, classroomId)
+      return cspProgress.findByUserClass(userId, classroomId)
+    },
   }
   cspQuizSubmission = {
     findByUser: (userId: string, classroomId: string) => {

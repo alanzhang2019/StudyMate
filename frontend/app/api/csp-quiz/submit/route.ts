@@ -3,6 +3,7 @@ import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { apiError } from '@/lib/api/error';
 import { readClassroom } from '@/lib/server/classroom-storage';
+import { reevaluateCompletedAt } from '@/lib/server/csp-completion';
 
 // POST /api/csp-quiz/submit
 // Persist a student's quiz answers for one quiz scene. Idempotent
@@ -92,11 +93,26 @@ export async function POST(req: NextRequest) {
     answersJson,
   });
 
+  // Re-evaluate "完成打卡" status now that this quiz's score
+  // may have flipped quizzesMet from false to true. Idempotent
+  // + latch-aware (see /lib/server/csp-completion.ts):
+  //   - If criteria are met AND completedAt was not previously
+  //     set, this writes a fresh completedAt.
+  //   - If already latched, this is a no-op even if the new
+  //     score is now < 100% (产品要求: 重做后分数下降, 已完成
+  //     状态保持不变).
+  // The csp_progress row may not exist yet (student started on
+  // a quiz scene without any heartbeat). In that case the
+  // reevaluation is read-only and the latch will be set on the
+  // next scene-complete call.
+  const completion = await reevaluateCompletedAt(userId, classroomId);
+
   return NextResponse.json({
     ok: true,
     id: row?.id,
     score,
     correctCount,
     totalQuestions: total,
+    completion,
   });
 }
