@@ -677,26 +677,30 @@ export default function ClassroomDetailPage() {
               </div>
             </div>
           ) : (
-            <div className="relative flex-1 min-h-0">
-              {(() => {
-                const stageNode = (
-                  <Stage
-                    defaultPresentation={false}
-                    autoFullscreen={true}
-                    autoPlay={true}
-                    onLectureComplete={() => {}}
-                    onRetryOutline={retrySingleOutline}
-                  />
-                );
-
-                return stageNode;
-              })()}
-
+            <>
+              {/* CRITICAL: Stage is a direct child of the page's flex
+                  column (matches OpenMAIC's classroom page layout
+                  verbatim). Its root is `flex-1 flex overflow-hidden`,
+                  which needs a flex container parent for the `flex-1`
+                  to resolve to a definite height. Without this, the
+                  canvas wrapper's `calc(100% - 80 - 192)px` cannot
+                  resolve (the parent has no definite height) and the
+                  slide collapses to zero. Do NOT wrap Stage in another
+                  div here — the unnecessary wrapper breaks both the
+                  desktop non-presenting layout and the mobile simulated-
+                  fullscreen layout. */}
+              <Stage
+                defaultPresentation={false}
+                autoFullscreen={true}
+                autoPlay={true}
+                onLectureComplete={() => {}}
+                onRetryOutline={retrySingleOutline}
+              />
               {/* Floating "加入错题本" button. Always visible once we
                   know which mistakeSession this classroom belongs to.
-                  The button is positioned in the top-right corner and
-                  uses the session id so the server can hydrate the
-                  rest of the fields from the persisted MistakeSession. */}
+                  The button is `fixed` positioned (anchored to the
+                  viewport) so it can sit as a sibling of Stage here
+                  without needing a positioned wrapper around Stage. */}
               {mistakeSessionId ? (
                 <div className="fixed right-4 top-4 z-40 flex flex-col items-end gap-2">
                   <AddToMistakeBookButton
@@ -715,7 +719,7 @@ export default function ClassroomDetailPage() {
                   />
                 </div>
               ) : null}
-            </div>
+            </>
           )}
         </div>
       </MediaStageProvider>
