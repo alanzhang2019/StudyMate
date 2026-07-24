@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Baloo_2, Comic_Neue } from 'next/font/google';
 import { GeistMono } from 'geist/font/mono';
 import './globals.css';
@@ -78,6 +78,20 @@ export const metadata: Metadata = {
     ],
     apple: '/logo.svg',
   },
+};
+
+// Force light color-scheme on every UA so that
+// iOS Safari / WeChat WebView / Android Chrome in
+// "auto dark mode" does not repaint native form
+// controls (input, button, placeholder text) with
+// dark-mode colors. Without this, system dark mode
+// renders inputs/buttons with light-on-white that
+// becomes invisible against the white card.
+// `light dark` would still allow dark on dark UAs;
+// `light` disables both branches entirely.
+export const viewport: Viewport = {
+  colorScheme: 'light',
+  themeColor: '#F8FAFC',
 };
 
 export default async function RootLayout({

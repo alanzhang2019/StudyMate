@@ -156,12 +156,38 @@
        to forcing overflow-y: scroll as well. */
     scrollbar-gutter: stable;
     overflow-y: scroll;
+    /* Force light color-scheme on the root element so that
+       iOS Safari / WeChat WebView / Android Chrome in
+       "auto dark mode" stop repainting native form controls
+       (input, button, textarea, select, placeholder) with
+       dark-mode colors. Without this, the system's dark
+       mode leaks into the page and renders placeholder
+       text and button labels in light gray on a white
+       card, making them invisible. Belt-and-suspenders
+       with the `viewport.colorScheme = 'light'` export in
+       app/layout.tsx — some WebViews only honor the CSS
+       declaration, some only the meta tag. */
+    color-scheme: light;
   }
   body {
     @apply bg-background text-foreground;
     /* Playful Polka Dot Pattern */
     background-image: radial-gradient(#CBD5E1 2px, transparent 2px);
     background-size: 32px 32px;
+  }
+  /* Defensive: pin native form control text colors so they
+     stay readable even if a UA forces dark scheme on us
+     before our CSS has loaded. */
+  input,
+  textarea,
+  select,
+  button {
+    color: #1E293B;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: #94A3B8;
+    opacity: 1;
   }
 }
 /* ProseMirror Editor Styles */

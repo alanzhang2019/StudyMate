@@ -40,7 +40,7 @@ export default function LoginPage() {
       });
       if (!res.ok) {
         const errorMsg = await res.text();
-        return alert(`Registration failed: ${errorMsg}`);
+        return alert(`注册失败：${errorMsg}`);
       }
     }
 
@@ -51,7 +51,7 @@ export default function LoginPage() {
     });
 
     if (result?.error) {
-      alert("Invalid credentials");
+      alert("邮箱或密码错误");
       return;
     }
 
@@ -86,12 +86,12 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow">
-        <h1 className="text-2xl font-bold text-center mb-6">
+        <h1 className="text-2xl font-bold text-center mb-6 text-gray-900">
           {isRegister
             ? role === 'student'
-              ? 'Student Registration'
-              : 'Parent Registration'
-            : 'Sign in'}
+              ? '学生注册'
+              : '家长注册'
+            : '登录'}
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           {isRegister && (
@@ -99,8 +99,8 @@ export default function LoginPage() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Display name (optional for parents, used in greetings)"
-              className="w-full p-2 border rounded"
+              placeholder="昵称（家长可不填，孩子账号建议填上）"
+              className="w-full p-2 border rounded text-gray-900 placeholder:text-gray-400"
               maxLength={40}
             />
           )}
@@ -108,27 +108,30 @@ export default function LoginPage() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-            className="w-full p-2 border rounded"
+            placeholder="邮箱"
+            className="w-full p-2 border rounded text-gray-900 placeholder:text-gray-400"
             required
           />
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            className="w-full p-2 border rounded"
+            placeholder="密码"
+            className="w-full p-2 border rounded text-gray-900 placeholder:text-gray-400"
             required
           />
-          <button type="submit" className="w-full p-2 bg-blue-600 text-white rounded">
-            {isRegister ? 'Register' : 'Sign in'}
+          <button
+            type="submit"
+            className="w-full p-2 bg-blue-600 text-white rounded font-medium"
+          >
+            {isRegister ? '注册' : '登录'}
           </button>
         </form>
         <button
           onClick={() => setIsRegister(!isRegister)}
           className="w-full mt-4 text-sm text-blue-600"
         >
-          {isRegister ? 'Already have an account? Sign in' : 'Need an account? Register'}
+          {isRegister ? '已有账号？立即登录' : '没有账号？立即注册'}
         </button>
         {/* Hidden role indicator: shown to user as small text
             so they understand the distinction. /csp-lecture
