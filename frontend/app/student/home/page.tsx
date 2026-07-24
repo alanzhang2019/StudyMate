@@ -20,6 +20,12 @@ import { db } from '@/lib/db';
 import { listClassroomSummaries } from '@/lib/server/classroom-storage';
 import { evaluateCompletion, type CompletionResult } from '@/lib/server/csp-completion';
 
+type AuditFlag = {
+  kind: string;
+  at: string;
+  details: Record<string, unknown>;
+};
+
 type Entry = {
   classroomId: string;
   title: string;
@@ -31,7 +37,22 @@ type Entry = {
   lastViewedSceneId: string | null;
   lastViewedAt: string | null;
   completion: CompletionResult;
+  auditFlags: AuditFlag[];
 };
+
+function safeJsonArray<T = unknown>(raw: string | null | undefined, fallback: T): T {
+  if (!raw) return fallback;
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(fallback)) {
+      return (Array.isArray(parsed) ? parsed : fallback) as T;
+    }
+    if (parsed && typeof parsed === 'object') return parsed as T;
+    return fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 function formatDuration(s: number): string {
   if (!s || s < 0) return '0分钟';
@@ -92,14 +113,9 @@ export default async function StudentHomePage() {
     const summary = summaryById.get(r.classroomId);
     const title = summary?.title ?? r.classroomId;
     const totalScenes = summary?.sceneCount ?? r.totalScenes;
-    let viewedScenes: string[] = [];
-    try {
-      const arr = JSON.parse(r.viewedScenes || '[]');
-      viewedScenes = Array.isArray(arr) ? arr : [];
-    } catch {
-      viewedScenes = [];
-    }
+    const viewedScenes = safeJsonArray<string[]>(r.viewedScenes, []);
     const completion = completions[i];
+    const auditFlags = safeJsonArray<AuditFlag[]>(r.auditFlags, []);
     const entry: Entry = {
       classroomId: r.classroomId,
       title,
@@ -111,6 +127,7 @@ export default async function StudentHomePage() {
       lastViewedSceneId: r.lastViewedSceneId,
       lastViewedAt: r.lastViewedAt,
       completion,
+      auditFlags,
     };
     if (entry.completed) completed.push(entry);
     else inProgress.push(entry);
@@ -335,6 +352,14 @@ function ClassroomRow({
         ? '继续观看'
         : ctaLabel;
 
+  // Audit-flag derived indicators. Currently we only surface
+  // `suspicious_jump` (coveragePct increased >30% in <60s —
+  // see /api/csp-progress/scene-complete). Other kinds in the
+  // array are ignored for now; new kinds can be added here.
+  const suspiciousJump = entry.auditFlags.find((f) => f.kind === 'suspicious_jump');
+  const suspiciousDelta = Number(suspiciousJump?.details?.coverageDelta ?? 0);
+  const suspiciousElapsed = Number(suspiciousJump?.details?.elapsedSec ?? 0);
+
   return (
     <div className="bg-white rounded-2xl border border-slate-200 px-5 py-4 flex items-center gap-4">
       <div className="flex-1 min-w-0">
@@ -360,6 +385,18 @@ function ClassroomRow({
               }`}
             >
               做題 {completion.passedQuizCount}/{completion.quizScenesCount} 通過
+            </span>
+          )}
+          {suspiciousJump && (
+            <span
+              data-testid="audit-warning"
+              title={`检测到异常完成: ${suspiciousElapsed}s 内进度暴增 ${Math.round(
+                suspiciousDelta * 100,
+              )}%。建议重新认真完成本课件。`}
+              className="inline-flex items-center gap-1 text-[10px] font-semibold rounded-full bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 cursor-help"
+            >
+              <span aria-hidden>⚠</span>
+              可疑完成
             </span>
           )}
         </div>

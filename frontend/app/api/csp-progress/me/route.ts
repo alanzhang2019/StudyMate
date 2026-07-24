@@ -35,6 +35,8 @@ export async function GET(req: NextRequest) {
       watchSeconds: 0,
       viewedScenes: [],
       totalScenes: completion.totalScenes,
+      viewedSceneSeconds: {},
+      auditFlags: [],
       lastViewedSceneId: null,
       lastViewedAt: null,
       completedAt: null,
@@ -48,6 +50,22 @@ export async function GET(req: NextRequest) {
     viewedScenes: (() => {
       try {
         const arr = JSON.parse(row.viewedScenes || '[]');
+        return Array.isArray(arr) ? arr : [];
+      } catch {
+        return [];
+      }
+    })(),
+    viewedSceneSeconds: (() => {
+      try {
+        const obj = JSON.parse(row.viewedSceneSeconds || '{}');
+        return obj && typeof obj === 'object' ? obj : {};
+      } catch {
+        return {};
+      }
+    })(),
+    auditFlags: (() => {
+      try {
+        const arr = JSON.parse(row.auditFlags || '[]');
         return Array.isArray(arr) ? arr : [];
       } catch {
         return [];

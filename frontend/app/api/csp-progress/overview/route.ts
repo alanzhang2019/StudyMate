@@ -60,6 +60,30 @@ export async function GET() {
         passedQuizCount: completion.passedQuizCount,
         failedQuizScenes: completion.failedQuizScenes,
         reasons: completion.reasons,
+        // Per-scene "active watch time" map. Surfaced on the
+        // student home row (e.g. in a future hover-tooltip) so
+        // a curious student / parent can see how long they
+        // actually spent on each scene.
+        viewedSceneSeconds: (() => {
+          try {
+            const obj = JSON.parse(r.viewedSceneSeconds || '{}');
+            return obj && typeof obj === 'object' ? obj : {};
+          } catch {
+            return {};
+          }
+        })(),
+        // Audit flags written by /api/csp-progress/scene-complete
+        // when it detects an anomaly (eg `suspicious_jump` —
+        // coveragePct > 30% delta in < 60s). Surfaced in the
+        // UI as a ⚠ on the row.
+        auditFlags: (() => {
+          try {
+            const arr = JSON.parse(r.auditFlags || '[]');
+            return Array.isArray(arr) ? arr : [];
+          } catch {
+            return [];
+          }
+        })(),
         lastViewedSceneId: r.lastViewedSceneId,
         lastViewedAt: r.lastViewedAt,
         completedAt: r.completedAt,

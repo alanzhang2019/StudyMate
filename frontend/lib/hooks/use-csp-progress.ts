@@ -5,49 +5,59 @@
  * public surface (and any future re-use of the same SceneRenderer /
  * PlaybackEngine stack).
  *
- * Three jobs, in order of frequency:
+ * Four jobs, in order of frequency:
  *
- *  1. **Heartbeat** — a 30-second `setInterval` accumulates
+ *  1. **Active watch time tracking** — a `setInterval` running
+ *     every 250ms accumulates `activeSeconds[currentSceneId]`
+ *     while `document.visibilityState === 'visible'`. The
+ *     counter resets when the scene changes. This is the
+ *     primary defense against "fast-click" abuse: the server
+ *     only credits a `scene-complete` if the client reports
+ *     at least `max(30, audioDuration * 0.7)` active seconds
+ *     (per /api/csp-progress/scene-complete).
+ *
+ *  2. **Heartbeat** — a 30-second `setInterval` accumulates
  *     `watchSeconds` on the server via POST /api/csp-progress/heartbeat.
- *     We only fire while `document.visibilityState === 'visible'`
- *     and only when a `classroomId` is resolved. We deliberately
- *     keep this lazy: mounting the hook on the login page is a
- *     no-op, mounting it on a classroom page kicks the loop in.
+ *     We only fire while `document.visibilityState === 'visible'`.
  *
- *  2. **Scene complete** — POST /api/csp-progress/scene-complete
+ *  3. **Scene complete** — POST /api/csp-progress/scene-complete
  *     is called by the host (stage.tsx) when a scene's natural
- *     playback has finished (TTS reached the end of the last
- *     speech action, or a quiz was submitted). The hook itself
- *     doesn't decide when this happens; it just exposes the
- *     `reportSceneComplete` function.
+ *     playback has finished. The hook now also sends
+ *     `clientActiveWatchSeconds` and `clientAudioDuration`.
+ *     The server may return 422 (under threshold) or 429
+ *     (rate-limited); the hook surfaces a console warning but
+ *     does not throw — the playback hot path must not break.
  *
- *  3. **Quiz submit** — POST /api/csp-quiz/submit, called by the
+ *  4. **Quiz submit** — POST /api/csp-quiz/submit, called by the
  *     QuizView component when it transitions into the "reviewing"
- *     phase. Lives next to the heartbeat because both need
- *     `classroomId` resolution from the same store.
+ *     phase.
  *
  * Design notes:
  *
- *  - All three endpoints require a signed-in user. We DON'T
- *    short-circuit on `!session` because the host decides what
- *    "unauthenticated" means for its surface (the csp-lecture
- *    page redirects to /auth/login, but the hook stays mounted
- *    until the redirect lands). The server returns 401 in the
- *    rare race window; the client silently swallows it.
+ *  - The active-seconds counter is in a `useRef` (not state)
+ *    because mutating it 4×/sec would otherwise cause a render
+ *    storm. Reads of the ref always see the current value.
  *
- *  - Heartbeat visibility: when the tab is hidden we don't fire
- *    (browsers throttle setInterval anyway, and counting hidden
- *    time as "watched" would inflate the teacher dashboard).
+ *  - We key the counter map by `sceneId` (not the scene order
+ *    or index) because that's what the server-side
+ *    `csp_progress.viewedSceneSeconds` is keyed by. Stable across
+ *    reorders.
  *
- *  - The interval is started on mount, cleared on unmount, and
- *    re-keyed when `classroomId` changes (so navigating between
- *    classrooms on the same page resets the loop cleanly).
+ *  - The counter increments at 1 second per second of wall-clock
+ *    while the tab is visible. We do NOT additionally check
+ *    "is the audio paused" because the TTS engine pauses
+ *    automatically when the tab is hidden (Chrome's autoplay
+ *    policy) — so "visible + on this scene" is a strict-enough
+ *    proxy. (The audio element's `paused` state during a manual
+ *    pause does NOT need to subtract from the counter: a student
+ *    reading the slide while audio is paused is still engaged.)
  */
 
 import { useCallback, useEffect, useRef } from 'react';
 import { useStageStore } from '@/lib/store';
 
 const HEARTBEAT_INTERVAL_MS = 30_000;
+const ACTIVE_TICK_MS = 250;
 
 export type ReportQuizPayload = {
   sceneId: string;
@@ -60,8 +70,20 @@ export type ReportQuizPayload = {
   totalQuestions?: number;
 };
 
+export type SceneCompleteResult = {
+  ok: boolean;
+  // Set when the server rejected the write because the active
+  // watch time was below the per-scene min. The caller can
+  // surface a UI hint ("请保持页面在前台并听完这一节") without
+  // crashing the playback hot path.
+  rejected?: 'insufficient_watch_time' | 'rate_limited';
+  retryAfterMs?: number;
+  threshold?: number;
+  reported?: number;
+};
+
 export type CspProgressReporter = {
-  reportSceneComplete: (sceneId: string) => Promise<void>;
+  reportSceneComplete: (sceneId: string) => Promise<SceneCompleteResult>;
   reportQuizSubmit: (payload: ReportQuizPayload) => Promise<void>;
 };
 
@@ -84,6 +106,22 @@ async function postJson(url: string, body: unknown): Promise<Response | null> {
   }
 }
 
+// Try to read the duration of any <audio> element currently
+// in the DOM. Returns 0 if none / not yet loaded. The TTS
+// engine attaches its <audio> to document.body so a global
+// querySelector suffices. We pick the LAST audio element
+// because the most recently-attached one is the active scene
+// (the engine replaces the src on scene change).
+function readActiveAudioDuration(): number {
+  if (typeof document === 'undefined') return 0;
+  const audios = document.querySelectorAll('audio');
+  for (let i = audios.length - 1; i >= 0; i--) {
+    const d = audios[i]?.duration;
+    if (typeof d === 'number' && isFinite(d) && d > 0) return d;
+  }
+  return 0;
+}
+
 export function useCspProgress(): CspProgressReporter {
   // Read classroomId from the stage store, NOT from props. The
   // hook is used by components that don't have direct access to
@@ -98,13 +136,60 @@ export function useCspProgress(): CspProgressReporter {
   // the first tick sends the full HEARTBEAT_INTERVAL_MS.
   const lastBeatAtRef = useRef<number>(0);
 
+  // Per-scene active-seconds map. Stored in a ref to avoid
+  // re-renders on every tick. Keyed by sceneId. We never delete
+  // entries during a session — the map is small (one entry per
+  // scene the student has ever visited) and entries just grow
+  // monotonically until page unload.
+  const activeSecondsRef = useRef<Map<string, number>>(new Map());
+  // Last observed currentSceneId. We compare on every tick to
+  // detect scene changes (the active counter only counts time
+  // for the *current* scene).
+  const lastSceneIdRef = useRef<string | null>(null);
+  // Wall-clock timestamp of the most recent active tick. Used
+  // to compute the per-tick delta (handles the case where the
+  // 250ms timer drifts to 600ms under load).
+  const lastTickAtRef = useRef<number>(0);
+
   const reportSceneComplete = useCallback(
-    async (sceneId: string) => {
-      if (!classroomId || !sceneId) return;
-      await postJson('/api/csp-progress/scene-complete', {
+    async (sceneId: string): Promise<SceneCompleteResult> => {
+      if (!classroomId || !sceneId) {
+        return { ok: false };
+      }
+      // Snapshot the current active seconds and audio duration
+      // *before* any async work. The counter continues running
+      // but the value we send is "up to this point", which
+      // matches the server's expectation (it's a credit for
+      // "the time spent on this scene when the audio ended").
+      const activeSeconds = activeSecondsRef.current.get(sceneId) ?? 0;
+      const audioDuration = readActiveAudioDuration();
+      const res = await postJson('/api/csp-progress/scene-complete', {
         classroomId,
         sceneId,
+        clientActiveWatchSeconds: Math.round(activeSeconds * 10) / 10,
+        clientAudioDuration: Math.round(audioDuration * 10) / 10,
       });
+      if (!res) {
+        return { ok: false };
+      }
+      if (res.status === 422) {
+        const data = await res.json().catch(() => ({}));
+        return {
+          ok: false,
+          rejected: 'insufficient_watch_time',
+          threshold: data?.threshold,
+          reported: data?.reported,
+        };
+      }
+      if (res.status === 429) {
+        const data = await res.json().catch(() => ({}));
+        return {
+          ok: false,
+          rejected: 'rate_limited',
+          retryAfterMs: data?.retryAfterMs,
+        };
+      }
+      return { ok: res.ok };
     },
     [classroomId],
   );
@@ -121,6 +206,57 @@ export function useCspProgress(): CspProgressReporter {
     },
     [classroomId],
   );
+
+  // Active-seconds tracker effect: ticks every ACTIVE_TICK_MS.
+  // While the tab is visible AND the current scene hasn't
+  // changed since the last tick, accumulate into the map.
+  useEffect(() => {
+    if (!classroomId) return;
+    lastTickAtRef.current = Date.now();
+
+    const intervalId = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
+        // Don't count hidden-tab time. Reset the wall-clock
+        // cursor so the next visible tick starts from "now"
+        // and doesn't include the hidden interval.
+        lastTickAtRef.current = Date.now();
+        return;
+      }
+      const currentSceneId = useStageStore.getState().currentSceneId;
+      if (!currentSceneId) {
+        lastTickAtRef.current = Date.now();
+        return;
+      }
+      const now = Date.now();
+      const deltaSec = (now - lastTickAtRef.current) / 1000;
+      lastTickAtRef.current = now;
+      // Scene change? Don't carry over the previous scene's
+      // pending delta into the new scene. (We *do* keep the
+      // previous scene's accumulated value in the map — that's
+      // the server's record. Only the in-flight delta is
+      // discarded.)
+      if (lastSceneIdRef.current !== currentSceneId) {
+        lastSceneIdRef.current = currentSceneId;
+        return;
+      }
+      const prev = activeSecondsRef.current.get(currentSceneId) ?? 0;
+      activeSecondsRef.current.set(currentSceneId, prev + deltaSec);
+    }, ACTIVE_TICK_MS);
+
+    // Reset the cursor on becoming visible again, so the
+    // hidden interval doesn't get counted.
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        lastTickAtRef.current = Date.now();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [classroomId]);
 
   // Heartbeat effect: fire every 30s while the hook is mounted
   // AND the tab is visible. We subscribe to `visibilitychange`

@@ -226,9 +226,11 @@ function getDb(): Database {
   -- viewedScenes.length / totalScenes for fast sort/filter.
   -- lastViewedSceneId and lastViewedAt are convenience fields
   -- for "continue where you left off" links on /student/home.
-  -- completedAt is set when coveragePct reaches 1.0, so
-  -- we can quickly count "completed" students for the teacher
-  -- dashboard without scanning all scene views.
+  -- completedAt is set by lib/server/csp-completion.ts the first
+  -- time the student meets the punch-in criteria (coveragePct
+  -- >= 0.8 AND every quiz scene is 100% correct). Once set it
+  -- is never cleared ("latch" semantic) — re-takes that drop
+  -- the quiz score don't undo a previously-granted punch-in.
   CREATE TABLE IF NOT EXISTS csp_progress (
     userId TEXT NOT NULL,
     classroomId TEXT NOT NULL,
@@ -239,6 +241,23 @@ function getDb(): Database {
     lastViewedSceneId TEXT,
     lastViewedAt TEXT,
     completedAt TEXT,
+    -- viewedSceneSeconds: per-scene "active" watch time
+    -- (visible AND on this scene), stored as a JSON map
+    -- { [sceneId]: seconds }. Used by scene-complete to
+    -- enforce that a student actually spent time on the
+    -- scene rather than just rapid-clicking through. Populated
+    -- only on writes that include the clientActiveWatchSeconds
+    -- field; older rows default to '{}' (no per-scene
+    -- enforcement data, which is why we also allow
+    -- "trust-but-log" fallback when the client omits the field).
+    viewedSceneSeconds TEXT NOT NULL DEFAULT '{}',
+    -- auditFlags: JSON array of { kind, at, details }
+    -- entries for suspicious activity we want to surface in
+    -- the UI without blocking the write. Kinds in use:
+    --   - "suspicious_jump" — coveragePct increased >30% in
+    --     <60s, suggesting scripted POSTs. Surfaced as a ⚠ on
+    --     the student home row.
+    auditFlags TEXT NOT NULL DEFAULT '[]',
     updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (userId, classroomId)
   );
@@ -297,6 +316,30 @@ function getDb(): Database {
     }
     try {
       _db.exec("ALTER TABLE users ADD COLUMN role TEXT")
+    } catch {
+      // column already exists
+    }
+
+    // Idempotent column migration for csp_progress: add
+    // viewedSceneSeconds + auditFlags. These two power the
+    // anti-fast-click defenses (lib/server/csp-completion.ts +
+    // /api/csp-progress/scene-complete). Older rows default to
+    // '{}' and '[]' respectively; the per-scene min threshold
+    // is then unenforced (a soft "trust" fallback) but the
+    // auditFlags array will start populating on the next
+    // suspicious write so the teacher dashboard can still
+    // surface anomalies for legacy progress rows.
+    try {
+      _db.exec(
+        "ALTER TABLE csp_progress ADD COLUMN viewedSceneSeconds TEXT NOT NULL DEFAULT '{}'",
+      )
+    } catch {
+      // column already exists
+    }
+    try {
+      _db.exec(
+        "ALTER TABLE csp_progress ADD COLUMN auditFlags TEXT NOT NULL DEFAULT '[]'",
+      )
     } catch {
       // column already exists
     }
@@ -552,12 +595,36 @@ class PrismaCompatClient {
       coveragePct: number
       lastViewedAt: string
       completedAt: string | null
+      // Optional: the per-scene active-watch-time JSON map
+      // {"sceneId": seconds}. If omitted, the column is left
+      // untouched (i.e. preserved across this upsert). The
+      // route handler builds the merged map (existing ‖
+      // new scene's seconds) and passes it back in.
+      viewedSceneSeconds?: string
     }) => {
       // Upsert: if the row exists, preserve its `watchSeconds`
       // (heartbeats write that column separately) and only
       // update scene-related fields. If not, create with 0
       // watchSeconds and let heartbeats fill it in.
-      const sql = `
+      // The viewedSceneSeconds merge is done in JS by the
+      // caller (we don't want to do JSON merge in SQL — too
+      // easy to clobber older entries).
+      const sql = params.viewedSceneSeconds
+        ? `
+        INSERT INTO csp_progress
+          (userId, classroomId, totalScenes, viewedScenes, watchSeconds, coveragePct, lastViewedSceneId, lastViewedAt, completedAt, viewedSceneSeconds, updatedAt)
+        VALUES (?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(userId, classroomId) DO UPDATE SET
+          totalScenes = excluded.totalScenes,
+          viewedScenes = excluded.viewedScenes,
+          coveragePct = excluded.coveragePct,
+          lastViewedSceneId = excluded.lastViewedSceneId,
+          lastViewedAt = excluded.lastViewedAt,
+          completedAt = excluded.completedAt,
+          viewedSceneSeconds = excluded.viewedSceneSeconds,
+          updatedAt = excluded.updatedAt
+      `
+        : `
         INSERT INTO csp_progress
           (userId, classroomId, totalScenes, viewedScenes, watchSeconds, coveragePct, lastViewedSceneId, lastViewedAt, completedAt, updatedAt)
         VALUES (?, ?, ?, ?, 0, ?, ?, ?, ?, ?)
@@ -570,9 +637,22 @@ class PrismaCompatClient {
           completedAt = excluded.completedAt,
           updatedAt = excluded.updatedAt
       `
-      getDb()
-        .prepare(sql)
-        .run(
+      const stmt = getDb().prepare(sql)
+      if (params.viewedSceneSeconds) {
+        stmt.run(
+          params.userId,
+          params.classroomId,
+          params.totalScenes,
+          params.viewedScenes,
+          params.coveragePct,
+          params.sceneId,
+          params.lastViewedAt,
+          params.completedAt,
+          params.viewedSceneSeconds,
+          params.lastViewedAt,
+        )
+      } else {
+        stmt.run(
           params.userId,
           params.classroomId,
           params.totalScenes,
@@ -583,7 +663,39 @@ class PrismaCompatClient {
           params.completedAt,
           params.lastViewedAt,
         )
+      }
       return cspProgress.findByUserClass(params.userId, params.classroomId)
+    },
+    // appendAuditFlag: append an entry to the auditFlags JSON
+    // array. We dedupe on (kind) so the array doesn't grow
+    // unbounded across many writes (eg every rapid-fire
+    // scene-complete would otherwise spam identical entries).
+    // The dedupe keeps the most recent timestamp/details.
+    appendAuditFlag: (
+      userId: string,
+      classroomId: string,
+      flag: { kind: string; at: string; details: Record<string, unknown> },
+    ) => {
+      const row = cspProgress.findByUserClass(userId, classroomId)
+      let arr: any[] = []
+      try {
+        const parsed = JSON.parse(row?.auditFlags ?? '[]')
+        if (Array.isArray(parsed)) arr = parsed
+      } catch {
+        arr = []
+      }
+      // Replace the latest entry of the same kind (we want
+      // the freshest "at" and details), or append if new.
+      const without = arr.filter((f) => f?.kind !== flag.kind)
+      without.push(flag)
+      getDb()
+        .prepare(
+          `UPDATE csp_progress
+             SET auditFlags = ?, updatedAt = datetime('now')
+           WHERE userId = ? AND classroomId = ?`,
+        )
+        .run(JSON.stringify(without), userId, classroomId)
+      return cspProgress.findByUserClass(userId, classroomId)
     },
     addWatchSeconds: (userId: string, classroomId: string, deltaSeconds: number) => {
       // Heartbeat accumulator. We clamp the value at 0 in case
