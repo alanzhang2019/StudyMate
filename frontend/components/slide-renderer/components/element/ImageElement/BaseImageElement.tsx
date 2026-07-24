@@ -135,6 +135,20 @@ export function BaseImageElement({ elementInfo }: BaseImageElementProps) {
                     left: imgPosition.left,
                     width: imgPosition.width,
                     height: imgPosition.height,
+                    // `object-contain` keeps the image inside the element box
+                    // when the source aspect ratio doesn't match the element's
+                    // aspect ratio. Without this, a wide source image on a
+                    // narrow element (or vice-versa) is stretched. We also
+                    // cap width/height at 100% so AI-generated elementInfo
+                    // values that exceed the slide viewport (e.g. an avatar
+                    // element at 1248×868 positioned past the 1920×1080
+                    // slide edge) cannot bleed outside the slide; the
+                    // outer overflow-hidden ancestors will clip whatever
+                    // still overflows, but this is the first line of
+                    // defense.
+                    maxWidth: '100%',
+                    maxHeight: '100%',
+                    objectFit: 'contain',
                     filter,
                   }}
                   alt=""

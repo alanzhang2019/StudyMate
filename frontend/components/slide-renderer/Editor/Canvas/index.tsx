@@ -300,10 +300,17 @@ export function Canvas(_props: CanvasProps) {
               <ViewportBackground />
             </div>
 
-            {/* Viewport - the actual slide canvas */}
+            {/* Viewport - the actual slide canvas. `overflow-hidden` on
+                this layer is the same defensive clip as the one in
+                ScreenCanvas: the `transform: scale` creates a new
+                compositing context that can break the outer wrapper's
+                overflow propagation, so an element whose `elementInfo`
+                extends past the slide edge (e.g. an agent-avatar at
+                1248×868 placed beyond the 1920×1080 viewport) would
+                otherwise bleed outside the slide. */}
             <div
               ref={viewportRef}
-              className="viewport absolute top-0 left-0 origin-top-left"
+              className="viewport absolute top-0 left-0 origin-top-left overflow-hidden"
               style={{
                 width: `${viewportStyles.width}px`,
                 height: `${viewportStyles.height}px`,

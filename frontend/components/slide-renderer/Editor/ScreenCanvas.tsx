@@ -110,9 +110,19 @@ export function ScreenCanvas() {
           style={{ ...backgroundStyle }}
         ></div>
 
-        {/* Content layer - scaled */}
+        {/* Content layer - scaled. We add `overflow-hidden` here
+            (in addition to the viewport-wrapper's overflow-hidden above)
+            because the `transform: scale` on this layer creates a new
+            compositing context — in some browser/GPU combinations, the
+            outer wrapper's overflow clip does NOT propagate into the
+            transformed subtree, so an image element whose `elementInfo`
+            extends past the 1920×1080 slide edge (e.g. an AI-placed
+            agent-avatar at 1248×868 with left > slideWidth - width)
+            would render past the slide's right edge. Clipping at this
+            layer (the unscaled 1920×1080 coordinate system) catches
+            that case before the transform is applied. */}
         <div
-          className="absolute top-0 left-0 origin-top-left"
+          className="absolute top-0 left-0 origin-top-left overflow-hidden"
           style={{
             width: `${viewportStyles.width}px`,
             height: `${viewportStyles.height}px`,
