@@ -50,19 +50,41 @@ export function ExpandChapterList({
 
   return (
     <div>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="inline-flex items-center gap-1.5 text-sm text-slate-700 hover:text-blue-600
-                   focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded
-                   px-1 -mx-1 py-0.5"
-      >
-        {open ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-        <span className="font-medium">
-          {open ? '收起章节' : `查看章节 (${chapters.length})`}
-        </span>
-      </button>
+      {/*
+       * Persistent "从头开始学习" CTA — sits OUTSIDE the
+       * collapsible chapter list so students can launch the
+       * classroom in one click without first expanding the
+       * chapter tree. The button is the primary affordance for
+       * a new student; the chapter list is for re-entry into
+       * a specific scene.
+       */}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <Link
+          href={`/classroom/${lectureId}`}
+          className="inline-flex items-center gap-1.5 text-sm font-semibold
+                     text-white bg-gradient-to-r from-indigo-500 to-blue-500
+                     hover:from-indigo-600 hover:to-blue-600
+                     rounded-lg px-3 py-1.5 shadow-sm hover:shadow
+                     transition"
+        >
+          从头开始学习 →
+        </Link>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          className="inline-flex items-center gap-1.5 text-sm text-slate-600
+                     hover:text-blue-600
+                     focus:outline-none focus-visible:ring-2
+                     focus-visible:ring-blue-400 rounded
+                     px-1 -mx-1 py-0.5"
+        >
+          {open ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+          <span className="font-medium">
+            {open ? '收起章节' : `查看章节 (${chapters.length})`}
+          </span>
+        </button>
+      </div>
 
       {open && (
         <ol className="mt-3 space-y-1.5 border-l-2 border-indigo-100 pl-3">
@@ -102,14 +124,6 @@ export function ExpandChapterList({
               </li>
             );
           })}
-          <li className="pt-1">
-            <Link
-              href={`/classroom/${lectureId}`}
-              className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline pl-1"
-            >
-              从头开始学习 →
-            </Link>
-          </li>
         </ol>
       )}
     </div>

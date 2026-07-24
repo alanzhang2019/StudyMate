@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, type ReactNode } from 'react';
 import { useStageStore } from '@/lib/store';
 import { PENDING_SCENE_ID } from '@/lib/store/stage';
 import { useCanvasStore } from '@/lib/store/canvas';
@@ -54,6 +54,15 @@ export function Stage({
   defaultPresentation = false,
   autoPlay = false,
   autoFullscreen = false,
+  // Optional overlays rendered INSIDE the stage's root element
+  // (so they survive autoFullscreen — the browser's fullscreen
+  // API renders only the fullscreened element and its
+  // descendants, hiding every sibling). Each is `position:
+  // absolute`-ed to its respective corner with `pointer-events:
+  // auto` so it stays clickable. Pass `null` (the default) to
+  // skip a corner.
+  topLeftOverlay = null,
+  topRightOverlay = null,
 }: {
   onRetryOutline?: (outlineId: string) => Promise<void>;
   onLectureComplete?: () => void;
@@ -69,6 +78,20 @@ export function Stage({
    * defaultPresentation path).
    */
   autoFullscreen?: boolean;
+  /**
+   * Optional ReactNode rendered at the top-left of the stage's
+   * root, inside the fullscreen subtree. Use for back-to-library
+   * / "我的学习" pills on /classroom/[id] — they MUST live here
+   * (not as siblings of `<Stage />`) so they remain visible +
+   * clickable when autoFullscreen fires `requestFullscreen()` on
+   * the stage root.
+   */
+  topLeftOverlay?: ReactNode;
+  /**
+   * Same as topLeftOverlay but anchored to the top-right. Used
+   * for the "加入错题本" button on /classroom/[id].
+   */
+  topRightOverlay?: ReactNode;
 }) {
   const { t } = useI18n();
   const {
@@ -1233,7 +1256,13 @@ export function Stage({
       <div
         ref={stageRef}
         className={cn(
-          'flex-1 flex overflow-hidden bg-gray-50 dark:bg-gray-900',
+          // `relative` here gives the absolute-positioned
+          // `topLeftOverlay` / `topRightOverlay` below a
+          // containing block. They MUST sit inside this root
+          // (not as siblings of `<Stage />`) so they survive
+          // autoFullscreen — the fullscreen API only renders
+          // the fullscreened element + its descendants.
+          'flex-1 flex overflow-hidden relative bg-gray-50 dark:bg-gray-900',
           isPresenting && !controlsVisible && 'cursor-none',
         )}
       >
@@ -1566,6 +1595,28 @@ export function Stage({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/*
+       * Stage-scoped overlays. These live inside the stage root
+       * (not as siblings of `<Stage />`) so the browser's
+       * fullscreen API keeps them visible: when the root div
+       * enters fullscreen, the fullscreen subtree is what the
+       * user sees. Anything outside the root is clipped/hidden.
+       * `z-50` keeps the overlay above the canvas / sidebar /
+       * chat area / floating controls. `pointer-events: auto`
+       * is the default for <div> so click handlers on the
+       * children fire normally.
+       */}
+      {topLeftOverlay && (
+        <div className="absolute top-4 left-4 z-50 flex flex-col items-start gap-2 pointer-events-auto">
+          {topLeftOverlay}
+        </div>
+      )}
+      {topRightOverlay && (
+        <div className="absolute top-4 right-4 z-50 flex flex-col items-end gap-2 pointer-events-auto">
+          {topRightOverlay}
+        </div>
+      )}
     </div>
       <InteractiveIframeHost />
     </>

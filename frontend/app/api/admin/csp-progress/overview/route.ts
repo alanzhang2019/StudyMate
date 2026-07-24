@@ -5,15 +5,22 @@
 // read-only aggregation: we don't write anything here, just
 // roll up per-user `csp_progress` rows.
 //
-// We deliberately do NOT use the `evaluateCompletion` helper
-// from /lib/server/csp-completion.ts here. That helper does
-// per-classroom quiz/submission lookups and JSON file reads,
-// which would multiply into N users × M classrooms expensive
-// `readClassroom` calls on a teacher dashboard. The
-// "completed" boolean on a teacher view is fine to read
-// straight off the `csp_progress.completedAt` latch — that's
-// exactly what the latch is for: a cheap, read-time signal
-// of "has this student ever finished a class?".
+// "Completed" definition here MUST match /student/home. We
+// use `evaluateCompletion()` from /lib/server/csp-completion
+// which returns:
+//   completed = latched || (progressMet && quizzesMet)
+// where latched = `!!csp_progress.completedAt`. That is the
+// same predicate the student dashboard uses to split rows
+// into "in progress" vs "已打卡". Reading just the
+// `completedAt` latch would silently miss classrooms where
+// the student has now satisfied both progress + quiz
+// conditions but the latch hasn't been written yet (the
+// `reevaluateCompletedAt` write path only runs on subsequent
+// writes — if the admin loads this page between the student
+// hitting the criteria and their next heart-beat, the admin
+// would see "in progress" while the student sees "已打卡").
+// Consistency is the whole point of a teacher dashboard, so
+// we pay the per-row evaluateCompletion cost.
 //
 // Auth: admin-only. The /api/admin/* prefix is gated by the
 // `admin_token` cookie in middleware; we don't re-check here.
@@ -21,6 +28,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { listClassroomSummaries } from '@/lib/server/classroom-storage';
+import { evaluateCompletion } from '@/lib/server/csp-completion';
 import { apiError } from '@/lib/api/error';
 
 type StudentRow = {
@@ -29,7 +37,8 @@ type StudentRow = {
   email: string;
   role: string | null;
   joinedAt: string;
-  // Per-student aggregates computed from csp_progress rows.
+  // Per-student aggregates computed from csp_progress rows
+  // + per-row evaluateCompletion().
   startedClassrooms: number;
   completedClassrooms: number;
   inProgressClassrooms: number;
@@ -106,53 +115,76 @@ export async function GET() {
     const summaries = await listClassroomSummaries('csp-lecture');
     const titleById = new Map(summaries.map((s) => [s.id, s.title]));
 
-    // 4. Build the per-student rows. Active = at least one
-    //    csp_progress row.
-    const out: StudentRow[] = students.map((u) => {
-      const userProgress = byUser.get(u.id) ?? [];
-      let started = 0;
-      let completed = 0;
-      let inProgress = 0;
-      let watchSeconds = 0;
-      let lastActiveAt: string | null = null;
-      let lastClassroomId: string | null = null;
-      let lastClassroomTitle: string | null = null;
-      let lastTs = -1;
-      for (const r of userProgress) {
-        started += 1;
-        watchSeconds += Number(r.watchSeconds) || 0;
-        if (r.completedAt) {
-          completed += 1;
-        } else {
-          inProgress += 1;
+    // 4. Build the per-student rows. For each row we call
+    //    evaluateCompletion(userId, classroomId) so the
+    //    "completed" boolean is exactly what /student/home
+    //    shows. evaluateCompletion is read-only (no DB
+    //    writes), just does one readClassroom + one query on
+    //    csp_quiz_submissions per call. With the typical
+    //    cohort (≤50 students × ≤5 classrooms each) this is
+    //    well under one second of total work — no need for
+    //    a bulk optimisation. If that scale ever changes,
+    //    add a `evaluateCompletionsBulk` that dedupes
+    //    readClassroom across (userId, classroomId) pairs.
+    const out: StudentRow[] = await Promise.all(
+      students.map(async (u) => {
+        const userProgress = byUser.get(u.id) ?? [];
+        let started = 0;
+        let completed = 0;
+        let inProgress = 0;
+        let watchSeconds = 0;
+        let lastActiveAt: string | null = null;
+        let lastClassroomId: string | null = null;
+        let lastClassroomTitle: string | null = null;
+        let lastTs = -1;
+
+        // Evaluate completion for every (user, classroom) pair
+        // in parallel; the loop's sequential aggregation then
+        // consumes the results in order.
+        const completionResults = await Promise.all(
+          userProgress.map((r) =>
+            evaluateCompletion(u.id, r.classroomId).then(
+              (c) => ({ row: r, completion: c }),
+            ),
+          ),
+        );
+
+        for (const { row: r, completion } of completionResults) {
+          started += 1;
+          watchSeconds += Number(r.watchSeconds) || 0;
+          if (completion.completed) {
+            completed += 1;
+          } else {
+            inProgress += 1;
+          }
+          // "Last active" = max(updatedAt) across all of the
+          // student's progress rows. We use updatedAt (not
+          // lastViewedAt) because heartbeats bump updatedAt too
+          // and we want a meaningful "I was here" signal.
+          const ts = r.updatedAt ? new Date(r.updatedAt).getTime() : 0;
+          if (ts > lastTs) {
+            lastTs = ts;
+            lastActiveAt = r.updatedAt ?? null;
+            lastClassroomId = r.classroomId;
+            lastClassroomTitle = titleById.get(r.classroomId) ?? null;
+          }
         }
-        // "Last active" = max(updatedAt) across all of the
-        // student's progress rows. We use updatedAt (not
-        // lastViewedAt) because heartbeats bump updatedAt too
-        // and we want a meaningful "I was here" signal.
-        const ts = r.updatedAt ? new Date(r.updatedAt).getTime() : 0;
-        if (ts > lastTs) {
-          lastTs = ts;
-          lastActiveAt = r.updatedAt ?? null;
-          lastClassroomId = r.classroomId;
-          lastClassroomTitle = titleById.get(r.classroomId) ?? null;
-        }
-      }
-      return {
-        id: u.id,
-        name: u.name,
-        email: u.email,
-        role: u.role,
-        joinedAt: u.createdAt,
-        startedClassrooms: started,
-        completedClassrooms: completed,
-        inProgressClassrooms: inProgress,
-        watchSeconds,
-        lastActiveAt,
-        lastClassroomId,
-        lastClassroomTitle,
-      };
-    });
+        return {
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          role: u.role,
+          joinedAt: u.createdAt,
+          startedClassrooms: started,
+          completedClassrooms: completed,
+          inProgressClassrooms: inProgress,
+          watchSeconds,
+          lastActiveAt,
+          lastClassroomId,
+          lastClassroomTitle,
+        };
+      }),
+    );
 
     // 5. Roll up the page-level summary cards.
     const totalClassrooms = summaries.length;

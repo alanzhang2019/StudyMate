@@ -705,59 +705,53 @@ export default function ClassroomDetailPage() {
                 autoPlay={true}
                 onLectureComplete={() => {}}
                 onRetryOutline={retrySingleOutline}
+                topLeftOverlay={
+                  <>
+                    {/* "返回课件库" — always shown so even
+                        anonymous viewers can find their way back
+                        to the public chapter list. */}
+                    <button
+                      type="button"
+                      onClick={() => router.push('/csp-lecture')}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-white/90 backdrop-blur px-3 py-1.5 text-xs font-medium text-slate-700 shadow-md ring-1 ring-slate-200/60 hover:bg-white hover:text-slate-900 transition"
+                    >
+                      <span aria-hidden>←</span>
+                      返回课件库
+                    </button>
+                    {/* "我的学习" — student-only deep link to
+                        /student/home where the per-user progress
+                        dashboard lives. Hidden for parents,
+                        anonymous viewers, and admin users. */}
+                    {isStudent && (
+                      <button
+                        type="button"
+                        onClick={() => router.push('/student/home')}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-blue-500 px-3 py-1.5 text-xs font-medium text-white shadow-md hover:from-indigo-600 hover:to-blue-600 transition"
+                      >
+                        📊 我的学习
+                      </button>
+                    )}
+                  </>
+                }
+                topRightOverlay={
+                  mistakeSessionId ? (
+                    <AddToMistakeBookButton
+                      size="sm"
+                      variant="default"
+                      labels={{
+                        idle: '加入错题本',
+                        saving: '加入中…',
+                        saved: '已加入',
+                        error: '重试加入',
+                      }}
+                      data={{
+                        mistakeSessionId,
+                        classroomId,
+                      }}
+                    />
+                  ) : null
+                }
               />
-              {/* Floating "返回课件库" / "我的学习" pill. The
-                  "back to library" link is always shown so even
-                  anonymous viewers can find their way back to
-                  the public chapter list. The "我的学习" button
-                  is only rendered for signed-in students — it
-                  deep-links to /student/home where their own
-                  progress dashboard lives. The pill is `fixed`
-                  positioned (anchored to the viewport) so it can
-                  sit as a sibling of Stage here without needing
-                  a positioned wrapper around Stage. */}
-              <div className="fixed left-4 top-4 z-40 flex flex-col items-start gap-2">
-                <button
-                  type="button"
-                  onClick={() => router.push('/csp-lecture')}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-white/90 backdrop-blur px-3 py-1.5 text-xs font-medium text-slate-700 shadow-md ring-1 ring-slate-200/60 hover:bg-white hover:text-slate-900 transition"
-                >
-                  <span aria-hidden>←</span>
-                  返回课件库
-                </button>
-                {isStudent && (
-                  <button
-                    type="button"
-                    onClick={() => router.push('/student/home')}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-blue-500 px-3 py-1.5 text-xs font-medium text-white shadow-md hover:from-indigo-600 hover:to-blue-600 transition"
-                  >
-                    📊 我的学习
-                  </button>
-                )}
-              </div>
-              {/* Floating "加入错题本" button. Always visible once we
-                  know which mistakeSession this classroom belongs to.
-                  The button is `fixed` positioned (anchored to the
-                  viewport) so it can sit as a sibling of Stage here
-                  without needing a positioned wrapper around Stage. */}
-              {mistakeSessionId ? (
-                <div className="fixed right-4 top-4 z-40 flex flex-col items-end gap-2">
-                  <AddToMistakeBookButton
-                    size="sm"
-                    variant="default"
-                    labels={{
-                      idle: '加入错题本',
-                      saving: '加入中…',
-                      saved: '已加入',
-                      error: '重试加入',
-                    }}
-                    data={{
-                      mistakeSessionId,
-                      classroomId,
-                    }}
-                  />
-                </div>
-              ) : null}
             </>
           )}
         </div>
