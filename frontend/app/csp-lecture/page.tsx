@@ -96,9 +96,18 @@ async function listCspLectures(): Promise<Lecture[]> {
       // skip corrupted file
     }
   }
-  // Newest first — the public list isn't order-aware (the admin
-  // doesn't have a "set order" UI yet); the latest upload bubbles up.
-  items.sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
+  // Natural sort by title so the courseware displays in human
+  // expected order (1, 2, 3 rather than 1, 10, 2), with the
+  // CSP-J/S module — whose title doesn't contain a 精讲<num>
+  // prefix — pushed to the end. The Chinese-aware collation
+  // (zh-CN + numeric) keeps the "初赛要点精讲N：..." runs
+  // together while still ordering N numerically.
+  items.sort((a, b) =>
+    (a.title ?? '').localeCompare(b.title ?? '', 'zh-CN', {
+      numeric: true,
+      sensitivity: 'base',
+    }),
+  );
   return items;
 }
 
