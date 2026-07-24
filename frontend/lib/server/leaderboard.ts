@@ -196,11 +196,25 @@ async function computeLeaderboard(): Promise<LeaderboardSnapshot> {
       'SELECT userId, classroomId FROM csp_progress',
     )
     .all() as Array<{ userId: string; classroomId: string }>;
+  console.log('[leaderboard] csp_progress rows:', allProgress.length);
 
   const completionsByUser = new Map<string, number>();
   await Promise.all(
     allProgress.map(async (p) => {
       const result = await evaluateCompletion(p.userId, p.classroomId);
+      console.log(
+        '[leaderboard] eval',
+        p.userId.slice(0, 8),
+        p.classroomId.slice(0, 16),
+        '=>',
+        'completed=' + result.completed,
+        'latched=' + result.latched,
+        'progressMet=' + result.progressMet,
+        'quizzesMet=' + result.quizzesMet,
+        'coverage=' + result.coveragePct.toFixed(3),
+        'failedQuizzes=' + result.failedQuizScenes.length,
+        'reasons=' + JSON.stringify(result.reasons),
+      );
       if (result.completed) {
         completionsByUser.set(
           p.userId,
@@ -208,6 +222,12 @@ async function computeLeaderboard(): Promise<LeaderboardSnapshot> {
         );
       }
     }),
+  );
+  console.log(
+    '[leaderboard] completionsByUser:',
+    Array.from(completionsByUser.entries()).map(
+      ([uid, n]) => `${uid.slice(0, 8)}=${n}`,
+    ),
   );
 
   // 5. Build the candidate set. We exclude accounts with zero

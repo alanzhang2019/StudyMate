@@ -96,18 +96,25 @@ async function listCspLectures(): Promise<Lecture[]> {
       // skip corrupted file
     }
   }
-  // Natural sort by title so the courseware displays in human
-  // expected order (1, 2, 3 rather than 1, 10, 2), with the
-  // CSP-J/S module — whose title doesn't contain a 精讲<num>
-  // prefix — pushed to the end. The Chinese-aware collation
-  // (zh-CN + numeric) keeps the "初赛要点精讲N：..." runs
-  // together while still ordering N numerically.
-  items.sort((a, b) =>
-    (a.title ?? '').localeCompare(b.title ?? '', 'zh-CN', {
-      numeric: true,
-      sensitivity: 'base',
-    }),
-  );
+  // Sort by the numeric tag in "精讲N：..." titles, with non-matching
+  // titles (eg. "CSP-J/S初赛题型一览") pushed to the end. localeCompare
+  // with `numeric: true` was unreliable here — the Chinese characters
+  // mixed with full-width colons and section names made the comparison
+  // fall through to the suffix in unpredictable ways (e.g. 精讲3 ending
+  // up before 精讲2 because "网络" collated before "基础2"). Extracting
+  // the integer is the only way to get the "1, 2, 3, ..." order the
+  // curriculum author clearly intended.
+  const titleOrder = (title: string): number => {
+    const m = title.match(/精讲(\d+)/);
+    return m ? parseInt(m[1], 10) : Number.POSITIVE_INFINITY;
+  };
+  items.sort((a, b) => {
+    const ao = titleOrder(a.title ?? '');
+    const bo = titleOrder(b.title ?? '');
+    if (ao !== bo) return ao - bo;
+    // Tiebreaker: alphabetical for non-精讲 titles (eg. CSP-J/S).
+    return (a.title ?? '').localeCompare(b.title ?? '', 'zh-CN');
+  });
   return items;
 }
 
