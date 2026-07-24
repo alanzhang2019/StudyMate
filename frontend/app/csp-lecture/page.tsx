@@ -24,6 +24,7 @@ import { CLASSROOMS_DIR } from '@/lib/server/classroom-storage';
 import type { Scene, Stage } from '@/lib/types/stage';
 import { auth } from '@/auth';
 import { ExpandChapterList } from './ExpandChapterList';
+import { Leaderboard } from '@/components/leaderboard';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -178,7 +179,7 @@ export default async function CspLecturePage() {
       </section>
 
       {/* Lecture grid */}
-      <section className="max-w-6xl mx-auto px-6 pb-20">
+      <section className="max-w-6xl mx-auto px-6 pb-12">
         {lectures.length === 0 ? (
           <Card className="bg-white/70 backdrop-blur border-slate-200/60">
             <CardContent className="py-16 text-center">
@@ -203,6 +204,20 @@ export default async function CspLecturePage() {
             ))}
           </div>
         )}
+      </section>
+
+      {/*
+       * Public leaderboard. Renders below the lecture grid so
+       * first-time visitors see "what is here" before "who is
+       * using it" — the social proof lands after the value
+       * prop, not before. Always shown (even with zero
+       * entries) so the page doesn't have an empty gap; the
+       * component renders its own friendly "be the first"
+       * empty state. No auth required: the server masks
+       * names before responding.
+       */}
+      <section className="max-w-6xl mx-auto px-6 pb-20">
+        <Leaderboard />
       </section>
 
       {/* Footer */}

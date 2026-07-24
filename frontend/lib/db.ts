@@ -31,7 +31,7 @@ function tableExists(db: Database, name: string): boolean {
   }
 }
 
-function getDb(): Database {
+export function getDb(): Database {
   if (!_db) {
     // During Next.js's `next build` (page data collection), each worker
     // process can hit this code path simultaneously. Use a per-process
