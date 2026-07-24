@@ -3,9 +3,27 @@ import path from 'path';
 import type { NextRequest } from 'next/server';
 import type { Scene, Stage } from '@/lib/types/stage';
 
-export const CLASSROOMS_DIR = path.join(process.cwd(), 'data', 'classrooms');
-export const CLASSROOM_JOBS_DIR = path.join(process.cwd(), 'data', 'classroom-jobs');
-export const MISTAKE_SESSIONS_DIR = path.join(process.cwd(), 'data', 'mistake-sessions');
+// Resolve classrooms directory at module load. In production
+// (Docker) the named volume is mounted at `/app/data` and
+// `STUDYMATE_DB_DIR=/app/data` is set in docker-compose.yml.
+// In dev, no env var is set, so we fall back to the project
+// root's `data/classrooms/` directory.
+//
+// We intentionally do NOT rely on `process.cwd()` alone even
+// though WORKDIR=/app in the Dockerfile should make them
+// equivalent — using the explicit env var matches `lib/db.ts`
+// and survives any future change to the entrypoint that might
+// alter the cwd (e.g. a wrapper that `chdir`s before `node
+// server.js`).
+export const CLASSROOMS_DIR = process.env.STUDYMATE_DB_DIR
+  ? path.join(process.env.STUDYMATE_DB_DIR, 'classrooms')
+  : path.join(process.cwd(), 'data', 'classrooms');
+export const CLASSROOM_JOBS_DIR = process.env.STUDYMATE_DB_DIR
+  ? path.join(process.env.STUDYMATE_DB_DIR, 'classroom-jobs')
+  : path.join(process.cwd(), 'data', 'classroom-jobs');
+export const MISTAKE_SESSIONS_DIR = process.env.STUDYMATE_DB_DIR
+  ? path.join(process.env.STUDYMATE_DB_DIR, 'mistake-sessions')
+  : path.join(process.cwd(), 'data', 'mistake-sessions');
 
 async function ensureDir(dir: string) {
   await fs.mkdir(dir, { recursive: true });
