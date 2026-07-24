@@ -96,23 +96,32 @@ async function listCspLectures(): Promise<Lecture[]> {
       // skip corrupted file
     }
   }
-  // Sort by the numeric tag in "精讲N：..." titles, with non-matching
-  // titles (eg. "CSP-J/S初赛题型一览") pushed to the end. localeCompare
-  // with `numeric: true` was unreliable here — the Chinese characters
-  // mixed with full-width colons and section names made the comparison
-  // fall through to the suffix in unpredictable ways (e.g. 精讲3 ending
-  // up before 精讲2 because "网络" collated before "基础2"). Extracting
-  // the integer is the only way to get the "1, 2, 3, ..." order the
-  // curriculum author clearly intended.
+  // Sort by the lecture's display order. We try three patterns in
+  // priority order:
+  //   1. Leading "N、" or "N," at the start of the title (the author
+  //      has been hand-numbering the CSP-J/S curriculum with these
+  //      prefixes — most authoritative).
+  //   2. "精讲N" embedded in the middle of the title (fallback for
+  //      titles that haven't been re-numbered yet).
+  //   3. Anything else (e.g. "CSP-J/S初赛题型一览") goes to the end
+  //      with a stable secondary sort by title so the layout doesn't
+  //      reshuffle on every render.
+  //
+  // Earlier we used `localeCompare(..., { numeric: true })` which
+  // collated "网络" before "基础2" in zh-CN, putting 精讲3 ahead
+  // of 精讲2 — explicitly extracting the integer is the only way
+  // to get the curriculum author's intended 1, 2, 3, ... order.
   const titleOrder = (title: string): number => {
-    const m = title.match(/精讲(\d+)/);
-    return m ? parseInt(m[1], 10) : Number.POSITIVE_INFINITY;
+    const leading = title.match(/^\s*(\d+)\s*[,、.]\s*/);
+    if (leading) return parseInt(leading[1], 10);
+    const inline = title.match(/精讲\s*(\d+)/);
+    if (inline) return parseInt(inline[1], 10);
+    return Number.POSITIVE_INFINITY;
   };
   items.sort((a, b) => {
     const ao = titleOrder(a.title ?? '');
     const bo = titleOrder(b.title ?? '');
     if (ao !== bo) return ao - bo;
-    // Tiebreaker: alphabetical for non-精讲 titles (eg. CSP-J/S).
     return (a.title ?? '').localeCompare(b.title ?? '', 'zh-CN');
   });
   return items;
