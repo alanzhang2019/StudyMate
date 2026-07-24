@@ -323,6 +323,7 @@ export function Stage({
 
     try {
       if (document.fullscreenElement === stageElement) {
+        // Already in real fullscreen — exit.
         // Unlock Escape key before exiting fullscreen
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (navigator as any).keyboard?.unlock?.();
@@ -330,19 +331,41 @@ export function Stage({
         return;
       }
 
+      if (isPresenting) {
+        // In presentation mode (chrome hidden) but not in real
+        // fullscreen — this is the mobile path where
+        // `requestFullscreen()` was rejected. The user is tapping the
+        // exit button on the floating controls. Drop out of
+        // presentation mode and re-show the chrome. The
+        // `fullscreenchange` listener will not fire (we never
+        // entered real fullscreen) so we have to clean up the
+        // collapsed sidebar/chat ourselves.
+        setIsPresenting(false);
+        setSidebarCollapsed(false);
+        setChatAreaCollapsed(false);
+        return;
+      }
+
       setControlsVisible(true);
+      setSidebarCollapsed(true);
+      setChatAreaCollapsed(true);
+      // Enter presentation mode BEFORE the fullscreen request so that
+      // even if `requestFullscreen()` rejects (mobile Safari, Android
+      // Chrome without a user gesture) the chrome is already hidden
+      // and the canvas takes the full height. The user is in a
+      // "presentation-style" view; they can tap the floating exit
+      // button to leave it.
+      setIsPresenting(true);
       await stageElement.requestFullscreen();
       // Lock Escape key so it doesn't auto-exit fullscreen (#255)
       // Escape is handled manually in our keydown handler instead
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (navigator as any).keyboard?.lock?.(['Escape']).catch(() => {});
-      setSidebarCollapsed(true);
-      setChatAreaCollapsed(true);
     } catch {
       // Firefox may deny fullscreen from certain keyboard events (e.g. F11)
       console.warn('[Presentation] Fullscreen request denied — browser policy');
     }
-  }, [setChatAreaCollapsed, setSidebarCollapsed]);
+  }, [isPresenting, setChatAreaCollapsed, setSidebarCollapsed]);
 
   // Auto-enter presentation on mount. Unlike `togglePresentation`, this
   // applies the UI changes (collapsed sidebar/chat, visible controls)
@@ -356,6 +379,14 @@ export function Stage({
     setControlsVisible(true);
     setSidebarCollapsed(true);
     setChatAreaCollapsed(true);
+    // Enter presentation mode even if the fullscreen request rejects.
+    // On mobile (iOS Safari especially) `requestFullscreen()` on a
+    // non-<video> element is a no-op or rejected outright, so the
+    // "real" fullscreen is unreachable. The presentation-style view
+    // (header hidden, sidebar/chat collapsed, canvas taking the full
+    // main-content height) is the best we can do, and that requires
+    // `isPresenting` to be true.
+    setIsPresenting(true);
 
     try {
       await stageElement.requestFullscreen();
@@ -418,12 +449,22 @@ export function Stage({
   useEffect(() => {
     const onFullscreenChange = () => {
       const active = document.fullscreenElement === stageRef.current;
-      setIsPresenting(
-        getNextHomeworkPresentationState({
+      setIsPresenting((current) => {
+        // Once we are in presentation mode we stay in it. The
+        // fullscreenchange event fires for both enter and exit, but
+        // on mobile `requestFullscreen()` rejects, so the user is in
+        // presentation mode (chrome hidden, canvas takes the full
+        // height) without ever being in real fullscreen. Clobbering
+        // `isPresenting` back to false on a fullscreen exit would
+        // un-hide the header and shrink the canvas — the exact thing
+        // the mobile path is trying to avoid. The explicit exit path
+        // is the togglePresentation() branch, not this listener.
+        if (current) return true;
+        return getNextHomeworkPresentationState({
           defaultPresentation,
           isFullscreenActive: active,
-        }),
-      );
+        });
+      });
 
       if (!active) {
         // Ensure keyboard unlock on any fullscreen exit
@@ -1265,7 +1306,7 @@ export function Stage({
               (chatIsStreaming && (chatSessionType === 'qa' || chatSessionType === 'discussion'))
             }
             onStopDiscussion={handleStopDiscussion}
-            hideToolbar={mode === 'playback' || (isPresenting && !controlsVisible)}
+            hideToolbar={(!isPresenting && mode === 'playback') || (isPresenting && !controlsVisible)}
             isPendingScene={isPendingScene}
             isAutoStarting={isAutoStartingPlayback}
             isCourseComplete={isCourseComplete}
