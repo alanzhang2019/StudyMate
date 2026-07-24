@@ -384,7 +384,7 @@ function ClassroomRow({
                   : 'bg-amber-50 text-amber-700 border border-amber-100'
               }`}
             >
-              做題 {completion.passedQuizCount}/{completion.quizScenesCount} 通過
+              做题 {completion.passedQuizCount}/{completion.quizScenesCount} 通过
             </span>
           )}
           {suspiciousJump && (

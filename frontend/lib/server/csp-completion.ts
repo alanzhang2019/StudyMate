@@ -142,7 +142,7 @@ export async function evaluateCompletion(
     reasons.push(`还需观看 ${need} 节`);
   }
   if (!quizzesMet) {
-    reasons.push(`还有 ${failedQuizScenes.length} 个 quiz 未满分`);
+    reasons.push(`还有 ${failedQuizScenes.length} 道题未满分`);
   }
 
   return {
