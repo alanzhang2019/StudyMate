@@ -24,7 +24,13 @@ const nextConfig: NextConfig = {
     '/**': ['./node_modules/better-sqlite3/**/*'],
   },
   experimental: {
-    proxyClientMaxBodySize: '200mb',
+    // 1 GB max import ZIP (see MAX_UPLOAD_MB in
+    // /api/admin/classroom/import/route.ts). We bump to 2 GB
+    // to leave headroom for multipart boundary bytes +
+    // base64-vs-binary overhead so the Next.js internal proxy
+    // buffer does not silently truncate valid uploads at
+    // exactly 1 GB.
+    proxyClientMaxBodySize: '2gb',
   },
   // We pass `--webpack` to `next build` (see Dockerfile) instead of
   // letting Next.js 16 default to Turbopack. Turbopack's output tracing

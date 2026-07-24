@@ -26,7 +26,7 @@ const log = createLogger('AdminClassroomImport');
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const MAX_UPLOAD_MB = 100;
+const MAX_UPLOAD_MB = 1024;
 const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
 
 export async function POST(request: NextRequest) {
