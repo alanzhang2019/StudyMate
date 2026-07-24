@@ -146,11 +146,22 @@ RUN set -eux; \
 
 # Cache-bust marker: change `CACHE_BUST` whenever the copy block above
 # changes so this stage and the runner below are rebuilt.
-ARG CACHE_BUST=2
+ARG CACHE_BUST=3
 RUN echo "cache bust: ${CACHE_BUST} $(date +%s)"
 
 # ---- Stage 4: Runner ----
-FROM node:22-alpine AS runner
+# MUST match the build stage's Node version. The build stage pins to
+# 20.18.1-alpine (see top of file) because better-sqlite3@11.10.0 ships
+# prebuilt .node binaries for that exact V8 ABI (NODE_MODULE_VERSION=115).
+# If this stage uses a floating tag like `node:22-alpine`, the runtime
+# will pull whatever the latest 22.x happens to be (e.g. 22.23.x), which
+# has a different V8 ABI and will fail at require() time with
+# "Error relocating ... v8::Exception::RangeError(v8::Local<v8::String>):
+#  symbol not found" — i.e. exactly the registration error that motivated
+# this pin. Keep this in lock-step with the build stage above; both must
+# stay on 20.18.1-alpine until we have a build pipeline that recompiles
+# better-sqlite3 from source for whatever Node we end up on.
+FROM node:20.18.1-alpine AS runner
 
 WORKDIR /app
 
