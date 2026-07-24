@@ -21,7 +21,8 @@ import {
 import { useStageStore } from '@/lib/store';
 import { loadImageMapping } from '@/lib/utils/image-storage';
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { generateAndStoreTTS, useSceneGenerator } from '@/lib/hooks/use-scene-generator';
 import { useMediaGenerationStore } from '@/lib/store/media-generation';
 import { useWhiteboardHistoryStore } from '@/lib/store/whiteboard-history';
@@ -76,7 +77,16 @@ function withThinkingConfig<T extends Record<string, unknown>>(body: T): T {
 
 export default function ClassroomDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const classroomId = params?.id as string;
+  // Read the current session so we can show a "back to student
+  // hub" button when a signed-in student is the viewer. We do
+  // NOT call `required` (or redirect) — /classroom/[id] is a
+  // public surface, and the /csp-lecture page is the only place
+  // that pushes students to log in first.
+  const { data: session } = useSession();
+  const userRole = (session?.user as { role?: string } | undefined)?.role ?? null;
+  const isStudent = userRole === 'student';
   // Read `?scene=<order>` from the URL so the public /csp-lecture
   // chapter list can deep-link into a specific scene. The actual
   // jump happens after scenes are loaded — see the useEffect below.
@@ -696,6 +706,35 @@ export default function ClassroomDetailPage() {
                 onLectureComplete={() => {}}
                 onRetryOutline={retrySingleOutline}
               />
+              {/* Floating "返回课件库" / "我的学习" pill. The
+                  "back to library" link is always shown so even
+                  anonymous viewers can find their way back to
+                  the public chapter list. The "我的学习" button
+                  is only rendered for signed-in students — it
+                  deep-links to /student/home where their own
+                  progress dashboard lives. The pill is `fixed`
+                  positioned (anchored to the viewport) so it can
+                  sit as a sibling of Stage here without needing
+                  a positioned wrapper around Stage. */}
+              <div className="fixed left-4 top-4 z-40 flex flex-col items-start gap-2">
+                <button
+                  type="button"
+                  onClick={() => router.push('/csp-lecture')}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-white/90 backdrop-blur px-3 py-1.5 text-xs font-medium text-slate-700 shadow-md ring-1 ring-slate-200/60 hover:bg-white hover:text-slate-900 transition"
+                >
+                  <span aria-hidden>←</span>
+                  返回课件库
+                </button>
+                {isStudent && (
+                  <button
+                    type="button"
+                    onClick={() => router.push('/student/home')}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-blue-500 px-3 py-1.5 text-xs font-medium text-white shadow-md hover:from-indigo-600 hover:to-blue-600 transition"
+                  >
+                    📊 我的学习
+                  </button>
+                )}
+              </div>
               {/* Floating "加入错题本" button. Always visible once we
                   know which mistakeSession this classroom belongs to.
                   The button is `fixed` positioned (anchored to the

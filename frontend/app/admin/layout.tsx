@@ -9,6 +9,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/admin" className="block p-2 hover:bg-gray-50 rounded">📊 Dashboard</Link>
           <Link href="/admin/classroom" className="block p-2 hover:bg-gray-50 rounded">📚 课堂管理</Link>
           <Link href="/admin/csp-lecture" className="block p-2 hover:bg-gray-50 rounded">🎓 CSP初赛要点精讲</Link>
+          <Link href="/admin/csp-progress" className="block p-2 hover:bg-gray-50 rounded">📊 学生打卡进度</Link>
           <Link href="/admin/settings" className="block p-2 hover:bg-gray-50 rounded">⚙️ TTS Settings</Link>
           <Link href="/admin/users" className="block p-2 hover:bg-gray-50 rounded">👥 Users</Link>
         </nav>

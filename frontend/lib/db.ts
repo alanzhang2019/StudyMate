@@ -586,6 +586,19 @@ class PrismaCompatClient {
         .prepare('SELECT * FROM csp_progress WHERE userId = ? ORDER BY updatedAt DESC')
         .all(userId) as any[]
     },
+    // findAll: every csp_progress row across every user. Used by
+    // the teacher-side /api/admin/csp-progress/overview route
+    // to build a per-student aggregate without per-user
+    // round-trips. Returns the same shape as findManyByUser.
+    // Order: most recently updated first so the route can
+    // cheaply pick "last active" by walking the top row per
+    // user if it wanted to (we don't — the route does its own
+    // bucketing — but the order is convenient either way).
+    findAll: () => {
+      return getDb()
+        .prepare('SELECT * FROM csp_progress ORDER BY updatedAt DESC')
+        .all() as any[]
+    },
     upsertViewedScene: (params: {
       userId: string
       classroomId: string

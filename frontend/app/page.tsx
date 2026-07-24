@@ -68,6 +68,9 @@ export default function LandingPage() {
           <span className="text-lg font-bold text-slate-800">AI 错题本</span>
         </div>
         <div className="flex items-center gap-3">
+          <Button asChild size="sm" variant="outline">
+            <Link href="/csp-lecture">📚 学生课件</Link>
+          </Button>
           <Link
             href="/admin/login"
             className="text-sm text-slate-600 hover:text-slate-900 hidden sm:inline"
@@ -189,6 +192,9 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-slate-500">
           <div>© {new Date().getFullYear()} AI 错题本 · 让孩子真正学会</div>
           <div className="flex items-center gap-5">
+            <Link href="/csp-lecture" className="hover:text-slate-900">
+              学生课件
+            </Link>
             <Link href="/mistake-book" className="hover:text-slate-900">
               错题本
             </Link>
