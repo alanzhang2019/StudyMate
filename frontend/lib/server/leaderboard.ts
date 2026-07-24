@@ -26,6 +26,7 @@
 //     the `LEADERBOARD_TTL_MS` env var if needed.
 
 import { db, getDb } from '@/lib/db';
+import { evaluateCompletion } from '@/lib/server/csp-completion';
 
 const MAX_DAILY_WATCH_SECONDS = 8 * 60 * 60; // 8h/day
 
@@ -94,7 +95,7 @@ export async function getLeaderboard(): Promise<LeaderboardSnapshot> {
     return cache.data;
   }
 
-  const data = computeLeaderboard();
+  const data = await computeLeaderboard();
   cache = { at: Date.now(), data };
   return data;
 }
@@ -104,7 +105,7 @@ export function invalidateLeaderboardCache(): void {
   cache = null;
 }
 
-function computeLeaderboard(): LeaderboardSnapshot {
+async function computeLeaderboard(): Promise<LeaderboardSnapshot> {
   // 1. Pull every student-role user with their progress rows.
   //    We do this in two queries (users, then progress) rather
   //    than a JOIN because the user table is tiny and the
@@ -167,28 +168,47 @@ function computeLeaderboard(): LeaderboardSnapshot {
     activeDaysByUser.set(r.userId, (activeDaysByUser.get(r.userId) ?? 0) + 1);
   }
 
-  // 4. Completed classrooms per user — read straight off the
-  //    `completedAt` latch. We deliberately do NOT call
-  //    `evaluateCompletion()` here: leaderboard shows "people
-  //    who finished a class". The latch is exactly that signal
-  //    (write-on-finish, idempotent). If a student satisfies
-  //    the conditions but the latch hasn't been written yet,
-  //    they show up as "in progress" on the leaderboard for
-  //    a few seconds — the next heartbeat or scene complete
-  //    will trip it. This is the right trade-off: leaderboard
-  //    is a low-stakes ranking surface, not a contract.
-  const completionRows = getDb()
+  // 4. Completed classrooms per user — derived from
+  //    `evaluateCompletion()` (the same function that powers
+  //    the "已打卡" badge on /student/home and the
+  //    teacher-facing /admin/csp-progress overview).
+  //
+  //    Earlier this read `csp_progress.completedAt` directly
+  //    (the "latch" — see csp-completion.ts for semantics).
+  //    That gave the wrong answer: a student who meets the
+  //    completion criteria but whose next heartbeat hasn't
+  //    tripped the latch yet would show 0 here while the
+  //    student-home page already showed "已打卡". Aligning
+  //    on `evaluateCompletion` keeps the leaderboard consistent
+  //    with the surfaces the student and teacher actually see.
+  //
+  //    Performance: one async call per (user, classroom) row.
+  //    Each call is bounded by reading the classroom JSON
+  //    (cached by the OS page cache after the first read) plus
+  //    two indexed lookups on csp_progress / csp_quiz_submissions.
+  //    The 5-min in-process cache at the top of this module
+  //    keeps the aggregate cost low even for a 100-student
+  //    cohort. If we ever need to scale beyond that, batching
+  //    the per-classroom scene enumeration (currently a JSON
+  //    read per row) is the next knob to turn.
+  const allProgress = getDb()
     .prepare(
-      `SELECT userId, COUNT(*) AS n
-         FROM csp_progress
-         WHERE completedAt IS NOT NULL
-         GROUP BY userId`,
+      'SELECT userId, classroomId FROM csp_progress',
     )
-    .all() as Array<{ userId: string; n: number }>;
+    .all() as Array<{ userId: string; classroomId: string }>;
+
   const completionsByUser = new Map<string, number>();
-  for (const r of completionRows) {
-    completionsByUser.set(r.userId, Number(r.n) || 0);
-  }
+  await Promise.all(
+    allProgress.map(async (p) => {
+      const result = await evaluateCompletion(p.userId, p.classroomId);
+      if (result.completed) {
+        completionsByUser.set(
+          p.userId,
+          (completionsByUser.get(p.userId) ?? 0) + 1,
+        );
+      }
+    }),
+  );
 
   // 5. Build the candidate set. We exclude accounts with zero
   //    progress (no activeDays AND no completions) so the
