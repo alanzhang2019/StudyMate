@@ -1,0 +1,772 @@
+{
+  "id": "cm_imp_cspj2024j_v1",
+  "createdAt": "2026-07-26T00:00:00.000Z",
+  "collection": "csp-lecture",
+  "stage": {
+    "id": "cm_imp_cspj2024j_v1",
+    "name": "2024年普及组CSP-J初赛真题卷",
+    "description": "2024年CCF非专业级别软件能力认证第一轮（CSP-J1）入门级C++语言试题完整真题，包含单项选择题15道、阅读程序3道、完善程序2道，共42题，总分100分。",
+    "languageDirective": "zh-CN",
+    "style": "tutor",
+    "createdAt": 1753411200000,
+    "updatedAt": 1753411200000,
+    "generatedAgentConfigs": [
+      {
+        "id": "imp_agent_cspj24j_0",
+        "name": "张老师",
+        "role": "teacher",
+        "persona": "经验丰富的CSP初赛教练，熟悉历年真题考点，讲解清晰且直击要点，耐心引导学员分析每道题的解题思路。",
+        "avatar": "/avatars/teacher.png",
+        "color": "#3b82f6",
+        "priority": 10
+      },
+      {
+        "id": "imp_agent_cspj24j_1",
+        "name": "小慧",
+        "role": "assistant",
+        "persona": "聪明耐心的女助教，擅长总结归纳易错点，帮助学员梳理解题思路，在测验后给出鼓励和易错提醒。",
+        "avatar": "/avatars/assist.png",
+        "color": "#ec4899",
+        "priority": 7
+      }
+    ],
+    "agentIds": [
+      "imp_agent_cspj24j_0",
+      "imp_agent_cspj24j_1"
+    ]
+  },
+  "scenes": [
+    {
+      "id": "sc_cspj24j_choice",
+      "stageId": "cm_imp_cspj2024j_v1",
+      "type": "quiz",
+      "title": "一、单项选择题（共15题，每题2分，共计30分）",
+      "order": 1,
+      "content": {
+        "type": "quiz",
+        "questions": [
+          {
+            "id": "q1",
+            "type": "single",
+            "question": "1. 32 位 int 类型的存储范围是（ ）。",
+            "options": [
+              {"value": "A", "label": "-2147483647 ~ +2147483647"},
+              {"value": "B", "label": "-2147483647 ~ +2147483648"},
+              {"value": "C", "label": "-2147483648 ~ +2147483647"},
+              {"value": "D", "label": "-2147483648 ~ +2147483648"}
+            ],
+            "answer": ["C"],
+            "analysis": "int 类型占用 4 字节即 32 位，1 位符号位 + 31 位数值位。范围为 -2^31 ~ 2^31-1，即 -2147483648 ~ 2147483647。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q2",
+            "type": "single",
+            "question": "2. 计算 (14₈ − 1010₂) × D₁₆ − 1101₂ 的结果，并选择答案的十进制值：（ ）。",
+            "options": [
+              {"value": "A", "label": "13"},
+              {"value": "B", "label": "14"},
+              {"value": "C", "label": "15"},
+              {"value": "D", "label": "16"}
+            ],
+            "answer": ["A"],
+            "analysis": "14₈=12, 1010₂=10, D₁₆=13, 1101₂=13。原式 = (12-10)×13-13 = 2×13-13 = 13。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q3",
+            "type": "single",
+            "question": "3. 某公司有 10 名员工，分为 3 个部门：A 部门有 4 名员工，B 部门有 3 名员工，C 部门有 3 名员工。现需要从这 10 名员工中选出 4 名组成一个工作组，且每个部门至少要有 1 人。问有多少种选择方式？（ ）",
+            "options": [
+              {"value": "A", "label": "120"},
+              {"value": "B", "label": "126"},
+              {"value": "C", "label": "132"},
+              {"value": "D", "label": "238"}
+            ],
+            "answer": ["B"],
+            "analysis": "必然有 1 个部门选 2 人，其余 2 个部门各选 1 人：A 部门选 2 人 C(4,2)×C(3,1)×C(3,1)=54；B 部门选 2 人 C(3,2)×C(4,1)×C(3,1)=36；C 部门选 2 人 C(3,2)×C(4,1)×C(3,1)=36；合计 54+36+36=126。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q4",
+            "type": "single",
+            "question": "4. 以下哪个序列对应数组 0 至 8 的 4 位二进制格雷码（Gray code）？（ ）",
+            "options": [
+              {"value": "A", "label": "0000, 0001, 0011, 0010, 0110, 0111, 0101, 1000"},
+              {"value": "B", "label": "0000, 0001, 0011, 0010, 0110, 0111, 0100, 0101"},
+              {"value": "C", "label": "0000, 0001, 0011, 0010, 0100, 0101, 0111, 0110"},
+              {"value": "D", "label": "0000, 0001, 0011, 0010, 0110, 0111, 0101, 0100"}
+            ],
+            "answer": ["D"],
+            "analysis": "格雷码的特点是任意两个相邻代码之间仅有一位二进制数不同。验证选项 D 相邻两位均只差一位。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q5",
+            "type": "single",
+            "question": "5. 记 1KB 为 1024 字节（byte），1MB 为 1024KB，那么 1MB 是多少二进制位（bit）？（ ）",
+            "options": [
+              {"value": "A", "label": "1000000"},
+              {"value": "B", "label": "1048576"},
+              {"value": "C", "label": "8000000"},
+              {"value": "D", "label": "8388608"}
+            ],
+            "answer": ["D"],
+            "analysis": "1MB = 1024×1024×8 = 8388608 bit。1 字节占 8 bit，1MB = 1024×1024 字节。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q6",
+            "type": "single",
+            "question": "6. 以下哪个不是 C++ 中的基本数据类型？（ ）",
+            "options": [
+              {"value": "A", "label": "int"},
+              {"value": "B", "label": "float"},
+              {"value": "C", "label": "struct"},
+              {"value": "D", "label": "char"}
+            ],
+            "answer": ["C"],
+            "analysis": "struct 属于复合数据类型（用户定义类型），不是基本数据类型。int、float、char 都是 C++ 的基本数据类型。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q7",
+            "type": "single",
+            "question": "7. 以下哪个不是 C++ 中的循环语句？（ ）",
+            "options": [
+              {"value": "A", "label": "for"},
+              {"value": "B", "label": "while"},
+              {"value": "C", "label": "do-while"},
+              {"value": "D", "label": "repeat-until"}
+            ],
+            "answer": ["D"],
+            "analysis": "C++ 的循环语句只有 for、while、do-while 三种。repeat-until 是 Pascal 等语言的循环语句，C++ 不支持。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q8",
+            "type": "single",
+            "question": "8. 在 C/C++ 中，(char)('a' + 13) 与下面的哪一个值相等？（ ）",
+            "options": [
+              {"value": "A", "label": "'m'"},
+              {"value": "B", "label": "'n'"},
+              {"value": "C", "label": "'z'"},
+              {"value": "D", "label": "'3'"}
+            ],
+            "answer": ["B"],
+            "analysis": "'a' 的 ASCII 码为 97，'a'+13 = 110，ASCII 码 110 对应字符 'n'。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q9",
+            "type": "single",
+            "question": "9. 假设有序表中有 1000 个元素，则用二分法查找元素 x 最多需要比较（ ）次。",
+            "options": [
+              {"value": "A", "label": "25"},
+              {"value": "B", "label": "10"},
+              {"value": "C", "label": "7"},
+              {"value": "D", "label": "1"}
+            ],
+            "answer": ["B"],
+            "analysis": "二分查找最多比较次数是 log₂(1000) 向上取整，⌈log₂(1000)⌉ = 10（因为 2^10=1024>1000）。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q10",
+            "type": "single",
+            "question": "10. 下面的哪一个不是操作系统名字？（ ）",
+            "options": [
+              {"value": "A", "label": "Notepad"},
+              {"value": "B", "label": "Linux"},
+              {"value": "C", "label": "Windows"},
+              {"value": "D", "label": "macOS"}
+            ],
+            "answer": ["A"],
+            "analysis": "Notepad 是 Windows 系统自带的文本编辑软件，不是操作系统。Linux、Windows、macOS 都是操作系统。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q11",
+            "type": "single",
+            "question": "11. 在无向图中，所有顶点的度数之和等于（ ）。",
+            "options": [
+              {"value": "A", "label": "图的边数"},
+              {"value": "B", "label": "图的边数的两倍"},
+              {"value": "C", "label": "图的顶点数"},
+              {"value": "D", "label": "图的顶点数的两倍"}
+            ],
+            "answer": ["B"],
+            "analysis": "无向图中每条边贡献 2 个度（两个端点各贡献 1），所以所有顶点度数之和 = 边数 × 2。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q12",
+            "type": "single",
+            "question": "12. 已知二叉树的前序遍历为 [A,B,D,E,C,F,G]，中序遍历为 [D,B,E,A,F,C,G]，请问该二叉树的后序遍历结果是？（ ）",
+            "options": [
+              {"value": "A", "label": "[D,E,B,F,G,C,A]"},
+              {"value": "B", "label": "[D,E,B,F,G,A,C]"},
+              {"value": "C", "label": "[D,B,E,F,G,C,A]"},
+              {"value": "D", "label": "[D,B,E,F,G,A,C]"}
+            ],
+            "answer": ["A"],
+            "analysis": "由前序遍历 A 是根，结合中序 [D,B,E,A,F,C,G] 可得左子树 [D,B,E]、右子树 [F,C,G]。递归还原后得到后序 [D,E,B,F,G,C,A]。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q13",
+            "type": "single",
+            "question": "13. 给定一个空栈，支持入栈和出栈操作。若入栈操作的元素依次是 1 2 3 4 5 6，其中 1 最先入栈，6 最后入栈，下面哪种出栈顺序是不可能的？（ ）",
+            "options": [
+              {"value": "A", "label": "6 5 4 3 2 1"},
+              {"value": "B", "label": "1 6 5 4 3 2"},
+              {"value": "C", "label": "2 4 6 5 3 1"},
+              {"value": "D", "label": "1 3 5 2 4 6"}
+            ],
+            "answer": ["D"],
+            "analysis": "验证 D：1 进 1 出，2 进 3 进 4 进 5 进，5 出时栈顶是 5（按 1-2-3-4-5 顺序入栈，栈顶为 5），但需要出 2（2 在栈底），不可能。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q14",
+            "type": "single",
+            "question": "14. 有 5 个男生和 3 个女生站成一排，规定 3 个女生必须相邻，问有多少种不同的排列方式？（ ）",
+            "options": [
+              {"value": "A", "label": "4320 种"},
+              {"value": "B", "label": "5040 种"},
+              {"value": "C", "label": "3600 种"},
+              {"value": "D", "label": "2880 种"}
+            ],
+            "answer": ["A"],
+            "analysis": "捆绑法：3 个女生捆绑看成一个整体，与 5 个男生共 6 个元素全排列 A(6,6)=720；3 个女生内部 A(3,3)=6；共 720×6=4320 种。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q15",
+            "type": "single",
+            "question": "15. 编译器的主要作用是什么？（ ）",
+            "options": [
+              {"value": "A", "label": "直接执行源代码"},
+              {"value": "B", "label": "将源代码转换为机器代码"},
+              {"value": "C", "label": "进行代码调试"},
+              {"value": "D", "label": "管理程序运行时的内存"}
+            ],
+            "answer": ["B"],
+            "analysis": "编译器（Compiler）的主要作用是将高级语言编写的源代码翻译（编译）成计算机能直接执行的机器代码。",
+            "points": 2,
+            "hasAnswer": true
+          }
+        ]
+      },
+      "actions": [],
+      "multiAgent": {"enabled": false, "agentIds": []},
+      "createdAt": 1753411200000,
+      "updatedAt": 1753411200000
+    },
+    {
+      "id": "sc_cspj24j_read1",
+      "stageId": "cm_imp_cspj2024j_v1",
+      "type": "quiz",
+      "title": "二、阅读程序（1）：质数统计（判断题 1.5 分 ×3 + 单选题 3 分 ×2 = 10.5 分）",
+      "order": 2,
+      "content": {
+        "type": "quiz",
+        "questions": [
+          {
+            "id": "r1q1",
+            "type": "single",
+            "question": "阅读下面程序代码：\n\n```cpp\n#include <iostream>\nusing namespace std;\nbool isPrime(int n) {\n    if (n <= 1) return false;\n    for (int i = 2; i * i <= n; i++) {\n        if (n % i == 0) return false;\n    }\n    return true;\n}\nint countPrimes(int n) {\n    int count = 0;\n    for (int i = 2; i <= n; i++) {\n        if (isPrime(i)) count++;\n    }\n    return count;\n}\nint sumPrimes(int n) {\n    int sum = 0;\n    for (int i = 2; i <= n; i++) {\n        if (isPrime(i)) sum += i;\n    }\n    return sum;\n}\nint main() {\n    int x;\n    cin >> x;\n    cout << countPrimes(x) << \" \" << sumPrimes(x) << endl;\n    return 0;\n}\n```\n\n假设输入的所有数都为不超过 1000 的正整数。\n\n**16. 当输入为 10 时，程序的第一个输出为 4，第二个输出为 17。（  ）**",
+            "options": [
+              {"value": "A", "label": "正确（√）"},
+              {"value": "B", "label": "错误（×）"}
+            ],
+            "answer": ["A"],
+            "analysis": "10 以内的质数有 2,3,5,7 共 4 个；质数之和 = 2+3+5+7 = 17。本题正确。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "r1q2",
+            "type": "single",
+            "question": "**17. 若将 isPrime(i) 函数中的条件改为 i <= n/2，输入 20 时，countPrimes(20) 的输出将变为 6。（  ）**",
+            "options": [
+              {"value": "A", "label": "正确（√）"},
+              {"value": "B", "label": "错误（×）"}
+            ],
+            "answer": ["B"],
+            "analysis": "20 以内的质数有 2,3,5,7,11,13,17,19 共 8 个。把 i*i<=n 改成 i<=n/2 只是把√n优化还原成n/2版本，枚举到 n/2 仍然能正确判断质数，输出结果不变（仍为 8）。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "r1q3",
+            "type": "single",
+            "question": "**18. sumPrimes 函数计算的是从 2 到 n 之间的所有素数之和。（  ）**",
+            "options": [
+              {"value": "A", "label": "正确（√）"},
+              {"value": "B", "label": "错误（×）"}
+            ],
+            "answer": ["A"],
+            "analysis": "sumPrimes 函数遍历 2 到 n，把所有 isPrime(i) 为 true 的 i 累加，含义是从 2 到 n 的素数之和。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "r1q4",
+            "type": "single",
+            "question": "**19. 当输入为 50 时，sumPrimes(50) 的输出为（ ）。**",
+            "options": [
+              {"value": "A", "label": "1060"},
+              {"value": "B", "label": "328"},
+              {"value": "C", "label": "381"},
+              {"value": "D", "label": "275"}
+            ],
+            "answer": ["B"],
+            "analysis": "50 以内的质数有 2,3,5,7,11,13,17,19,23,29,31,37,41,43,47，求和 = 328。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "r1q5",
+            "type": "single",
+            "question": "**20. 如果将 for(int i = 2; i*i <= n; i++) 改为 for(int i = 2; i <= n; i++)，输入 10 时，程序的输出（ ）。**",
+            "options": [
+              {"value": "A", "label": "将不能正确计算 10 以内素数个数及其和"},
+              {"value": "B", "label": "仍然输出 4 和 17"},
+              {"value": "C", "label": "输出 3 和 10"},
+              {"value": "D", "label": "输出结果不变，但运行时间更短"}
+            ],
+            "answer": ["A"],
+            "analysis": "改成 i<=n 后，当 i=n 时 n%i 必为 0，导致每个数字都被判断为非素数，不能正确计算 10 以内素数个数及其和。",
+            "points": 3,
+            "hasAnswer": true
+          }
+        ]
+      },
+      "actions": [],
+      "multiAgent": {"enabled": false, "agentIds": []},
+      "createdAt": 1753411200000,
+      "updatedAt": 1753411200000
+    },
+    {
+      "id": "sc_cspj24j_read2",
+      "stageId": "cm_imp_cspj2024j_v1",
+      "type": "quiz",
+      "title": "三、阅读程序（2）：爬楼梯最小花费（判断题 1.5 分 ×2 + 单选题 3 分 ×4 = 16.5 分）",
+      "order": 3,
+      "content": {
+        "type": "quiz",
+        "questions": [
+          {
+            "id": "r2q1",
+            "type": "single",
+            "question": "阅读下面程序代码：\n\n```cpp\n#include <iostream>\n#include <vector>\nusing namespace std;\n\nint compute(vector<int> &cost) {\n    int n = cost.size();\n    vector<int> dp(n + 1, 0);\n    dp[1] = cost[0];\n    for (int i = 2; i <= n; i++) {\n        dp[i] = min(dp[i - 1], dp[i - 2]) + cost[i - 1];\n    }\n    return min(dp[n], dp[n - 1]);\n}\n\nint main() {\n    int n;\n    cin >> n;\n    vector<int> cost(n);\n    for (int i = 0; i < n; i++) {\n        cin >> cost[i];\n    }\n    cout << compute(cost) << endl;\n    return 0;\n}\n```\n\n**21. 当输入的 cost 数组为 {10, 15, 20} 时，程序的输出为 15。（  ）**",
+            "options": [
+              {"value": "A", "label": "正确（√）"},
+              {"value": "B", "label": "错误（×）"}
+            ],
+            "answer": ["A"],
+            "analysis": "n=3，dp[1]=10, dp[2]=min(10,0)+15=15, dp[3]=min(15,10)+20=30，最终返回 min(dp[3], dp[2]) = min(30, 15) = 15。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "r2q2",
+            "type": "single",
+            "question": "**22. 如果将 dp[i-1] 改为 dp[i-3]，程序可能会产生编译错误。（  ）**",
+            "options": [
+              {"value": "A", "label": "正确（√）"},
+              {"value": "B", "label": "错误（×）"}
+            ],
+            "answer": ["B"],
+            "analysis": "不会产生编译错误，数组下标为负数时会产生运行时错误（数组越界）。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "r2q3",
+            "type": "single",
+            "question": "**23. （2 分）程序总是输出 cost 数组中的最小的元素。（  ）**",
+            "options": [
+              {"value": "A", "label": "正确（√）"},
+              {"value": "B", "label": "错误（×）"}
+            ],
+            "answer": ["B"],
+            "analysis": "程序计算的是爬楼梯的最小花费路径和，并不是简单输出最小元素。例如 cost={1,100,1} 时，min 元素是 1，但程序输出是 2。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "r2q4",
+            "type": "single",
+            "question": "**24. 当输入的 cost 数组为 {1, 100, 1, 1, 1, 100, 1, 1, 100, 1} 时，程序的输出为（ ）。**",
+            "options": [
+              {"value": "A", "label": "6"},
+              {"value": "B", "label": "7"},
+              {"value": "C", "label": "8"},
+              {"value": "D", "label": "9"}
+            ],
+            "answer": ["A"],
+            "analysis": "n=10，dp[1]=1, dp[2]=2, dp[3]=3, dp[4]=4, dp[5]=5, dp[6]=104, dp[7]=6, dp[8]=7, dp[9]=107, dp[10]=8，返回 min(dp[10], dp[9]) = min(8, 107) = 6。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "r2q5",
+            "type": "single",
+            "question": "**25. （4 分）如果输入的 cost 数组为 {10, 15, 30, 5, 5, 10, 20}，程序的输出为（ ）。**",
+            "options": [
+              {"value": "A", "label": "25"},
+              {"value": "B", "label": "30"},
+              {"value": "C", "label": "35"},
+              {"value": "D", "label": "40"}
+            ],
+            "answer": ["B"],
+            "analysis": "n=7，dp[1]=10, dp[2]=25, dp[3]=35, dp[4]=30, dp[5]=35, dp[6]=40, dp[7]=55，返回 min(dp[7], dp[6]) = min(55, 40) = 30。",
+            "points": 4,
+            "hasAnswer": true
+          },
+          {
+            "id": "r2q6",
+            "type": "single",
+            "question": "**26. 若将代码中的 min(dp[i-1], dp[i-2]) + cost[i-1] 修改为 dp[i-1] + cost[i-2]，输入 cost 数组为 {5, 10, 15} 时，程序的输出为（ ）。**",
+            "options": [
+              {"value": "A", "label": "10"},
+              {"value": "B", "label": "15"},
+              {"value": "C", "label": "20"},
+              {"value": "D", "label": "25"}
+            ],
+            "answer": ["A"],
+            "analysis": "n=3，dp[1]=5, dp[2]=dp[1]+cost[0]=5+5=10, dp[3]=dp[2]+cost[1]=10+10=20，返回 min(dp[3], dp[2]) = min(20, 10) = 10。",
+            "points": 3,
+            "hasAnswer": true
+          }
+        ]
+      },
+      "actions": [],
+      "multiAgent": {"enabled": false, "agentIds": []},
+      "createdAt": 1753411200000,
+      "updatedAt": 1753411200000
+    },
+    {
+      "id": "sc_cspj24j_read3",
+      "stageId": "cm_imp_cspj2024j_v1",
+      "type": "quiz",
+      "title": "四、阅读程序（3）：递归求和（判断题 1.5 分 ×3 + 单选题 3 分 ×3 = 13.5 分）",
+      "order": 4,
+      "content": {
+        "type": "quiz",
+        "questions": [
+          {
+            "id": "r3q1",
+            "type": "single",
+            "question": "阅读下面程序代码：\n\n```cpp\n#include <iostream>\n#include <cmath>\nusing namespace std;\n\nint customFunction(int a, int b) {\n    if (b == 0) {\n        return a;\n    }\n    return a + customFunction(a, b - 1);\n}\n\nint main() {\n    int x, y;\n    cin >> x >> y;\n    int result = customFunction(x, y);\n    cout << pow(result, 2) << endl;\n    return 0;\n}\n```\n\ncustomFunction 函数计算的是 (b+1) 个 a 相加的结果，最后输出是 customFunction 结果的平方。\n\n**27. 当输入为 \"2 3\" 时，customFunction(2, 3) 的返回值为 64。（  ）**",
+            "options": [
+              {"value": "A", "label": "正确（√）"},
+              {"value": "B", "label": "错误（×）"}
+            ],
+            "answer": ["B"],
+            "analysis": "customFunction(2,3) = 2+2+2+2 = 8（4 个 2 相加），返回 8 不是 64。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "r3q2",
+            "type": "single",
+            "question": "**28. 当 b 为负数时，customFunction(a, b) 会陷入无限递归。（  ）**",
+            "options": [
+              {"value": "A", "label": "正确（√）"},
+              {"value": "B", "label": "错误（×）"}
+            ],
+            "answer": ["A"],
+            "analysis": "b 为负数时 b 永远不等于 0，递归调用时 b-1 始终为负数，递归无法终止，陷入无限递归。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "r3q3",
+            "type": "single",
+            "question": "**29. 当 b 的值越大，程序的运行时间越长。（  ）**",
+            "options": [
+              {"value": "A", "label": "正确（√）"},
+              {"value": "B", "label": "错误（×）"}
+            ],
+            "answer": ["A"],
+            "analysis": "b 越大，递归调用次数越多，程序的运行时间越长。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "r3q4",
+            "type": "single",
+            "question": "**30. 当输入为 \"5 4\" 时，customFunction(5, 4) 的返回值为（ ）。**",
+            "options": [
+              {"value": "A", "label": "5"},
+              {"value": "B", "label": "25"},
+              {"value": "C", "label": "250"},
+              {"value": "D", "label": "625"}
+            ],
+            "answer": ["B"],
+            "analysis": "customFunction(5,4) = 5+5+5+5+5 = 25（5 个 5 相加）。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "r3q5",
+            "type": "single",
+            "question": "**31. 如果输入 x = 3 和 y = 3，则程序的最终输出为（ ）。**",
+            "options": [
+              {"value": "A", "label": "27"},
+              {"value": "B", "label": "81"},
+              {"value": "C", "label": "144"},
+              {"value": "D", "label": "256"}
+            ],
+            "answer": ["C"],
+            "analysis": "customFunction(3,3) = 3+3+3+3 = 12，最终输出 12² = 144。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "r3q6",
+            "type": "single",
+            "question": "**32. （4 分）若将 customFunction 函数改为 `return a + customFunction(a-1, b-1)`，并输入 \"3 3\"，则程序的最终输出为（ ）。**",
+            "options": [
+              {"value": "A", "label": "9"},
+              {"value": "B", "label": "16"},
+              {"value": "C", "label": "25"},
+              {"value": "D", "label": "36"}
+            ],
+            "answer": ["D"],
+            "analysis": "改后计算的是 3+2+1 = 6（3 个数相加），最终输出 6² = 36。",
+            "points": 4,
+            "hasAnswer": true
+          }
+        ]
+      },
+      "actions": [],
+      "multiAgent": {"enabled": false, "agentIds": []},
+      "createdAt": 1753411200000,
+      "updatedAt": 1753411200000
+    },
+    {
+      "id": "sc_cspj24j_perfect1",
+      "stageId": "cm_imp_cspj2024j_v1",
+      "type": "quiz",
+      "title": "五、完善程序（1）：判断完全平方数（每空 3 分，共 15 分）",
+      "order": 5,
+      "content": {
+        "type": "quiz",
+        "questions": [
+          {
+            "id": "p1_intro",
+            "type": "single",
+            "question": "**题目描述**\n\n给定一个正整数 n，判断这个数是不是完全平方数，即存在一个正整数 x 使得 x 的平方等于 n。\n\n```cpp\n#include <iostream>\n#include <vector>\nusing namespace std;\n\nbool isSquare(int num) {\n    int i = (1) ;\n    int bound = (2) ;\n    for(; i <= bound; ++i) {\n        if( (3) ) {\n            return (4) ;\n        }\n    }\n    return (5) ;\n}\n\nint main() {\n    int n;\n    cin >> n;\n    if(isSquare(n)) {\n        cout << n << \" is a Square number\" << endl;\n    } else {\n        cout << n << \" is not a Square number\" << endl;\n    }\n}\n```\n\n请补全程序中 ① ~ ⑤ 处的空。",
+            "options": [
+              {"value": "A", "label": "已阅读题目，进入作答"}
+            ],
+            "answer": ["A"],
+            "analysis": "本题判断 num 是否为完全平方数。从 1 遍历到 sqrt(num)，若存在 i*i==num 则返回 true，否则遍历结束返回 false。",
+            "points": 0,
+            "hasAnswer": true
+          },
+          {
+            "id": "p1q1",
+            "type": "single",
+            "question": "**33. ① 处应填（ ）。**",
+            "options": [
+              {"value": "A", "label": "1"},
+              {"value": "B", "label": "2"},
+              {"value": "C", "label": "3"},
+              {"value": "D", "label": "4"}
+            ],
+            "answer": ["A"],
+            "analysis": "i 应从 1 开始遍历（i=0 不需要检测 0²，且 num 是正整数）。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p1q2",
+            "type": "single",
+            "question": "**34. ② 处应填（ ）。**",
+            "options": [
+              {"value": "A", "label": "(int)floor(sqrt(num) - 1)"},
+              {"value": "B", "label": "(int)floor(sqrt(num))"},
+              {"value": "C", "label": "floor(sqrt(num / 2)) - 1"},
+              {"value": "D", "label": "floor(sqrt(num / 2))"}
+            ],
+            "answer": ["B"],
+            "analysis": "枚举上界为 sqrt(num)，即 i*i <= num，等价于 i <= sqrt(num)。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p1q3",
+            "type": "single",
+            "question": "**35. ③ 处应填（ ）。**",
+            "options": [
+              {"value": "A", "label": "num = 2 * i"},
+              {"value": "B", "label": "num == 2 * i"},
+              {"value": "C", "label": "num = i * i"},
+              {"value": "D", "label": "num == i * i"}
+            ],
+            "answer": ["D"],
+            "analysis": "判断 num 是否等于 i*i（完全平方数定义）。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p1q4",
+            "type": "single",
+            "question": "**36. ④ 处应填（ ）。**",
+            "options": [
+              {"value": "A", "label": "num = 2 * i"},
+              {"value": "B", "label": "num == 2 * i"},
+              {"value": "C", "label": "true"},
+              {"value": "D", "label": "false"}
+            ],
+            "answer": ["C"],
+            "analysis": "找到 i*i==num 时说明 num 是完全平方数，返回 true。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p1q5",
+            "type": "single",
+            "question": "**37. ⑤ 处应填（ ）。**",
+            "options": [
+              {"value": "A", "label": "num = i * i"},
+              {"value": "B", "label": "num != 2 * i"},
+              {"value": "C", "label": "true"},
+              {"value": "D", "label": "false"}
+            ],
+            "answer": ["D"],
+            "analysis": "遍历结束没有找到 i*i==num，说明不是完全平方数，返回 false。",
+            "points": 3,
+            "hasAnswer": true
+          }
+        ]
+      },
+      "actions": [],
+      "multiAgent": {"enabled": false, "agentIds": []},
+      "createdAt": 1753411200000,
+      "updatedAt": 1753411200000
+    },
+    {
+      "id": "sc_cspj24j_hanoi2",
+      "stageId": "cm_imp_cspj2024j_v1",
+      "type": "quiz",
+      "title": "六、完善程序（2）：汉诺塔问题（每空 3 分，共 15 分）",
+      "order": 6,
+      "content": {
+        "type": "quiz",
+        "questions": [
+          {
+            "id": "p2_intro",
+            "type": "single",
+            "question": "**题目描述**\n\n给定三根柱子，分别标记为 A、B 和 C。初始状态下，柱子 A 上有若干个圆盘，这些圆盘从上到下按从小到大的顺序排列。任务是将这些圆盘全部移到柱子 C 上，且必须保持原有顺序不变。移动规则：\n\n1. 只能从一根柱子的顶部取出圆盘，并将其放入另一根柱子的顶部。\n2. 每次只能移动一个圆盘。\n3. 小圆盘必须始终在大圆盘之上。\n\n```cpp\n#include <bits/stdc++.h>\nusing namespace std;\n\nvoid move(char src, char tgt) {\n    cout << \"从柱子\" << src << \"挪到柱子上\" << tgt << endl;\n}\n\nvoid dfs(int i, char src, char tmp, char tgt) {\n    if (i == (1) ) {\n        move( (2) );\n        return;\n    }\n    dfs(i - 1, (3) );\n    move(src, tgt);\n    dfs( (5) , (4) );\n}\n\nint main() {\n    int n;\n    cin >> n;\n    dfs(n, 'A', 'B', 'C');\n}\n```\n\n请补全程序中 ① ~ ⑤ 处的空。",
+            "options": [
+              {"value": "A", "label": "已阅读题目，进入作答"}
+            ],
+            "answer": ["A"],
+            "analysis": "汉诺塔经典递归：dfs(i, src, tmp, tgt) 表示将 i 个盘子从 src 经 tmp 移到 tgt；递归终止条件 i==1，递归体先移上面 i-1 个盘子，再移最底下的盘子，最后把 i-1 个盘子从 tmp 移到 tgt。",
+            "points": 0,
+            "hasAnswer": true
+          },
+          {
+            "id": "p2q1",
+            "type": "single",
+            "question": "**38. ① 处应填（ ）。**",
+            "options": [
+              {"value": "A", "label": "0"},
+              {"value": "B", "label": "1"},
+              {"value": "C", "label": "2"},
+              {"value": "D", "label": "3"}
+            ],
+            "answer": ["B"],
+            "analysis": "递归终止条件：只有一个盘子时直接移动，所以 i==1 时退出递归。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p2q2",
+            "type": "single",
+            "question": "**39. ② 处应填（ ）。**",
+            "options": [
+              {"value": "A", "label": "src, tmp"},
+              {"value": "B", "label": "src, tgt"},
+              {"value": "C", "label": "tmp, tgt"},
+              {"value": "D", "label": "tgt, tmp"}
+            ],
+            "answer": ["B"],
+            "analysis": "只剩一个盘子时直接从 src 移到 tgt。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p2q3",
+            "type": "single",
+            "question": "**40. ③ 处应填（ ）。**",
+            "options": [
+              {"value": "A", "label": "src, tmp, tgt"},
+              {"value": "B", "label": "src, tgt, tmp"},
+              {"value": "C", "label": "tgt, tmp, src"},
+              {"value": "D", "label": "tgt, src, tmp"}
+            ],
+            "answer": ["B"],
+            "analysis": "先把上面 i-1 个盘子从 src 移到 tmp（经 tgt 中转），所以是 src, tgt, tmp。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p2q4",
+            "type": "single",
+            "question": "**41. ④ 处应填（ ）。**",
+            "options": [
+              {"value": "A", "label": "src, tmp, tgt"},
+              {"value": "B", "label": "tmp, src, tgt"},
+              {"value": "C", "label": "src, tgt, tmp"},
+              {"value": "D", "label": "tgt, src, tmp"}
+            ],
+            "answer": ["B"],
+            "analysis": "把 i-1 个盘子从 tmp 移到 tgt（经 src 中转），所以是 tmp, src, tgt。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p2q5",
+            "type": "single",
+            "question": "**42. ⑤ 处应填（ ）。**",
+            "options": [
+              {"value": "A", "label": "0"},
+              {"value": "B", "label": "1"},
+              {"value": "C", "label": "i - 1"},
+              {"value": "D", "label": "i"}
+            ],
+            "answer": ["C"],
+            "analysis": "递归调用移动 i-1 个盘子，盘子数为 i-1。",
+            "points": 3,
+            "hasAnswer": true
+          }
+        ]
+      },
+      "actions": [],
+      "multiAgent": {"enabled": false, "agentIds": []},
+      "createdAt": 1753411200000,
+      "updatedAt": 1753411200000
+    }
+  ]
+}
