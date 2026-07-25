@@ -110,7 +110,47 @@ export interface SlideContent {
  */
 export interface QuizContent {
   type: 'quiz';
+  /**
+   * Optional shared code block rendered once above the question
+   * list. Used by code-reading ("阅读程序") and code-completion
+   * ("完善程序") scenes in CSP exam papers where the same
+   * program listing is referenced by multiple questions — keeps
+   * the JSON DRY and lets the renderer draw a single, properly
+   * line-numbered, paper-style code block instead of repeating
+   * the code in every question's `question` string.
+   */
+  codeBlock?: QuizCodeBlock;
   questions: QuizQuestion[];
+}
+
+/**
+ * Shared code listing displayed once above the question list.
+ * `lines[]` is the canonical, line-by-line source. The renderer
+ * prepends a 1-based line number gutter (or `startLine` if set)
+ * so the student can refer to "line 12" the same way the exam
+ * paper does. We intentionally do NOT parse a fenced code block
+ * out of the question string — that was the v0 approach and it
+ * broke for any scene that wanted real line numbers.
+ */
+export interface QuizCodeBlock {
+  /** Programming language hint, e.g. "cpp", "c", "python". Used for label only. */
+  language: string;
+  /** Optional heading shown above the code (e.g. "阅读程序（1）：质数统计"). */
+  title?: string;
+  /** Optional description shown above (or below) the code — e.g. problem preamble. */
+  description?: string;
+  /**
+   * Source lines in order. May be empty (no code block) but
+   * should typically contain at least one line if the field is
+   * present. Whitespace and indentation are preserved verbatim.
+   */
+  lines: string[];
+  /**
+   * 1-based first line number. Defaults to 1. Set this when the
+   * program is a fragment of a larger file or when the paper
+   * already numbers lines starting at a non-1 value.
+   */
+  startLine?: number;
 }
 
 export interface QuizOption {

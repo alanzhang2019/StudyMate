@@ -20,7 +20,17 @@ export function SceneRenderer({ scene, mode }: SceneRendererProps) {
         return <SlideRenderer mode={mode} />;
       case 'quiz':
         if (scene.content.type !== 'quiz') return <div>Invalid quiz content</div>;
-        return <QuizView key={scene.id} questions={scene.content.questions} sceneId={scene.id} />;
+        // Pass `codeBlock` (if any) through to QuizView — for code-reading
+        // ("阅读程序") and code-completion ("完善程序") scenes, the program
+        // listing is rendered once above the question list, paper-style.
+        return (
+          <QuizView
+            key={scene.id}
+            questions={scene.content.questions}
+            sceneId={scene.id}
+            codeBlock={scene.content.codeBlock}
+          />
+        );
       case 'interactive':
         if (scene.content.type !== 'interactive') return <div>Invalid interactive content</div>;
         return <InteractiveRenderer content={scene.content} sceneId={scene.id} />;

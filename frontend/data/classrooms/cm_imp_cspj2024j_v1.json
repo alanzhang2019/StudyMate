@@ -285,11 +285,48 @@
       "order": 2,
       "content": {
         "type": "quiz",
+        "codeBlock": {
+          "language": "cpp",
+          "title": "阅读程序（1）：质数统计",
+          "description": "假设输入的所有数都为不超过 1000 的正整数。",
+          "startLine": 1,
+          "lines": [
+            "#include <iostream>",
+            "using namespace std;",
+            "bool isPrime(int n) {",
+            "    if (n <= 1) return false;",
+            "    for (int i = 2; i * i <= n; i++) {",
+            "        if (n % i == 0) return false;",
+            "    }",
+            "    return true;",
+            "}",
+            "int countPrimes(int n) {",
+            "    int count = 0;",
+            "    for (int i = 2; i <= n; i++) {",
+            "        if (isPrime(i)) count++;",
+            "    }",
+            "    return count;",
+            "}",
+            "int sumPrimes(int n) {",
+            "    int sum = 0;",
+            "    for (int i = 2; i <= n; i++) {",
+            "        if (isPrime(i)) sum += i;",
+            "    }",
+            "    return sum;",
+            "}",
+            "int main() {",
+            "    int x;",
+            "    cin >> x;",
+            "    cout << countPrimes(x) << \" \" << sumPrimes(x) << endl;",
+            "    return 0;",
+            "}"
+          ]
+        },
         "questions": [
           {
             "id": "r1q1",
             "type": "single",
-            "question": "阅读下面程序代码：\n\n```cpp\n#include <iostream>\nusing namespace std;\nbool isPrime(int n) {\n    if (n <= 1) return false;\n    for (int i = 2; i * i <= n; i++) {\n        if (n % i == 0) return false;\n    }\n    return true;\n}\nint countPrimes(int n) {\n    int count = 0;\n    for (int i = 2; i <= n; i++) {\n        if (isPrime(i)) count++;\n    }\n    return count;\n}\nint sumPrimes(int n) {\n    int sum = 0;\n    for (int i = 2; i <= n; i++) {\n        if (isPrime(i)) sum += i;\n    }\n    return sum;\n}\nint main() {\n    int x;\n    cin >> x;\n    cout << countPrimes(x) << \" \" << sumPrimes(x) << endl;\n    return 0;\n}\n```\n\n假设输入的所有数都为不超过 1000 的正整数。\n\n**16. 当输入为 10 时，程序的第一个输出为 4，第二个输出为 17。（  ）**",
+            "question": "16. 当输入为 10 时，程序的第一个输出为 4，第二个输出为 17。（  ）",
             "options": [
               {"value": "A", "label": "正确（√）"},
               {"value": "B", "label": "错误（×）"}
@@ -302,7 +339,7 @@
           {
             "id": "r1q2",
             "type": "single",
-            "question": "**17. 若将 isPrime(i) 函数中的条件改为 i <= n/2，输入 20 时，countPrimes(20) 的输出将变为 6。（  ）**",
+            "question": "17. 若将 isPrime(i) 函数中的条件改为 i <= n/2，输入 20 时，countPrimes(20) 的输出将变为 6。（  ）",
             "options": [
               {"value": "A", "label": "正确（√）"},
               {"value": "B", "label": "错误（×）"}
@@ -315,7 +352,7 @@
           {
             "id": "r1q3",
             "type": "single",
-            "question": "**18. sumPrimes 函数计算的是从 2 到 n 之间的所有素数之和。（  ）**",
+            "question": "18. sumPrimes 函数计算的是从 2 到 n 之间的所有素数之和。（  ）",
             "options": [
               {"value": "A", "label": "正确（√）"},
               {"value": "B", "label": "错误（×）"}
@@ -328,7 +365,7 @@
           {
             "id": "r1q4",
             "type": "single",
-            "question": "**19. 当输入为 50 时，sumPrimes(50) 的输出为（ ）。**",
+            "question": "19. 当输入为 50 时，sumPrimes(50) 的输出为（ ）。",
             "options": [
               {"value": "A", "label": "1060"},
               {"value": "B", "label": "328"},
@@ -343,7 +380,7 @@
           {
             "id": "r1q5",
             "type": "single",
-            "question": "**20. 如果将 for(int i = 2; i*i <= n; i++) 改为 for(int i = 2; i <= n; i++)，输入 10 时，程序的输出（ ）。**",
+            "question": "20. 如果将 for(int i = 2; i*i <= n; i++) 改为 for(int i = 2; i <= n; i++)，输入 10 时，程序的输出（ ）。",
             "options": [
               {"value": "A", "label": "将不能正确计算 10 以内素数个数及其和"},
               {"value": "B", "label": "仍然输出 4 和 17"},
@@ -370,11 +407,43 @@
       "order": 3,
       "content": {
         "type": "quiz",
+        "codeBlock": {
+          "language": "cpp",
+          "title": "阅读程序（2）：爬楼梯最小花费",
+          "description": "",
+          "startLine": 1,
+          "lines": [
+            "#include <iostream>",
+            "#include <vector>",
+            "using namespace std;",
+            "",
+            "int compute(vector<int> &cost) {",
+            "    int n = cost.size();",
+            "    vector<int> dp(n + 1, 0);",
+            "    dp[1] = cost[0];",
+            "    for (int i = 2; i <= n; i++) {",
+            "        dp[i] = min(dp[i - 1], dp[i - 2]) + cost[i - 1];",
+            "    }",
+            "    return min(dp[n], dp[n - 1]);",
+            "}",
+            "",
+            "int main() {",
+            "    int n;",
+            "    cin >> n;",
+            "    vector<int> cost(n);",
+            "    for (int i = 0; i < n; i++) {",
+            "        cin >> cost[i];",
+            "    }",
+            "    cout << compute(cost) << endl;",
+            "    return 0;",
+            "}"
+          ]
+        },
         "questions": [
           {
             "id": "r2q1",
             "type": "single",
-            "question": "阅读下面程序代码：\n\n```cpp\n#include <iostream>\n#include <vector>\nusing namespace std;\n\nint compute(vector<int> &cost) {\n    int n = cost.size();\n    vector<int> dp(n + 1, 0);\n    dp[1] = cost[0];\n    for (int i = 2; i <= n; i++) {\n        dp[i] = min(dp[i - 1], dp[i - 2]) + cost[i - 1];\n    }\n    return min(dp[n], dp[n - 1]);\n}\n\nint main() {\n    int n;\n    cin >> n;\n    vector<int> cost(n);\n    for (int i = 0; i < n; i++) {\n        cin >> cost[i];\n    }\n    cout << compute(cost) << endl;\n    return 0;\n}\n```\n\n**21. 当输入的 cost 数组为 {10, 15, 20} 时，程序的输出为 15。（  ）**",
+            "question": "21. 当输入的 cost 数组为 {10, 15, 20} 时，程序的输出为 15。（  ）",
             "options": [
               {"value": "A", "label": "正确（√）"},
               {"value": "B", "label": "错误（×）"}
@@ -387,7 +456,7 @@
           {
             "id": "r2q2",
             "type": "single",
-            "question": "**22. 如果将 dp[i-1] 改为 dp[i-3]，程序可能会产生编译错误。（  ）**",
+            "question": "22. 如果将 dp[i-1] 改为 dp[i-3]，程序可能会产生编译错误。（  ）",
             "options": [
               {"value": "A", "label": "正确（√）"},
               {"value": "B", "label": "错误（×）"}
@@ -400,7 +469,7 @@
           {
             "id": "r2q3",
             "type": "single",
-            "question": "**23. （2 分）程序总是输出 cost 数组中的最小的元素。（  ）**",
+            "question": "23. （2 分）程序总是输出 cost 数组中的最小的元素。（  ）",
             "options": [
               {"value": "A", "label": "正确（√）"},
               {"value": "B", "label": "错误（×）"}
@@ -413,7 +482,7 @@
           {
             "id": "r2q4",
             "type": "single",
-            "question": "**24. 当输入的 cost 数组为 {1, 100, 1, 1, 1, 100, 1, 1, 100, 1} 时，程序的输出为（ ）。**",
+            "question": "24. 当输入的 cost 数组为 {1, 100, 1, 1, 1, 100, 1, 1, 100, 1} 时，程序的输出为（ ）。",
             "options": [
               {"value": "A", "label": "6"},
               {"value": "B", "label": "7"},
@@ -428,7 +497,7 @@
           {
             "id": "r2q5",
             "type": "single",
-            "question": "**25. （4 分）如果输入的 cost 数组为 {10, 15, 30, 5, 5, 10, 20}，程序的输出为（ ）。**",
+            "question": "25. （4 分）如果输入的 cost 数组为 {10, 15, 30, 5, 5, 10, 20}，程序的输出为（ ）。",
             "options": [
               {"value": "A", "label": "25"},
               {"value": "B", "label": "30"},
@@ -443,7 +512,7 @@
           {
             "id": "r2q6",
             "type": "single",
-            "question": "**26. 若将代码中的 min(dp[i-1], dp[i-2]) + cost[i-1] 修改为 dp[i-1] + cost[i-2]，输入 cost 数组为 {5, 10, 15} 时，程序的输出为（ ）。**",
+            "question": "26. 若将代码中的 min(dp[i-1], dp[i-2]) + cost[i-1] 修改为 dp[i-1] + cost[i-2]，输入 cost 数组为 {5, 10, 15} 时，程序的输出为（ ）。",
             "options": [
               {"value": "A", "label": "10"},
               {"value": "B", "label": "15"},
@@ -470,11 +539,37 @@
       "order": 4,
       "content": {
         "type": "quiz",
+        "codeBlock": {
+          "language": "cpp",
+          "title": "阅读程序（3）：递归求和",
+          "description": "customFunction 函数计算的是 (b+1) 个 a 相加的结果，最后输出是 customFunction 结果的平方。",
+          "startLine": 1,
+          "lines": [
+            "#include <iostream>",
+            "#include <cmath>",
+            "using namespace std;",
+            "",
+            "int customFunction(int a, int b) {",
+            "    if (b == 0) {",
+            "        return a;",
+            "    }",
+            "    return a + customFunction(a, b - 1);",
+            "}",
+            "",
+            "int main() {",
+            "    int x, y;",
+            "    cin >> x >> y;",
+            "    int result = customFunction(x, y);",
+            "    cout << pow(result, 2) << endl;",
+            "    return 0;",
+            "}"
+          ]
+        },
         "questions": [
           {
             "id": "r3q1",
             "type": "single",
-            "question": "阅读下面程序代码：\n\n```cpp\n#include <iostream>\n#include <cmath>\nusing namespace std;\n\nint customFunction(int a, int b) {\n    if (b == 0) {\n        return a;\n    }\n    return a + customFunction(a, b - 1);\n}\n\nint main() {\n    int x, y;\n    cin >> x >> y;\n    int result = customFunction(x, y);\n    cout << pow(result, 2) << endl;\n    return 0;\n}\n```\n\ncustomFunction 函数计算的是 (b+1) 个 a 相加的结果，最后输出是 customFunction 结果的平方。\n\n**27. 当输入为 \"2 3\" 时，customFunction(2, 3) 的返回值为 64。（  ）**",
+            "question": "27. 当输入为 \"2 3\" 时，customFunction(2, 3) 的返回值为 64。（  ）",
             "options": [
               {"value": "A", "label": "正确（√）"},
               {"value": "B", "label": "错误（×）"}
@@ -487,7 +582,7 @@
           {
             "id": "r3q2",
             "type": "single",
-            "question": "**28. 当 b 为负数时，customFunction(a, b) 会陷入无限递归。（  ）**",
+            "question": "28. 当 b 为负数时，customFunction(a, b) 会陷入无限递归。（  ）",
             "options": [
               {"value": "A", "label": "正确（√）"},
               {"value": "B", "label": "错误（×）"}
@@ -500,7 +595,7 @@
           {
             "id": "r3q3",
             "type": "single",
-            "question": "**29. 当 b 的值越大，程序的运行时间越长。（  ）**",
+            "question": "29. 当 b 的值越大，程序的运行时间越长。（  ）",
             "options": [
               {"value": "A", "label": "正确（√）"},
               {"value": "B", "label": "错误（×）"}
@@ -513,7 +608,7 @@
           {
             "id": "r3q4",
             "type": "single",
-            "question": "**30. 当输入为 \"5 4\" 时，customFunction(5, 4) 的返回值为（ ）。**",
+            "question": "30. 当输入为 \"5 4\" 时，customFunction(5, 4) 的返回值为（ ）。",
             "options": [
               {"value": "A", "label": "5"},
               {"value": "B", "label": "25"},
@@ -528,7 +623,7 @@
           {
             "id": "r3q5",
             "type": "single",
-            "question": "**31. 如果输入 x = 3 和 y = 3，则程序的最终输出为（ ）。**",
+            "question": "31. 如果输入 x = 3 和 y = 3，则程序的最终输出为（ ）。",
             "options": [
               {"value": "A", "label": "27"},
               {"value": "B", "label": "81"},
@@ -543,7 +638,7 @@
           {
             "id": "r3q6",
             "type": "single",
-            "question": "**32. （4 分）若将 customFunction 函数改为 `return a + customFunction(a-1, b-1)`，并输入 \"3 3\"，则程序的最终输出为（ ）。**",
+            "question": "32. （4 分）若将 customFunction 函数改为 `return a + customFunction(a-1, b-1)`，并输入 \"3 3\"，则程序的最终输出为（ ）。",
             "options": [
               {"value": "A", "label": "9"},
               {"value": "B", "label": "16"},
@@ -570,23 +665,43 @@
       "order": 5,
       "content": {
         "type": "quiz",
+        "codeBlock": {
+          "language": "cpp",
+          "title": "完善程序（1）：判断完全平方数",
+          "description": "题目描述：给定一个正整数 n，判断这个数是不是完全平方数，即存在一个正整数 x 使得 x 的平方等于 n。请补全程序中 ① ~ ⑤ 处的空。",
+          "startLine": 1,
+          "lines": [
+            "#include <iostream>",
+            "#include <vector>",
+            "using namespace std;",
+            "",
+            "bool isSquare(int num) {",
+            "    int i = (1) ;",
+            "    int bound = (2) ;",
+            "    for(; i <= bound; ++i) {",
+            "        if( (3) ) {",
+            "            return (4) ;",
+            "        }",
+            "    }",
+            "    return (5) ;",
+            "}",
+            "",
+            "int main() {",
+            "    int n;",
+            "    cin >> n;",
+            "    if(isSquare(n)) {",
+            "        cout << n << \" is a Square number\" << endl;",
+            "    } else {",
+            "        cout << n << \" is not a Square number\" << endl;",
+            "    }",
+            "}"
+          ]
+        },
         "questions": [
-          {
-            "id": "p1_intro",
-            "type": "single",
-            "question": "**题目描述**\n\n给定一个正整数 n，判断这个数是不是完全平方数，即存在一个正整数 x 使得 x 的平方等于 n。\n\n```cpp\n#include <iostream>\n#include <vector>\nusing namespace std;\n\nbool isSquare(int num) {\n    int i = (1) ;\n    int bound = (2) ;\n    for(; i <= bound; ++i) {\n        if( (3) ) {\n            return (4) ;\n        }\n    }\n    return (5) ;\n}\n\nint main() {\n    int n;\n    cin >> n;\n    if(isSquare(n)) {\n        cout << n << \" is a Square number\" << endl;\n    } else {\n        cout << n << \" is not a Square number\" << endl;\n    }\n}\n```\n\n请补全程序中 ① ~ ⑤ 处的空。",
-            "options": [
-              {"value": "A", "label": "已阅读题目，进入作答"}
-            ],
-            "answer": ["A"],
-            "analysis": "本题判断 num 是否为完全平方数。从 1 遍历到 sqrt(num)，若存在 i*i==num 则返回 true，否则遍历结束返回 false。",
-            "points": 0,
-            "hasAnswer": true
-          },
           {
             "id": "p1q1",
             "type": "single",
-            "question": "**33. ① 处应填（ ）。**",
+            "question": "33. ① 处应填（ ）。",
             "options": [
               {"value": "A", "label": "1"},
               {"value": "B", "label": "2"},
@@ -601,7 +716,7 @@
           {
             "id": "p1q2",
             "type": "single",
-            "question": "**34. ② 处应填（ ）。**",
+            "question": "34. ② 处应填（ ）。",
             "options": [
               {"value": "A", "label": "(int)floor(sqrt(num) - 1)"},
               {"value": "B", "label": "(int)floor(sqrt(num))"},
@@ -616,7 +731,7 @@
           {
             "id": "p1q3",
             "type": "single",
-            "question": "**35. ③ 处应填（ ）。**",
+            "question": "35. ③ 处应填（ ）。",
             "options": [
               {"value": "A", "label": "num = 2 * i"},
               {"value": "B", "label": "num == 2 * i"},
@@ -631,7 +746,7 @@
           {
             "id": "p1q4",
             "type": "single",
-            "question": "**36. ④ 处应填（ ）。**",
+            "question": "36. ④ 处应填（ ）。",
             "options": [
               {"value": "A", "label": "num = 2 * i"},
               {"value": "B", "label": "num == 2 * i"},
@@ -646,7 +761,7 @@
           {
             "id": "p1q5",
             "type": "single",
-            "question": "**37. ⑤ 处应填（ ）。**",
+            "question": "37. ⑤ 处应填（ ）。",
             "options": [
               {"value": "A", "label": "num = i * i"},
               {"value": "B", "label": "num != 2 * i"},
@@ -673,23 +788,41 @@
       "order": 6,
       "content": {
         "type": "quiz",
+        "codeBlock": {
+          "language": "cpp",
+          "title": "完善程序（2）：汉诺塔问题",
+          "description": "题目描述：给定三根柱子，分别标记为 A、B 和 C。初始状态下，柱子 A 上有若干个圆盘，这些圆盘从上到下按从小到大的顺序排列。任务是将这些圆盘全部移到柱子 C 上，且必须保持原有顺序不变。移动规则：1. 只能从一根柱子的顶部取出圆盘，并将其放入另一根柱子的顶部。2. 每次只能移动一个圆盘。3. 小圆盘必须始终在大圆盘之上。请补全程序中 ① ~ ⑤ 处的空。",
+          "startLine": 1,
+          "lines": [
+            "#include <bits/stdc++.h>",
+            "using namespace std;",
+            "",
+            "void move(char src, char tgt) {",
+            "    cout << \"从柱子\" << src << \"挪到柱子上\" << tgt << endl;",
+            "}",
+            "",
+            "void dfs(int i, char src, char tmp, char tgt) {",
+            "    if (i == (1) ) {",
+            "        move( (2) );",
+            "        return;",
+            "    }",
+            "    dfs(i - 1, (3) );",
+            "    move(src, tgt);",
+            "    dfs( (5) , (4) );",
+            "}",
+            "",
+            "int main() {",
+            "    int n;",
+            "    cin >> n;",
+            "    dfs(n, 'A', 'B', 'C');",
+            "}"
+          ]
+        },
         "questions": [
-          {
-            "id": "p2_intro",
-            "type": "single",
-            "question": "**题目描述**\n\n给定三根柱子，分别标记为 A、B 和 C。初始状态下，柱子 A 上有若干个圆盘，这些圆盘从上到下按从小到大的顺序排列。任务是将这些圆盘全部移到柱子 C 上，且必须保持原有顺序不变。移动规则：\n\n1. 只能从一根柱子的顶部取出圆盘，并将其放入另一根柱子的顶部。\n2. 每次只能移动一个圆盘。\n3. 小圆盘必须始终在大圆盘之上。\n\n```cpp\n#include <bits/stdc++.h>\nusing namespace std;\n\nvoid move(char src, char tgt) {\n    cout << \"从柱子\" << src << \"挪到柱子上\" << tgt << endl;\n}\n\nvoid dfs(int i, char src, char tmp, char tgt) {\n    if (i == (1) ) {\n        move( (2) );\n        return;\n    }\n    dfs(i - 1, (3) );\n    move(src, tgt);\n    dfs( (5) , (4) );\n}\n\nint main() {\n    int n;\n    cin >> n;\n    dfs(n, 'A', 'B', 'C');\n}\n```\n\n请补全程序中 ① ~ ⑤ 处的空。",
-            "options": [
-              {"value": "A", "label": "已阅读题目，进入作答"}
-            ],
-            "answer": ["A"],
-            "analysis": "汉诺塔经典递归：dfs(i, src, tmp, tgt) 表示将 i 个盘子从 src 经 tmp 移到 tgt；递归终止条件 i==1，递归体先移上面 i-1 个盘子，再移最底下的盘子，最后把 i-1 个盘子从 tmp 移到 tgt。",
-            "points": 0,
-            "hasAnswer": true
-          },
           {
             "id": "p2q1",
             "type": "single",
-            "question": "**38. ① 处应填（ ）。**",
+            "question": "38. ① 处应填（ ）。",
             "options": [
               {"value": "A", "label": "0"},
               {"value": "B", "label": "1"},
@@ -704,7 +837,7 @@
           {
             "id": "p2q2",
             "type": "single",
-            "question": "**39. ② 处应填（ ）。**",
+            "question": "39. ② 处应填（ ）。",
             "options": [
               {"value": "A", "label": "src, tmp"},
               {"value": "B", "label": "src, tgt"},
@@ -719,7 +852,7 @@
           {
             "id": "p2q3",
             "type": "single",
-            "question": "**40. ③ 处应填（ ）。**",
+            "question": "40. ③ 处应填（ ）。",
             "options": [
               {"value": "A", "label": "src, tmp, tgt"},
               {"value": "B", "label": "src, tgt, tmp"},
@@ -734,7 +867,7 @@
           {
             "id": "p2q4",
             "type": "single",
-            "question": "**41. ④ 处应填（ ）。**",
+            "question": "41. ④ 处应填（ ）。",
             "options": [
               {"value": "A", "label": "src, tmp, tgt"},
               {"value": "B", "label": "tmp, src, tgt"},
@@ -749,7 +882,7 @@
           {
             "id": "p2q5",
             "type": "single",
-            "question": "**42. ⑤ 处应填（ ）。**",
+            "question": "42. ⑤ 处应填（ ）。",
             "options": [
               {"value": "A", "label": "0"},
               {"value": "B", "label": "1"},
