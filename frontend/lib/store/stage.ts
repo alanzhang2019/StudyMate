@@ -298,10 +298,35 @@ const useStageStoreBase = create<StageState>()((set, get) => ({
 
   loadFromStorage: async (stageId: string, options?: { force?: boolean }) => {
     try {
+      // If the in-memory store still holds a DIFFERENT stage
+      // (e.g. the student just navigated away from classroom A
+      // and into classroom B without a hard refresh), wipe it
+      // before the IndexedDB read so we never accidentally
+      // surface A's data under B's URL. Without this guard
+      // `getClassroomLoadState` computes `indexedDbHit` from
+      // `stage.id === classroomId` (which is false), so the
+      // subsequent `readClassroom` 404 bubbles up as a
+      // misleading "Classroom not found: <B>" error.
+      const currentState = get();
+      if (currentState.stage && currentState.stage.id !== stageId) {
+        log.info(
+          'loadFromStorage: stage mismatch (in-memory',
+          currentState.stage.id,
+          '→ requested',
+          stageId,
+          '), clearing store first',
+        );
+        get().clearStore();
+      }
+
       // Skip IndexedDB load if the store already has this stage with scenes
       // (e.g. navigated from generation-preview with fresh in-memory data)
-      const currentState = get();
-      if (!options?.force && currentState.stage?.id === stageId && currentState.scenes.length > 0) {
+      const afterReset = get();
+      if (
+        !options?.force &&
+        afterReset.stage?.id === stageId &&
+        afterReset.scenes.length > 0
+      ) {
         log.info('Stage already loaded in memory, skipping IndexedDB load:', stageId);
         return;
       }

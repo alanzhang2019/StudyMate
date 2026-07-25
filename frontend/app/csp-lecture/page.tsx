@@ -124,6 +124,22 @@ async function listCspLectures(): Promise<Lecture[]> {
     if (ao !== bo) return ao - bo;
     return (a.title ?? '').localeCompare(b.title ?? '', 'zh-CN');
   });
+  // DEBUG: log the resolved order so we can verify the sort is
+  // actually firing on the deployed image. The user has reported
+  // repeated "still not in order" complaints; this log is the
+  // single source of truth for what the server thinks the
+  // ordering is. Remove once the sort is confirmed.
+  if (typeof console !== 'undefined') {
+    // eslint-disable-next-line no-console
+    console.log(
+      '[csp-lecture] sorted order:',
+      items.map((it) => ({
+        id: it.id.slice(0, 20),
+        title: it.title,
+        order: titleOrder(it.title ?? ''),
+      })),
+    );
+  }
   return items;
 }
 
@@ -203,46 +219,60 @@ export default async function CspLecturePage() {
         </p>
       </section>
 
-      {/* Lecture grid */}
-      <section className="max-w-6xl mx-auto px-6 pb-12">
-        {lectures.length === 0 ? (
-          <Card className="bg-white/70 backdrop-blur border-slate-200/60">
-            <CardContent className="py-16 text-center">
-              <div className="text-5xl mb-4">📭</div>
-              <h2 className="text-lg font-semibold text-slate-900 mb-1">
-                还没有课件
-              </h2>
-              <p className="text-slate-600 text-sm">
-                管理员会陆续在后台添加 CSP 初赛相关课件，先去别处转转？
-              </p>
-              <div className="mt-6">
-                <Button asChild variant="outline">
-                  <Link href="/">回到首页</Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {lectures.map((l) => (
-              <LectureCard key={l.id} lecture={l} />
-            ))}
-          </div>
-        )}
-      </section>
-
       {/*
-       * Public leaderboard. Renders below the lecture grid so
-       * first-time visitors see "what is here" before "who is
-       * using it" — the social proof lands after the value
-       * prop, not before. Always shown (even with zero
+       * Lecture grid + leaderboard in a 2-col layout (lg+).
+       *
+       * Why 3-col lecture grid + 1-col leaderboard on desktop:
+       * the page should read as a "course catalog" first, with
+       * the social-proof leaderboard pinned on the right rail.
+       * On mobile (sm-) the leaderboard stacks below the
+       * catalog because side-rail would be unreadable.
+       *
+       * Each side is independently scrollable: the
+       * `lg:sticky lg:top-4` keeps the leaderboard visible
+       * while the student scrolls through the lecture cards,
+       * which is the whole point of putting it on the right.
+       *
+       * Public leaderboard. Always shown (even with zero
        * entries) so the page doesn't have an empty gap; the
        * component renders its own friendly "be the first"
        * empty state. No auth required: the server masks
        * names before responding.
        */}
-      <section className="max-w-6xl mx-auto px-6 pb-20">
-        <Leaderboard />
+      <section className="max-w-6xl mx-auto px-6 pb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
+          <div className="lg:col-span-3">
+            {lectures.length === 0 ? (
+              <Card className="bg-white/70 backdrop-blur border-slate-200/60">
+                <CardContent className="py-16 text-center">
+                  <div className="text-5xl mb-4">📭</div>
+                  <h2 className="text-lg font-semibold text-slate-900 mb-1">
+                    还没有课件
+                  </h2>
+                  <p className="text-slate-600 text-sm">
+                    管理员会陆续在后台添加 CSP 初赛相关课件，先去别处转转？
+                  </p>
+                  <div className="mt-6">
+                    <Button asChild variant="outline">
+                      <Link href="/">回到首页</Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                {lectures.map((l) => (
+                  <LectureCard key={l.id} lecture={l} />
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="lg:col-span-1">
+            <div className="lg:sticky lg:top-4">
+              <Leaderboard />
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Footer */}

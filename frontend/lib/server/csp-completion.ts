@@ -24,6 +24,7 @@
 
 import { db } from '@/lib/db';
 import { readClassroom } from '@/lib/server/classroom-storage';
+import { invalidateLeaderboardCache } from '@/lib/server/leaderboard';
 
 export type FailedQuiz = {
   sceneId: string;
@@ -86,9 +87,26 @@ export async function evaluateCompletion(
   const progressMet = totalScenes === 0 ? true : coveragePct >= 0.8;
 
   const submissions = db.cspQuizSubmission.findByUser(userId, classroomId);
+  // Re-take semantics: the table is UNIQUE on
+  // (userId, classroomId, sceneId) — every successful submit
+  // upserts the row, so in steady state there is AT MOST one
+  // submission per (user, scene). However, the history
+  // `findByUser` query (used here for performance, single
+  // index hit) returns the rows in `submittedAt DESC` order;
+  // if any older duplicates exist from a code path that bypassed
+  // upsert, the map below would silently keep the OLDEST score
+  // because Map.set is last-write-wins. We instead keep the
+  // HIGHEST `score` per scene, which matches the user-visible
+  // rule: "重做全对就算通过" (and avoids penalising the
+  // student for an earlier wrong attempt they subsequently
+  // corrected).
   const subByScene = new Map<string, any>();
   for (const s of submissions) {
-    subByScene.set((s as any).sceneId, s);
+    const sid = (s as any).sceneId as string;
+    const existing = subByScene.get(sid);
+    if (!existing || ((s as any).score ?? 0) > (existing.score ?? 0)) {
+      subByScene.set(sid, s);
+    }
   }
 
   const failedQuizScenes: FailedQuiz[] = [];
@@ -181,6 +199,16 @@ export async function reevaluateCompletedAt(
         new Date().toISOString(),
       );
     }
+  }
+  // Bust the leaderboard cache whenever a user's completion
+  // status may have flipped. Without this the public leaderboard
+  // would keep showing a stale `completedClassrooms: 0` for up
+  // to `LEADERBOARD_TTL_MS` (default 5 min) after a student
+  // legitimately completed a classroom. The cache is per-process
+  // so invalidating on write is cheap and only affects this
+  // server's next read.
+  if (result.completed) {
+    invalidateLeaderboardCache();
   }
   return result;
 }

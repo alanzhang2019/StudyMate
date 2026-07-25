@@ -27,6 +27,7 @@
 
 import { db, getDb } from '@/lib/db';
 import { evaluateCompletion } from '@/lib/server/csp-completion';
+import { pinyin } from 'pinyin-pro';
 
 const MAX_DAILY_WATCH_SECONDS = 8 * 60 * 60; // 8h/day
 
@@ -73,9 +74,50 @@ function maskName(raw: string | null | undefined): string {
   if (!raw) return '匿名同学';
   const trimmed = raw.trim();
   if (!trimmed) return '匿名同学';
-  // 中文 / CJK 名字：保留首字 + "同学" — 不暴露姓 + 名的组合
+  // 中文 / CJK 名字：保留"姓 + 名每个字的拼音首字母"。
+  // 例如 "潘泽言" → "潘zy" (pinyin-pro 默认无音调)。这样在
+  // 公开排行榜上能识别出是谁，但只暴露姓 + 名首字母，避免
+  // 完整的姓+名被爬取用于社会工程。
+  //
+  // 复姓按 2 字姓处理 (eg "欧阳" → "欧y")，单字名直接取名
+  // 字的拼音首字母 (eg "潘泽" → "潘z")。无法拼音的非 CJK
+  // 字符保持原样以避免空字符串。
   if (/[\u4e00-\u9fff]/.test(trimmed)) {
-    return `${trimmed[0]}同学`;
+    // 复姓白名单 (中国常见复姓)。超出此表的 2 字前缀仍按
+    // "首字姓 + 名首字母" 处理 — 极小概率误判，但比维护一
+    // 个完整复姓表轻得多。
+    const compoundSurnames = new Set([
+      '欧阳', '司马', '诸葛', '上官', '夏侯', '尉迟', '皇甫',
+      '东方', '令狐', '宇文', '长孙', '慕容', '司徒', '司空',
+    ]);
+    let surname: string;
+    let given: string;
+    if (
+      trimmed.length >= 4 &&
+      compoundSurnames.has(trimmed.slice(0, 2))
+    ) {
+      surname = trimmed.slice(0, 2);
+      given = trimmed.slice(2);
+    } else if (trimmed.length >= 2) {
+      surname = trimmed[0];
+      given = trimmed.slice(1);
+    } else {
+      // 1 字"名" (eg "潘" 没有 given 部分)：退化到原值
+      return trimmed;
+    }
+    // pinyin(字, { pattern: 'first', toneType: 'none' }) 返回
+    // 每个字的拼音首字母字符串 (无音调)。我们对 given 段每
+    // 个字分别取首字母，拼接成 "zy" 这样的形式。
+    const initials = given
+      .split('')
+      .map((ch) => {
+        if (/[\u4e00-\u9fff]/.test(ch)) {
+          return pinyin(ch, { pattern: 'first', toneType: 'none' });
+        }
+        return ch;
+      })
+      .join('');
+    return surname + initials;
   }
   // 拉丁字符 / 邮箱：保留首字 + 星号
   if (trimmed.length <= 2) return `${trimmed[0]}*`;

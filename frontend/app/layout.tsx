@@ -12,6 +12,7 @@ import { AccessCodeGuard } from '@/components/access-code-guard';
 import { NextAuthProvider } from '@/components/providers/session-provider';
 import { VisitorBootstrap } from '@/components/VisitorBootstrap';
 import { getOrGenerateVisitorId } from '@/lib/visitor/server';
+import { DebugConsole } from '@/components/DebugConsole';
 
 const baloo = Baloo_2({ 
   subsets: ["latin"],
@@ -121,6 +122,7 @@ export default async function RootLayout({
             </NextAuthProvider>
           </I18nProvider>
         </ThemeProvider>
+        <DebugConsole />
       </body>
     </html>
   );

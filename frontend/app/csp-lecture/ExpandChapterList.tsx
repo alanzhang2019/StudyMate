@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { ChevronDown, ChevronRight, FileText, ListChecks, MousePointerClick, Folder } from 'lucide-react';
 import type { SceneType } from '@/lib/types/stage';
 
@@ -39,12 +38,12 @@ export function ExpandChapterList({
 
   if (chapters.length === 0) {
     return (
-      <Link
+      <a
         href={`/classroom/${lectureId}`}
         className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
       >
         暂无可用章节，点击打开课件 →
-      </Link>
+      </a>
     );
   }
 
@@ -59,7 +58,7 @@ export function ExpandChapterList({
        * a specific scene.
        */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <Link
+        <a
           href={`/classroom/${lectureId}`}
           className="inline-flex items-center gap-1.5 text-sm font-semibold
                      text-white bg-gradient-to-r from-indigo-500 to-blue-500
@@ -68,7 +67,7 @@ export function ExpandChapterList({
                      transition"
         >
           从头开始学习 →
-        </Link>
+        </a>
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
@@ -93,7 +92,7 @@ export function ExpandChapterList({
             const Icon = meta.Icon;
             return (
               <li key={c.id}>
-                <Link
+                <a
                   href={`/classroom/${lectureId}?scene=${c.order}`}
                   className="group flex items-start gap-2.5 rounded-md px-2 py-1.5
                              hover:bg-indigo-50/70 transition-colors
@@ -120,7 +119,7 @@ export function ExpandChapterList({
                       {meta.label}
                     </span>
                   </span>
-                </Link>
+                </a>
               </li>
             );
           })}

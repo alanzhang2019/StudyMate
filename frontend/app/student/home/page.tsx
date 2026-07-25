@@ -441,12 +441,12 @@ function ClassroomRow({
           />
         </div>
       </div>
-      <Link
+      <a
         href={resumeHref}
         className="shrink-0 inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800"
       >
         {adaptiveLabel} →
-      </Link>
+      </a>
     </div>
   );
 }
@@ -466,12 +466,12 @@ function NotStartedRow({
         <h3 className="font-semibold text-slate-800 truncate">{title}</h3>
         <div className="mt-1 text-xs text-slate-500">{totalScenes} 节</div>
       </div>
-      <Link
+      <a
         href={`/classroom/${classroomId}`}
         className="shrink-0 inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900"
       >
         开始 →
-      </Link>
+      </a>
     </div>
   );
 }
