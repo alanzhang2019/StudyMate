@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Crown, Medal, Award, Sparkles, Loader2 } from 'lucide-react';
+import { Crown, Sparkles, Loader2 } from 'lucide-react';
 
 type LeaderboardEntry = {
   rank: number;
@@ -23,16 +23,20 @@ type LeaderboardData = {
 /**
  * Public leaderboard for the /csp-lecture landing page.
  *
- * Reads /api/csp-progress/leaderboard (no auth required; the
- * server masks names before responding). Renders a podium for
- * the top 3 + a list for ranks 4-10 + a cohort summary line.
+ * 2026-07-26 重构:
+ * 旧版本用 "podium + 4-10 列表" 双视图 — 把前 3 名横排做成"领奖台"，
+ * 但产品反馈"排行榜应该竖着排列，按名词从高到低" — podium 的
+ * 横向布局反而让名次顺序变得不明显。重写后整个列表统一竖排，
+ * rank 1 在最上、rank 10 在最下，前 3 名用金银铜调色板徽章
+ * 突出，但**不破坏顺序**。
  *
- * Why a podium + table split: a leaderboard is about
- * recognition, and recognition is hierarchically visual. A flat
- * "1, 2, 3, 4..." list buries the winners. The two-row podium
- * makes the top 3 read at a glance, then the list below gives
- * the full Top 10 in a compact, dense format that doesn't
- * stretch the page.
+ * 视觉：
+ * - 头部横幅：皇冠 + 标题 + 实时统计（多少人在坚持 / 累计完成数）
+ * - 主体：单列垂直列表，每行 [名次徽章 | 姓名+小字统计 | 分数]
+ * - 前 3 名：渐变背景条 + 金/银/铜徽章（圆形 + 阴影）
+ * - 4+ 名次：中性灰徽章
+ * - hover：浅色高亮过渡
+ * - 底部：分数公式说明（让数字不显得 opaque）
  */
 export function Leaderboard() {
   const [data, setData] = useState<LeaderboardData | null>(null);
@@ -62,8 +66,8 @@ export function Leaderboard() {
 
   if (loading) {
     return (
-      <Card className="overflow-hidden">
-        <CardContent className="py-10 flex items-center justify-center gap-2 text-gray-500">
+      <Card className="overflow-hidden border-slate-200/60">
+        <CardContent className="py-10 flex items-center justify-center gap-2 text-slate-500">
           <Loader2 className="w-4 h-4 animate-spin" />
           正在加载学习排行榜…
         </CardContent>
@@ -73,8 +77,8 @@ export function Leaderboard() {
 
   if (error || !data) {
     return (
-      <Card className="overflow-hidden">
-        <CardContent className="py-10 text-center text-gray-500 text-sm">
+      <Card className="overflow-hidden border-slate-200/60">
+        <CardContent className="py-10 text-center text-slate-500 text-sm">
           排行榜加载失败{error ? `：${error}` : ''}
         </CardContent>
       </Card>
@@ -85,15 +89,15 @@ export function Leaderboard() {
   // Show a CTA-style "be the first" rather than a blank card.
   if (data.entries.length === 0) {
     return (
-      <Card className="overflow-hidden border-dashed">
+      <Card className="overflow-hidden border-dashed border-slate-200/60">
         <CardContent className="py-10 text-center">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 text-indigo-500 mb-3">
             <Sparkles className="w-6 h-6" />
           </div>
-          <p className="text-sm font-medium text-gray-700">
+          <p className="text-sm font-medium text-slate-700">
             还没有同学上榜
           </p>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             累计有 {data.totalStudents} 位同学注册，做完第 1 个课件就上榜首
           </p>
         </CardContent>
@@ -101,163 +105,154 @@ export function Leaderboard() {
     );
   }
 
-  const top3 = data.entries.slice(0, 3);
-  const rest = data.entries.slice(3);
+  // 限制显示前 10 名，剩余人数用一行省略提示收尾
+  const visible = data.entries.slice(0, 10);
+  const hiddenCount = data.entries.length - visible.length;
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden border-slate-200/60 shadow-sm">
       <CardContent className="p-0">
-        {/* Cohort summary banner — one line of context above
-            the podium. Stays compact so the page rhythm is
-            preserved on mobile. */}
-        <div className="px-4 sm:px-6 py-3 bg-gradient-to-r from-indigo-50 via-blue-50 to-cyan-50 border-b border-indigo-100/60 flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-2 text-sm text-indigo-900">
-            <Crown className="w-4 h-4 text-amber-500" />
-            <span className="font-semibold">学习排行榜</span>
-            <span className="text-xs text-indigo-500 hidden sm:inline">
-              每日活跃 + 完成课件综合分数
+        {/* 头部横幅：标题 + 实时统计 */}
+        <div className="relative px-4 sm:px-5 py-3.5 bg-gradient-to-br from-indigo-500 via-blue-500 to-cyan-500 text-white">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Crown className="w-4 h-4 text-amber-200" />
+              <span className="font-semibold text-sm tracking-wide">
+                学习排行榜
+              </span>
+            </div>
+            <span className="text-[10px] text-indigo-100/90 hidden sm:inline">
+              实时同步
             </span>
           </div>
-          <div className="text-xs text-indigo-700">
-            <span className="font-semibold text-indigo-900">
-              {data.activeStudents}
-            </span>{' '}
-            位同学在坚持 · 累计完成{' '}
-            <span className="font-semibold text-indigo-900">
-              {data.totalCompletions}
-            </span>{' '}
-            个课件
+          <div className="mt-2 text-xs text-indigo-50/95 flex items-center gap-3 flex-wrap tabular-nums">
+            <span>
+              <span className="font-bold text-white">
+                {data.activeStudents}
+              </span>{' '}
+              位同学在坚持
+            </span>
+            <span className="w-1 h-1 rounded-full bg-indigo-200/60" />
+            <span>
+              累计完成{' '}
+              <span className="font-bold text-white">
+                {data.totalCompletions}
+              </span>{' '}
+              个课件
+            </span>
           </div>
         </div>
 
-        {/* Podium: ranks 1-3. On mobile we stack vertically so
-            the avatars stay large enough; on sm+ we use a 3-col
-            grid with rank 2 lifted higher than 1 and 3 to
-            mimic a real podium. The "lift" uses
-            -translate-y-* which is cheaper than a real CSS
-            transform on already-transformed card surfaces
-            (we don't have transforms here so it is fine). */}
-        <div className="px-4 sm:px-6 pt-5 pb-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {/* Order the podium as 2 / 1 / 3 so the winner is
-                visually centred. CSS `order-` reorders without
-                changing source order. */}
-            {top3[1] && (
-              <PodiumCard entry={top3[1]} icon={<Medal className="w-5 h-5" />} tone="silver" order="sm:order-1" />
-            )}
-            {top3[0] && (
-              <PodiumCard entry={top3[0]} icon={<Crown className="w-5 h-5" />} tone="gold" order="sm:order-2" />
-            )}
-            {top3[2] && (
-              <PodiumCard entry={top3[2]} icon={<Award className="w-5 h-5" />} tone="bronze" order="sm:order-3" />
-            )}
-          </div>
-        </div>
+        {/* 竖向排行榜：rank 1 在最上 */}
+        <ol className="divide-y divide-slate-100/80">
+          {visible.map((e) => (
+            <LeaderboardRow key={e.rank} entry={e} />
+          ))}
+        </ol>
 
-        {/* Ranks 4-10 in a compact list. Hidden when there
-            are only 3 or fewer active students. */}
-        {rest.length > 0 && (
-          <div className="px-4 sm:px-6 pb-4">
-            <ol className="divide-y divide-gray-100">
-              {rest.map((e) => (
-                <li
-                  key={e.rank}
-                  className="flex items-center gap-3 py-2.5"
-                >
-                  <span className="w-7 text-center text-sm font-semibold text-gray-500 tabular-nums">
-                    {e.rank}
-                  </span>
-                  <span className="flex-1 min-w-0 text-sm font-medium text-gray-800 truncate">
-                    {e.displayName}
-                  </span>
-                  <span className="hidden sm:inline-flex items-center gap-1 text-xs text-gray-500">
-                    <span className="tabular-nums">{e.completedClassrooms}</span>
-                    <span>完成</span>
-                  </span>
-                  <span className="hidden sm:inline-flex items-center gap-1 text-xs text-gray-500">
-                    <span className="tabular-nums">{e.activeDays}</span>
-                    <span>天活跃</span>
-                  </span>
-                  <span className="w-12 text-right text-sm font-semibold text-indigo-600 tabular-nums">
-                    {e.score}
-                  </span>
-                </li>
-              ))}
-            </ol>
+        {/* 第 10 名之后有更多同学 — 给个轻提示 */}
+        {hiddenCount > 0 && (
+          <div className="px-4 sm:px-5 py-2.5 text-center text-[11px] text-slate-400 bg-slate-50/40">
+            还有 {hiddenCount} 位同学也在努力学习中…
           </div>
         )}
 
-        {/* Footer — explains the scoring formula so the
-            numbers don't feel opaque. Hidden on very small
-            screens; the podium itself is the proof. */}
-        <div className="px-4 sm:px-6 py-2.5 bg-gray-50/60 border-t border-gray-100 text-[11px] text-gray-500 text-center">
-          分数 = 完成课件数 × 30 + 活跃天数 × 10 · 每日学习时长上限 8 小时
+        {/* 底部：分数公式 */}
+        <div className="px-4 sm:px-5 py-2.5 bg-slate-50/60 border-t border-slate-100 text-[11px] text-slate-500 text-center tabular-nums">
+          分数 = 完成课件数 × 30 + 活跃天数 × 10
         </div>
       </CardContent>
     </Card>
   );
 }
 
-function PodiumCard({
-  entry,
-  icon,
-  tone,
-  order,
-}: {
-  entry: LeaderboardEntry;
-  icon: React.ReactNode;
-  tone: 'gold' | 'silver' | 'bronze';
-  order: string;
-}) {
-  // Tone palette — three distinct surfaces so the eye can
-  // tell ranks apart at a glance. We avoid literal "gold/
-  // silver/bronze" CSS colors because they clash with the
-  // site's primary indigo gradient — instead each tone
-  // takes the indigo base and shifts hue + saturation.
-  const toneClass =
-    tone === 'gold'
-      ? 'bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200/70 text-amber-700'
-      : tone === 'silver'
-        ? 'bg-gradient-to-br from-slate-50 to-gray-50 border-slate-200/70 text-slate-600'
-        : 'bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200/70 text-orange-700';
+/**
+ * 单行排行 — 三段式布局：名次徽章 / 姓名+小字 / 分数
+ *
+ * 视觉变体：
+ * - rank 1: 金色徽章 + 浅黄渐变背景条 + 加粗名字 + 缩略皇冠角标
+ * - rank 2: 银色徽章 + 浅灰渐变背景条
+ * - rank 3: 铜色徽章 + 浅橙渐变背景条
+ * - rank 4+: 灰色徽章 + 透明背景
+ */
+function LeaderboardRow({ entry: e }: { entry: LeaderboardEntry }) {
+  const isTop1 = e.rank === 1;
+  const isTop2 = e.rank === 2;
+  const isTop3 = e.rank === 3;
+  const isPodium = isTop1 || isTop2 || isTop3;
+
+  // 整行 hover 背景 — podium 略深一点（hover 变成实色）
+  const rowClass = isTop1
+    ? 'bg-gradient-to-r from-amber-50/70 to-yellow-50/40 hover:from-amber-50 hover:to-yellow-50/80'
+    : isTop2
+      ? 'bg-gradient-to-r from-slate-50/70 to-gray-50/40 hover:from-slate-50 hover:to-gray-50/80'
+      : isTop3
+        ? 'bg-gradient-to-r from-orange-50/50 to-amber-50/30 hover:from-orange-50/80 hover:to-amber-50/60'
+        : 'hover:bg-slate-50/60';
+
+  // 圆形名次徽章
+  const badgeClass = isTop1
+    ? 'bg-gradient-to-br from-amber-300 via-amber-400 to-yellow-500 text-white shadow-md ring-2 ring-amber-200/60'
+    : isTop2
+      ? 'bg-gradient-to-br from-slate-200 via-slate-300 to-slate-400 text-white shadow-md ring-2 ring-slate-200/60'
+      : isTop3
+        ? 'bg-gradient-to-br from-orange-300 via-orange-400 to-amber-500 text-white shadow-md ring-2 ring-orange-200/60'
+        : 'bg-slate-100 text-slate-500 ring-1 ring-slate-200/60';
+
   return (
-    <div
-      className={`relative rounded-xl border ${toneClass} p-3 ${order} ${
-        tone === 'gold' ? 'sm:-translate-y-1' : ''
-      }`}
+    <li
+      className={`group flex items-center gap-3 px-4 sm:px-5 py-3 transition-colors duration-150 ${rowClass}`}
     >
-      <div className="flex items-center gap-2.5">
+      {/* 名次徽章 */}
+      <div
+        className={`relative shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold tabular-nums ${badgeClass}`}
+      >
+        {e.rank}
+        {/* 冠军小皇冠角标 */}
+        {isTop1 && (
+          <span className="absolute -top-1 -right-1 text-[10px] leading-none">
+            👑
+          </span>
+        )}
+      </div>
+
+      {/* 姓名 + 完成/活跃 */}
+      <div className="flex-1 min-w-0">
         <div
-          className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-            tone === 'gold'
-              ? 'bg-amber-100 text-amber-600'
-              : tone === 'silver'
-                ? 'bg-slate-100 text-slate-500'
-                : 'bg-orange-100 text-orange-600'
-          }`}
+          className={`truncate ${isPodium ? 'text-sm font-semibold text-slate-900' : 'text-sm font-medium text-slate-700'}`}
         >
-          {icon}
+          {e.displayName}
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-lg font-bold tabular-nums">
-              {entry.rank}
+        <div className="text-[11px] text-slate-500 mt-0.5 tabular-nums">
+          <span className="inline-flex items-center gap-1">
+            <span className="font-semibold text-slate-700">
+              {e.completedClassrooms}
             </span>
-            <span className="text-sm font-semibold text-gray-900 truncate">
-              {entry.displayName}
+            <span>完成</span>
+          </span>
+          <span className="mx-1.5 text-slate-300">·</span>
+          <span className="inline-flex items-center gap-1">
+            <span className="font-semibold text-slate-700">
+              {e.activeDays}
             </span>
-          </div>
-          <div className="text-[11px] text-gray-500 mt-0.5">
-            {entry.completedClassrooms} 完成 · {entry.activeDays} 天活跃
-          </div>
-        </div>
-        <div className="text-right">
-          <div className="text-lg font-bold tabular-nums text-indigo-600">
-            {entry.score}
-          </div>
-          <div className="text-[10px] text-gray-400">分</div>
+            <span>天活跃</span>
+          </span>
         </div>
       </div>
-    </div>
+
+      {/* 分数 */}
+      <div className="text-right shrink-0 tabular-nums">
+        <div
+          className={`leading-none ${isTop1 ? 'text-xl font-extrabold text-amber-600' : isPodium ? 'text-base font-bold text-indigo-700' : 'text-base font-semibold text-indigo-600'}`}
+        >
+          {e.score}
+        </div>
+        <div
+          className={`mt-0.5 ${isTop1 ? 'text-[10px] text-amber-500/80' : 'text-[10px] text-slate-400'}`}
+        >
+          分
+        </div>
+      </div>
+    </li>
   );
 }
