@@ -27,6 +27,9 @@ import { useDraftCache } from '@/lib/hooks/use-draft-cache';
 import { useCspProgress, type ReportQuizPayload } from '@/lib/hooks/use-csp-progress';
 import { SpeechButton } from '@/components/audio/speech-button';
 import { gradeChoiceQuestions, isShortAnswer, type QuestionResult } from '@/lib/quiz/grading';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { scoreToLevel, levelLabel } from '@/lib/server/csp-placement';
 import {
   clearSubmitted,
   draftKey,
@@ -51,11 +54,17 @@ function pickChoice(value: string | string[] | undefined): string {
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-type Phase = 'not_started' | 'answering' | 'grading' | 'reviewing';
+type Phase = 'not_started' | 'answering' | 'submitting' | 'grading' | 'reviewing' | 'finalized';
 
 interface QuizViewProps {
   readonly questions: QuizQuestion[];
   readonly sceneId: string;
+  /**
+   * Required for the "重置" flow on the CSP final paper
+   * total score page. Used to call POST /api/csp-quiz/reset
+   * per-scene when the student clicks "重新答题".
+   */
+  readonly classroomId: string;
   readonly codeBlock?: QuizCodeBlock;
   readonly kind?: QuizKind;
 }
@@ -822,7 +831,7 @@ function ScoreBanner({
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 
-export function QuizView({ questions, sceneId, codeBlock, kind }: QuizViewProps) {
+export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: QuizViewProps) {
   const { t, locale } = useI18n();
   const cspProgress = useCspProgress();
 
@@ -923,7 +932,14 @@ export function QuizView({ questions, sceneId, codeBlock, kind }: QuizViewProps)
       const ordered = questions.map((q) => allResultsMap.get(q.id)!).filter(Boolean);
 
       setResults(ordered);
-      setPhase('reviewing');
+      // Single-scene quizzes: auto-enter reviewing. CSP final
+      // paper (full paper): stay in answering until the
+      // student clicks "交卷".
+      if (isFullPaper) {
+        setPhase('answering');
+      } else {
+        setPhase('reviewing');
+      }
       writeSubmittedResults(sceneId, ordered);
     })();
 
@@ -980,6 +996,36 @@ export function QuizView({ questions, sceneId, codeBlock, kind }: QuizViewProps)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, results, sceneId, questions]);
 
+  // ── Full-paper-only state (active when isFullPaper is true) ──
+  // CSP 真题卷有多个 quiz scene，最后一题答完 → 不自动 reviewing，
+  // 而是停 answering 直到学生主动"交卷"。详见
+  // docs/superpowers/specs/2026-07-26-csp-final-paper-submit-design.md
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [isFinalizing, setIsFinalizing] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const [finalizedResult, setFinalizedResult] = useState<{
+    totalEarned: number;
+    totalPossible: number;
+    sceneResults: Array<{
+      sceneId: string;
+      title: string;
+      order: number;
+      totalQuestions: number;
+      correctCount: number;
+      points: number;
+      earnedPoints: number;
+    }>;
+  } | null>(null);
+  const [finalizeError, setFinalizeError] = useState<string | null>(null);
+  const [resetError, setResetError] = useState<string | null>(null);
+
+  // Full-paper mode: only true for the 2024 CSP-J 真题卷
+  // (cm_imp_cspj2024j_v1). For v1 we hard-gate on classroomId;
+  // subsequent 真题卷s (cm_imp_cspj2024s_v1 etc) will be added
+  // by extending this set.
+  const FULL_PAPER_CLASSROOM_IDS = new Set<string>(['cm_imp_cspj2024j_v1']);
+  const isFullPaper = FULL_PAPER_CLASSROOM_IDS.has(classroomId);
+
   const handleRetry = useCallback(() => {
     setPhase('not_started');
     setAnswers({});
@@ -987,6 +1033,78 @@ export function QuizView({ questions, sceneId, codeBlock, kind }: QuizViewProps)
     clearAnswersCache();
     clearSubmitted(sceneId);
   }, [clearAnswersCache, sceneId]);
+
+  // handleFinalize: triggered by the top "交卷" button. v1
+  // simplification: each scene finalizes independently. The
+  // per-scene grading useEffect already pushed this scene's
+  // results to /api/csp-quiz/submit, so all we need to do
+  // here is compute the local scene summary and transition
+  // to `finalized`. A future v2 will hoist all scenes'
+  // results to a context for true cross-scene aggregation.
+  const handleFinalize = useCallback(() => {
+    if (!isFullPaper) return;
+    if (results.length === 0) {
+      setFinalizeError('当前场景还没有评分结果，请先答题');
+      return;
+    }
+    setIsFinalizing(true);
+    setFinalizeError(null);
+    try {
+      const points = questions.reduce((s, q) => s + (q.points ?? 1), 0);
+      const earned = results.reduce((s, r) => s + r.earned, 0);
+      const correctCount = results.filter((r) => r.status === 'correct').length;
+      setFinalizedResult({
+        totalEarned: earned,
+        totalPossible: points,
+        sceneResults: [
+          {
+            sceneId,
+            title: `Scene ${sceneId}`,
+            order: 1,
+            totalQuestions: questions.length,
+            correctCount,
+            points,
+            earnedPoints: earned,
+          },
+        ],
+      });
+      setPhase('finalized');
+      setIsConfirming(false);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '提交失败';
+      setFinalizeError(msg);
+    } finally {
+      setIsFinalizing(false);
+    }
+  }, [isFullPaper, results, questions, sceneId]);
+
+  // handleReset: triggered by "重新答题" on the total score
+  // page. Calls /api/csp-quiz/reset for THIS scene, clears
+  // local state, transitions back to answering.
+  const handleReset = useCallback(async () => {
+    if (!isFullPaper || !classroomId) return;
+    setIsResetting(true);
+    setResetError(null);
+    try {
+      const res = await fetch('/api/csp-quiz/reset', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ classroomId, sceneId }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setFinalizedResult(null);
+      setResults([]);
+      setAnswers({});
+      clearAnswersCache();
+      clearSubmitted(sceneId);
+      setPhase('not_started');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '重置失败';
+      setResetError(msg);
+    } finally {
+      setIsResetting(false);
+    }
+  }, [isFullPaper, classroomId, sceneId, clearAnswersCache]);
 
   const earnedScore = useMemo(() => results.reduce((sum, r) => sum + r.earned, 0), [results]);
 
@@ -1044,18 +1162,37 @@ export function QuizView({ questions, sceneId, codeBlock, kind }: QuizViewProps)
                   / {questions.length}
                 </span>
               </div>
-              <button
-                onClick={handleSubmit}
-                disabled={!allAnswered}
-                className={cn(
-                  'px-4 py-1.5 rounded-lg text-xs font-medium transition-all',
-                  allAnswered
-                    ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-sm hover:shadow-md hover:shadow-violet-200/50 dark:hover:shadow-violet-900/50 active:scale-[0.97]'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed',
+              <div className="flex items-center gap-2">
+                {isFullPaper && (
+                  <Button
+                    size="sm"
+                    className="bg-violet-600 hover:bg-violet-700 text-white"
+                    onClick={() => setIsConfirming(true)}
+                    disabled={isFinalizing}
+                  >
+                    {isFinalizing ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+                        提交中...
+                      </>
+                    ) : (
+                      '交卷'
+                    )}
+                  </Button>
                 )}
-              >
-                {t('quiz.submitAnswers')}
-              </button>
+                <button
+                  onClick={handleSubmit}
+                  disabled={!allAnswered}
+                  className={cn(
+                    'px-4 py-1.5 rounded-lg text-xs font-medium transition-all',
+                    allAnswered
+                      ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-sm hover:shadow-md hover:shadow-violet-200/50 dark:hover:shadow-violet-900/50 active:scale-[0.97]'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed',
+                  )}
+                >
+                  {t('quiz.submitAnswers')}
+                </button>
+              </div>
             </div>
 
             {/* Code block (paper-style) — sticky-style: scrolled with the list so the
@@ -1216,7 +1353,232 @@ export function QuizView({ questions, sceneId, codeBlock, kind }: QuizViewProps)
             </div>
           </motion.div>
         )}
+
+        {phase === 'submitting' && (
+          <motion.div
+            key="submitting"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex-1 flex items-center justify-center"
+          >
+            <div className="flex items-center gap-3 text-violet-600">
+              <Loader2 className="w-6 h-6 animate-spin" />
+              <span className="text-sm">正在提交...</span>
+            </div>
+          </motion.div>
+        )}
+
+        {phase === 'finalized' && finalizedResult && (
+          <motion.div
+            key="finalized"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex-1 overflow-y-auto"
+          >
+            <FinalScorePage
+              result={finalizedResult}
+              onReset={handleReset}
+              isResetting={isResetting}
+              resetError={resetError}
+            />
+          </motion.div>
+        )}
       </AnimatePresence>
+
+      {isConfirming && (
+        <ConfirmSubmitModal
+          answeredCount={
+            Object.keys(answers).filter((k) => {
+              const a = answers[k];
+              if (Array.isArray(a)) return a.length > 0;
+              return typeof a === 'string' && a.trim().length > 0;
+            }).length
+          }
+          totalCount={questions.length}
+          onConfirm={handleFinalize}
+          onCancel={() => setIsConfirming(false)}
+        />
+      )}
+
+      {finalizeError && phase !== 'finalized' && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700 shadow-lg">
+          提交失败：{finalizeError}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Full-paper-only sub-components ────────────────────────────────────────
+
+type FinalScoreResult = NonNullable<ReturnType<typeof useState<{
+  totalEarned: number;
+  totalPossible: number;
+  sceneResults: Array<{
+    sceneId: string;
+    title: string;
+    order: number;
+    totalQuestions: number;
+    correctCount: number;
+    points: number;
+    earnedPoints: number;
+  }>;
+} | null>>[0]>;
+
+function FinalScorePage({
+  result,
+  onReset,
+  isResetting,
+  resetError,
+}: {
+  result: FinalScoreResult;
+  onReset: () => void;
+  isResetting: boolean;
+  resetError: string | null;
+}) {
+  const pct =
+    result.totalPossible > 0
+      ? Math.round((result.totalEarned / result.totalPossible) * 100)
+      : 0;
+  const level = scoreToLevel(pct);
+
+  return (
+    <div className="max-w-2xl mx-auto p-6 space-y-6">
+      <div className="text-center space-y-2">
+        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-2xl">
+          📊
+        </div>
+        <h2 className="text-2xl font-bold text-slate-900">总分</h2>
+        <div className="text-5xl font-black text-slate-900 tabular-nums">
+          {result.totalEarned}{' '}
+          <span className="text-2xl text-slate-400">
+            / {result.totalPossible}
+          </span>
+        </div>
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-100 text-violet-700 text-sm font-semibold">
+          {levelLabel(level)}
+        </div>
+        {pct > 0 && (
+          <div className="text-xs text-slate-400 tabular-nums">{pct}%</div>
+        )}
+      </div>
+
+      <Card>
+        <CardContent className="p-0 divide-y divide-slate-100">
+          {result.sceneResults
+            .slice()
+            .sort((a, b) => a.order - b.order)
+            .map((s) => {
+              const scenePct =
+                s.points > 0
+                  ? Math.round((s.earnedPoints / s.points) * 100)
+                  : 0;
+              const ok = s.earnedPoints === s.points;
+              return (
+                <div
+                  key={s.sceneId}
+                  className="flex items-center gap-3 px-4 py-3"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-slate-800 truncate">
+                      本场景（{s.sceneId.slice(-8)}）
+                    </div>
+                    <div className="text-[11px] text-slate-500 tabular-nums">
+                      答对 {s.correctCount} / {s.totalQuestions} 题 · {scenePct}%
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0 tabular-nums">
+                    <div
+                      className={`text-sm font-bold ${
+                        ok
+                          ? 'text-emerald-600'
+                          : scenePct >= 60
+                            ? 'text-amber-600'
+                            : 'text-red-600'
+                      }`}
+                    >
+                      {s.earnedPoints} / {s.points}
+                    </div>
+                  </div>
+                  <div className="shrink-0">
+                    {ok ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    ) : (
+                      <XCircle className="w-4 h-4 text-amber-500" />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+        </CardContent>
+      </Card>
+
+      {resetError && (
+        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">
+          重置失败：{resetError}
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        <Button variant="outline" onClick={onReset} disabled={isResetting}>
+          {isResetting ? (
+            <>
+              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+              重置中...
+            </>
+          ) : (
+            '重新答题'
+          )}
+        </Button>
+        <Button variant="ghost" onClick={() => (window.location.href = '/csp-lecture')}>
+          返回课件列表
+        </Button>
+      </div>
+
+      <p className="text-center text-xs text-slate-400">
+        交卷后单 scene 成绩已保存到排行榜。完整 6 scene 一次性交卷将在 v2 提供。
+      </p>
+    </div>
+  );
+}
+
+function ConfirmSubmitModal({
+  answeredCount,
+  totalCount,
+  onConfirm,
+  onCancel,
+}: {
+  answeredCount: number;
+  totalCount: number;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const allDone = answeredCount === totalCount;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 space-y-4"
+      >
+        <h3 className="text-lg font-bold text-slate-900">确认交卷？</h3>
+        <p className="text-sm text-slate-600 leading-relaxed">
+          {allDone
+            ? `本次共 ${totalCount} 道题，提交后不可修改。`
+            : `还有 ${totalCount - answeredCount} 道题未答，未答的题按 0 分计算。确认交卷？`}
+        </p>
+        <div className="flex items-center justify-end gap-2 pt-2">
+          <Button variant="outline" onClick={onCancel}>
+            再检查一下
+          </Button>
+          <Button
+            className="bg-violet-600 hover:bg-violet-700 text-white"
+            onClick={onConfirm}
+          >
+            确认交卷
+          </Button>
+        </div>
+      </motion.div>
     </div>
   );
 }

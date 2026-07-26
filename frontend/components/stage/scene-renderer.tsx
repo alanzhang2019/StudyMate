@@ -32,6 +32,7 @@ export function SceneRenderer({ scene, mode }: SceneRendererProps) {
             key={scene.id}
             questions={scene.content.questions}
             sceneId={scene.id}
+            classroomId={scene.stageId}
             codeBlock={scene.content.codeBlock}
             kind={scene.content.kind}
           />
