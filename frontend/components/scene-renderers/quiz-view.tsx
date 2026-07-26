@@ -112,9 +112,9 @@ function CodeBlockView({ block }: { block: QuizCodeBlock }) {
   const gutterDigits = Math.max(2, String(maxLineNo).length);
   const pad = (n: number) => String(n).padStart(gutterDigits, '0');
   return (
-    <div className="rounded-lg border-2 border-slate-300 overflow-hidden bg-white shadow-sm">
+    <div className="rounded-lg border-2 border-slate-300 overflow-hidden bg-white shadow-sm max-h-[40vh] flex flex-col">
       {(block.title || block.description) && (
-        <div className="px-4 py-2.5 border-b border-slate-300 bg-slate-50">
+        <div className="px-4 py-2.5 border-b border-slate-300 bg-slate-50 shrink-0">
           {block.title && (
             <div className="text-[13px] font-semibold text-slate-800">
               {block.title}
@@ -131,8 +131,12 @@ function CodeBlockView({ block }: { block: QuizCodeBlock }) {
           gutter and the code as siblings inside the same flex
           row, so the line number and the code share a single
           1px horizontal divider and stay perfectly aligned
-          even if the user zooms in. */}
-      <div className="font-mono text-[12.5px] leading-[1.7] text-slate-800">
+          even if the user zooms in. The wrapper is
+          `overflow-y-auto` so blocks longer than the parent's
+          `max-h-[40vh]` (set on the outer div above) scroll
+          inside the code block instead of pushing the
+          questions below the viewport. */}
+      <div className="font-mono text-[12.5px] leading-[1.7] text-slate-800 overflow-y-auto">
         {block.lines.map((line, i) => (
           <div
             key={`row-${i}`}
