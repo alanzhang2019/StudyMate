@@ -20,15 +20,20 @@ export function SceneRenderer({ scene, mode }: SceneRendererProps) {
         return <SlideRenderer mode={mode} />;
       case 'quiz':
         if (scene.content.type !== 'quiz') return <div>Invalid quiz content</div>;
-        // Pass `codeBlock` (if any) through to QuizView — for code-reading
-        // ("阅读程序") and code-completion ("完善程序") scenes, the program
-        // listing is rendered once above the question list, paper-style.
+        // Pass `codeBlock` (if any) and `kind` (type chip on the
+        // chapter cover) through to QuizView — for code-reading
+        // ("阅读程序") and code-completion ("完善程序") scenes,
+        // the program listing is rendered once above the question
+        // list, paper-style. The cover shows a tag like
+        // "单项选择题 / 阅读程序题 / 完善程序题" so the student
+        // knows what to expect before pressing "开始答题".
         return (
           <QuizView
             key={scene.id}
             questions={scene.content.questions}
             sceneId={scene.id}
             codeBlock={scene.content.codeBlock}
+            kind={scene.content.kind}
           />
         );
       case 'interactive':

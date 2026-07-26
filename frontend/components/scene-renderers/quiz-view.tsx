@@ -12,6 +12,9 @@ import {
   BookOpenText,
   Loader2,
   Sparkles,
+  ListChecks,
+  Code2,
+  PencilLine,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/hooks/use-i18n';
@@ -19,7 +22,7 @@ import { getCurrentModelConfig } from '@/lib/utils/model-config';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('QuizView');
-import type { QuizCodeBlock, QuizQuestion } from '@/lib/types/stage';
+import type { QuizCodeBlock, QuizKind, QuizQuestion } from '@/lib/types/stage';
 import { useDraftCache } from '@/lib/hooks/use-draft-cache';
 import { useCspProgress, type ReportQuizPayload } from '@/lib/hooks/use-csp-progress';
 import { SpeechButton } from '@/components/audio/speech-button';
@@ -54,24 +57,38 @@ interface QuizViewProps {
   readonly questions: QuizQuestion[];
   readonly sceneId: string;
   readonly codeBlock?: QuizCodeBlock;
+  readonly kind?: QuizKind;
 }
 
 /**
  * Paper-style code block rendered once above the question list.
  *
- * Layout (left → right):
+ * Visual style mimics the CSP 真题卷 paper: every line lives in
+ * its own bordered row, a 2-digit line-number column sits to the
+ * left with a faint background, and the whole listing is wrapped
+ * in a single outer frame. The intent is that a student reading
+ * "01 #include <iostream>" / "02 #include <vector>" / … can
+ * directly map it to the same line in the printed paper.
  *
- *   ┌──────────┬──────────────────────────────────────────┐
- *   │  1  2  3 │  #include <iostream>                     │
- *   │  4  5  6 │  using namespace std;                    │
- *   │  ...     │  ...                                    │
- *   └──────────┴──────────────────────────────────────────┘
+ *   ┌──────┬──────────────────────────────────────────┐
+ *   │  01  │  #include <iostream>                     │
+ *   │  02  │  #include <vector>                       │
+ *   │  03  │  using namespace std;                    │
+ *   │  ... │  ...                                     │
+ *   └──────┴──────────────────────────────────────────┘
  *
- * Why a CSS grid instead of two stacked elements:
- * the gutter and the code share the same vertical grid, so each
- * code line is guaranteed to be on the same row as its line
- * number even if the user resizes the viewport. The whole thing
- * is `pre`-wrapped for whitespace, monospace, and copy-paste.
+ * Why each line is a separate bordered <div> instead of a
+ * CSS grid (the previous version):
+ *   - The previous CSS-grid approach aligned line numbers and
+ *     code via shared `gridTemplateRows`, but the rows had no
+ *     visible separator, so the listing looked like a wall of
+ *     text — the very problem reported in QA. Adding row
+ *     borders is the simplest, most reliable way to make each
+ *     line a distinct visual unit (the "方格纸" look).
+ *   - Per-row borders degrade gracefully on narrow viewports:
+ *     only the inner content scrolls horizontally inside the
+ *     `overflow-x-auto` code cell, while the gutter stays
+ *     pinned on the left.
  *
  * Light mode only (the project opts out of system dark mode at
  * the UA level — see `app/layout.tsx` `colorScheme: 'light'`),
@@ -79,51 +96,59 @@ interface QuizViewProps {
  */
 function CodeBlockView({ block }: { block: QuizCodeBlock }) {
   const startLine = block.startLine ?? 1;
-  // The whole block is rendered in a single <pre> so users can
-  // ⌘A / right-click → copy the source. The line numbers live
-  // in their own <div> with the same height per line, mirrored
-  // by the same number of <div> rows in the code column. Both
-  // columns share the same `tabular-nums` to keep the gutter
-  // aligned under any font.
-  const gutterWidth = Math.max(2, String(startLine + block.lines.length - 1).length);
+  // Pad line numbers to 2 digits ("01" instead of "1") for the
+  // CSP-paper aesthetic. If a block has 100+ lines we expand
+  // automatically so the gutter never truncates.
+  const maxLineNo = startLine + block.lines.length - 1;
+  const gutterDigits = Math.max(2, String(maxLineNo).length);
+  const pad = (n: number) => String(n).padStart(gutterDigits, '0');
   return (
-    <div className="rounded-xl border border-slate-200 overflow-hidden bg-slate-50/60">
+    <div className="rounded-lg border-2 border-slate-300 overflow-hidden bg-white shadow-sm">
       {(block.title || block.description) && (
-        <div className="px-4 py-2.5 border-b border-slate-200 bg-white/70">
+        <div className="px-4 py-2.5 border-b border-slate-300 bg-slate-50">
           {block.title && (
             <div className="text-[13px] font-semibold text-slate-800">
               {block.title}
             </div>
           )}
           {block.description && (
-            <div className="text-xs text-slate-500 mt-1 leading-relaxed">
+            <div className="text-xs text-slate-600 mt-1 leading-relaxed">
               {block.description}
             </div>
           )}
         </div>
       )}
-      <div
-        className="grid text-[12.5px] leading-[1.6] font-mono"
-        style={{ gridTemplateColumns: `${gutterWidth + 1}ch 1fr` }}
-      >
-        {/* Gutter — line numbers */}
-        <div
-          className="select-none text-right pr-3 pl-3 py-3 text-slate-400 bg-slate-100/60 border-r border-slate-200 tabular-nums"
-          aria-hidden="true"
-        >
-          {block.lines.map((_, i) => (
-            <div key={`ln-${i}`}>{startLine + i}</div>
-          ))}
-        </div>
-        {/* Code body — preserve whitespace verbatim */}
-        <pre className="m-0 px-4 py-3 text-slate-800 whitespace-pre overflow-x-auto">
-          {block.lines.map((line, i) => (
-            <div key={`co-${i}`}>{line || '\u00a0'}</div>
-          ))}
-        </pre>
+      {/* Code listing: one bordered row per line. We render the
+          gutter and the code as siblings inside the same flex
+          row, so the line number and the code share a single
+          1px horizontal divider and stay perfectly aligned
+          even if the user zooms in. */}
+      <div className="font-mono text-[12.5px] leading-[1.7] text-slate-800">
+        {block.lines.map((line, i) => (
+          <div
+            key={`row-${i}`}
+            className="flex items-stretch border-b border-slate-200 last:border-b-0 hover:bg-slate-50/60 transition-colors"
+          >
+            {/* Gutter cell */}
+            <div
+              className="shrink-0 select-none text-right pr-3 pl-3 py-1 text-slate-500 bg-slate-100 border-r border-slate-200 tabular-nums"
+              style={{ minWidth: `${gutterDigits + 2}ch` }}
+              aria-hidden="true"
+            >
+              {pad(startLine + i)}
+            </div>
+            {/* Code cell. overflow-x-auto so a long line is
+                scrollable while the gutter stays pinned. Empty
+                lines render as `&nbsp;` so the row keeps its
+                height. */}
+            <pre className="m-0 flex-1 px-3 py-1 whitespace-pre overflow-x-auto">
+              {line || '\u00a0'}
+            </pre>
+          </div>
+        ))}
       </div>
       {/* Footer — language tag so the block looks like a labelled listing */}
-      <div className="px-3 py-1.5 border-t border-slate-200 bg-white/70 text-[10px] text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+      <div className="px-3 py-1.5 border-t border-slate-300 bg-slate-50 text-[10px] text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
         <span className="inline-block w-1.5 h-1.5 rounded-full bg-slate-400" />
         {block.language}
       </div>
@@ -191,13 +216,51 @@ async function gradeShortAnswerQuestion(
 function QuizCover({
   questionCount,
   totalPoints,
+  kind,
   onStart,
 }: {
   questionCount: number;
   totalPoints: number;
+  /** High-level quiz type; defaults to "choice" if omitted. */
+  kind?: QuizKind;
   onStart: () => void;
 }) {
   const { t } = useI18n();
+
+  // Visual treatment for the type chip. We keep all three
+  // variants in the violet/indigo family so the cover stays
+  // visually unified with the rest of the app, but the icon
+  // and the border accent shift to telegraph the kind at a
+  // glance. A code-completion scene gets a slightly stronger
+  // halo (the "fill the blanks" interaction is the most
+  // effort-demanding of the three).
+  const kindMeta: Record<QuizKind, { label: string; Icon: typeof PieChart; ring: string; bg: string; text: string; halo: string }> = {
+    choice: {
+      label: '单项选择题',
+      Icon: ListChecks,
+      ring: 'ring-indigo-200/60',
+      bg: 'bg-indigo-50',
+      text: 'text-indigo-700',
+      halo: 'shadow-indigo-200/40',
+    },
+    'code-reading': {
+      label: '阅读程序题',
+      Icon: Code2,
+      ring: 'ring-sky-200/60',
+      bg: 'bg-sky-50',
+      text: 'text-sky-700',
+      halo: 'shadow-sky-200/40',
+    },
+    'code-completion': {
+      label: '完善程序题',
+      Icon: PencilLine,
+      ring: 'ring-violet-300/60',
+      bg: 'bg-violet-50',
+      text: 'text-violet-700',
+      halo: 'shadow-violet-200/60',
+    },
+  };
+  const meta = kindMeta[kind ?? 'choice'];
 
   return (
     <div className="w-full h-full flex flex-col items-center justify-center gap-4 relative overflow-hidden">
@@ -213,9 +276,32 @@ function QuizCover({
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-        className="w-16 h-16 bg-gradient-to-br from-violet-100 to-purple-50 dark:from-violet-900/50 dark:to-purple-900/30 rounded-2xl flex items-center justify-center shadow-lg shadow-violet-100 dark:shadow-violet-900/30 ring-1 ring-violet-200/50 dark:ring-violet-700/50"
+        className={cn(
+          'w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg ring-1 bg-gradient-to-br',
+          'from-violet-100 to-purple-50 ring-violet-200/50',
+          meta.halo,
+        )}
       >
-        <PieChart className="w-8 h-8 text-violet-500" />
+        <meta.Icon className="w-8 h-8 text-violet-500" />
+      </motion.div>
+
+      {/* High-level type chip — the whole point of this UX
+          ask. "接下来是 单项选择题 / 阅读程序题 / 完善程序题"
+          so the student knows what to expect before pressing
+          "开始答题". */}
+      <motion.div
+        initial={{ y: 6, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.05 }}
+        className={cn(
+          'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ring-1',
+          meta.bg,
+          meta.ring,
+          meta.text,
+        )}
+      >
+        <meta.Icon className="w-3.5 h-3.5" />
+        {meta.label}
       </motion.div>
 
       <motion.div
@@ -736,7 +822,7 @@ function ScoreBanner({
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 
-export function QuizView({ questions, sceneId, codeBlock }: QuizViewProps) {
+export function QuizView({ questions, sceneId, codeBlock, kind }: QuizViewProps) {
   const { t, locale } = useI18n();
   const cspProgress = useCspProgress();
 
@@ -926,6 +1012,7 @@ export function QuizView({ questions, sceneId, codeBlock }: QuizViewProps) {
             <QuizCover
               questionCount={questions.length}
               totalPoints={totalPoints}
+              kind={kind}
               onStart={() => setPhase('answering')}
             />
           </motion.div>

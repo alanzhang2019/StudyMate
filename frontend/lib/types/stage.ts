@@ -106,10 +106,29 @@ export interface SlideContent {
 }
 
 /**
+ * High-level "kind" of a quiz scene. Used by the chapter-cover
+ * (QuizCover) to show a one-line type tag such as "单项选择题"
+ * / "阅读程序题" / "完善程序题" before the student presses
+ * "开始答题". The QuizView still derives the right rendering
+ * from `questions[]` + `codeBlock?` — `kind` is just a label,
+ * never a behaviour switch — so an old classroom JSON that
+ * omits this field keeps working (we default to "choice").
+ *
+ *   choice           — only multiple/single-choice questions
+ *   code-reading     — question references a shared program
+ *                       listing (read-only; pick the output)
+ *   code-completion  — student fills in numbered blanks
+ *                       "(1)", "(2)" ... in the shared listing
+ */
+export type QuizKind = 'choice' | 'code-reading' | 'code-completion';
+
+/**
  * Quiz content - React component props/data
  */
 export interface QuizContent {
   type: 'quiz';
+  /** High-level type label. Optional; falls back to "choice". */
+  kind?: QuizKind;
   /**
    * Optional shared code block rendered once above the question
    * list. Used by code-reading ("阅读程序") and code-completion
