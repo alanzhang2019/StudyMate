@@ -2,8 +2,9 @@
 //
 // "完成打卡" 判定 — 单一事实来源 (single source of truth)。
 //
-// 完成条件 (按产品要求, 2026-07-24 与 PM 确认):
-//   1. 课件进度 coveragePct >= 0.8 (看完 80% 及以上)
+// 完成条件 (按产品要求, 2026-07-26 与 PM 确认):
+//   1. 课件进度 coveragePct >= COMPLETION_PROGRESS_THRESHOLD (>= 0.5;
+//      观看过一半的 scene 即视为"看完")
 //   2. 每个 quiz 场景都至少提交过一次, 且 correctCount === totalQuestions
 //      (每节 quiz 都拿满分; 若整门课没有 quiz 场景则视为自动满足)
 //
@@ -26,6 +27,21 @@ import { db } from '@/lib/db';
 import { readClassroom } from '@/lib/server/classroom-storage';
 import { invalidateLeaderboardCache } from '@/lib/server/leaderboard';
 
+/**
+ * 课件进度达成 "完成打卡" 的最低门槛。
+ *
+ * 覆盖率 = 已观看 scene 数 / 课件总 scene 数。
+ *
+ * 阈值调整历史:
+ *   - 2026-07-24 之前: 1.0（必须看完所有 scene 才能完成）
+ *   - 2026-07-24:      0.8（PM 要求"看完 80%"）
+ *   - 2026-07-26:      0.5（PM 改为"看完 50%"，本文件改此值即可全局生效）
+ *
+ * 锁存（latched）语义保证已写过的 completedAt 不会被本阈值的回退
+ * 而撤销 — 见文件顶部 "锁存语义" 段落。
+ */
+export const COMPLETION_PROGRESS_THRESHOLD = 0.5;
+
 export type FailedQuiz = {
   sceneId: string;
   sceneTitle: string;
@@ -41,7 +57,8 @@ export type CompletionResult = {
   completed: boolean;
   /** 持久化层面 completedAt 是否已 set (latch)。 */
   latched: boolean;
-  /** 进度维度是否达标 (coveragePct >= 0.8 或整门课无场景)。 */
+  /** 进度维度是否达标 (coveragePct >= COMPLETION_PROGRESS_THRESHOLD
+   *  或整门课无场景)。                                 */
   progressMet: boolean;
   /** Quiz 维度是否达标 (每节 quiz 都满分, 或整门课无 quiz)。 */
   quizzesMet: boolean;
@@ -84,7 +101,8 @@ export async function evaluateCompletion(
   const viewedCount = viewed.length;
   const coveragePct = totalScenes > 0 ? viewedCount / totalScenes : 0;
   // 整门课没场景 (理论上不该发生, 但兜底) 视为进度自动满足。
-  const progressMet = totalScenes === 0 ? true : coveragePct >= 0.8;
+  const progressMet =
+    totalScenes === 0 ? true : coveragePct >= COMPLETION_PROGRESS_THRESHOLD;
 
   const submissions = db.cspQuizSubmission.findByUser(userId, classroomId);
   // Re-take semantics: the table is UNIQUE on
@@ -154,8 +172,9 @@ export async function evaluateCompletion(
 
   const reasons: string[] = [];
   if (!progressMet && totalScenes > 0) {
-    // 距离 80% 还差几节 (向上取整, 至少 1)。
-    const target = Math.ceil(totalScenes * 0.8);
+    // 距离阈值还差几节 (向上取整, 至少 1)。"还差" 的目标以常量为准,
+    // 这样以后 PM 改阈值时提示文案自动跟随。
+    const target = Math.ceil(totalScenes * COMPLETION_PROGRESS_THRESHOLD);
     const need = Math.max(1, target - viewedCount);
     reasons.push(`还需观看 ${need} 节`);
   }
