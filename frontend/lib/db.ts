@@ -801,6 +801,19 @@ class PrismaCompatClient {
         )
       return cspQuizSubmission.findByUserScene(params.userId, params.classroomId, params.sceneId)
     },
+    // deleteByUserScene: remove a single submission row so the
+    // student can re-take the quiz from a clean slate. Returns
+    // the number of rows deleted (0 if no row existed). Used by
+    // /api/csp-quiz/reset for the "重置" button on the CSP final
+    // paper total score page.
+    deleteByUserScene: (userId: string, classroomId: string, sceneId: string) => {
+      const result = getDb()
+        .prepare(
+          'DELETE FROM csp_quiz_submissions WHERE userId = ? AND classroomId = ? AND sceneId = ?',
+        )
+        .run(userId, classroomId, sceneId)
+      return result.changes
+    },
     listByClassroom: (classroomId: string) => {
       return getDb()
         .prepare(
