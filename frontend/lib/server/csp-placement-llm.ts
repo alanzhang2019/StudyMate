@@ -37,7 +37,18 @@ const FALLBACK_REASON = '根据基础画像，暂未生成定制推荐。';
 // Default model used when no client override is provided. Must be a
 // fast, cheap model — placement is a low-stakes batch operation that
 // runs synchronously in the request path.
-const DEFAULT_MODEL_STRING = process.env.PLACEMENT_MODEL || 'minimax:MiniMax-Text-01';
+//
+// We re-use the project's shared DEFAULT_MODEL (the same env var the
+// rest of the app uses, e.g. for mistake OCR). It is already wired up
+// to a working provider via server-providers.yml / env vars, so the
+// placement flow inherits whatever provider the operator has
+// configured — typically kimi:moonshotai/kimi-k2.5 in this project.
+//
+// Earlier this hard-coded "minimax:MiniMax-Text-01" which is not a
+// valid (provider, model) pair in the registry (minimax only ships
+// "MiniMax-M2.7"), so every call fell through to the deterministic
+// fallback. See commit history for the postmortem.
+const DEFAULT_MODEL_STRING = process.env.PLACEMENT_MODEL || process.env.DEFAULT_MODEL || '';
 
 function buildPrompt(answers: PlacementAnswers): string {
   const lines: string[] = [];

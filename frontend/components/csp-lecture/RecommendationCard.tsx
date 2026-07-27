@@ -91,7 +91,7 @@ export function RecommendationCard({
                 placement.recommendedIds.map((id) => (
                   <Link
                     key={id}
-                    href={`/csp-lecture/${id}`}
+                    href={`/classroom/${id}`}
                     onClick={onClose}
                     className="flex items-center gap-3 rounded-lg border border-slate-200 hover:border-violet-400 hover:bg-violet-50 transition px-4 py-3"
                   >
