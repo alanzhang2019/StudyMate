@@ -171,11 +171,25 @@ export async function recommendClassrooms(
         messages: [
           {
             role: 'system',
-            content: '你是一位专业的 CSP 初赛辅导老师。',
+            // Force a single-shot JSON response, no preamble, no thinking
+            // out loud. The KIMI proxy fronting `deepseek/deepseek-v4-flash`
+            // was returning `result.text === ''` because the model was
+            // burning its `maxOutputTokens` budget on chain-of-thought and
+            // never got to the actual JSON. Telling the model to "answer
+            // immediately" + bumping the token cap is the cheapest way to
+            // make sure the JSON is in the response.
+            content:
+              '你是一位专业的 CSP 初赛辅导老师。直接输出最终 JSON，' +
+              '不要思考、不要解释、不要 markdown 代码块包裹。',
           },
           { role: 'user', content: prompt },
         ],
-        maxOutputTokens: 600,
+        // 2000 is comfortably above the 80-150 字点评 + 3 课件 id payload,
+        // so the model can't be starved by thinking tokens alone.
+        maxOutputTokens: 2000,
+        // We explicitly do NOT pass `temperature: 0` here because the
+        // upstream KIMI proxy's openai-compatible endpoint may not
+        // forward it; we only need reasoning to fit in the token cap.
       },
       'csp-placement-recommend',
     );
