@@ -47,6 +47,14 @@ services:
       # at the same `/app/data` directory as the classroom JSONs
       # piggybacks on the named volume that already exists below.
       - STUDYMATE_DB_DIR=/app/data
+      # Force these model vars at runtime so a stale value in
+      # `frontend/.env` (e.g. "kimi:moonshotai/kimi-k2.5" which is
+      # NOT in KIMI_MODELS) cannot silently break the CSP placement
+      # AI recommender and other server-side LLM calls. `environment`
+      # is merged AFTER `env_file`, so these values win.
+      - DEFAULT_MODEL=kimi:deepseek/deepseek-v4-flash
+      - MISTAKE_OCR_MODEL=kimi:qwen3-vl-30b-a3b-instruct
+      - MISTAKE_CLASSROOM_MODEL=kimi:deepseek/deepseek-v4-flash
     # Persist /app/data (classroom JSONs, mistake-sessions, generated audio
     # recordings, SQLite database, etc.) on a named volume. Without this,
     # every `docker compose up -d --force-recreate` destroys the writable
