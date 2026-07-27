@@ -181,14 +181,26 @@ export async function recommendClassrooms(
   try {
     const content = await Promise.race([llmPromise, timeout]);
     if (content === '__TIMEOUT__') {
+      // eslint-disable-next-line no-console
+      console.warn('[csp-placement] LLM soft-timeout after', SOFT_TIMEOUT_MS, 'ms; using fallback');
       return { ...buildFallback(answers), aiStatus: 'fallback' };
     }
     const parsed = parseLlmResponse(content);
     if (!parsed) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[csp-placement] LLM response did not parse as JSON; using fallback. raw:',
+        content.slice(0, 300),
+      );
       return { ...buildFallback(answers), aiStatus: 'fallback' };
     }
     return { ...parsed, aiStatus: 'ok' };
-  } catch {
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error(
+      '[csp-placement] LLM call threw; using fallback. err:',
+      err instanceof Error ? err.message : String(err),
+    );
     return { ...buildFallback(answers), aiStatus: 'fallback' };
   }
 }
