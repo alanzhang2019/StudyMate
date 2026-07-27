@@ -13,6 +13,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/admin/settings" className="block p-2 hover:bg-gray-50 rounded">⚙️ TTS Settings</Link>
           <Link href="/admin/users" className="block p-2 hover:bg-gray-50 rounded">👥 Users</Link>
         </nav>
+        {/* 退出登录按钮：放在侧栏底部，避免和主导航混在一起。
+            跳转 NextAuth 默认的 /api/auth/signout 确认页（GET 方法），
+            那里点蓝色 "Sign out" 才真正清掉 session cookie。 */}
+        <div className="p-4 border-t">
+          <a
+            href="/api/auth/signout"
+            className="block p-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition"
+          >
+            🚪 退出登录
+          </a>
+        </div>
       </aside>
       <main className="flex-1 overflow-auto p-8">
         {children}
