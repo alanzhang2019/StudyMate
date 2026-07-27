@@ -19,6 +19,7 @@ import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { listClassroomSummaries } from '@/lib/server/classroom-storage';
 import { evaluateCompletion, type CompletionResult } from '@/lib/server/csp-completion';
+import { SignOutLink } from '@/components/SignOutLink';
 
 type AuditFlag = {
   kind: string;
@@ -172,12 +173,11 @@ export default async function StudentHomePage() {
           <span className="text-xs text-slate-500 hidden sm:inline">
             {userName}
           </span>
-          <Link
-            href="/api/auth/signout"
+          <SignOutLink
             className="text-sm text-slate-600 hover:text-slate-900"
           >
             退出登录
-          </Link>
+          </SignOutLink>
         </div>
       </nav>
 
