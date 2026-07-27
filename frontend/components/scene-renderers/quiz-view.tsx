@@ -991,6 +991,14 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
     if (results.length === 0) return;
     if (quizSubmitSentRef.current) return;
     quizSubmitSentRef.current = true;
+    // Build a lookup of questionId → points so the submit payload
+    // can carry per-question point values. The CSP paper has
+    // questions worth 1.5 / 2 / etc. points (not always 1), and
+    // the finalize endpoint sums these to give a real "总分 / 满分"
+    // rather than "答对题数 / 总题数".
+    const pointsByQuestionId = new Map<string, number>(
+      questions.map((q) => [q.id, q.points ?? 1]),
+    );
     const payload: ReportQuizPayload = {
       sceneId,
       totalQuestions: questions.length,
@@ -1006,6 +1014,7 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
         choice: pickChoice(answers[r.questionId]),
         correct: r.status === 'correct',
         ms: 0,
+        points: pointsByQuestionId.get(r.questionId) ?? 1,
       })),
     };
     void cspProgress.reportQuizSubmit(payload);
@@ -1093,26 +1102,35 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
       const data: {
         totalEarned: number;
         totalPossible: number;
+        totalPoints: number;
+        totalMaxPoints: number;
         totalScore: number;
         sceneCount: number;
         sceneResults: {
           sceneId: string;
           correctCount: number;
           totalQuestions: number;
+          points: number;
+          maxPoints: number;
           score: number;
         }[];
       } = await res.json();
       setFinalizedResult({
-        totalEarned: data.totalEarned,
-        totalPossible: data.totalPossible,
+        // Keep the count-based fields (correctCount / totalQuestions)
+        // for the per-scene table, but the headline "总分 / 满分"
+        // numbers now come from the point-weighted `points` /
+        // `maxPoints` so they reflect actual CSP paper weighting
+        // (1.5 / 2 / etc. per question).
+        totalEarned: data.totalPoints,
+        totalPossible: data.totalMaxPoints,
         sceneResults: data.sceneResults.map((s, idx) => ({
           sceneId: s.sceneId,
           title: `第 ${idx + 1} 部分`,
           order: idx + 1,
           totalQuestions: s.totalQuestions,
           correctCount: s.correctCount,
-          points: s.totalQuestions, // server doesn't track per-question points
-          earnedPoints: s.correctCount,
+          points: s.maxPoints,
+          earnedPoints: s.points,
         })),
       });
       setPhase('finalized');
@@ -1499,7 +1517,7 @@ function FinalScorePage({
         <div className="text-5xl font-black text-slate-900 tabular-nums">
           {result.totalEarned}{' '}
           <span className="text-2xl text-slate-400">
-            / {result.totalPossible}
+            / {result.totalPossible} 分
           </span>
         </div>
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-100 text-violet-700 text-sm font-semibold">
@@ -1516,6 +1534,12 @@ function FinalScorePage({
             .slice()
             .sort((a, b) => a.order - b.order)
             .map((s) => {
+              // Both the headline number on the right and the
+              // sub-line below are now in POINTS (CSP 1.5 / 2 /
+              // etc. per question), not question counts. We
+              // separately keep `correctCount / totalQuestions`
+              // as a smaller secondary line so the student can
+              // still see "15题里对2题" at a glance.
               const scenePct =
                 s.points > 0
                   ? Math.round((s.earnedPoints / s.points) * 100)
@@ -1544,7 +1568,7 @@ function FinalScorePage({
                             : 'text-red-600'
                       }`}
                     >
-                      {s.earnedPoints} / {s.points}
+                      {s.earnedPoints} / {s.points} 分
                     </div>
                   </div>
                   <div className="shrink-0">

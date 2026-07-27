@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   let body: {
     classroomId?: string;
     sceneId?: string;
-    answers?: { questionId?: string; choice?: string; correct?: boolean; ms?: number }[];
+    answers?: { questionId?: string; choice?: string; correct?: boolean; ms?: number; points?: number }[];
     totalQuestions?: number;
   };
   try {
@@ -73,13 +73,17 @@ export async function POST(req: NextRequest) {
   // Store the full per-question detail so the teacher dashboard
   // can show "which questions did this student get wrong" and
   // "which option did they pick" without re-fetching the
-  // classroom.
+  // classroom. We also persist the per-question `points` (default
+  // 1) so the finalize endpoint can sum a real point-weighted
+  // total (CSP paper has 1.5 / 2 / etc. point questions) instead
+  // of "答对题数 / 总题数".
   const answersJson = JSON.stringify(
     answers.map((a) => ({
       questionId: a.questionId ?? '',
       choice: a.choice ?? '',
       correct: a.correct === true,
       ms: typeof a.ms === 'number' ? a.ms : 0,
+      points: typeof a.points === 'number' && Number.isFinite(a.points) && a.points > 0 ? a.points : 1,
     })),
   );
 

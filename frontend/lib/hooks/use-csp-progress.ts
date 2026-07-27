@@ -66,6 +66,15 @@ export type ReportQuizPayload = {
     choice: string;
     correct: boolean;
     ms: number;
+    /**
+     * Per-question point value, taken from the classroom's
+     * `QuizQuestion.points` field (default 1). Sent alongside the
+     * answer so the server can compute a point-weighted total
+     * (CSP paper has questions worth 1.5 / 2 / etc. points, not
+     * always 1). Old submissions without this field are treated
+     * as 1 point per question on the server side.
+     */
+    points?: number;
   }>;
   totalQuestions?: number;
 };
