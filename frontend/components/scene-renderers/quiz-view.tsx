@@ -905,6 +905,12 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
 
   const handleSubmit = useCallback(() => {
     setPhase('grading');
+    // Reset the "submitted to server" guard so the post-grading
+    // effect below can fire on this cycle. Without this, full-paper
+    // scenes (which stay in `answering` instead of transitioning
+    // to `reviewing`) would silently skip the server push and the
+    // student's answers would never make it to csp_quiz_submissions.
+    quizSubmitSentRef.current = false;
     clearAnswersCache();
     writeSubmittedAnswers(sceneId, answers);
   }, [clearAnswersCache, answers, sceneId]);
@@ -969,16 +975,26 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
   // scenes (the student answers directly in the UI, the
   // engine's speech never gets a chance to "complete" the
   // scene via the natural TTS-end path).
+  //
+  // Trigger condition is `results.length > 0` rather than
+  // `phase === 'reviewing'` because full-paper scenes
+  // (isFullPaper: cm_imp_cspj2024j_v1) intentionally stay in
+  // `answering` after grading to avoid spoiling the per-scene
+  // answer correctness before the student has finished the
+  // whole paper. The previous phase-gated check meant
+  // full-paper submissions never reached the server, so
+  // the final "交卷" only saw the last scene's data and the
+  // 6-scene aggregator in /api/csp-quiz/finalize returned
+  // a partial (or empty) score.
   const quizSubmitSentRef = useRef(false);
   useEffect(() => {
-    if (phase !== 'reviewing') return;
     if (results.length === 0) return;
     if (quizSubmitSentRef.current) return;
     quizSubmitSentRef.current = true;
     const payload: ReportQuizPayload = {
       sceneId,
       totalQuestions: questions.length,
-      answers: results.map((r, i) => ({
+      answers: results.map((r) => ({
         // Use the original question's `id` from the question
         // bank (not the result's, which is identical but we
         // want to be explicit) and the user's chosen value
