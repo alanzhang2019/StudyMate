@@ -32,7 +32,15 @@ export type LlmRecommendation = {
   aiStatus: 'ok' | 'fallback';
 };
 
-const SOFT_TIMEOUT_MS = 5000;
+// Soft timeout for the LLM call. 5s was too aggressive — observed
+// `deepseek/deepseek-v4-flash` cold-start latency on the KIMI proxy
+// sits at 8-12s, so a 5s ceiling always tripped the fallback even when
+// the upstream was healthy. 30s is the wall-clock budget for the
+// POST handler; if the model still hasn't replied by then the user's
+// patience is gone regardless. Bumping to 30s and keeping the soft-
+// timeout pattern (so we still return a deterministic recommendation
+// on hard upstream failure).
+const SOFT_TIMEOUT_MS = 30000;
 const FALLBACK_REASON = '根据基础画像，暂未生成定制推荐。';
 // Default model used when no client override is provided. Must be a
 // fast, cheap model — placement is a low-stakes batch operation that
