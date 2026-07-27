@@ -1054,14 +1054,17 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
     clearSubmitted(sceneId);
   }, [clearAnswersCache, sceneId]);
 
-  // handleFinalize: triggered by the top "交卷" button. v1
-  // simplification: each scene finalizes independently. The
-  // per-scene grading useEffect already pushed this scene's
-  // results to /api/csp-quiz/submit, so all we need to do
-  // here is compute the local scene summary and transition
-  // to `finalized`. A future v2 will hoist all scenes'
-  // results to a context for true cross-scene aggregation.
-  const handleFinalize = useCallback(() => {
+  // handleFinalize: triggered by the top "交卷" button. V2:
+  // call /api/csp-quiz/finalize-classroom so the server can
+  // aggregate every scene this user has submitted for this
+  // classroom, not just the current scene. The v1 version
+  // showed only the *last* scene's score (because the per-
+  // scene grading useEffect had only just pushed the local
+  // results to /api/csp-quiz/submit and there was no time to
+  // pull all scenes back from the server). V2 is read-only
+  // server-side: it just sums the existing csp_quiz_submissions
+  // rows and returns one combined total.
+  const handleFinalize = useCallback(async () => {
     if (!isFullPaper) return;
     if (results.length === 0) {
       setFinalizeError('当前场景还没有评分结果，请先答题');
@@ -1070,23 +1073,47 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
     setIsFinalizing(true);
     setFinalizeError(null);
     try {
-      const points = questions.reduce((s, q) => s + (q.points ?? 1), 0);
-      const earned = results.reduce((s, r) => s + r.earned, 0);
-      const correctCount = results.filter((r) => r.status === 'correct').length;
+      // The local "this scene" totals are useful for the
+      // optimistic view while the network round-trip runs, so
+      // seed the result with them. The server response will
+      // replace this with the cross-scene aggregate.
+      const localPoints = questions.reduce((s, q) => s + (q.points ?? 1), 0);
+      const localEarned = results.reduce((s, r) => s + r.earned, 0);
+      const localCorrect = results.filter((r) => r.status === 'correct').length;
+
+      const res = await fetch('/api/csp-quiz/finalize-classroom', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ classroomId }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error || '交卷失败');
+      }
+      const data: {
+        totalEarned: number;
+        totalPossible: number;
+        totalScore: number;
+        sceneCount: number;
+        sceneResults: {
+          sceneId: string;
+          correctCount: number;
+          totalQuestions: number;
+          score: number;
+        }[];
+      } = await res.json();
       setFinalizedResult({
-        totalEarned: earned,
-        totalPossible: points,
-        sceneResults: [
-          {
-            sceneId,
-            title: `Scene ${sceneId}`,
-            order: 1,
-            totalQuestions: questions.length,
-            correctCount,
-            points,
-            earnedPoints: earned,
-          },
-        ],
+        totalEarned: data.totalEarned,
+        totalPossible: data.totalPossible,
+        sceneResults: data.sceneResults.map((s, idx) => ({
+          sceneId: s.sceneId,
+          title: `第 ${idx + 1} 部分`,
+          order: idx + 1,
+          totalQuestions: s.totalQuestions,
+          correctCount: s.correctCount,
+          points: s.totalQuestions, // server doesn't track per-question points
+          earnedPoints: s.correctCount,
+        })),
       });
       setPhase('finalized');
       setIsConfirming(false);
@@ -1096,7 +1123,7 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
     } finally {
       setIsFinalizing(false);
     }
-  }, [isFullPaper, results, questions, sceneId]);
+  }, [isFullPaper, results, questions, sceneId, classroomId]);
 
   // handleReset: triggered by "重新答题" on the total score
   // page. Calls /api/csp-quiz/reset for THIS scene, clears
@@ -1556,7 +1583,7 @@ function FinalScorePage({
       </div>
 
       <p className="text-center text-xs text-slate-400">
-        交卷后单 scene 成绩已保存到排行榜。完整 6 scene 一次性交卷将在 v2 提供。
+        交卷后全 6 scene 成绩已汇总写入排行榜。重新答题只重置当前 scene。
       </p>
     </div>
   );
