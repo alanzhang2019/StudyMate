@@ -707,7 +707,13 @@ class PrismaCompatClient {
           params.lastViewedAt,
         )
       }
-      return cspProgress.findByUserClass(params.userId, params.classroomId)
+      // Inlined read rather than `cspProgress.findByUserClass(...)` to
+      // avoid the Temporal Dead Zone in this class-field initialiser
+      // (the namespace binding is not yet established while the body
+      // is being evaluated).
+      return (getDb()
+        .prepare('SELECT * FROM csp_progress WHERE userId = ? AND classroomId = ? LIMIT 1')
+        .get(params.userId, params.classroomId) as any) ?? null
     },
     // appendAuditFlag: append an entry to the auditFlags JSON
     // array. We dedupe on (kind) so the array doesn't grow
@@ -719,7 +725,11 @@ class PrismaCompatClient {
       classroomId: string,
       flag: { kind: string; at: string; details: Record<string, unknown> },
     ) => {
-      const row = cspProgress.findByUserClass(userId, classroomId)
+      // Inlined read to avoid the `cspProgress` self-reference
+      // (TDZ while the namespace is still being constructed).
+      const row = getDb()
+        .prepare('SELECT auditFlags FROM csp_progress WHERE userId = ? AND classroomId = ? LIMIT 1')
+        .get(userId, classroomId) as { auditFlags?: string } | undefined
       let arr: any[] = []
       try {
         const parsed = JSON.parse(row?.auditFlags ?? '[]')
@@ -738,7 +748,9 @@ class PrismaCompatClient {
            WHERE userId = ? AND classroomId = ?`,
         )
         .run(JSON.stringify(without), userId, classroomId)
-      return cspProgress.findByUserClass(userId, classroomId)
+      return (getDb()
+        .prepare('SELECT * FROM csp_progress WHERE userId = ? AND classroomId = ? LIMIT 1')
+        .get(userId, classroomId) as any) ?? null
     },
     addWatchSeconds: (userId: string, classroomId: string, deltaSeconds: number) => {
       // Heartbeat accumulator. We clamp the value at 0 in case
@@ -752,7 +764,9 @@ class PrismaCompatClient {
            WHERE userId = ? AND classroomId = ?`,
         )
         .run(deltaSeconds, userId, classroomId)
-      return cspProgress.findByUserClass(userId, classroomId)
+      return (getDb()
+        .prepare('SELECT * FROM csp_progress WHERE userId = ? AND classroomId = ? LIMIT 1')
+        .get(userId, classroomId) as any) ?? null
     },
     // setCompletedAt: write the "first time the student met the
     // completion criteria" timestamp. Idempotent and
@@ -775,7 +789,9 @@ class PrismaCompatClient {
            WHERE userId = ? AND classroomId = ?`,
         )
         .run(completedAt, userId, classroomId)
-      return cspProgress.findByUserClass(userId, classroomId)
+      return (getDb()
+        .prepare('SELECT * FROM csp_progress WHERE userId = ? AND classroomId = ? LIMIT 1')
+        .get(userId, classroomId) as any) ?? null
     },
   }
   cspQuizSubmission = {
