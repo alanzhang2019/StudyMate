@@ -16,8 +16,11 @@
  * Related spec: docs/superpowers/specs/2026-07-26-csp-placement-design.md §4 API.
  */
 
+import { promises as fs } from 'fs';
+import path from 'path';
 import { callLLM } from '@/lib/ai/llm';
 import { resolveModel } from '@/lib/server/resolve-model';
+import { CLASSROOMS_DIR } from '@/lib/server/classroom-storage';
 import {
   combinedLevel,
   FALLBACK_RECOMMENDATIONS,
@@ -58,7 +61,63 @@ const FALLBACK_REASON = '根据基础画像，暂未生成定制推荐。';
 // fallback. See commit history for the postmortem.
 const DEFAULT_MODEL_STRING = process.env.PLACEMENT_MODEL || process.env.DEFAULT_MODEL || '';
 
-function buildPrompt(answers: PlacementAnswers): string {
+/**
+ * Read every classroom .json on disk and return its id (filename minus
+ * `.json`). The recommender prompt is anchored against this list so the
+ * model can only return ids the operator has actually uploaded.
+ *
+ * Cached for the lifetime of the module. The classrooom list only
+ * changes when the admin uploads/removes a classroom, which is rare
+ * enough that re-reading on every placement call would be wasted I/O.
+ */
+let _availableIdsCache: { ids: Set<string>; loadedAt: number } | null = null;
+const AVAILABLE_IDS_TTL_MS = 30_000;
+
+async function loadAvailableClassroomIds(): Promise<Set<string>> {
+  const now = Date.now();
+  if (_availableIdsCache && now - _availableIdsCache.loadedAt < AVAILABLE_IDS_TTL_MS) {
+    return _availableIdsCache.ids;
+  }
+  const ids = new Set<string>();
+  try {
+    const entries = await fs.readdir(CLASSROOMS_DIR);
+    for (const name of entries) {
+      if (name.endsWith('.json')) ids.add(name.slice(0, -'.json'.length));
+    }
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[csp-placement] could not read CLASSROOMS_DIR',
+        CLASSROOMS_DIR,
+        err instanceof Error ? err.message : String(err),
+      );
+    }
+  }
+  _availableIdsCache = { ids, loadedAt: now };
+  return ids;
+}
+
+/**
+ * Filter `recommendedIds` to only include ids that exist on disk. The
+ * model occasionally hallucinates plausible-looking ids (e.g.
+ * "j1-computer-basics") that the operator has not uploaded. Those
+ * must not reach the UI — clicking them 404s and breaks the student's
+ * first impression. If the LLM's picklist is empty after filtering we
+ * fall back to the level's deterministic recommendation so the banner
+ * is never empty.
+ */
+function filterToValidIds(
+  recommendedIds: string[],
+  validIds: Set<string>,
+  level: CspLevel,
+): string[] {
+  const out = recommendedIds.filter((id) => validIds.has(id));
+  if (out.length > 0) return out;
+  return FALLBACK_RECOMMENDATIONS[level] ?? [];
+}
+
+function buildPrompt(answers: PlacementAnswers, availableIds: string[]): string {
   const lines: string[] = [];
   lines.push(`你是一位 CSP 初赛辅导老师，根据学生信息给出 1 段简短点评（80-150 字）和最多 3 个推荐课件 id。`);
   lines.push(``);
@@ -79,10 +138,23 @@ function buildPrompt(answers: PlacementAnswers): string {
   }
   if (answers.otherContests) lines.push(`- 其它奖项：${answers.otherContests}`);
   lines.push(``);
+  // Inject the allowlist of real classroom ids so the model can only
+  // pick from what the operator has actually uploaded. This is the
+  // ground truth; post-parsing we drop anything not in this set, so
+  // returning a hallucinated id would be silently downgraded to
+  // FALLBACK_RECOMMENDATIONS anyway. Telling the model up front
+  // produces a more honest recommendation.
+  if (availableIds.length > 0) {
+    lines.push(`# 真实存在的课件 id（必须从此列表选择，最多 3 个）`);
+    for (const id of availableIds) lines.push(`- ${id}`);
+  } else {
+    lines.push(`# 课件库为空，返回空数组即可`);
+  }
+  lines.push(``);
   lines.push(`# 输出格式（严格 JSON，不要 markdown 代码块）`);
   lines.push(`{`);
   lines.push(`  "level": "beginner" | "intermediate" | "advanced",`);
-  lines.push(`  "recommendedIds": ["<课件id>", ...],`);
+  lines.push(`  "recommendedIds": ["<课件id，必须在上面的列表里>", ...],`);
   lines.push(`  "reason": "<80-150 字的点评>"`);
   lines.push(`}`);
   return lines.join('\n');
@@ -155,9 +227,16 @@ function buildFallback(answers: PlacementAnswers): {
 export async function recommendClassrooms(
   answers: PlacementAnswers,
 ): Promise<LlmRecommendation> {
-  const prompt = buildPrompt(answers);
+  // Resolve the on-disk classroom allowlist BEFORE we call the LLM so
+  // we can (a) feed it into the prompt and (b) post-validate the model's
+  // picks. We deliberately compute the level from answers (deterministic)
+  // first so the fallback used by the timeout / parse-fail path is the
+  // right one for this student.
+  const validIds = await loadAvailableClassroomIds();
+  const availableIds = Array.from(validIds);
+  const prompt = buildPrompt(answers, availableIds);
 
-  // Run the LLM call under a 5s soft timeout. If anything in
+  // Run the LLM call under a 30s soft timeout. If anything in
   // the chain throws (resolveModel, network, parse), we treat
   // it as "AI unavailable" and return the deterministic
   // fallback. This is a one-shot synchronous call from a
@@ -216,7 +295,17 @@ export async function recommendClassrooms(
       );
       return { ...buildFallback(answers), aiStatus: 'fallback' };
     }
-    return { ...parsed, aiStatus: 'ok' };
+    // Post-validate the model's picks against the on-disk allowlist.
+    // Hallucinated ids (e.g. "j1-computer-basics") would 404 in the
+    // classroom page; better to fall back to the level's deterministic
+    // list than ship a broken link to a student.
+    const validatedIds = filterToValidIds(parsed.recommendedIds, validIds, parsed.level);
+    return {
+      level: parsed.level,
+      recommendedIds: validatedIds,
+      aiReason: parsed.aiReason,
+      aiStatus: 'ok',
+    };
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error(
