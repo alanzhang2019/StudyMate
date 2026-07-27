@@ -291,6 +291,36 @@ export function getDb(): Database {
     ON csp_quiz_submissions (classroomId, score DESC);
 `)
 
+  // CSP 初赛水平摸底：每个学生一行（PRIMARY KEY userId）
+  // 上线日期：2026-07-26 + 摸底 spec 增量
+  _db.exec(`
+  CREATE TABLE IF NOT EXISTS csp_placement (
+    userId TEXT PRIMARY KEY,
+    -- 基础画像（必填 5 题）
+    grade TEXT NOT NULL,
+    studyMonths TEXT NOT NULL,
+    selfRating TEXT NOT NULL,
+    goal TEXT NOT NULL,
+    hoursPerWeek TEXT NOT NULL,
+    -- 比赛成绩（每项可为 null）
+    province TEXT,
+    cspJ1Year INTEGER, cspJ1Score INTEGER,
+    cspS1Year INTEGER, cspS1Score INTEGER,
+    cspJ2Year INTEGER, cspJ2Rank TEXT,
+    cspS2Year INTEGER, cspS2Rank TEXT,
+    gespYear INTEGER, gespLevel INTEGER, gespPassed INTEGER,
+    otherContests TEXT,
+    -- AI 推荐输出
+    level TEXT NOT NULL,
+    recommendedIds TEXT NOT NULL,
+    aiReason TEXT,
+    aiStatus TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_csp_placement_level ON csp_placement(level);
+`)
+
     // Idempotent column migration for usage_events. We can't add
     // it inside the CREATE TABLE block above because 'IF NOT EXISTS'
     // skips the whole statement when the table already exists.
@@ -820,6 +850,66 @@ class PrismaCompatClient {
           'SELECT * FROM csp_quiz_submissions WHERE classroomId = ? ORDER BY submittedAt DESC',
         )
         .all(classroomId) as any[]
+    },
+  }
+  cspPlacement = {
+    findUnique: (userId: string) => {
+      const row = getDb()
+        .prepare('SELECT * FROM csp_placement WHERE userId = ?')
+        .get(userId)
+      return row ?? null
+    },
+    upsert: (row: Row) => {
+      getDb()
+        .prepare(
+          `INSERT INTO csp_placement (
+            userId, grade, studyMonths, selfRating, goal, hoursPerWeek,
+            province, cspJ1Year, cspJ1Score, cspS1Year, cspS1Score,
+            cspJ2Year, cspJ2Rank, cspS2Year, cspS2Rank,
+            gespYear, gespLevel, gespPassed, otherContests,
+            level, recommendedIds, aiReason, aiStatus, createdAt, updatedAt
+          ) VALUES (
+            @userId, @grade, @studyMonths, @selfRating, @goal, @hoursPerWeek,
+            @province, @cspJ1Year, @cspJ1Score, @cspS1Year, @cspS1Score,
+            @cspJ2Year, @cspJ2Rank, @cspS2Year, @cspS2Rank,
+            @gespYear, @gespLevel, @gespPassed, @otherContests,
+            @level, @recommendedIds, @aiReason, @aiStatus, @createdAt, @updatedAt
+          )
+          ON CONFLICT(userId) DO UPDATE SET
+            grade = excluded.grade,
+            studyMonths = excluded.studyMonths,
+            selfRating = excluded.selfRating,
+            goal = excluded.goal,
+            hoursPerWeek = excluded.hoursPerWeek,
+            province = excluded.province,
+            cspJ1Year = excluded.cspJ1Year, cspJ1Score = excluded.cspJ1Score,
+            cspS1Year = excluded.cspS1Year, cspS1Score = excluded.cspS1Score,
+            cspJ2Year = excluded.cspJ2Year, cspJ2Rank = excluded.cspJ2Rank,
+            cspS2Year = excluded.cspS2Year, cspS2Rank = excluded.cspS2Rank,
+            gespYear = excluded.gespYear, gespLevel = excluded.gespLevel, gespPassed = excluded.gespPassed,
+            otherContests = excluded.otherContests,
+            level = excluded.level,
+            recommendedIds = excluded.recommendedIds,
+            aiReason = excluded.aiReason,
+            aiStatus = excluded.aiStatus,
+            updatedAt = excluded.updatedAt`,
+        )
+        .run(row)
+    },
+    updateAi: (
+      userId: string,
+      aiReason: string,
+      recommendedIds: string,
+      aiStatus: 'ok' | 'fallback',
+      updatedAt: string,
+    ) => {
+      getDb()
+        .prepare(
+          `UPDATE csp_placement
+           SET aiReason = ?, recommendedIds = ?, aiStatus = ?, updatedAt = ?
+           WHERE userId = ?`,
+        )
+        .run(aiReason, recommendedIds, aiStatus, updatedAt, userId)
     },
   }
   systemConfig = {
