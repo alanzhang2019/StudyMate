@@ -21,10 +21,12 @@ services:
         # IMPORTANT: these are baked into the server bundle by webpack's env
         # inlining. Whatever is here at `docker compose build` time is what
         # runs. Change at runtime via .env does NOT take effect — must rebuild.
-        # Default switched to kimi to align with KIMI_MODELS/KIMI_API_KEY in
-        # the deployment environment (OPENAI_API_KEY was never set here).
-        DEFAULT_MODEL: ${DEFAULT_MODEL:-kimi:moonshotai/kimi-k2.5}
-        MISTAKE_OCR_MODEL: ${MISTAKE_OCR_MODEL:-kimi:moonshotai/kimi-k2.5}
+        # Default switched to kimi:deepseek/deepseek-v4-flash because that is
+        # the first entry of the KIMI_MODELS allowlist in the deployment env.
+        # The previous kimi:moonshotai/kimi-k2.5 was NOT in the allowlist, so
+        # every server-side LLM call was silently rejected by resolveModel.
+        DEFAULT_MODEL: ${DEFAULT_MODEL:-kimi:deepseek/deepseek-v4-flash}
+        MISTAKE_OCR_MODEL: ${MISTAKE_OCR_MODEL:-kimi:deepseek/deepseek-v4-flash}
     container_name: studymate-frontend
     # Listen on 0.0.0.0 so the oi.aijiangti.cn reverse proxy (Singapore)
     # can reach us during the ICP filing window. Restrict via Tencent Cloud

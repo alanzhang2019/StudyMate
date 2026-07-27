@@ -107,8 +107,17 @@ FROM base AS builder
 # the CSP placement recommender) silently failed and fell through to the
 # deterministic fallback. Switched to kimi:moonshotai/kimi-k2.5 to
 # align with KIMI_MODELS in the deployment env.
-ARG DEFAULT_MODEL=kimi:moonshotai/kimi-k2.5
-ARG MISTAKE_OCR_MODEL=kimi:moonshotai/kimi-k2.5
+# `KIMI_MODELS` is the comma-separated allowlist of model ids the
+# "kimi" provider actually accepts (e.g. "kimi:deepseek/deepseek-v4-flash").
+# Whatever DEFAULT_MODEL we set here must appear in that list, otherwise
+# resolveModel() rejects it and the call falls through to the
+# deterministic fallback. The previous default ("kimi:moonshotai/kimi-k2.5")
+# looked right but was not in the list, so every server-side LLM call
+# silently failed. Switched to "kimi:deepseek/deepseek-v4-flash" (the
+# first entry of KIMI_MODELS in the deployment env) so the call
+# actually reaches the upstream.
+ARG DEFAULT_MODEL=kimi:deepseek/deepseek-v4-flash
+ARG MISTAKE_OCR_MODEL=kimi:deepseek/deepseek-v4-flash
 ARG LLM_THINKING_DISABLED=false
 
 COPY --from=deps /app/node_modules ./node_modules
