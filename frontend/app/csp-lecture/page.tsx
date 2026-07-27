@@ -25,6 +25,7 @@ import type { Scene, Stage } from '@/lib/types/stage';
 import { auth } from '@/auth';
 import { ExpandChapterList } from './ExpandChapterList';
 import { Leaderboard } from '@/components/leaderboard';
+import { PlacementBanner } from '@/components/csp-lecture/PlacementBanner';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -218,6 +219,12 @@ export default async function CspLecturePage() {
             : `共 ${lectures.length} 个课件 · ${totalScenes} 个讲解场景。点击任意课件展开章节，按顺序学习。`}
         </p>
       </section>
+
+      {/* Placement banner (摸底入口). Renders above the catalog so
+          the survey CTA is the first thing a new student sees. The
+          banner is a client component that owns its own loading/
+          submitted/empty state. */}
+      <PlacementBanner />
 
       {/*
        * Lecture grid + leaderboard in a 2-col layout (lg+).
