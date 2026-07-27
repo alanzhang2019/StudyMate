@@ -18,8 +18,13 @@ services:
       dockerfile: Dockerfile
       args:
         # Build-time defaults; runtime env_file below can override at request time.
-        DEFAULT_MODEL: ${DEFAULT_MODEL:-openai:gpt-4o-mini}
-        MISTAKE_OCR_MODEL: ${MISTAKE_OCR_MODEL:-openai:gpt-4o-mini}
+        # IMPORTANT: these are baked into the server bundle by webpack's env
+        # inlining. Whatever is here at `docker compose build` time is what
+        # runs. Change at runtime via .env does NOT take effect — must rebuild.
+        # Default switched to kimi to align with KIMI_MODELS/KIMI_API_KEY in
+        # the deployment environment (OPENAI_API_KEY was never set here).
+        DEFAULT_MODEL: ${DEFAULT_MODEL:-kimi:moonshotai/kimi-k2.5}
+        MISTAKE_OCR_MODEL: ${MISTAKE_OCR_MODEL:-kimi:moonshotai/kimi-k2.5}
     container_name: studymate-frontend
     # Listen on 0.0.0.0 so the oi.aijiangti.cn reverse proxy (Singapore)
     # can reach us during the ICP filing window. Restrict via Tencent Cloud

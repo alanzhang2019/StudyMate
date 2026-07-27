@@ -93,8 +93,22 @@ FROM base AS builder
 # Build-time defaults for server-side env reads inside API route handlers.
 # These can be overridden via `docker compose build --build-arg` or
 # `build.args` in docker-compose.yml.
-ARG DEFAULT_MODEL=openai:gpt-4o-mini
-ARG MISTAKE_OCR_MODEL=openai:gpt-4o-mini
+#
+# IMPORTANT: webpack inlines these into the server bundle at build time
+# (replacing `process.env.X` with the literal string). Whatever is set
+# here is what every server-side route handler will see at runtime —
+# changing the .env file or container env does NOT override this after
+# the image is built. Pick a (provider, model) pair that has the
+# corresponding API key wired up in the container (see KIMI_API_KEY,
+# OPENAI_API_KEY, etc. in docker-compose.yml).
+#
+# The previous default (openai:gpt-4o-mini) required OPENAI_API_KEY,
+# which the operator never set — every server-side LLM call (including
+# the CSP placement recommender) silently failed and fell through to the
+# deterministic fallback. Switched to kimi:moonshotai/kimi-k2.5 to
+# align with KIMI_MODELS in the deployment env.
+ARG DEFAULT_MODEL=kimi:moonshotai/kimi-k2.5
+ARG MISTAKE_OCR_MODEL=kimi:moonshotai/kimi-k2.5
 ARG LLM_THINKING_DISABLED=false
 
 COPY --from=deps /app/node_modules ./node_modules
