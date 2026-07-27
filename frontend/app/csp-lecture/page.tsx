@@ -1,8 +1,18 @@
 // Public landing page for the "CSP初赛要点精讲" module.
 //
-// Lists every classroom tagged with `collection: "csp-lecture"`
-// (those that the admin uploaded through /admin/csp-lecture) so
-// students can browse and play the lectures without logging in.
+// Lists classrooms that should appear on the public CSP module page:
+//   1. Classrooms tagged with `collection: "csp-lecture"` (the
+//      authoritative "this is CSP courseware" signal — uploaded
+//      through /admin/csp-lecture).
+//   2. Legacy classrooms with no `collection` field at all. The
+//      collection tag was added partway through the CSP rollout, so
+//      older uploads (which are still legitimate CSP content) are
+//      untagged. Hiding them here would be a regression — we want
+//      every CSP classroom the admin uploaded to be visible to
+//      students. Classrooms with an explicit *other* collection
+//      (e.g. tagged for some other module) are still excluded so
+//      the CSP page doesn't accidentally leak content from
+//      unrelated modules.
 //
 // Each card can be expanded to show its chapter list (one row per
 // scene, in `scene.order` order). Clicking a chapter deep-links into
@@ -70,7 +80,16 @@ async function listCspLectures(): Promise<Lecture[]> {
         createdAt: string;
         collection?: string;
       };
-      if (data.collection !== 'csp-lecture') continue;
+      // Show this classroom on the public CSP page if either:
+      //   (a) it's tagged with the csp-lecture collection (new
+      //       uploads via /admin/csp-lecture), OR
+      //   (b) it has no collection tag at all (legacy uploads that
+      //       predate the collection feature — still valid CSP
+      //       content we don't want to hide).
+      // Classrooms with an explicit *other* collection key are
+      // skipped, so unrelated modules' content doesn't leak into
+      // the CSP module page.
+      if (data.collection && data.collection !== 'csp-lecture') continue;
 
       // Build the chapter list. We always sort by `order` even though
       // most importers write scenes in order — defence in depth for
