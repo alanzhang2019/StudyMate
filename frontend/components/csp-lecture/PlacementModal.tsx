@@ -58,7 +58,10 @@ const HOURS = [
   { v: '5-10', l: '5-10 小时' },
   { v: 'gt10', l: '10+ 小时' },
 ];
-const RANKS = ['省一', '省二', '省三', '国一', '国二', '国三'];
+// CSP 复赛奖项只有一等奖 / 二等奖 / 三等奖 三档，不再区分省奖和国奖。
+// 跟 lib/server/csp-placement.ts 的 PlacementAnswers.cspJ2/cspS2
+// 字面量联合 + route.ts 的 VALID_RANKS 三处保持一致。
+const RANKS = ['一等奖', '二等奖', '三等奖'];
 const GESP_LEVELS = [1, 2, 3, 4, 5, 6, 7, 8];
 
 const PROVINCES = [

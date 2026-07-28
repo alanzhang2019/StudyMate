@@ -23,14 +23,17 @@ import { resolveModel } from '@/lib/server/resolve-model';
 import { CLASSROOMS_DIR } from '@/lib/server/classroom-storage';
 import {
   combinedLevel,
-  FALLBACK_RECOMMENDATIONS,
+  scoreClassroomsForLevel,
   type CspLevel,
   type PlacementAnswers,
 } from './csp-placement';
 
 export type LlmRecommendation = {
   level: CspLevel;
+  /** id-only list, kept for backward compat with the placement API consumers. */
   recommendedIds: string[];
+  /** id + title pairs, used by the UI to render the recommendation cards. */
+  recommendedClassrooms: { id: string; title: string }[];
   aiReason: string;
   aiStatus: 'ok' | 'fallback';
 };
@@ -62,28 +65,49 @@ const FALLBACK_REASON = '根据基础画像，暂未生成定制推荐。';
 const DEFAULT_MODEL_STRING = process.env.PLACEMENT_MODEL || process.env.DEFAULT_MODEL || '';
 
 /**
- * Read every classroom .json on disk and return its id (filename minus
- * `.json`). The recommender prompt is anchored against this list so the
- * model can only return ids the operator has actually uploaded.
+ * Read every classroom .json on disk and return its id + display
+ * title. The recommender prompt is anchored against this list so the
+ * model can only return ids the operator has actually uploaded, and
+ * can reason about each candidate's actual content rather than
+ * picking a random id off the list.
  *
  * Cached for the lifetime of the module. The classrooom list only
  * changes when the admin uploads/removes a classroom, which is rare
  * enough that re-reading on every placement call would be wasted I/O.
+ *
+ * Exported so the placement API route can decorate legacy
+ * `recommendedIds` rows (written before titles were stored) with
+ * their current on-disk title at read time — see route.ts.
  */
-let _availableIdsCache: { ids: Set<string>; loadedAt: number } | null = null;
+export type ClassroomMeta = { id: string; title: string };
+let _availableMetaCache: { list: ClassroomMeta[]; byId: Map<string, string>; loadedAt: number } | null = null;
 const AVAILABLE_IDS_TTL_MS = 30_000;
 
-async function loadAvailableClassroomIds(): Promise<Set<string>> {
+/**
+ * Public re-export of the classroom-metadata loader. The implementation
+ * lives in `_loadAvailableClassroomsImpl` so it can be referenced
+ * from `recommendClassrooms` (which needs the same allowlist for the
+ * prompt) without paying an extra cache lookup. The route handler in
+ * `/api/csp-quiz/placement` imports this to decorate legacy
+ * `recommendedIds` rows with their current on-disk title at read time.
+ */
+export async function loadAvailableClassrooms() {
+  return _loadAvailableClassroomsImpl();
+}
+
+async function _loadAvailableClassroomsImpl(): Promise<{
+  list: ClassroomMeta[];
+  byId: Map<string, string>;
+}> {
   const now = Date.now();
-  if (_availableIdsCache && now - _availableIdsCache.loadedAt < AVAILABLE_IDS_TTL_MS) {
-    return _availableIdsCache.ids;
+  if (_availableMetaCache && now - _availableMetaCache.loadedAt < AVAILABLE_IDS_TTL_MS) {
+    return { list: _availableMetaCache.list, byId: _availableMetaCache.byId };
   }
-  const ids = new Set<string>();
+  const list: ClassroomMeta[] = [];
+  const byId = new Map<string, string>();
+  let entries: string[] = [];
   try {
-    const entries = await fs.readdir(CLASSROOMS_DIR);
-    for (const name of entries) {
-      if (name.endsWith('.json')) ids.add(name.slice(0, -'.json'.length));
-    }
+    entries = await fs.readdir(CLASSROOMS_DIR);
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
       // eslint-disable-next-line no-console
@@ -93,33 +117,72 @@ async function loadAvailableClassroomIds(): Promise<Set<string>> {
         err instanceof Error ? err.message : String(err),
       );
     }
+    _availableMetaCache = { list, byId, loadedAt: now };
+    return { list, byId };
   }
-  _availableIdsCache = { ids, loadedAt: now };
-  return ids;
+  for (const name of entries) {
+    if (!name.endsWith('.json')) continue;
+    const id = name.slice(0, -'.json'.length);
+    try {
+      // Strip UTF-8 BOM if present — PowerShell's `ConvertTo-Json`
+      // emits a BOM, and `JSON.parse` rejects it as a syntax error.
+      const raw = (await fs.readFile(path.join(CLASSROOMS_DIR, name), 'utf-8')).replace(/^\ufeff/, '');
+      const data = JSON.parse(raw) as {
+        stage?: { name?: string; title?: string; description?: string };
+        title?: string;
+      };
+      // The stage's `name` is what the public lecture page shows
+      // (e.g. "0. CSP-J/S初赛题型一览" / "1. CSP初赛要点精讲" /
+      // "3. CSP初赛要点精讲：计算机网络"). Fall back to top-level
+      // title, then id, in that order. We deliberately don't pull
+      // a description into the prompt — those are usually long
+      // and bloat the token budget without helping the LLM pick
+      // better.
+      const title =
+        data?.stage?.name ??
+        data?.stage?.title ??
+        data?.title ??
+        id;
+      list.push({ id, title });
+      byId.set(id, title);
+    } catch {
+      // Skip unreadable / corrupt file; it's still in the
+      // allowlist for ID purposes, just without a title in the
+      // prompt.
+      list.push({ id, title: id });
+      byId.set(id, id);
+    }
+  }
+  _availableMetaCache = { list, byId, loadedAt: now };
+  return { list, byId };
 }
 
 /**
- * Filter `recommendedIds` to only include ids that exist on disk. The
- * model occasionally hallucinates plausible-looking ids (e.g.
- * "j1-computer-basics") that the operator has not uploaded. Those
- * must not reach the UI — clicking them 404s and breaks the student's
- * first impression. If the LLM's picklist is empty after filtering we
- * fall back to the level's deterministic recommendation so the banner
- * is never empty.
+ * Filter `recommendedIds` to only include ids that exist on disk.
+ * If the LLM's picklist is empty after filtering (or the model
+ * hallucinated only unknown ids), fall back to the deterministic
+ * `scoreClassroomsForLevel` so the banner is never empty.
  */
 function filterToValidIds(
   recommendedIds: string[],
-  validIds: Set<string>,
+  byId: Map<string, string>,
   level: CspLevel,
-): string[] {
-  const out = recommendedIds.filter((id) => validIds.has(id));
+  available: { id: string; title: string }[],
+): { id: string; title: string }[] {
+  const out: { id: string; title: string }[] = [];
+  for (const id of recommendedIds) {
+    if (byId.has(id)) out.push({ id, title: byId.get(id) ?? id });
+  }
   if (out.length > 0) return out;
-  return FALLBACK_RECOMMENDATIONS[level] ?? [];
+  return scoreClassroomsForLevel(level, available, 3);
 }
 
-function buildPrompt(answers: PlacementAnswers, availableIds: string[]): string {
+function buildPrompt(
+  answers: PlacementAnswers,
+  available: ClassroomMeta[],
+): string {
   const lines: string[] = [];
-  lines.push(`你是一位 CSP 初赛辅导老师，根据学生信息给出 1 段简短点评（80-150 字）和最多 3 个推荐课件 id。`);
+  lines.push(`你是一位 CSP 初赛辅导老师，根据学生信息给出 1 段简短点评（80-150 字）和最多 3 个推荐课件。`);
   lines.push(``);
   lines.push(`# 学生信息`);
   lines.push(`- 年级：${answers.grade}`);
@@ -138,15 +201,15 @@ function buildPrompt(answers: PlacementAnswers, availableIds: string[]): string 
   }
   if (answers.otherContests) lines.push(`- 其它奖项：${answers.otherContests}`);
   lines.push(``);
-  // Inject the allowlist of real classroom ids so the model can only
-  // pick from what the operator has actually uploaded. This is the
-  // ground truth; post-parsing we drop anything not in this set, so
-  // returning a hallucinated id would be silently downgraded to
-  // FALLBACK_RECOMMENDATIONS anyway. Telling the model up front
-  // produces a more honest recommendation.
-  if (availableIds.length > 0) {
-    lines.push(`# 真实存在的课件 id（必须从此列表选择，最多 3 个）`);
-    for (const id of availableIds) lines.push(`- ${id}`);
+  // Inject the allowlist of real classroom ids + their titles so the
+  // model can reason about content rather than guessing random ids.
+  // The id is the stable handle the UI uses to build the link
+  // (`/classroom/<id>`); the title is what the student actually
+  // sees. Post-parse, we drop any recommendedId that isn't in this
+  // set, so the model can't "cheat" by inventing a plausible id.
+  if (available.length > 0) {
+    lines.push(`# 真实存在的课件（必须从下面 id 列表里选择，最多 3 个，按适合度从高到低排序）`);
+    for (const { id, title } of available) lines.push(`- id=${id}  |  标题：${title}`);
   } else {
     lines.push(`# 课件库为空，返回空数组即可`);
   }
@@ -154,8 +217,8 @@ function buildPrompt(answers: PlacementAnswers, availableIds: string[]): string 
   lines.push(`# 输出格式（严格 JSON，不要 markdown 代码块）`);
   lines.push(`{`);
   lines.push(`  "level": "beginner" | "intermediate" | "advanced",`);
-  lines.push(`  "recommendedIds": ["<课件id，必须在上面的列表里>", ...],`);
-  lines.push(`  "reason": "<80-150 字的点评>"`);
+  lines.push(`  "recommendedIds": ["<课件 id，必须在上面的列表里>", ...],`);
+  lines.push(`  "reason": "<80-150 字的点评，引用学生画像里的具体信号>"`);
   lines.push(`}`);
   return lines.join('\n');
 }
@@ -201,16 +264,18 @@ function parseLlmResponse(
   }
 }
 
-function buildFallback(answers: PlacementAnswers): {
-  level: CspLevel;
-  recommendedIds: string[];
-  aiReason: string;
-} {
+function buildFallback(
+  answers: PlacementAnswers,
+  available: { id: string; title: string }[],
+): LlmRecommendation {
   const level = combinedLevel(answers);
+  const recommendations = scoreClassroomsForLevel(level, available, 3);
   return {
     level,
-    recommendedIds: FALLBACK_RECOMMENDATIONS[level],
+    recommendedIds: recommendations.map((r) => r.id),
+    recommendedClassrooms: recommendations,
     aiReason: FALLBACK_REASON,
+    aiStatus: 'fallback',
   };
 }
 
@@ -228,13 +293,12 @@ export async function recommendClassrooms(
   answers: PlacementAnswers,
 ): Promise<LlmRecommendation> {
   // Resolve the on-disk classroom allowlist BEFORE we call the LLM so
-  // we can (a) feed it into the prompt and (b) post-validate the model's
-  // picks. We deliberately compute the level from answers (deterministic)
-  // first so the fallback used by the timeout / parse-fail path is the
-  // right one for this student.
-  const validIds = await loadAvailableClassroomIds();
-  const availableIds = Array.from(validIds);
-  const prompt = buildPrompt(answers, availableIds);
+  // we can (a) feed it (id, title) pairs into the prompt and (b) post-
+  // validate the model's picks. We deliberately compute the level
+  // from answers (deterministic) first so the fallback used by the
+  // timeout / parse-fail path is the right one for this student.
+  const { list: available, byId } = await _loadAvailableClassroomsImpl();
+  const prompt = buildPrompt(answers, available);
 
   // Run the LLM call under a 30s soft timeout. If anything in
   // the chain throws (resolveModel, network, parse), we treat
@@ -242,7 +306,7 @@ export async function recommendClassrooms(
   // fallback. This is a one-shot synchronous call from a
   // Next.js route handler, so the timeout is the user's
   // patience budget.
-  const llmPromise = (async () => {
+  const llmPromise = (async (): Promise<string> => {
     const resolved = await resolveModel({ modelString: DEFAULT_MODEL_STRING });
     const result = await callLLM(
       {
@@ -284,7 +348,7 @@ export async function recommendClassrooms(
     if (content === '__TIMEOUT__') {
       // eslint-disable-next-line no-console
       console.warn('[csp-placement] LLM soft-timeout after', SOFT_TIMEOUT_MS, 'ms; using fallback');
-      return { ...buildFallback(answers), aiStatus: 'fallback' };
+      return buildFallback(answers, available);
     }
     const parsed = parseLlmResponse(content);
     if (!parsed) {
@@ -293,16 +357,22 @@ export async function recommendClassrooms(
         '[csp-placement] LLM response did not parse as JSON; using fallback. raw:',
         content.slice(0, 300),
       );
-      return { ...buildFallback(answers), aiStatus: 'fallback' };
+      return buildFallback(answers, available);
     }
     // Post-validate the model's picks against the on-disk allowlist.
     // Hallucinated ids (e.g. "j1-computer-basics") would 404 in the
     // classroom page; better to fall back to the level's deterministic
     // list than ship a broken link to a student.
-    const validatedIds = filterToValidIds(parsed.recommendedIds, validIds, parsed.level);
+    const validated = filterToValidIds(
+      parsed.recommendedIds,
+      byId,
+      parsed.level,
+      available,
+    );
     return {
       level: parsed.level,
-      recommendedIds: validatedIds,
+      recommendedIds: validated.map((v) => v.id),
+      recommendedClassrooms: validated,
       aiReason: parsed.aiReason,
       aiStatus: 'ok',
     };
@@ -312,6 +382,6 @@ export async function recommendClassrooms(
       '[csp-placement] LLM call threw; using fallback. err:',
       err instanceof Error ? err.message : String(err),
     );
-    return { ...buildFallback(answers), aiStatus: 'fallback' };
+    return buildFallback(answers, available);
   }
 }

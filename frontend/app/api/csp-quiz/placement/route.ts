@@ -7,7 +7,7 @@ import {
   FALLBACK_RECOMMENDATIONS,
   type PlacementAnswers,
 } from '@/lib/server/csp-placement';
-import { recommendClassrooms } from '@/lib/server/csp-placement-llm';
+import { recommendClassrooms, loadAvailableClassrooms } from '@/lib/server/csp-placement-llm';
 
 // GET /api/csp-quiz/placement
 // Returns the current user's CSP placement survey result, or null
@@ -42,7 +42,10 @@ const REQUIRED_FIELDS = [
   'hoursPerWeek',
 ] as const;
 
-const VALID_RANKS = ['省一', '省二', '省三', '国一', '国二', '国三'] as const;
+// CSP 复赛奖项只有一等奖 / 二等奖 / 三等奖 三档，不再区分省奖和国奖。
+// 这里要跟 lib/server/csp-placement.ts 的 PlacementAnswers.cspJ2/cspS2
+// 字面量联合保持一致，否则前端表单提交"一等奖"会被这里 reject。
+const VALID_RANKS = ['一等奖', '二等奖', '三等奖'] as const;
 const VALID_GESP_LEVELS = [1, 2, 3, 4, 5, 6, 7, 8] as const;
 const STUDY_VALUES = ['lt3', '3-6', '6-12', '12-24', 'gt24'] as const;
 const RATING_VALUES = ['low', 'mid', 'high'] as const;
@@ -181,7 +184,16 @@ export async function GET() {
     return apiError('Not signed in', 401);
   }
   const row = db.cspPlacement.findUnique(session.user.id);
-  return NextResponse.json({ placement: row ? rowToResponse(row) : null });
+  if (!row) return NextResponse.json({ placement: null });
+  const base = rowToResponse(row);
+  // 用磁盘上的 (id → title) 映射回填老数据里只有 id 没有 title 的字段。
+  // 即使 LLM 后来清理掉了某个 id，title 会落回 id 字符串，至少不会 404。
+  const { byId } = await loadAvailableClassrooms();
+  const recommendedClassrooms = base.recommendedIds.map((id) => ({
+    id,
+    title: byId.get(id) ?? id,
+  }));
+  return NextResponse.json({ placement: { ...base, recommendedClassrooms } });
 }
 
 export async function POST(req: NextRequest) {
@@ -264,10 +276,20 @@ export async function POST(req: NextRequest) {
     now,
   );
 
+  // LLM 路径总会返回 recommendedClassrooms（buildFallback 也会走
+  // scoreClassroomsForLevel 拿到 title）。如果出现空数组这种异常
+  // 情况，再用磁盘映射兜底一次，绝不让前端只看到 id。
+  let recommendedClassrooms = llmResult.recommendedClassrooms;
+  if (recommendedClassrooms.length === 0) {
+    const { byId } = await loadAvailableClassrooms();
+    recommendedClassrooms = finalIds.map((id) => ({ id, title: byId.get(id) ?? id }));
+  }
+
   return NextResponse.json({
     ok: true,
     level: llmResult.level,
     recommendedIds: finalIds,
+    recommendedClassrooms,
     aiReason: llmResult.aiReason,
     aiStatus: llmResult.aiStatus,
   });

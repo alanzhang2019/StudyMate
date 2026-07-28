@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Canvas Area Layout Test</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="h-dvh flex flex-col bg-white">
+    <!-- Header -->
+    <div class="h-20 border-b flex items-center px-4">
+      <span class="text-lg">小挑战: 你会解了吗?</span>
+    </div>
+
+    <!-- Classroom wrapper -->
+    <div class="flex-1 min-h-0 flex">
+      <!-- Sidebar (collapsed) -->
+      <div class="w-12 bg-gray-100"></div>
+
+      <!-- Stage 根 div -->
+      <div class="flex-1 flex overflow-hidden bg-gray-50">
+        <!-- Stage 父 div (canvas area wrapper) -->
+        <div class="flex-1 min-h-0 flex flex-col overflow-hidden relative">
+          <!-- CanvasArea 根 div -->
+          <div class="w-full flex-1 min-h-0 flex flex-col bg-gray-50">
+
+            <!-- Slide area outer (column flex) -->
+            <div class="relative overflow-hidden flex flex-col p-2 transition-colors duration-500 min-h-0 flex-1 bg-slate-200/95">
+              <!-- Slide area inner (row flex) -->
+              <div class="flex-1 min-h-0 flex items-center justify-center">
+                <!-- Slide content (16:9) -->
+                <div class="aspect-[16/9] w-full max-h-full max-w-full bg-white shadow-2xl rounded-lg relative border-2 border-slate-400 flex items-center justify-center">
+                  <span class="text-gray-400">16:9 Slide (618 × 347)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- CanvasToolbar -->
+            <div class="shrink-0 h-9 px-2 bg-white/80 border-t border-gray-200/40 flex items-center gap-2">
+              <span class="text-[11px] text-gray-400">1/5</span>
+              <span class="text-gray-300">|</span>
+              <span class="text-gray-400">[Prev] [Play/Pause] [Next] [Fullscreen]</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

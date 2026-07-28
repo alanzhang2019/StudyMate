@@ -25,7 +25,11 @@ const LEVEL_COLOR: Record<string, string> = {
 
 export type PlacementResult = {
   level: 'beginner' | 'intermediate' | 'advanced';
-  recommendedIds: string[];
+  // 旧字段：只有 id。保留它是为了让"老数据里只有 id 没有 title"的情况
+  // 还能渲染（UI 退化成展示 id 字符串）。新数据优先看 recommendedClassrooms。
+  recommendedIds?: string[];
+  // 新字段：id + title，UI 优先用它来展示"实际课件名称"。
+  recommendedClassrooms?: { id: string; title: string }[];
   aiReason: string;
   aiStatus?: 'ok' | 'fallback' | 'pending';
 };
@@ -85,10 +89,17 @@ export function RecommendationCard({
               📚 为你推荐
             </h3>
             <div className="space-y-2">
-              {placement.recommendedIds.length === 0 ? (
-                <div className="text-sm text-slate-500">暂无推荐课件。</div>
-              ) : (
-                placement.recommendedIds.map((id) => (
+              {(() => {
+                // 优先用 recommendedClassrooms（新数据，含 title），
+                // 退回 recommendedIds（旧数据，title 退化为 id）。
+                const list =
+                  placement.recommendedClassrooms && placement.recommendedClassrooms.length > 0
+                    ? placement.recommendedClassrooms.map((c) => ({ id: c.id, title: c.title }))
+                    : (placement.recommendedIds ?? []).map((id) => ({ id, title: id }));
+                if (list.length === 0) {
+                  return <div className="text-sm text-slate-500">暂无推荐课件。</div>;
+                }
+                return list.map(({ id, title }) => (
                   <Link
                     key={id}
                     href={`/classroom/${id}`}
@@ -96,15 +107,13 @@ export function RecommendationCard({
                     className="flex items-center gap-3 rounded-lg border border-slate-200 hover:border-violet-400 hover:bg-violet-50 transition px-4 py-3"
                   >
                     <BookOpen className="w-5 h-5 text-violet-500 shrink-0" />
-                    <span className="text-sm font-mono text-slate-700 break-all">
-                      {id}
+                    <span className="text-sm text-slate-800 font-medium break-all flex-1">
+                      {title}
                     </span>
-                    <span className="ml-auto text-violet-600 text-sm shrink-0">
-                      开始 →
-                    </span>
+                    <span className="text-violet-600 text-sm shrink-0">开始 →</span>
                   </Link>
-                ))
-              )}
+                ));
+              })()}
             </div>
           </div>
 
