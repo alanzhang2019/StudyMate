@@ -31,42 +31,41 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || 'https://aijiangti.cn',
   ),
-  title: 'AI讲题 · AI JiangTi | 拍一下就讲明白',
+  title: '爱讲题 · 用户可创建个人学习课件，用于教学或者学习记录',
   description:
-    'AI讲题（AI JiangTi）是一款面向小学 4-6 年级的 AI 数学错题讲解工具，拍题后即可生成循序渐进的互动讲解。',
+    '爱讲题是一款在线课件创建平台，用户可通过网站创建个人学习课件，用于教学或者学习记录。',
   keywords: [
-    'AI 错题本',
-    'AI 讲题',
-    '数学错题',
-    '拍照讲题',
-    '错题讲解',
-    '小学数学',
-    'AI JiangTi',
+    '爱讲题',
+    '学习课件',
+    '课件创建',
+    '教学',
+    '学习记录',
+    '个人课件',
   ],
-  authors: [{ name: 'AI 错题本' }],
-  creator: 'AI 错题本',
+  authors: [{ name: '爱讲题' }],
+  creator: '爱讲题',
   openGraph: {
     type: 'website',
     locale: 'zh_CN',
     url: 'https://aijiangti.cn',
-    siteName: 'AI 错题本',
-    title: 'AI 错题本 · 拍一下就讲明白',
+    siteName: '爱讲题',
+    title: '爱讲题 · 用户可创建个人学习课件，用于教学或者学习记录',
     description:
-      '拍照识别数学错题，AI 生成互动讲解视频，举一反三练习。无需注册，即开即用。',
+      '爱讲题是一款在线课件创建平台，用户可通过网站创建个人学习课件，用于教学或者学习记录。',
     images: [
       {
         url: '/og-cover.png',
         width: 1200,
         height: 630,
-        alt: 'AI 错题本',
+        alt: '爱讲题',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AI 错题本 · 拍一下就讲明白',
+    title: '爱讲题 · 用户可创建个人学习课件，用于教学或者学习记录',
     description:
-      '拍照识别数学错题，AI 生成互动讲解视频，举一反三练习。',
+      '爱讲题是一款在线课件创建平台，用户可通过网站创建个人学习课件，用于教学或者学习记录。',
     images: ['/og-cover.png'],
   },
   robots: {

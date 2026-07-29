@@ -164,9 +164,9 @@ export default async function StudentHomePage() {
         <div className="flex items-center gap-2">
           <Link href="/csp-lecture" className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold">
-              题
+              爱
             </div>
-            <span className="text-lg font-bold text-slate-800">AI 错题本</span>
+            <span className="text-lg font-bold text-slate-800">爱讲题</span>
           </Link>
         </div>
         <div className="flex items-center gap-3">

@@ -6,7 +6,7 @@
     "loading": "加载中..."
   },
   "home": {
-    "slogan": "AI讲题 · 小学 4-6 年级 AI 数学错题讲解",
+    "slogan": "爱讲题 · 用户可创建个人学习课件，用于教学或者学习记录",
     "greetingWithName": "嗨，{{name}}"
   },
   "toolbar": {

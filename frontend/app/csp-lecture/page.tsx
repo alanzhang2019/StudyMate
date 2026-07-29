@@ -303,18 +303,42 @@ export default async function CspLecturePage() {
 
       {/* Footer */}
       <footer className="border-t border-slate-200/60 bg-white/40 backdrop-blur">
-        <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-slate-500">
-          <div>© {new Date().getFullYear()} AI 错题本 · CSP初赛要点精讲</div>
-          <div className="flex items-center gap-5">
-            <Link href="/" className="hover:text-slate-900">
-              首页
-            </Link>
-            <Link href="/mistake-book" className="hover:text-slate-900">
-              错题本
-            </Link>
-            <Link href="/admin/csp-lecture" className="hover:text-slate-900">
-              管理入口
-            </Link>
+        <div className="max-w-6xl mx-auto px-6 py-8 space-y-5 text-sm text-slate-500">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div>© {new Date().getFullYear()} 爱讲题 · 用户可创建个人学习课件，用于教学或者学习记录</div>
+            <div className="flex items-center gap-5">
+              <Link href="/" className="hover:text-slate-900">
+                首页
+              </Link>
+              <Link href="/mistake-book" className="hover:text-slate-900">
+                错题本
+              </Link>
+              <Link href="/admin/csp-lecture" className="hover:text-slate-900">
+                管理入口
+              </Link>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-3 border-t border-slate-200/70 text-xs text-slate-500">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-5 gap-y-1">
+              <span>办公地址：深圳市龙岗区南湾街道樟富北路8号3-6</span>
+              <span>
+                联系电话：
+                <a href="tel:13502813610" className="hover:text-slate-900">
+                  13502813610
+                </a>
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span aria-hidden="true">🛡</span>
+              <a
+                href="https://beian.miit.gov.cn/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-slate-900"
+              >
+                粤ICP备2023157905号
+              </a>
+            </div>
           </div>
         </div>
       </footer>

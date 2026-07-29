@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" fill="none" aria-label="AI讲题 · AI JiangTi">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" fill="none" aria-label="爱讲题">
   <defs>
     <linearGradient id="hBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#4F7BFF"/>
@@ -38,9 +38,9 @@
   <g transform="translate(86 0)">
     <!-- Primary Chinese name -->
     <text x="0" y="38" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif"
-          font-size="32" font-weight="800" fill="#1E1B4B" letter-spacing="2">AI讲题</text>
+          font-size="32" font-weight="800" fill="#1E1B4B" letter-spacing="2">爱讲题</text>
     <!-- Secondary English name -->
     <text x="2" y="62" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-          font-size="14" font-weight="500" fill="#6E5BFF" letter-spacing="1.5">AI JiangTi · 拍一下就讲明白</text>
+          font-size="14" font-weight="500" fill="#6E5BFF" letter-spacing="1.5">爱讲题 · 用户可创建个人学习课件</text>
   </g>
 </svg>

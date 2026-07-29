@@ -7,52 +7,37 @@ export const revalidate = 3600;
 
 const FEATURES = [
   {
-    icon: '📸',
-    title: '一拍识别',
-    desc: '对着错题拍照，AI 自动识别题目、孩子答案与正确答案，3 秒出结果。',
+    icon: '📝',
+    title: '在线创建课件',
+    desc: '无需下载软件，登录网站即可创建并管理你的个人学习课件。',
   },
   {
-    icon: '🎬',
-    title: 'AI 互动讲解',
-    desc: '生成循序渐进的互动视频讲解，孩子可以随时暂停、提问。',
+    icon: '📚',
+    title: '用于教学',
+    desc: '把课件分享到课堂或培训场景，方便老师按章节讲解与互动。',
   },
   {
-    icon: '🔁',
-    title: '举一反三',
-    desc: '基于错题自动生成同类型练习，做错的下次优先出现。',
-  },
-  {
-    icon: '📒',
-    title: '手动收藏好题',
-    desc: '讲完觉得重要的题，点一下「加入错题本」就归档，下次想看随时翻。',
-  },
-  {
-    icon: '👨‍👩‍👧',
-    title: '多学生档案',
-    desc: '支持多个孩子共用一个账号，AI 区分学习进度与薄弱点。',
-  },
-  {
-    icon: '📊',
-    title: '家长学习看板',
-    desc: '实时查看孩子的错题趋势、用时分布与最近学习活动。',
+    icon: '🗂',
+    title: '学习记录',
+    desc: '每一次编辑与查看自动归档为学习记录，方便日后复习与复盘。',
   },
 ];
 
 const STEPS = [
   {
     n: '01',
-    title: '拍照 / 上传',
-    desc: '手机拍一下错题，或直接上传相册里的题目图片。',
+    title: '新建课件',
+    desc: '填写课件标题、简介与章节大纲，快速搭建课件骨架。',
   },
   {
     n: '02',
-    title: 'AI 智能识别',
-    desc: 'AI 自动读取题目、孩子写的答案，纠正并标出错因。',
+    title: '编辑内容',
+    desc: '在线编辑课件内容、添加学习资料，支持图文与音视频。',
   },
   {
     n: '03',
-    title: '看讲解 + 同类题',
-    desc: '生成动画讲解视频，再做一道同类型题巩固，举一反三。',
+    title: '教学 / 记录',
+    desc: '将课件用于课堂教学，或保存为个人学习记录随时回看。',
   },
 ];
 
@@ -63,9 +48,9 @@ export default function LandingPage() {
       <nav className="max-w-6xl mx-auto flex items-center justify-between px-6 py-5">
         <div className="flex items-center gap-2">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold">
-            题
+            爱
           </div>
-          <span className="text-lg font-bold text-slate-800">AI 错题本</span>
+          <span className="text-lg font-bold text-slate-800">爱讲题</span>
         </div>
         <div className="flex items-center gap-3">
           <Button asChild size="sm" variant="outline">
@@ -86,18 +71,18 @@ export default function LandingPage() {
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-6 pt-10 pb-20 sm:pt-16 sm:pb-28 text-center">
         <span className="inline-block text-xs font-semibold tracking-widest text-blue-700 bg-blue-100 rounded-full px-3 py-1 mb-5">
-          拍一下就讲明白
+          爱讲题 · 创建你的专属课件
         </span>
         <h1 className="text-4xl sm:text-6xl font-extrabold text-slate-900 leading-tight tracking-tight">
-          孩子的错题
+          创建个人学习课件
           <br />
           <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            交给 AI 来讲
+            用于教学或者学习记录
           </span>
         </h1>
         <p className="mt-6 text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-          拍照即可识别数学错题，AI 生成循序渐进的互动讲解视频，
-          配套举一反三练习。家长省心，孩子真懂。
+          爱讲题是一款在线课件创建平台，用户可通过网站创建个人学习课件，
+          用于教学或者学习记录。
         </p>
         <div className="mt-10 flex items-center justify-center gap-4 flex-wrap">
           <Button asChild size="lg" className="text-base px-8 h-12">
@@ -172,10 +157,10 @@ export default function LandingPage() {
       <section className="max-w-4xl mx-auto px-6 pb-20">
         <div className="rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-14 text-center text-white shadow-xl">
           <h2 className="text-3xl sm:text-4xl font-bold mb-3">
-            今晚就让孩子试试
+            马上创建你的第一份课件
           </h2>
           <p className="text-blue-100 mb-8 text-lg">
-            拍一道错题，看 AI 怎么讲
+            用于教学或者学习记录
           </p>
           <Button
             asChild
@@ -189,24 +174,48 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-slate-200/60 bg-white/40 backdrop-blur">
-        <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-slate-500">
-          <div>© {new Date().getFullYear()} AI 错题本 · 让孩子真正学会</div>
-          <div className="flex items-center gap-5">
-            <Link href="/csp-lecture" className="hover:text-slate-900">
-              学生课件
-            </Link>
-            <Link href="/mistake-book" className="hover:text-slate-900">
-              错题本
-            </Link>
-            <Link href="/history" className="hover:text-slate-900">
-              学习历史
-            </Link>
-            <Link href="/parent/dashboard" className="hover:text-slate-900">
-              我是父母
-            </Link>
-            <Link href="/admin/login" className="hover:text-slate-900">
-              管理后台
-            </Link>
+        <div className="max-w-6xl mx-auto px-6 py-8 space-y-5 text-sm text-slate-500">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div>© {new Date().getFullYear()} 爱讲题 · 用户可创建个人学习课件，用于教学或者学习记录</div>
+            <div className="flex items-center gap-5">
+              <Link href="/csp-lecture" className="hover:text-slate-900">
+                学生课件
+              </Link>
+              <Link href="/mistake-book" className="hover:text-slate-900">
+                错题本
+              </Link>
+              <Link href="/history" className="hover:text-slate-900">
+                学习历史
+              </Link>
+              <Link href="/parent/dashboard" className="hover:text-slate-900">
+                我是父母
+              </Link>
+              <Link href="/admin/login" className="hover:text-slate-900">
+                管理后台
+              </Link>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-3 border-t border-slate-200/70 text-xs text-slate-500">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-5 gap-y-1">
+              <span>办公地址：深圳市龙岗区南湾街道樟富北路8号3-6</span>
+              <span>
+                联系电话：
+                <a href="tel:13502813610" className="hover:text-slate-900">
+                  13502813610
+                </a>
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span aria-hidden="true">🛡</span>
+              <a
+                href="https://beian.miit.gov.cn/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-slate-900"
+              >
+                粤ICP备2023157905号
+              </a>
+            </div>
           </div>
         </div>
       </footer>
