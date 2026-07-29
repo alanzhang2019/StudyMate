@@ -200,8 +200,8 @@ export default function LandingPage() {
               <span>办公地址：深圳市龙岗区南湾街道樟富北路8号3-6</span>
               <span>
                 联系电话：
-                <a href="tel:13502813610" className="hover:text-slate-900">
-                  13502813610
+                <a href="tel:0755-86993610" className="hover:text-slate-900">
+                  0755-86993610
                 </a>
               </span>
             </div>
