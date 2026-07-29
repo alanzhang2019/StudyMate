@@ -1035,6 +1035,17 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
   const [finalizedResult, setFinalizedResult] = useState<{
     totalEarned: number;
     totalPossible: number;
+    totalMaxV3: number;
+    totalEarnedV3: number;
+    mode: 'standard' | 'legacy';
+    breakdown: Array<{
+      category: 'choice' | 'read' | 'perfect';
+      label: string;
+      earned: number;
+      max: number;
+      actualMax: number;
+      sceneCount: number;
+    }>;
     sceneResults: Array<{
       sceneId: string;
       title: string;
@@ -1106,8 +1117,20 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
         totalMaxPoints: number;
         totalScore: number;
         sceneCount: number;
+        mode: 'standard' | 'legacy';
+        totalEarnedV3: number;
+        totalMaxV3: number;
+        breakdown: Array<{
+          category: 'choice' | 'read' | 'perfect';
+          label: string;
+          earned: number;
+          max: number;
+          actualMax: number;
+          sceneCount: number;
+        }>;
         sceneResults: {
           sceneId: string;
+          category: 'choice' | 'read' | 'perfect' | null;
           correctCount: number;
           totalQuestions: number;
           points: number;
@@ -1123,8 +1146,13 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
         // (1.5 / 2 / etc. per question).
         totalEarned: data.totalPoints,
         totalPossible: data.totalMaxPoints,
+        mode: data.mode,
+        totalEarnedV3: data.totalEarnedV3,
+        totalMaxV3: data.totalMaxV3,
+        breakdown: data.breakdown,
         sceneResults: data.sceneResults.map((s, idx) => ({
           sceneId: s.sceneId,
+          category: s.category,
           title: `第 ${idx + 1} 部分`,
           order: idx + 1,
           totalQuestions: s.totalQuestions,
@@ -1476,11 +1504,23 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
 
 // ─── Full-paper-only sub-components ────────────────────────────────────────
 
-type FinalScoreResult = NonNullable<ReturnType<typeof useState<{
+type FinalScoreResult = {
   totalEarned: number;
   totalPossible: number;
+  totalMaxV3: number;
+  totalEarnedV3: number;
+  mode: 'standard' | 'legacy';
+  breakdown: Array<{
+    category: 'choice' | 'read' | 'perfect';
+    label: string;
+    earned: number;
+    max: number;
+    actualMax: number;
+    sceneCount: number;
+  }>;
   sceneResults: Array<{
     sceneId: string;
+    category: 'choice' | 'read' | 'perfect' | null;
     title: string;
     order: number;
     totalQuestions: number;
@@ -1488,7 +1528,7 @@ type FinalScoreResult = NonNullable<ReturnType<typeof useState<{
     points: number;
     earnedPoints: number;
   }>;
-} | null>>[0]>;
+};
 
 function FinalScorePage({
   result,
@@ -1501,9 +1541,16 @@ function FinalScorePage({
   isResetting: boolean;
   resetError: string | null;
 }) {
+  // V3 (standard mode): headline total comes from the per-category
+  // breakdown so the denominator matches the paper standard (e.g.
+  // 100 for CSP-J). V2 (legacy mode): use the per-question points
+  // sum.
+  const useV3 = result.mode === 'standard';
+  const headlineEarned = useV3 ? result.totalEarnedV3 : result.totalEarned;
+  const headlineMax = useV3 ? result.totalMaxV3 : result.totalPossible;
   const pct =
-    result.totalPossible > 0
-      ? Math.round((result.totalEarned / result.totalPossible) * 100)
+    headlineMax > 0
+      ? Math.round((headlineEarned / headlineMax) * 100)
       : 0;
   const level = scoreToLevel(pct);
 
@@ -1515,9 +1562,9 @@ function FinalScorePage({
         </div>
         <h2 className="text-2xl font-bold text-slate-900">总分</h2>
         <div className="text-5xl font-black text-slate-900 tabular-nums">
-          {result.totalEarned}{' '}
+          {headlineEarned}{' '}
           <span className="text-2xl text-slate-400">
-            / {result.totalPossible} 分
+            / {headlineMax} 分
           </span>
         </div>
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-100 text-violet-700 text-sm font-semibold">
@@ -1527,6 +1574,47 @@ function FinalScorePage({
           <div className="text-xs text-slate-400 tabular-nums">{pct}%</div>
         )}
       </div>
+
+      {/* V3: 三类分项（单选题 / 程序阅读题 / 完善程序题） */}
+      {useV3 && result.breakdown && result.breakdown.length > 0 && (
+        <Card>
+          <CardContent className="p-0 divide-y divide-slate-100">
+            {result.breakdown.map((b) => {
+              const catPct =
+                b.max > 0 ? Math.round((b.earned / b.max) * 100) : 0;
+              const ok = b.max > 0 && b.earned === b.max;
+              return (
+                <div
+                  key={b.category}
+                  className="flex items-center gap-3 px-4 py-3"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold text-slate-800">
+                      {b.label}
+                    </div>
+                    <div className="text-[11px] text-slate-500 tabular-nums">
+                      {b.sceneCount} 个场景 · 得分占比 {catPct}%
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0 tabular-nums">
+                    <div
+                      className={`text-base font-bold ${
+                        ok
+                          ? 'text-emerald-600'
+                          : catPct >= 60
+                            ? 'text-amber-600'
+                            : 'text-red-600'
+                      }`}
+                    >
+                      {b.earned} / {b.max} 分
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardContent className="p-0 divide-y divide-slate-100">
@@ -1552,7 +1640,7 @@ function FinalScorePage({
                 >
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-slate-800 truncate">
-                      本场景（{s.sceneId.slice(-8)}）
+                      本场景（{s.title || s.sceneId.slice(-8)}）
                     </div>
                     <div className="text-[11px] text-slate-500 tabular-nums">
                       答对 {s.correctCount} / {s.totalQuestions} 题 · {scenePct}%

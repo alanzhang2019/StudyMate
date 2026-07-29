@@ -33,7 +33,12 @@
     "agentIds": [
       "imp_agent_cspj24j_0",
       "imp_agent_cspj24j_1"
-    ]
+    ],
+    "scoreBreakdown": {
+      "choice": 30,
+      "read": 40,
+      "perfect": 30
+    }
   },
   "scenes": [
     {
@@ -489,7 +494,8 @@
         "agentIds": []
       },
       "createdAt": 1753411200000,
-      "updatedAt": 1753411200000
+      "updatedAt": 1753411200000,
+      "category": "choice"
     },
     {
       "id": "sc_cspj24j_read1",
@@ -667,13 +673,14 @@
         "agentIds": []
       },
       "createdAt": 1753411200000,
-      "updatedAt": 1753411200000
+      "updatedAt": 1753411200000,
+      "category": "read"
     },
     {
       "id": "sc_cspj24j_read2",
       "stageId": "cm_imp_cspj2024j_v1",
       "type": "quiz",
-      "title": "三、阅读程序（2）：爬楼梯最小花费（判断题 1.5 分 ×2 + 单选题 3 分 ×4 = 16.5 分）",
+      "title": "三、阅读程序（2）：爬楼梯最小花费（判断题 1.5 分 ×2 + 单选题 2/3/4 分 = 15 分）",
       "order": 3,
       "content": {
         "type": "quiz",
@@ -869,13 +876,14 @@
         "agentIds": []
       },
       "createdAt": 1753411200000,
-      "updatedAt": 1753411200000
+      "updatedAt": 1753411200000,
+      "category": "read"
     },
     {
       "id": "sc_cspj24j_read3",
       "stageId": "cm_imp_cspj2024j_v1",
       "type": "quiz",
-      "title": "四、阅读程序（3）：递归求和（判断题 1.5 分 ×3 + 单选题 3 分 ×3 = 13.5 分）",
+      "title": "四、阅读程序（3）：递归求和（判断题 1.5 分 ×3 + 单选题 3/4 分 = 14.5 分）",
       "order": 4,
       "content": {
         "type": "quiz",
@@ -1065,7 +1073,8 @@
         "agentIds": []
       },
       "createdAt": 1753411200000,
-      "updatedAt": 1753411200000
+      "updatedAt": 1753411200000,
+      "category": "read"
     },
     {
       "id": "sc_cspj24j_perfect1",
@@ -1262,7 +1271,8 @@
         "agentIds": []
       },
       "createdAt": 1753411200000,
-      "updatedAt": 1753411200000
+      "updatedAt": 1753411200000,
+      "category": "perfect"
     },
     {
       "id": "sc_cspj24j_hanoi2",
@@ -1457,7 +1467,8 @@
         "agentIds": []
       },
       "createdAt": 1753411200000,
-      "updatedAt": 1753411200000
+      "updatedAt": 1753411200000,
+      "category": "perfect"
     }
   ]
 }

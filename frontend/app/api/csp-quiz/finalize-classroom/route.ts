@@ -47,6 +47,24 @@ import { readClassroom } from '@/lib/server/classroom-storage';
 // `points` field). Submissions written before the `points` field
 // existed fall back to 1 point per question so the total stays
 // consistent.
+//
+// V3 category aggregation: each Scene in the classroom JSON carries
+// a `category` field ('choice' | 'read' | 'perfect') and the
+// stage top-level carries a `scoreBreakdown` map
+// { choice, read, perfect } that defines the **paper-standard
+// 满分** per category (e.g. CSP-J 2024 = 30/24/46 = 100). The
+// final total is then `Σ earned(cat) / Σ max(cat)`, and the
+// response includes a per-category breakdown so the FinalScorePage
+// can render "单选题 24/30 · 阅读 18/24 · 完善 38/46 · 总 80/100".
+// When `scoreBreakdown` is missing on the stage, we fall back to
+// the per-question `points` sum (the v2 behaviour) so older
+// classroom JSONs keep working.
+type Category = 'choice' | 'read' | 'perfect';
+const CATEGORY_LABEL: Record<Category, string> = {
+  choice: '单选题',
+  read: '程序阅读题',
+  perfect: '完善程序题',
+};
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -83,6 +101,11 @@ export async function POST(req: NextRequest) {
   // `scene.content.questions` (the SceneContent is a union and
   // QuizContent is the only branch that carries questions).
   const questionsBySceneId = new Map<string, Array<{ id: string; points?: number }>>();
+  // sceneId → category, sourced from each scene's `category`
+  // field. Scenes without a `category` are ignored when we
+  // compute the per-category breakdown (their points still count
+  // toward the v2 fallback total if scoreBreakdown is missing).
+  const categoryBySceneId = new Map<string, Category>();
   for (const scene of classroom.scenes ?? []) {
     if (!scene || !scene.id) continue;
     const content = (scene as any).content;
@@ -92,7 +115,25 @@ export async function POST(req: NextRequest) {
         content.questions as Array<{ id: string; points?: number }>,
       );
     }
+    const cat = (scene as any).category;
+    if (cat === 'choice' || cat === 'read' || cat === 'perfect') {
+      categoryBySceneId.set(scene.id, cat);
+    }
   }
+  // stage.scoreBreakdown: paper-standard 满分 per category.
+  // Defaults to zeros for any missing key (so the response still
+  // has all three rows; they'll just show 0/0 in the UI).
+  const rawBreakdown = ((classroom as any).stage?.scoreBreakdown ?? {}) as Record<
+    string,
+    number
+  >;
+  const scoreBreakdown: Record<Category, number> = {
+    choice: typeof rawBreakdown.choice === 'number' && rawBreakdown.choice > 0 ? rawBreakdown.choice : 0,
+    read: typeof rawBreakdown.read === 'number' && rawBreakdown.read > 0 ? rawBreakdown.read : 0,
+    perfect: typeof rawBreakdown.perfect === 'number' && rawBreakdown.perfect > 0 ? rawBreakdown.perfect : 0,
+  };
+  const hasBreakdown =
+    scoreBreakdown.choice + scoreBreakdown.read + scoreBreakdown.perfect > 0;
   const lookupPoints = (sceneId: string, questionId: string): number => {
     const sceneQuestions = questionsBySceneId.get(sceneId);
     if (!sceneQuestions) return 1;
@@ -168,6 +209,7 @@ export async function POST(req: NextRequest) {
 
   const sceneResults = Array.from(byScene.entries()).map(([sceneId, v]) => ({
     sceneId,
+    category: categoryBySceneId.get(sceneId) ?? null,
     correctCount: v.correctCount,
     totalQuestions: v.totalQuestions,
     points: v.points,
@@ -184,6 +226,43 @@ export async function POST(req: NextRequest) {
       ? Math.round((totalPoints / totalMaxPoints) * 10000) / 100
       : 0;
 
+  // V3 per-category breakdown. When scoreBreakdown is configured
+  // (i.e. the classroom JSON declared a paper-standard 满分 per
+  // category), the headline total uses the configured denominators
+  // (e.g. 100 instead of the per-question sum). Otherwise we fall
+  // back to the v2 per-question sum so old classrooms don't break.
+  const breakdown = (
+    ['choice', 'read', 'perfect'] as Category[]
+  ).map((cat) => {
+    const scenes = sceneResults.filter((r) => r.category === cat);
+    const earned = scenes.reduce((s, r) => s + r.points, 0);
+    const standardMax = scoreBreakdown[cat];
+    // For the response, expose both the standard 满分 (from
+    // scoreBreakdown) and the actual per-question sum
+    // (`actualMax`) so the UI can show e.g. "18 / 24 分
+    // （卷面标准）" when they differ. If the classroom has no
+    // scoreBreakdown entry for this category, the standardMax
+    // falls back to the actual sum (zero-or-equal).
+    const actualMax = scenes.reduce((s, r) => s + r.maxPoints, 0);
+    return {
+      category: cat,
+      label: CATEGORY_LABEL[cat],
+      earned,
+      max: hasBreakdown ? standardMax : actualMax,
+      actualMax,
+      sceneCount: scenes.length,
+    };
+  });
+  const totalEarnedV3 = breakdown.reduce((s, b) => s + b.earned, 0);
+  const totalMaxV3 = breakdown.reduce(
+    (s, b) => s + (hasBreakdown ? b.max : b.actualMax),
+    0,
+  );
+  const totalScoreV3 =
+    totalMaxV3 > 0
+      ? Math.round((totalEarnedV3 / totalMaxV3) * 10000) / 100
+      : 0;
+
   return NextResponse.json({
     classroomId,
     totalEarned,
@@ -193,5 +272,14 @@ export async function POST(req: NextRequest) {
     totalScore,
     sceneCount: sceneResults.length,
     sceneResults,
+    // V3 fields. `mode` is 'standard' when scoreBreakdown is set
+    // (headline numbers come from the configured 满分 map),
+    // 'legacy' otherwise (headline numbers come from the
+    // per-question points sum).
+    mode: hasBreakdown ? 'standard' : 'legacy',
+    breakdown,
+    totalEarnedV3,
+    totalMaxV3,
+    totalScoreV3,
   });
 }
