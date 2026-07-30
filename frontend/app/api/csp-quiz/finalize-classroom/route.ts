@@ -207,8 +207,26 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  // sceneId → title, sourced from each scene's `title` field. We
+  // also track order so the client can keep scenes in the same
+  // order as the classroom JSON when the user has not answered
+  // every scene (in which case the byScene map order is
+  // submission-driven, not classroom-driven).
+  const titleBySceneId = new Map<string, string>();
+  const orderBySceneId = new Map<string, number>();
+  for (const scene of classroom.scenes ?? []) {
+    if (!scene || !scene.id) continue;
+    if (typeof scene.title === 'string' && scene.title.trim().length > 0) {
+      titleBySceneId.set(scene.id, scene.title);
+    }
+    if (typeof (scene as any).order === 'number') {
+      orderBySceneId.set(scene.id, (scene as any).order as number);
+    }
+  }
   const sceneResults = Array.from(byScene.entries()).map(([sceneId, v]) => ({
     sceneId,
+    title: titleBySceneId.get(sceneId) ?? '',
+    order: orderBySceneId.get(sceneId) ?? Number.MAX_SAFE_INTEGER,
     category: categoryBySceneId.get(sceneId) ?? null,
     correctCount: v.correctCount,
     totalQuestions: v.totalQuestions,
@@ -229,20 +247,19 @@ export async function POST(req: NextRequest) {
   // V3 per-category breakdown. When scoreBreakdown is configured
   // (i.e. the classroom JSON declared a paper-standard 满分 per
   // category), the headline total uses the configured denominators
-  // (e.g. 100 instead of the per-question sum). Otherwise we fall
-  // back to the v2 per-question sum so old classrooms don't break.
+  // (e.g. 100 instead of the per-question sum). Otherwise we still
+  // emit a per-category breakdown array — `mode: 'legacy'` so the UI
+  // can fall back to per-scene rendering, but the breakdown[] rows are
+  // already grouped by category when the classroom scene JSON has the
+  // `category` field. This lets the FinalScorePage show "单选题 24/30
+  // / 阅读 18/24 / 完善 38/46" with the actual per-question sum as
+  // the per-category denominator instead of refusing to group at all.
   const breakdown = (
     ['choice', 'read', 'perfect'] as Category[]
   ).map((cat) => {
     const scenes = sceneResults.filter((r) => r.category === cat);
     const earned = scenes.reduce((s, r) => s + r.points, 0);
     const standardMax = scoreBreakdown[cat];
-    // For the response, expose both the standard 满分 (from
-    // scoreBreakdown) and the actual per-question sum
-    // (`actualMax`) so the UI can show e.g. "18 / 24 分
-    // （卷面标准）" when they differ. If the classroom has no
-    // scoreBreakdown entry for this category, the standardMax
-    // falls back to the actual sum (zero-or-equal).
     const actualMax = scenes.reduce((s, r) => s + r.maxPoints, 0);
     return {
       category: cat,

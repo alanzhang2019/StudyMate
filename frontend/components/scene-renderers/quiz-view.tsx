@@ -1150,16 +1150,47 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
         totalEarnedV3: data.totalEarnedV3,
         totalMaxV3: data.totalMaxV3,
         breakdown: data.breakdown,
-        sceneResults: data.sceneResults.map((s, idx) => ({
-          sceneId: s.sceneId,
-          category: s.category,
-          title: `第 ${idx + 1} 部分`,
-          order: idx + 1,
-          totalQuestions: s.totalQuestions,
-          correctCount: s.correctCount,
-          points: s.maxPoints,
-          earnedPoints: s.points,
-        })),
+        sceneResults: data.sceneResults.map((s, idx) => {
+          // Display order:
+          //  1) the V3 category label when the scene JSON carries one
+          //     ("单项选择题 1", "程序阅读题 1", "完善程序题 1")
+          //  2) otherwise the actual scene title from the classroom
+          //     JSON (e.g. "选择题", "阅读程序题", "完善程序题")
+          //  3) otherwise the positional "第 N 部分" fallback
+          const catLabel = s.category
+            ? s.category === 'choice'
+              ? '单项选择题'
+              : s.category === 'read'
+                ? '程序阅读题'
+                : s.category === 'perfect'
+                  ? '完善程序题'
+                  : null
+            : null;
+          const serverTitle =
+            typeof s.title === 'string' && s.title.trim().length > 0
+              ? s.title.trim()
+              : '';
+          const title = catLabel
+            ? `${catLabel} ${idx + 1}`
+            : serverTitle || `第 ${idx + 1} 部分`;
+          // order: the server-provided classroom order takes
+          // priority; otherwise fall back to the response array
+          // position so the per-scene list stays stable.
+          const order =
+            typeof s.order === 'number' && Number.isFinite(s.order)
+              ? s.order
+              : idx + 1;
+          return {
+            sceneId: s.sceneId,
+            category: s.category,
+            title,
+            order,
+            totalQuestions: s.totalQuestions,
+            correctCount: s.correctCount,
+            points: s.maxPoints,
+            earnedPoints: s.points,
+          };
+        }),
       });
       setPhase('finalized');
       setIsConfirming(false);
@@ -1541,11 +1572,16 @@ function FinalScorePage({
   isResetting: boolean;
   resetError: string | null;
 }) {
-  // V3 (standard mode): headline total comes from the per-category
-  // breakdown so the denominator matches the paper standard (e.g.
-  // 100 for CSP-J). V2 (legacy mode): use the per-question points
-  // sum.
-  const useV3 = result.mode === 'standard';
+  // V3 (standard or category-grouped): show the per-category
+  // breakdown whenever *any* scene has a category. Standard mode
+  // also uses the configured paper-standard 满分 as the
+  // denominator; legacy-with-categories uses the per-question sum
+  // for each category. V2 (no categories at all): use the
+  // per-question points sum and the per-scene list as-is.
+  const hasAnyCategory =
+    Array.isArray(result.sceneResults) &&
+    result.sceneResults.some((s) => !!s.category);
+  const useV3 = result.mode === 'standard' || hasAnyCategory;
   const headlineEarned = useV3 ? result.totalEarnedV3 : result.totalEarned;
   const headlineMax = useV3 ? result.totalMaxV3 : result.totalPossible;
   const pct =
