@@ -1084,12 +1084,17 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
   // pull all scenes back from the server). V2 is read-only
   // server-side: it just sums the existing csp_quiz_submissions
   // rows and returns one combined total.
+  //
+  // We do NOT block on the *current* scene having local
+  // results — the cross-classroom aggregate is computed
+  // server-side from the csp_quiz_submissions table, so a
+  // student who skipped the first scene but answered scene 2-6
+  // (or who is just opening the dialog on a fresh classroom
+  // to see "you have 0 / 100 so far") should still be able to
+  // hit 确认交卷 and get a sensible response. The server is
+  // the source of truth for the score.
   const handleFinalize = useCallback(async () => {
     if (!isFullPaper) return;
-    if (results.length === 0) {
-      setFinalizeError('当前场景还没有评分结果，请先答题');
-      return;
-    }
     setIsFinalizing(true);
     setFinalizeError(null);
     try {
