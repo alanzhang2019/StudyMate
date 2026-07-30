@@ -1674,14 +1674,30 @@ function FinalScorePage({
                   ? Math.round((s.earnedPoints / s.points) * 100)
                   : 0;
               const ok = s.earnedPoints === s.points;
+              // Strip the leading "一、"/"二、"/... and trailing
+              // "（共 X 题…）" parenthetical from the server-side
+              // classroom title so the per-scene row is more
+              // scannable. The full title is still preserved in
+              // the tooltip via the title attribute, so the
+              // student can hover to see the exact paper weighting
+              // (e.g. "共15题，每题2分，共计30分").
+              const compactTitle = (s.title || '')
+                .replace(/^[一二三四五六七八九十]+、\s*/, '')
+                .replace(/\s*（[^）]*）\s*$/, '')
+                .trim();
+              const displayTitle =
+                compactTitle || s.title || s.sceneId.slice(-8);
               return (
                 <div
                   key={s.sceneId}
-                  className="flex items-center gap-3 px-4 py-3"
+                  className="flex items-start gap-3 px-4 py-3"
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-slate-800 truncate">
-                      本场景（{s.title || s.sceneId.slice(-8)}）
+                    <div
+                      className="text-sm font-medium text-slate-800"
+                      title={s.title}
+                    >
+                      {displayTitle}
                     </div>
                     <div className="text-[11px] text-slate-500 tabular-nums">
                       答对 {s.correctCount} / {s.totalQuestions} 题 · {scenePct}%
