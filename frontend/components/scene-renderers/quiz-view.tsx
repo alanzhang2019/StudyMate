@@ -112,16 +112,16 @@ function CodeBlockView({ block }: { block: QuizCodeBlock }) {
   const gutterDigits = Math.max(2, String(maxLineNo).length);
   const pad = (n: number) => String(n).padStart(gutterDigits, '0');
   return (
-    <div className="rounded-lg border-2 border-slate-300 overflow-hidden bg-white shadow-sm max-h-[40vh] flex flex-col">
+    <div className="rounded-lg border-2 border-slate-300 dark:border-slate-600 overflow-hidden bg-white dark:bg-slate-800 shadow-sm max-h-[40vh] flex flex-col">
       {(block.title || block.description) && (
-        <div className="px-4 py-2.5 border-b border-slate-300 bg-slate-50 shrink-0">
+        <div className="px-4 py-2.5 border-b border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/50 shrink-0">
           {block.title && (
-            <div className="text-[13px] font-semibold text-slate-800">
+            <div className="text-[13px] font-semibold text-slate-800 dark:text-slate-100">
               {block.title}
             </div>
           )}
           {block.description && (
-            <div className="text-xs text-slate-600 mt-1 leading-relaxed">
+            <div className="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
               {block.description}
             </div>
           )}
@@ -136,15 +136,15 @@ function CodeBlockView({ block }: { block: QuizCodeBlock }) {
           `max-h-[40vh]` (set on the outer div above) scroll
           inside the code block instead of pushing the
           questions below the viewport. */}
-      <div className="font-mono text-[12.5px] leading-[1.7] text-slate-800 overflow-y-auto">
+      <div className="font-mono text-[12.5px] leading-[1.7] text-slate-800 dark:text-slate-100 overflow-y-auto">
         {block.lines.map((line, i) => (
           <div
             key={`row-${i}`}
-            className="flex items-stretch border-b border-slate-200 last:border-b-0 hover:bg-slate-50/60 transition-colors"
+            className="flex items-stretch border-b border-slate-200 dark:border-slate-700 last:border-b-0 hover:bg-slate-50/60 dark:hover:bg-slate-700/40 transition-colors"
           >
             {/* Gutter cell */}
             <div
-              className="shrink-0 select-none text-right pr-3 pl-3 py-1 text-slate-500 bg-slate-100 border-r border-slate-200 tabular-nums"
+              className="shrink-0 select-none text-right pr-3 pl-3 py-1 text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 tabular-nums"
               style={{ minWidth: `${gutterDigits + 2}ch` }}
               aria-hidden="true"
             >
@@ -161,7 +161,7 @@ function CodeBlockView({ block }: { block: QuizCodeBlock }) {
         ))}
       </div>
       {/* Footer — language tag so the block looks like a labelled listing */}
-      <div className="px-3 py-1.5 border-t border-slate-300 bg-slate-50 text-[10px] text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+      <div className="px-3 py-1.5 border-t border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/50 text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
         <span className="inline-block w-1.5 h-1.5 rounded-full bg-slate-400" />
         {block.language}
       </div>
@@ -1530,7 +1530,7 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
       )}
 
       {finalizeError && phase !== 'finalized' && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700 shadow-lg">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 px-4 py-2 text-sm text-red-700 dark:text-red-300 shadow-lg">
           提交失败：{finalizeError}
         </div>
       )}
@@ -1601,14 +1601,14 @@ function FinalScorePage({
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-2xl">
           📊
         </div>
-        <h2 className="text-2xl font-bold text-slate-900">总分</h2>
-        <div className="text-5xl font-black text-slate-900 tabular-nums">
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">总分</h2>
+        <div className="text-5xl font-black text-slate-900 dark:text-slate-100 tabular-nums">
           {headlineEarned}{' '}
-          <span className="text-2xl text-slate-400">
+          <span className="text-2xl text-slate-400 dark:text-slate-500">
             / {headlineMax} 分
           </span>
         </div>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-100 text-violet-700 text-sm font-semibold">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 text-sm font-semibold">
           {levelLabel(level)}
         </div>
         {pct > 0 && (
@@ -1730,7 +1730,7 @@ function FinalScorePage({
       </Card>
 
       {resetError && (
-        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">
+        <div className="rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 px-4 py-2 text-sm text-red-700 dark:text-red-300">
           重置失败：{resetError}
         </div>
       )}
@@ -1775,10 +1775,10 @@ function ConfirmSubmitModal({
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 space-y-4"
+        className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 space-y-4"
       >
-        <h3 className="text-lg font-bold text-slate-900">确认交卷？</h3>
-        <p className="text-sm text-slate-600 leading-relaxed">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">确认交卷？</h3>
+        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
           {allDone
             ? `本次共 ${totalCount} 道题，提交后不可修改。`
             : `还有 ${totalCount - answeredCount} 道题未答，未答的题按 0 分计算。确认交卷？`}

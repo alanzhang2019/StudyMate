@@ -638,7 +638,7 @@ export default function ClassroomDetailPage() {
   return (
     <ThemeProvider>
       <MediaStageProvider value={classroomId}>
-        <div className="h-dvh flex flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <div className="h-dvh flex flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
           {playbackResume && (
             <ResumeBanner
               variant="playback"
@@ -662,8 +662,8 @@ export default function ClassroomDetailPage() {
                 <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-2xl shadow-lg flex items-center justify-center">
                   <div className="w-8 h-8 border-3 border-white/30 border-t-white rounded-full animate-spin" />
                 </div>
-                <p className="text-xl font-medium text-slate-700">Loading classroom...</p>
-                <p className="text-sm text-slate-500 mt-2">Preparing your AI tutoring experience</p>
+                <p className="text-xl font-medium text-slate-700 dark:text-slate-200">Loading classroom...</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">Preparing your AI tutoring experience</p>
               </div>
             </div>
           ) : error ? (
@@ -672,8 +672,8 @@ export default function ClassroomDetailPage() {
                 <div className="w-16 h-16 mx-auto mb-6 bg-red-100 rounded-2xl shadow-lg flex items-center justify-center">
                   <AlertCircle className="w-8 h-8 text-red-500" />
                 </div>
-                <p className="text-xl font-medium text-slate-800 mb-2">Something went wrong</p>
-                <p className="text-slate-600 mb-6">Error: {error}</p>
+                <p className="text-xl font-medium text-slate-800 dark:text-slate-100 mb-2">Something went wrong</p>
+                <p className="text-slate-600 dark:text-slate-300 mb-6">Error: {error}</p>
                 <button
                   onClick={() => {
                     setError(null);
@@ -713,7 +713,7 @@ export default function ClassroomDetailPage() {
                     <button
                       type="button"
                       onClick={() => router.push('/csp-lecture')}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-white/90 backdrop-blur px-3 py-1.5 text-xs font-medium text-slate-700 shadow-md ring-1 ring-slate-200/60 hover:bg-white hover:text-slate-900 transition"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 shadow-md ring-1 ring-slate-200/60 dark:ring-slate-700/60 hover:bg-white dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition"
                     >
                       <span aria-hidden>←</span>
                       返回课件库
