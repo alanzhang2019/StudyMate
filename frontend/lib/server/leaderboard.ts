@@ -7,6 +7,13 @@
 // Scoring formula (agreed 2026-07-24 with the user):
 //   score = activeDays × 10 + completedClassrooms × 30
 //
+// Two scopes are supported via the `scope` parameter:
+//   - 'total'  — all-time cumulative score (the original metric)
+//   - 'daily'  — same shape, but the activity window is "today only"
+//                (server localtime, matching the streak window).
+//                The API caller picks the scope via `?scope=` so
+//                one source of truth can drive both views.
+//
 // Anti-cheat (lightweight v1, no schema change):
 //   - A "day" is counted only if the watchSeconds accrued on that
 //     day is ≤ MAX_DAILY_WATCH_SECONDS (8 hours). Opening a
@@ -24,6 +31,8 @@
 //     hammer it. 5min is the standard "rankings look fresh but
 //     don't thrash" knob for a product like this. Override via
 //     the `LEADERBOARD_TTL_MS` env var if needed.
+//   - The cache is keyed by scope so a daily refresh and a total
+//     refresh don't invalidate each other.
 
 import { db, getDb } from '@/lib/db';
 import { evaluateCompletion } from '@/lib/server/csp-completion';
@@ -39,6 +48,8 @@ const SCORE_WEIGHT_COMPLETION = 30;
 
 const DEFAULT_TTL_MS = 5 * 60 * 1000;
 
+export type LeaderboardScope = 'total' | 'daily';
+
 export type LeaderboardEntry = {
   /** Public-safe display name, e.g. "张同学" or "学***". */
   displayName: string;
@@ -50,18 +61,26 @@ export type LeaderboardEntry = {
 };
 
 export type LeaderboardSnapshot = {
+  /** Which window this snapshot was computed for. */
+  scope: LeaderboardScope;
   entries: LeaderboardEntry[];
   /** Total student accounts (cumulative, not just active). */
   totalStudents: number;
-  /** Total completed-classroom count across all students. */
+  /** Total completed-classroom count across all students in this scope. */
   totalCompletions: number;
-  /** Total active student count (≥1 progress row). */
+  /** Total active student count (≥1 progress row in this scope). */
   activeStudents: number;
+  /**
+   * YYYY-MM-DD (server localtime) for daily scope; for the
+   * total scope this is the day the snapshot was computed
+   * (i.e. "as of" date).
+   */
+  dayKey: string;
   /** When this snapshot was computed (ISO string). */
   computedAt: string;
 };
 
-let cache: { at: number; data: LeaderboardSnapshot } | null = null;
+const cacheByScope: Partial<Record<LeaderboardScope, { at: number; data: LeaderboardSnapshot }>> = {};
 
 function getTtlMs(): number {
   const raw = process.env.LEADERBOARD_TTL_MS;
@@ -143,28 +162,35 @@ function maskName(raw: string | null | undefined): string {
 
 /**
  * Compute the leaderboard. Results are cached in-process for
- * `LEADERBOARD_TTL_MS` (default 5 min). The cache is per-server;
- * in a multi-instance deployment each replica caches
- * independently, which is fine — leaderboard is not a strong
- * consistency surface.
+ * `LEADERBOARD_TTL_MS` (default 5 min), keyed by scope so a
+ * daily refresh and a total refresh don't invalidate each other.
+ * The cache is per-server; in a multi-instance deployment each
+ * replica caches independently, which is fine — leaderboard is
+ * not a strong consistency surface.
  */
-export async function getLeaderboard(): Promise<LeaderboardSnapshot> {
+export async function getLeaderboard(
+  scope: LeaderboardScope = 'total',
+): Promise<LeaderboardSnapshot> {
   const ttl = getTtlMs();
-  if (cache && Date.now() - cache.at < ttl) {
-    return cache.data;
+  const cached = cacheByScope[scope];
+  if (cached && Date.now() - cached.at < ttl) {
+    return cached.data;
   }
 
-  const data = await computeLeaderboard();
-  cache = { at: Date.now(), data };
+  const data = await computeLeaderboard(scope);
+  cacheByScope[scope] = { at: Date.now(), data };
   return data;
 }
 
 /** Bypass the in-process cache (admin / refresh button). */
 export function invalidateLeaderboardCache(): void {
-  cache = null;
+  cacheByScope.total = undefined;
+  cacheByScope.daily = undefined;
 }
 
-async function computeLeaderboard(): Promise<LeaderboardSnapshot> {
+async function computeLeaderboard(
+  scope: LeaderboardScope,
+): Promise<LeaderboardSnapshot> {
   // 1. Pull every student-role user with their progress rows.
   //    We do this in two queries (users, then progress) rather
   //    than a JOIN because the user table is tiny and the
@@ -178,10 +204,12 @@ async function computeLeaderboard(): Promise<LeaderboardSnapshot> {
   const totalStudents = users.length;
   if (totalStudents === 0) {
     return {
+      scope,
       entries: [],
       totalStudents: 0,
       totalCompletions: 0,
       activeStudents: 0,
+      dayKey: todayKey(),
       computedAt: new Date().toISOString(),
     };
   }
@@ -202,6 +230,10 @@ async function computeLeaderboard(): Promise<LeaderboardSnapshot> {
   //
   //    The Prisma-compat shim doesn't expose a `groupBy` or
   //    `having`-on-aggregation API, so we drop to raw SQL.
+  const dayFilter =
+    scope === 'daily'
+      ? `AND date(updatedAt, 'localtime') = date('now', 'localtime')`
+      : '';
   const rows = getDb()
     .prepare(
       `SELECT
@@ -210,6 +242,7 @@ async function computeLeaderboard(): Promise<LeaderboardSnapshot> {
          SUM(CAST(watchSeconds AS INTEGER)) AS sec
        FROM csp_progress
        WHERE updatedAt IS NOT NULL
+         ${dayFilter}
        GROUP BY userId, day
        HAVING sec > 0
          AND sec <= ?`,
@@ -221,81 +254,75 @@ async function computeLeaderboard(): Promise<LeaderboardSnapshot> {
     }>;
 
   // 3. Per-user aggregations in JS.
-  const userById = new Map(users.map((u) => [u.id, u]));
   const activeDaysByUser = new Map<string, number>();
   for (const r of rows) {
     activeDaysByUser.set(r.userId, (activeDaysByUser.get(r.userId) ?? 0) + 1);
   }
 
-  // 4. Completed classrooms per user — derived from
-  //    `evaluateCompletion()` (the same function that powers
-  //    the "已打卡" badge on /student/home and the
-  //    teacher-facing /admin/csp-progress overview).
+  // 4. Completed classrooms per user.
   //
-  //    Earlier this read `csp_progress.completedAt` directly
-  //    (the "latch" — see csp-completion.ts for semantics).
-  //    That gave the wrong answer: a student who meets the
-  //    completion criteria but whose next heartbeat hasn't
-  //    tripped the latch yet would show 0 here while the
-  //    student-home page already showed "已打卡". Aligning
-  //    on `evaluateCompletion` keeps the leaderboard consistent
-  //    with the surfaces the student and teacher actually see.
+  //    For 'total' we use the (expensive) `evaluateCompletion()`
+  //    path so the leaderboard agrees with the "已打卡" badge on
+  //    /student/home and the teacher-facing /admin/csp-progress
+  //    overview — both of those render from evaluateCompletion,
+  //    and a student who meets the criteria but whose next
+  //    heartbeat hasn't tripped the latch yet should still be
+  //    counted as complete here.
   //
-  //    Performance: one async call per (user, classroom) row.
-  //    Each call is bounded by reading the classroom JSON
-  //    (cached by the OS page cache after the first read) plus
-  //    two indexed lookups on csp_progress / csp_quiz_submissions.
-  //    The 5-min in-process cache at the top of this module
-  //    keeps the aggregate cost low even for a 100-student
-  //    cohort. If we ever need to scale beyond that, batching
-  //    the per-classroom scene enumeration (currently a JSON
-  //    read per row) is the next knob to turn.
-  const allProgress = getDb()
-    .prepare(
-      'SELECT userId, classroomId FROM csp_progress',
-    )
-    .all() as Array<{ userId: string; classroomId: string }>;
-  console.log('[leaderboard] csp_progress rows:', allProgress.length);
-
+  //    For 'daily' we use a SQL-only count of first-time
+  //    completions today. The latch is set on the first time
+  //    criteria is met (see csp-completion.ts) and never reset,
+  //    so a row with `completedAt` set today is by definition a
+  //    *new* completion today. We deliberately skip the
+  //    evaluateCompletion cost on the daily path so refreshing
+  //    the daily tab doesn't re-evaluate every (user, classroom)
+  //    pair for users with no new completions.
   const completionsByUser = new Map<string, number>();
-  await Promise.all(
-    allProgress.map(async (p) => {
-      const result = await evaluateCompletion(p.userId, p.classroomId);
-      console.log(
-        '[leaderboard] eval',
-        p.userId.slice(0, 8),
-        p.classroomId.slice(0, 16),
-        '=>',
-        'completed=' + result.completed,
-        'latched=' + result.latched,
-        'progressMet=' + result.progressMet,
-        'quizzesMet=' + result.quizzesMet,
-        'coverage=' + result.coveragePct.toFixed(3),
-        'failedQuizzes=' + result.failedQuizScenes.length,
-        'reasons=' + JSON.stringify(result.reasons),
-      );
-      if (result.completed) {
-        completionsByUser.set(
-          p.userId,
-          (completionsByUser.get(p.userId) ?? 0) + 1,
-        );
-      }
-    }),
-  );
-  console.log(
-    '[leaderboard] completionsByUser:',
-    Array.from(completionsByUser.entries()).map(
-      ([uid, n]) => `${uid.slice(0, 8)}=${n}`,
-    ),
-  );
+
+  if (scope === 'daily') {
+    const todayCompletions = getDb()
+      .prepare(
+        `SELECT userId, COUNT(*) AS cnt
+           FROM csp_progress
+          WHERE completedAt IS NOT NULL
+            AND date(completedAt, 'localtime') = date('now', 'localtime')
+          GROUP BY userId`,
+      )
+      .all() as Array<{ userId: string; cnt: number }>;
+    for (const r of todayCompletions) {
+      completionsByUser.set(r.userId, r.cnt);
+    }
+  } else {
+    const allProgress = getDb()
+      .prepare(
+        'SELECT userId, classroomId FROM csp_progress',
+      )
+      .all() as Array<{ userId: string; classroomId: string }>;
+    await Promise.all(
+      allProgress.map(async (p) => {
+        const result = await evaluateCompletion(p.userId, p.classroomId);
+        if (result.completed) {
+          completionsByUser.set(
+            p.userId,
+            (completionsByUser.get(p.userId) ?? 0) + 1,
+          );
+        }
+      }),
+    );
+  }
 
   // 5. Build the candidate set. We exclude accounts with zero
-  //    progress (no activeDays AND no completions) so the
-  //    leaderboard shows actual learners, not "registered but
-  //    never logged in". This is also a privacy kindness: empty
-  //    accounts that happen to be in `users` with `role=student`
-  //    won't accidentally show up as "rank 99" just because
-  //    someone registered a throw-away email.
+  //    progress in this scope (no activeDays AND no completions)
+  //    so the leaderboard shows actual learners, not "registered
+  //    but never logged in". This is also a privacy kindness:
+  //    empty accounts that happen to be in `users` with
+  //    `role=student` won't accidentally show up as "rank 99"
+  //    just because someone registered a throw-away email.
+  //
+  //    For 'total' this naturally yields the historical leader
+  //    set. For 'daily' it yields "everyone who did anything
+  //    today" — including students whose only activity is
+  //    opening a classroom briefly.
   type Candidate = {
     userId: string;
     displayName: string;
@@ -337,9 +364,13 @@ async function computeLeaderboard(): Promise<LeaderboardSnapshot> {
     return b.activeDays - a.activeDays;
   });
 
-  // 7. Top 10. The mask happens at the response boundary, not
-  //    here, so internal callers (admin) can use the real name.
-  const top = candidates.slice(0, 10).map((c, i) => ({
+  // 7. Return ALL ranked participants. The earlier top-10 cap
+  //    was removed (2026-07-02) so the public page can show
+  //    the whole cohort. The UI scrolls the list internally
+  //    when the count exceeds a comfortable viewport height.
+  //    The mask happens at the response boundary, not here,
+  //    so internal callers (admin) can use the real name.
+  const entries = candidates.map((c, i) => ({
     rank: i + 1,
     displayName: maskName(c.displayName),
     activeDays: c.activeDays,
@@ -355,10 +386,26 @@ async function computeLeaderboard(): Promise<LeaderboardSnapshot> {
   const activeStudents = candidates.length;
 
   return {
-    entries: top,
+    scope,
+    entries,
     totalStudents,
     totalCompletions,
     activeStudents,
+    dayKey: todayKey(),
     computedAt: new Date().toISOString(),
   };
+}
+
+function todayKey(): string {
+  // Server-local YYYY-MM-DD — matches the `date(..., 'localtime')`
+  // grouping in the SQL above, so `dayKey` is the same day the
+  // activity was attributed to. Built from `getFullYear` /
+  // `getMonth` / `getDate` (which read the server's local
+  // timezone) rather than `toLocaleDateString('en-CA')` so we
+  // don't depend on the runtime having the en-CA locale.
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
 }
