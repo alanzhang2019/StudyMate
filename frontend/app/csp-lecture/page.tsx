@@ -25,6 +25,7 @@
 // with a friendly "coming soon" placeholder.
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -223,6 +224,31 @@ export default async function CspLecturePage() {
           </Button>
         </div>
       </nav>
+
+      {/*
+       * CSP 晋级难度地图 — 放在页面最开头, 让新学生先看到自己所在省份
+       * 的晋级难度, 带着"为什么要学 CSP"的动机再开始看下面的课件.
+       *
+       * 源文件: docs/CSP初赛难度地图.png, 静态复制到 public/csp-difficulty-map.png
+       * (用 next/image 走默认 loader, 不需要 next.config 配置 remotePatterns).
+       * 原图 1080x768, 用 object-contain + 居中, 移动端会按比例缩.
+       */}
+      <section className="max-w-4xl mx-auto px-6 pt-8 pb-6">
+        <figure className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white/80 shadow-sm backdrop-blur">
+          <Image
+            src="/csp-difficulty-map.png"
+            alt="CSP-J/S 2025 各省初赛晋级难度地图，颜色越深晋级率越低"
+            width={1080}
+            height={768}
+            className="block h-auto w-full"
+            priority
+            sizes="(max-width: 896px) 100vw, 896px"
+          />
+          <figcaption className="border-t border-slate-200/60 bg-slate-50/70 px-4 py-2 text-xs text-slate-600">
+            CSP-J/S 2025 各省初赛晋级难度地图 · 颜色越深表示晋级率越低（数据来源：边界数据来源·高德DataV·图易数据·noi.cn）
+          </figcaption>
+        </figure>
+      </section>
 
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-6 pt-6 pb-12 sm:pt-10 sm:pb-16 text-center">
