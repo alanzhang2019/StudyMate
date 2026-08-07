@@ -5,11 +5,13 @@ import { toast } from 'sonner';
 import {
   BookmarkCheck,
   CheckCircle2,
+  ChevronDown,
   Loader2,
   RotateCcw,
   Trash2,
   ExternalLink,
   ImageIcon,
+  ListChecks,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -27,6 +29,11 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
   deleteMistakeBook,
   listMistakeBook,
   MistakeBookApiError,
@@ -34,6 +41,13 @@ import {
   type MistakeBookItem,
   type MistakeBookListResponse,
 } from '@/lib/mistake-book/api';
+import {
+  canMarkMastered,
+  computeReviewStage,
+  REVIEW_STAGE_LABELS,
+  REVIEW_STAGE_SHORT,
+} from '@/lib/mistake-book/review';
+import { ReviewPanel } from '@/components/mistake-book/review-panel';
 
 interface MistakeBookListProps {
   initial?: MistakeBookListResponse | null;
@@ -131,6 +145,27 @@ export function MistakeBookList({ initial }: MistakeBookListProps) {
       }
     },
     [onlyUnresolved],
+  );
+
+  // ReviewPanel 的 item 更新: 直接替换列表里的同一项.
+  const onItemUpdate = useCallback((next: MistakeBookItem) => {
+    setData((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        items: prev.items.map((it) => (it.id === next.id ? next : it)),
+      };
+    });
+  }, []);
+
+  // ReviewPanel 在三段都完成时调用: 自动把"已掌握"打上.
+  // 仅在当前未掌握时触发, 不允许"撤销" (撤销走卡片右上角的"撤销"按钮).
+  const onAutoMarkMastered = useCallback(
+    (item: MistakeBookItem) => {
+      if (item.isResolved === 1) return;
+      void onToggleResolved(item);
+    },
+    [onToggleResolved],
   );
 
   const onDelete = useCallback(
@@ -262,6 +297,8 @@ export function MistakeBookList({ initial }: MistakeBookListProps) {
               pending={pendingId === item.id}
               onToggleResolved={() => onToggleResolved(item)}
               onDelete={() => onDelete(item)}
+              onItemUpdate={onItemUpdate}
+              onAutoMarkMastered={() => onAutoMarkMastered(item)}
             />
           ))}
         </div>
@@ -279,6 +316,8 @@ interface MistakeBookCardProps {
   pending: boolean;
   onToggleResolved: () => void;
   onDelete: () => void;
+  onItemUpdate: (next: MistakeBookItem) => void;
+  onAutoMarkMastered: () => void;
 }
 
 function MistakeBookCard({
@@ -286,8 +325,16 @@ function MistakeBookCard({
   pending,
   onToggleResolved,
   onDelete,
+  onItemUpdate,
+  onAutoMarkMastered,
 }: MistakeBookCardProps) {
   const resolved = item.isResolved === 1;
+  const reviewStage = computeReviewStage(item);
+  const canMaster = canMarkMastered(item);
+  const stageShort = REVIEW_STAGE_SHORT[reviewStage];
+  // 没有用过复盘, 默认收起; 用过 (任何 stage) 默认展开
+  const hasReviewed =
+    !!item.errorCauseCategory || !!item.correctSolution || !!item.variantQuestion;
   return (
     <Card
       className={`p-4 transition-opacity ${pending ? 'opacity-60' : ''} ${
@@ -341,6 +388,20 @@ function MistakeBookCard({
                 {item.grade ? ` · ${item.grade}` : ''}
               </span>
             ) : null}
+            {!resolved && hasReviewed ? (
+              <span
+                className={[
+                  'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
+                  reviewStage === 'mastered'
+                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+                    : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+                ].join(' ')}
+                title={REVIEW_STAGE_LABELS[reviewStage]}
+              >
+                <ListChecks className="mr-1 h-3 w-3" />
+                复盘 {stageShort}
+              </span>
+            ) : null}
           </div>
 
           <p className="text-sm text-muted-foreground line-clamp-2">
@@ -369,8 +430,14 @@ function MistakeBookCard({
             size="sm"
             variant={resolved ? 'outline' : 'secondary'}
             onClick={onToggleResolved}
-            disabled={pending}
-            title={resolved ? '点击标记为未掌握' : '点击标记为已掌握'}
+            disabled={pending || (!resolved && !canMaster)}
+            title={
+              resolved
+                ? '点击标记为未掌握'
+                : canMaster
+                  ? '点击标记为已掌握'
+                  : '三段复盘都完成 (变式题答对) 才能标记掌握'
+            }
           >
             {resolved ? (
               <>
@@ -380,7 +447,7 @@ function MistakeBookCard({
             ) : (
               <>
                 <CheckCircle2 className="mr-1 h-4 w-4" />
-                已掌握
+                {canMaster ? '已掌握' : '做完整三段才能掌握'}
               </>
             )}
           </Button>
@@ -411,6 +478,36 @@ function MistakeBookCard({
           </AlertDialog>
         </div>
       </div>
+
+      {/* 三段复盘 (可折叠). 已掌握时折叠展示 (只读历史), 未掌握时默认按
+          hasReviewed 决定: 复盘过 -> 展开, 没复盘过 -> 折叠. */}
+      <Collapsible
+        className="mt-3 border-t pt-3"
+        defaultOpen={hasReviewed && !resolved}
+      >
+        <CollapsibleTrigger asChild>
+          <button
+            type="button"
+            className="group flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-muted/50"
+          >
+            <span className="flex items-center gap-2">
+              <ListChecks className="h-4 w-4 text-primary" />
+              <span className="font-medium">三段复盘</span>
+              <span className="text-xs text-muted-foreground">
+                {REVIEW_STAGE_LABELS[reviewStage]}
+              </span>
+            </span>
+            <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-3">
+          <ReviewPanel
+            item={item}
+            onItemUpdate={onItemUpdate}
+            onMarkMastered={onAutoMarkMastered}
+          />
+        </CollapsibleContent>
+      </Collapsible>
     </Card>
   );
 }

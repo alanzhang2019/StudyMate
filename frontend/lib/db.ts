@@ -106,12 +106,30 @@ export function getDb(): Database {
     isResolved INTEGER NOT NULL DEFAULT 0,
     resolvedAt TEXT,
     createdAt TEXT NOT NULL DEFAULT (datetime('now')),
-    updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+    updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+    -- 2026-07-02 错题三段复盘改造 (梦熊"课程 20% / 训练 50% / 复盘 30%" 中的复盘环节).
+    -- 三段:
+    --   1. 错因: errorCause (自由文本) + errorCauseCategory (枚举)
+    --   2. 正解: correctSolution (AI 生成) + correctSolutionAt
+    --   3. 同类变式: variantQuestion + variantAnswer + variantUserAnswer + variantResult + variantAt
+    -- reviewedAt: 三段都完成且变式题答对 (variantResult=1) 时打这个时间戳.
+    errorCause TEXT,
+    errorCauseCategory TEXT,
+    correctSolution TEXT,
+    correctSolutionAt TEXT,
+    variantQuestion TEXT,
+    variantAnswer TEXT,
+    variantUserAnswer TEXT,
+    variantResult INTEGER,
+    variantAt TEXT,
+    reviewedAt TEXT
   );
   CREATE INDEX IF NOT EXISTS idx_mistake_book_visitor_created
     ON mistake_book (visitorId, createdAt DESC);
   CREATE INDEX IF NOT EXISTS idx_mistake_book_visitor_resolved
     ON mistake_book (visitorId, isResolved);
+  CREATE INDEX IF NOT EXISTS idx_mistake_book_visitor_reviewed
+    ON mistake_book (visitorId, reviewedAt);
 
   CREATE TABLE IF NOT EXISTS mistake_records (
     id TEXT PRIMARY KEY,
@@ -372,6 +390,37 @@ export function getDb(): Database {
       )
     } catch {
       // column already exists
+    }
+
+    // 2026-07-02 错题三段复盘 (errorCause / correctSolution / variant*).
+    // 新部署会走上面 CREATE TABLE 的新列定义; 老库需要用 try/catch
+    // 的 ALTER TABLE 补列. better-sqlite3 在列已存在时会抛,
+    // 静默吃掉就行.
+    const mistakeBookReviewCols: Array<[string, string]> = [
+      ['errorCause', 'TEXT'],
+      ['errorCauseCategory', 'TEXT'],
+      ['correctSolution', 'TEXT'],
+      ['correctSolutionAt', 'TEXT'],
+      ['variantQuestion', 'TEXT'],
+      ['variantAnswer', 'TEXT'],
+      ['variantUserAnswer', 'TEXT'],
+      ['variantResult', 'INTEGER'],
+      ['variantAt', 'TEXT'],
+      ['reviewedAt', 'TEXT'],
+    ];
+    for (const [col, type] of mistakeBookReviewCols) {
+      try {
+        _db.exec(`ALTER TABLE mistake_book ADD COLUMN ${col} ${type}`)
+      } catch {
+        // column already exists (idempotent migration)
+      }
+    }
+    try {
+      _db.exec(
+        'CREATE INDEX IF NOT EXISTS idx_mistake_book_visitor_reviewed ON mistake_book (visitorId, reviewedAt)',
+      )
+    } catch {
+      // index already exists
     }
 
     // Only flip the flag once the schema actually finished applying
