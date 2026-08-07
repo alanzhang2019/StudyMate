@@ -431,7 +431,55 @@ export function getDb(): Database {
     // masked a typo in the inner SQL on hot reload.
     _dbInit = true
   }
+  // 关键: 把 idempotent migrations 放在 _dbInit 标志检查之外,
+  // 这样**每次** getDb() 都会跑 ALTER TABLE 补列.
+  // 老部署的数据库可能因为 parent_invite_codes 表已存在而跳过了
+  // 整个 init block, 导致 ALTER TABLE 从来没跑过, 新列缺失
+  // (典型症状: admin/stats 报 "no such column: reviewedAt").
+  // 每次跑 try/catch 包裹, 不会破坏现有数据, 启动开销可以忽略.
+  applyMigrations(_db)
   return _db
+}
+
+/**
+ * Idempotent 字段补齐. 每次启动都跑, 列已存在会被 try/catch 吞掉.
+ *
+ * 跟 init block 的区别: 这里**不依赖** _dbInit 标志. 即便数据库
+ * 是在新 schema 之前部署的, parent_invite_codes 等核心表已存在,
+ * 整个 init block 被跳过, 这里的 ALTER TABLE 仍然会跑, 不会
+ * 让数据库卡在旧 schema 上.
+ */
+function applyMigrations(db: Database): void {
+  // 错题三段复盘 (2026-07-02 改造).
+  // 跟 init block 里的 ALTER TABLE 列表保持一致 — init block 那里
+  // 处理"全新部署", 这里处理"老库升级". 两边都跑是安全的:
+  // ALTER TABLE ADD COLUMN 在列已存在时会抛, 我们吃掉了.
+  const mistakeBookReviewCols: Array<[string, string]> = [
+    ['errorCause', 'TEXT'],
+    ['errorCauseCategory', 'TEXT'],
+    ['correctSolution', 'TEXT'],
+    ['correctSolutionAt', 'TEXT'],
+    ['variantQuestion', 'TEXT'],
+    ['variantAnswer', 'TEXT'],
+    ['variantUserAnswer', 'TEXT'],
+    ['variantResult', 'INTEGER'],
+    ['variantAt', 'TEXT'],
+    ['reviewedAt', 'TEXT'],
+  ]
+  for (const [col, type] of mistakeBookReviewCols) {
+    try {
+      db.exec(`ALTER TABLE mistake_book ADD COLUMN ${col} ${type}`)
+    } catch {
+      // column already exists
+    }
+  }
+  try {
+    db.exec(
+      'CREATE INDEX IF NOT EXISTS idx_mistake_book_visitor_reviewed ON mistake_book (visitorId, reviewedAt)',
+    )
+  } catch {
+    // index already exists
+  }
 }
 
 const now = () => new Date().toISOString()
