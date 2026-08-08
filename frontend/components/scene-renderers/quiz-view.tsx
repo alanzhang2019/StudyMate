@@ -1111,9 +1111,10 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
 
   // Full-paper mode: true for the 真题卷s that have the
   // 交卷" (finalize) flow enabled. As more 真题卷s are added
-  // (cm_imp_cspj2024s_v1, cm_imp_cspj2025j_v1 etc), they
+  // (cm_imp_cspj2023j_v1, cm_imp_cspj2024s_v1, etc), they
   // should be appended here so the 交卷 button renders.
   const FULL_PAPER_CLASSROOM_IDS = new Set<string>([
+    'cm_imp_cspj2023j_v1',
     'cm_imp_cspj2024j_v1',
     'cm_imp_cspj2025j_v1',
   ]);

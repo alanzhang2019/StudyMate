@@ -135,10 +135,15 @@ export const FALLBACK_RECOMMENDATIONS: Record<CspLevel, string[]> = {
   beginner: ['cm_imp_a39914d3af5c64d6'],
   intermediate: [
     'cm_imp_a39914d3af5c64d6',
+    'cm_imp_cspj2023j_v1',
     'cm_imp_cspj2024j_v1',
     'cm_imp_cspj2025j_v1',
   ],
-  advanced: ['cm_imp_cspj2024j_v1', 'cm_imp_cspj2025j_v1'],
+  advanced: [
+    'cm_imp_cspj2023j_v1',
+    'cm_imp_cspj2024j_v1',
+    'cm_imp_cspj2025j_v1',
+  ],
 };
 
 /**

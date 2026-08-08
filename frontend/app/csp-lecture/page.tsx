@@ -228,11 +228,13 @@ export default async function CspLecturePage() {
   }
   // 顶层 await —— Next.js 16 的 RSC 支持 async server components,
   // 这里先把所有 PDF 链接解析完, 再渲染下面的 list.
-  const [pdf2024, pdf2025] = await Promise.all([
+  const [pdf2023, pdf2024, pdf2025] = await Promise.all([
+    pdfHrefFor('csp-j-2023-original.pdf'),
     pdfHrefFor('csp-j-2024-original.pdf'),
     pdfHrefFor('csp-j-2025-original.pdf'),
   ]);
   const paperPdfHref: Record<string, string> = {
+    cm_imp_cspj2023j_v1: pdf2023,
     cm_imp_cspj2024j_v1: pdf2024,
     cm_imp_cspj2025j_v1: pdf2025,
   };
