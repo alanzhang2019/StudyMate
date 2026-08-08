@@ -434,6 +434,8 @@ export default async function CspLecturePage() {
                     subtitle="按顺序学完 16 个核心概念章节，建立 CSP 初赛知识框架。"
                     accentClass="from-indigo-500/15 to-blue-500/5 border-indigo-200/60"
                     badgeClass="bg-indigo-100 text-indigo-700"
+                    count={primerLectures.length}
+                    countLabel="个课件"
                   >
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
                       {primerLectures.map((l) => (
@@ -452,6 +454,8 @@ export default async function CspLecturePage() {
                     subtitle="按年份做完整模拟卷，单选 / 阅读 / 完善程序 100 分制严格评分。"
                     accentClass="from-rose-500/15 to-amber-500/5 border-rose-200/60"
                     badgeClass="bg-rose-100 text-rose-700"
+                    count={paperLectures.length}
+                    countLabel="套真题"
                   >
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
                       {paperLectures.map((l) => (
@@ -554,46 +558,14 @@ function LectureCard({ lecture }: { lecture: Lecture }) {
  *
  * The `accentClass` controls the gradient strip + border colour
  * so each group has a distinct visual identity at a glance.
+ *
+ * The actual implementation is a client component at
+ * components/csp-lecture/lecture-group.tsx so the collapse
+ * animation + `useState` can run in the browser. We import
+ * the same name above; this JSDoc lives on the page only
+ * to document the props the call sites use.
  */
-function LectureGroup({
-  title,
-  subtitle,
-  accentClass,
-  badgeClass,
-  children,
-}: {
-  title: string;
-  subtitle: string;
-  /** Tailwind classes for the gradient strip + outer border. */
-  accentClass: string;
-  /** Tailwind classes for the small title chip. */
-  badgeClass: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section
-      className={`relative rounded-2xl border bg-white/40 backdrop-blur p-5 sm:p-6 ${accentClass}`}
-    >
-      {/* Decorative gradient strip at the very top — gives the
-          group a clear "this is its own thing" visual. */}
-      <div
-        className={`absolute inset-x-0 top-0 h-1 rounded-t-2xl bg-gradient-to-r ${accentClass}`}
-        aria-hidden="true"
-      />
-      <header className="mb-5">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span
-            className={`inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full ${badgeClass}`}
-          >
-            {title}
-          </span>
-        </div>
-        <p className="mt-2 text-sm text-slate-600">{subtitle}</p>
-      </header>
-      {children}
-    </section>
-  );
-}
+
 
 /**
  * 真题卡：复用 LectureCard 的章节展开 + 从头学习按钮,
