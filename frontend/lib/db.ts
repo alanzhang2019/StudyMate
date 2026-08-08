@@ -308,29 +308,29 @@ export function getDb(): Database {
   CREATE INDEX IF NOT EXISTS idx_csp_quiz_classroom_score
     ON csp_quiz_submissions (classroomId, score DESC);
 
-  // csp_quiz_submission_history:
-  //   Append-only audit log of every quiz submission this user
-  //   has made. Unlike csp_quiz_submissions (which is
-  //   UPSERT-overwritten and only retains the LATEST attempt),
-  //   this table keeps EVERY attempt so the FinalScorePage
-  //   can show "首次 80 → 订正 1 88 → 订正 2 95" and the
-  //   teacher can see score progression.
-  //
-  //   attemptIndex: 1 = 首次, 2 = 订正1, 3 = 订正2 ...
-  //   computed at write time by counting existing rows
-  //   (+1). Concurrent re-submissions from the same user are
-  //   not a real concern in the CSP product (one student, one
-  //   browser tab) but if a race does occur, the worst case
-  //   is two rows with the same attemptIndex — UI shows them
-  //   in submittedAt order and it looks fine.
-  //
-  //   points / maxPoints are stored as REAL because CSP
-  //   questions can be worth 1.5 / 2 / 3 / 4 points. The
-  //   parent csp_quiz_submissions table doesn't store them
-  //   for backwards-compat reasons; we add them here so the
-  //   finalize-classroom endpoint can compute a point-weighted
-  //   paper score from the history (not just from the latest
-  //   submission row).
+  -- csp_quiz_submission_history:
+  --   Append-only audit log of every quiz submission this user
+  --   has made. Unlike csp_quiz_submissions (which is
+  --   UPSERT-overwritten and only retains the LATEST attempt),
+  --   this table keeps EVERY attempt so the FinalScorePage
+  --   can show 'first 80 -> correction 1 88 -> correction 2 95'
+  --   and the teacher can see score progression.
+  --
+  --   attemptIndex: 1 = first, 2 = correction 1, 3 = correction 2 ...
+  --   computed at write time by counting existing rows
+  --   (+1). Concurrent re-submissions from the same user are
+  --   not a real concern in the CSP product (one student, one
+  --   browser tab) but if a race does occur, the worst case
+  --   is two rows with the same attemptIndex — UI shows them
+  --   in submittedAt order and it looks fine.
+  --
+  --   points / maxPoints are stored as REAL because CSP
+  --   questions can be worth 1.5 / 2 / 3 / 4 points. The
+  --   parent csp_quiz_submissions table does not store them
+  --   for backwards-compat reasons; we add them here so the
+  --   finalize-classroom endpoint can compute a point-weighted
+  --   paper score from the history (not just from the latest
+  --   submission row).
   CREATE TABLE IF NOT EXISTS csp_quiz_submission_history (
     id TEXT PRIMARY KEY,
     userId TEXT NOT NULL,
