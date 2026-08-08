@@ -19,7 +19,9 @@ import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { listClassroomSummaries } from '@/lib/server/classroom-storage';
 import { evaluateCompletion, type CompletionResult } from '@/lib/server/csp-completion';
+import { loadCspMistakeBook } from '@/lib/server/csp-mistake-book';
 import { SignOutLink } from '@/components/SignOutLink';
+import { formatDateBeijing, parseStoredTimestamp } from '@/lib/utils/date';
 
 type AuditFlag = {
   kind: string;
@@ -66,9 +68,9 @@ function formatDuration(s: number): string {
 
 function formatRelative(iso: string | null): string {
   if (!iso) return '';
-  const t = new Date(iso).getTime();
-  if (Number.isNaN(t)) return '';
-  const diffMs = Date.now() - t;
+  const d = parseStoredTimestamp(iso);
+  if (!d) return '';
+  const diffMs = Date.now() - d.getTime();
   const minutes = Math.floor(diffMs / 60000);
   if (minutes < 1) return '刚刚';
   if (minutes < 60) return `${minutes}分钟前`;
@@ -76,7 +78,7 @@ function formatRelative(iso: string | null): string {
   if (hours < 24) return `${hours}小时前`;
   const days = Math.floor(hours / 24);
   if (days < 30) return `${days}天前`;
-  return new Date(iso).toLocaleDateString('zh-CN');
+  return formatDateBeijing(iso);
 }
 
 export default async function StudentHomePage() {
@@ -101,6 +103,13 @@ export default async function StudentHomePage() {
   const rows = db.cspProgress.findManyByUser(userId);
   const summaries = await listClassroomSummaries('csp-lecture');
   const summaryById = new Map(summaries.map((s) => [s.id, s]));
+
+  // 错题总数（按课件 + scene + questionId 去重）。驱动顶部
+  // SummaryCard 的"错题数"和 hero 文案。如果当前用户没做过题，
+  // loadCspMistakeBook 直接返回 { totalMistakes: 0, groups: [] }，
+  // 不会报错。
+  const mistakeBook = await loadCspMistakeBook(userId);
+  const mistakeCount = mistakeBook.totalMistakes;
 
   const inProgress: Entry[] = [];
   const completed: Entry[] = [];
@@ -211,6 +220,49 @@ export default async function StudentHomePage() {
           accent="violet"
         />
       </section>
+
+      {/* 错题本入口 — 单独成块, 用玫红色与上面 4 个蓝紫调 SummaryCard
+          区分。错题数 > 0 才显示, 0 时不浪费一行, 学生直接从 hero
+          文案知道"还没错题"。 */}
+      {mistakeCount > 0 && (
+        <section className="max-w-6xl mx-auto px-6 pb-6">
+          <Link
+            href="/student/csp-mistakes"
+            className="group block rounded-2xl border border-rose-200/80
+                       bg-gradient-to-br from-rose-500/10 via-rose-500/5 to-pink-500/5
+                       px-5 py-4 sm:px-6 sm:py-5
+                       hover:from-rose-500/15 hover:via-rose-500/10 hover:to-pink-500/10
+                       shadow-sm hover:shadow-md
+                       transition-all"
+          >
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center text-white">
+                <span className="text-2xl">📒</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-lg font-bold text-slate-900">
+                    我的 CSP 错题本
+                  </h2>
+                  <span
+                    className="inline-flex items-center gap-1 text-[10px] font-bold uppercase
+                               tracking-wider text-rose-700 bg-rose-100 border border-rose-200
+                               rounded-full px-2 py-0.5"
+                  >
+                    {mistakeCount} 道错题
+                  </span>
+                </div>
+                <p className="mt-1 text-sm text-slate-600">
+                  覆盖 {mistakeBook.groups.length} 本课件 — 按时复习，记得最牢。
+                </p>
+              </div>
+              <div className="shrink-0 text-sm font-semibold text-rose-700 group-hover:translate-x-0.5 transition-transform">
+                打开错题本 →
+              </div>
+            </div>
+          </Link>
+        </section>
+      )}
 
       {/* In progress */}
       <Section title="进行中" empty="还没有开始任何课件。去课件库挑一个感兴趣的开始吧。">

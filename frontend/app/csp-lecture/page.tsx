@@ -29,7 +29,7 @@ import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { Printer, Trophy, ExternalLink, ArrowRight } from 'lucide-react';
+import { Printer, Trophy, ExternalLink, ArrowRight, BookOpen } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CLASSROOMS_DIR } from '@/lib/server/classroom-storage';
@@ -227,6 +227,19 @@ export default async function CspLecturePage() {
             <Button asChild size="sm" variant="ghost">
               <Link href="/student/home">我的学习</Link>
             </Button>
+          )}
+          {userRole === 'student' && (
+            <a
+              href="/student/csp-mistakes"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold
+                         text-rose-700 bg-rose-50 hover:bg-rose-100
+                         border border-rose-200 rounded-lg px-3 py-1.5
+                         transition-colors"
+              aria-label="打开我的 CSP 错题本"
+            >
+              <BookOpen className="w-3.5 h-3.5" aria-hidden="true" />
+              我的错题本
+            </a>
           )}
           <a
             href="https://oi.aijiangti.cn"

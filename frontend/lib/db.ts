@@ -964,6 +964,18 @@ class PrismaCompatClient {
         )
         .all(classroomId) as any[]
     },
+    // findAllByUser: every quiz submission this user has made
+    // across every classroom. Used by the "我的错题本" page
+    // (/api/mistake-book/csp) to aggregate all wrong answers
+    // for one student in a single query, instead of looping
+    // `findByUser` per classroom.
+    findAllByUser: (userId: string) => {
+      return getDb()
+        .prepare(
+          'SELECT * FROM csp_quiz_submissions WHERE userId = ? ORDER BY submittedAt DESC',
+        )
+        .all(userId) as any[]
+    },
   }
   cspPlacement = {
     findUnique: (userId: string) => {
