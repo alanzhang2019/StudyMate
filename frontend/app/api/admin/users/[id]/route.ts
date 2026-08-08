@@ -6,6 +6,7 @@ import {
   readClassroom,
 } from '@/lib/server/classroom-storage';
 import { evaluateCompletion } from '@/lib/server/csp-completion';
+import { loadCspMistakeBook } from '@/lib/server/csp-mistake-book';
 
 /**
  * 统计某个用户在某个课件上的"随堂练习完成情况"。
@@ -102,13 +103,26 @@ export async function GET(
       orderBy: { createdAt: 'desc' },
     });
 
-    // Aggregate mistake stats with two cheap queries. `isResolved` is
-    // stored as INTEGER (0 / 1) so SUM(CASE ...) is a portable way to
-    // count truthy rows.
+    // 错题数据有两个来源, 各自语义不同:
+    //
+    //   1. **自动聚合** (loadCspMistakeBook, 来源 csp_quiz_submissions):
+    //      学生在所有 CSP 课件 / 真题卷上答错的题目, 按 (classroomId,
+    //      sceneId, questionId) 去重, 累计答错次数. 这是主数据源.
+    //
+    //   2. **手动收集** (mistakeRecord 表): 学生 / 家长在 /student/mistake-book
+    //      页面手工录入的错题, 带 isResolved 订正状态. 这是订正状态
+    //      的唯一载体, 但跟自动聚合不是同一份数据 (无法 1:1 对齐).
+    //
+    // 用户反馈 "错题数 0 但答了 55/100 题" 正是因为旧代码只看
+    // mistakeRecord, 漏掉了 100-55=45 道自动错题. 改成以自动聚合
+    // 为主, 把手动表的订正数 (resolved) 单独留字段.
+    const mistakeBook = await loadCspMistakeBook(id);
     const allMistakes = await db.mistakeRecord.findMany({
       where: { parentId: id },
     });
-    const resolved = allMistakes.filter((m: any) => m.isResolved === 1 || m.isResolved === true).length;
+    const resolved = allMistakes.filter(
+      (m: any) => m.isResolved === 1 || m.isResolved === true,
+    ).length;
 
     // 打卡数据: 该用户自己的 csp_progress 行 (与 /admin/csp-progress 共享同一份定义).
     // 注意 csp_progress.userId 既可以是学生账号, 也可以是家长账号 (parent 子账号),
@@ -214,8 +228,17 @@ export async function GET(
       ...user,
       students,
       mistakeStats: {
-        total: allMistakes.length,
+        // 主数据源: 自动从 csp_quiz_submissions 聚合的错题 (含
+        // 随堂练习 + 真题卷, 按 questionId 去重). 学生答的 55/100
+        // 题意味着大概有 100-55=45 道自动错题.
+        total: mistakeBook.totalMistakes,
+        // 副数据源: 手动录入 mistakeRecord 表中已订正的数量.
+        // 注意: 这是旧路径, 数字会远小于 total 因为只算手动.
         resolved,
+        // 调试: 暴露自动分组数, 方便管理员核对.
+        groupCount: mistakeBook.groups.length,
+        // 数据来源说明, 方便排查 "为什么 total 跟 resolved 差很多".
+        source: 'csp_quiz_submissions',
       },
       checkin: {
         stats: checkinStats,

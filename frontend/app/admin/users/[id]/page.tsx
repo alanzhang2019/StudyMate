@@ -93,7 +93,15 @@ type UserDetail = {
   name: string | null;
   createdAt: string;
   students: Student[];
-  mistakeStats: { total: number; resolved: number };
+  mistakeStats: {
+    total: number;
+    resolved: number;
+    // 后端注入: 数据来源 ('csp_quiz_submissions' 表示自动从答题数据聚合,
+    // 兼容历史值时是 'mistake_record'). 数字会跟旧版 /student/mistake-book
+    // 错题本一致 (因为走的同一份 loadCspMistakeBook).
+    source?: 'csp_quiz_submissions' | 'mistake_record';
+    groupCount?: number;
+  };
   checkin: { stats: CheckinStats; rows: CheckinRow[] };
 };
 
@@ -477,7 +485,20 @@ export default function AdminUserDetailPage() {
                     {detail.mistakeStats.total}
                   </div>
                   <div className="text-xs text-gray-400 mt-1">
-                    已订正 {detail.mistakeStats.resolved}
+                    {/* mistakeStats.source 来自后端, 'csp_quiz_submissions'
+                     * 表示自动从答题数据聚合 (含随堂练习 + 真题卷).
+                     * resolved 仍是手动录入 mistakeRecord 的订正数. */}
+                    {detail.mistakeStats.source ===
+                    'csp_quiz_submissions' ? (
+                      <>
+                        答错自动收集
+                        {detail.mistakeStats.resolved > 0 && (
+                          <> · 已订正 {detail.mistakeStats.resolved}</>
+                        )}
+                      </>
+                    ) : (
+                      <>已订正 {detail.mistakeStats.resolved}</>
+                    )}
                   </div>
                 </div>
                 <div className="rounded-lg border p-4">
