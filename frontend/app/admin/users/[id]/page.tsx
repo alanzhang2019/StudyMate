@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { formatDateTimeBeijing, formatDateBeijing } from '@/lib/utils/date';
 
 type Student = {
   id: string;
@@ -46,13 +47,44 @@ type Mistake = {
   student: Student | null;
 };
 
+type CheckinRow = {
+  classroomId: string;
+  title: string;
+  coveragePct: number;
+  watchSeconds: number;
+  lastViewedAt: string | null;
+  completedAt: string | null;
+  updatedAt: string;
+  completed: boolean;
+};
+
+type CheckinStats = {
+  total: number;
+  completed: number;
+  inProgress: number;
+  totalWatchSeconds: number;
+  lastActiveAt: string | null;
+};
+
 type UserDetail = {
   id: string;
   email: string;
+  name: string | null;
   createdAt: string;
   students: Student[];
   mistakeStats: { total: number; resolved: number };
+  checkin: { stats: CheckinStats; rows: CheckinRow[] };
 };
+
+function formatWatchTime(seconds: number | undefined | null): string {
+  const s = Number(seconds) || 0;
+  if (s < 1) return '0 分钟';
+  const mins = Math.floor(s / 60);
+  if (mins < 60) return `${mins} 分钟`;
+  const hours = Math.floor(mins / 60);
+  const remain = mins % 60;
+  return remain === 0 ? `${hours} 小时` : `${hours} 小时 ${remain} 分钟`;
+}
 
 export default function AdminUserDetailPage() {
   const params = useParams<{ id: string }>();
@@ -63,12 +95,19 @@ export default function AdminUserDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [emailDraft, setEmailDraft] = useState('');
+  const [nameDraft, setNameDraft] = useState('');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [mistakes, setMistakes] = useState<Mistake[]>([]);
   const [mistakesLoading, setMistakesLoading] = useState(false);
   const [mistakesTotal, setMistakesTotal] = useState(0);
   const [activeTab, setActiveTab] = useState('overview');
+  // 重置密码弹窗
+  const [resetPwOpen, setResetPwOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [resetting, setResetting] = useState(false);
+  // 重置密码结果: 'ok' / 'err' 触发后短暂提示
+  const [pwToast, setPwToast] = useState<{ kind: 'ok' | 'err'; msg: string } | null>(null);
 
   const loadDetail = useCallback(async () => {
     if (!id) return;
@@ -76,12 +115,13 @@ export default function AdminUserDetailPage() {
     setError(null);
     try {
       const res = await fetch(`/api/admin/users/${id}`);
-      if (!res.ok) throw new Error(`Failed to fetch user (${res.status})`);
+      if (!res.ok) throw new Error(`加载用户失败 (${res.status})`);
       const data = await res.json();
       setDetail(data);
       setEmailDraft(data.email);
+      setNameDraft(data.name ?? '');
     } catch (err: any) {
-      setError(err.message ?? 'Unknown error');
+      setError(err.message ?? '未知错误');
     } finally {
       setLoading(false);
     }
@@ -94,7 +134,7 @@ export default function AdminUserDetailPage() {
       const res = await fetch(
         `/api/admin/users/${id}/mistakes?limit=50&offset=0`,
       );
-      if (!res.ok) throw new Error(`Failed to fetch mistakes (${res.status})`);
+      if (!res.ok) throw new Error(`加载错题失败 (${res.status})`);
       const data = await res.json();
       setMistakes(data.items ?? []);
       setMistakesTotal(data.total ?? 0);
@@ -113,18 +153,25 @@ export default function AdminUserDetailPage() {
     if (activeTab === 'mistakes') loadMistakes();
   }, [activeTab, loadMistakes]);
 
-  const saveEmail = async () => {
+  const saveEmailAndName = async () => {
     if (!id || !detail) return;
-    if (!emailDraft.trim() || emailDraft === detail.email) {
+    const newEmail = emailDraft.trim();
+    const newName = nameDraft.trim();
+    const emailChanged = newEmail && newEmail !== detail.email;
+    const nameChanged = newName !== (detail.name ?? '');
+    if (!emailChanged && !nameChanged) {
       setEditing(false);
       return;
     }
     setSaving(true);
     try {
+      const body: Record<string, string> = {};
+      if (emailChanged) body.email = newEmail;
+      if (nameChanged) body.name = newName;
       const res = await fetch(`/api/admin/users/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailDraft.trim() }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -136,6 +183,35 @@ export default function AdminUserDetailPage() {
       alert(`保存失败: ${err.message ?? err}`);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const resetPassword = async () => {
+    if (!id) return;
+    if (newPassword.length < 6) {
+      setPwToast({ kind: 'err', msg: '新密码至少 6 位' });
+      return;
+    }
+    setResetting(true);
+    try {
+      const res = await fetch(`/api/admin/users/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: newPassword }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? `HTTP ${res.status}`);
+      }
+      setPwToast({ kind: 'ok', msg: '密码已重置，用户需用新密码重新登录' });
+      setResetPwOpen(false);
+      setNewPassword('');
+      setTimeout(() => setPwToast(null), 4000);
+    } catch (err: any) {
+      setPwToast({ kind: 'err', msg: err.message ?? String(err) });
+      setTimeout(() => setPwToast(null), 4000);
+    } finally {
+      setResetting(false);
     }
   };
 
@@ -159,7 +235,7 @@ export default function AdminUserDetailPage() {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto text-gray-500 py-8">Loading…</div>
+      <div className="max-w-5xl mx-auto text-gray-500 py-8">正在加载…</div>
     );
   }
   if (error) {
@@ -170,7 +246,7 @@ export default function AdminUserDetailPage() {
   if (!detail) {
     return (
       <div className="max-w-5xl mx-auto text-gray-500 py-8">
-        User not found.
+        用户不存在
       </div>
     );
   }
@@ -184,14 +260,14 @@ export default function AdminUserDetailPage() {
             size="sm"
             onClick={() => router.push('/admin/users')}
           >
-            ← Back to users
+            ← 返回用户列表
           </Button>
           <h1 className="text-3xl font-bold text-gray-900 mt-2">
-            {detail.email}
+            {detail.name || detail.email}
           </h1>
           <p className="text-sm text-gray-500 font-mono">{detail.id}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {editing ? (
             <>
               <Button
@@ -199,38 +275,85 @@ export default function AdminUserDetailPage() {
                 onClick={() => {
                   setEditing(false);
                   setEmailDraft(detail.email);
+                  setNameDraft(detail.name ?? '');
                 }}
                 disabled={saving}
               >
-                Cancel
+                取消
               </Button>
-              <Button onClick={saveEmail} disabled={saving}>
-                {saving ? 'Saving…' : 'Save'}
+              <Button onClick={saveEmailAndName} disabled={saving}>
+                {saving ? '保存中…' : '保存'}
               </Button>
             </>
           ) : (
             <Button variant="outline" onClick={() => setEditing(true)}>
-              Edit email
+              编辑资料
             </Button>
           )}
-          <AlertDialog>
+          <AlertDialog open={resetPwOpen} onOpenChange={setResetPwOpen}>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" disabled={deleting}>
-                Delete user
+              <Button variant="outline" onClick={() => setResetPwOpen(true)}>
+                重置密码
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete this user?</AlertDialogTitle>
+                <AlertDialogTitle>重置该用户密码？</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will permanently delete the user, all student profiles,
-                  and all mistake records. This action cannot be undone.
+                  请输入新密码（至少 6 位）。重置后该用户当前所有登录会话失效，需要用新密码重新登录。
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <div className="py-2">
+                <label className="text-sm text-gray-600">新密码</label>
+                <Input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="mt-1"
+                  placeholder="至少 6 位"
+                  autoFocus
+                />
+                {newPassword.length > 0 && newPassword.length < 6 && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    至少 6 位
+                  </p>
+                )}
+              </div>
+              <AlertDialogFooter>
+                <AlertDialogCancel
+                  onClick={() => {
+                    setResetPwOpen(false);
+                    setNewPassword('');
+                  }}
+                >
+                  取消
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={resetPassword}
+                  disabled={resetting || newPassword.length < 6}
+                >
+                  {resetting ? '重置中…' : '确认重置'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" disabled={deleting}>
+                删除用户
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>确认删除该用户？</AlertDialogTitle>
+                <AlertDialogDescription>
+                  将永久删除该用户、其所有学生档案以及所有错题记录。此操作无法撤销。
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>取消</AlertDialogCancel>
                 <AlertDialogAction onClick={deleteUser}>
-                  Delete
+                  确认删除
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -238,25 +361,57 @@ export default function AdminUserDetailPage() {
         </div>
       </div>
 
+      {pwToast && (
+        <div
+          className={`rounded-lg px-4 py-2 text-sm ${
+            pwToast.kind === 'ok'
+              ? 'bg-green-50 text-green-700 border border-green-200'
+              : 'bg-red-50 text-red-700 border border-red-200'
+          }`}
+        >
+          {pwToast.msg}
+        </div>
+      )}
+
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="overview">概览</TabsTrigger>
+          <TabsTrigger value="checkin">
+            打卡数据 ({detail.checkin.stats.total})
+          </TabsTrigger>
           <TabsTrigger value="students">
-            Students ({detail.students.length})
+            学生档案 ({detail.students.length})
           </TabsTrigger>
           <TabsTrigger value="mistakes">
-            Mistakes ({detail.mistakeStats.total})
+            错题 ({detail.mistakeStats.total})
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
           <Card>
             <CardHeader>
-              <CardTitle>User Information</CardTitle>
+              <CardTitle>用户信息</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-sm text-gray-600">Email</label>
+                <label className="text-sm text-gray-600">姓名</label>
+                {editing ? (
+                  <Input
+                    value={nameDraft}
+                    onChange={(e) => setNameDraft(e.target.value)}
+                    className="mt-1"
+                    placeholder="可留空"
+                  />
+                ) : (
+                  <div className="mt-1 text-gray-900">
+                    {detail.name || (
+                      <span className="text-gray-400">未填写</span>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="text-sm text-gray-600">邮箱</label>
                 {editing ? (
                   <Input
                     value={emailDraft}
@@ -268,34 +423,46 @@ export default function AdminUserDetailPage() {
                 )}
               </div>
               <div>
-                <label className="text-sm text-gray-600">User ID</label>
+                <label className="text-sm text-gray-600">用户ID</label>
                 <div className="mt-1 text-gray-900 font-mono text-sm">
                   {detail.id}
                 </div>
               </div>
               <div>
-                <label className="text-sm text-gray-600">Joined At</label>
+                <label className="text-sm text-gray-600">注册时间</label>
                 <div className="mt-1 text-gray-900">
-                  {new Date(detail.createdAt).toLocaleString()}
+                  {formatDateTimeBeijing(detail.createdAt)}
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-4 pt-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
                 <div className="rounded-lg border p-4">
-                  <div className="text-sm text-gray-500">Students</div>
+                  <div className="text-sm text-gray-500">已打卡</div>
                   <div className="text-2xl font-semibold text-gray-900">
-                    {detail.students.length}
+                    {detail.checkin.stats.completed}
+                  </div>
+                  <div className="text-xs text-gray-400 mt-1">
+                    共 {detail.checkin.stats.total} 个课件
                   </div>
                 </div>
                 <div className="rounded-lg border p-4">
-                  <div className="text-sm text-gray-500">Mistakes</div>
+                  <div className="text-sm text-gray-500">学习时长</div>
+                  <div className="text-2xl font-semibold text-gray-900">
+                    {formatWatchTime(detail.checkin.stats.totalWatchSeconds)}
+                  </div>
+                </div>
+                <div className="rounded-lg border p-4">
+                  <div className="text-sm text-gray-500">错题数</div>
                   <div className="text-2xl font-semibold text-gray-900">
                     {detail.mistakeStats.total}
                   </div>
+                  <div className="text-xs text-gray-400 mt-1">
+                    已订正 {detail.mistakeStats.resolved}
+                  </div>
                 </div>
                 <div className="rounded-lg border p-4">
-                  <div className="text-sm text-gray-500">Resolved</div>
+                  <div className="text-sm text-gray-500">学生档案</div>
                   <div className="text-2xl font-semibold text-gray-900">
-                    {detail.mistakeStats.resolved}
+                    {detail.students.length}
                   </div>
                 </div>
               </div>
@@ -303,28 +470,110 @@ export default function AdminUserDetailPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="students">
+        <TabsContent value="checkin">
           <Card>
             <CardHeader>
-              <CardTitle>Student Profiles</CardTitle>
+              <CardTitle>
+                打卡数据
+                {detail.checkin.rows.length > 0 && (
+                  <Badge variant="secondary" className="ml-2">
+                    最近更新 {formatDateTimeBeijing(detail.checkin.stats.lastActiveAt ?? '')}
+                  </Badge>
+                )}
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              {detail.students.length === 0 ? (
+              {detail.checkin.rows.length === 0 ? (
                 <div className="text-gray-500 py-4">
-                  No student profiles yet.
+                  还没有开始任何 CSP 课件。
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="border-b text-gray-600 text-sm">
-                        <th className="py-3 px-4 font-semibold">Name</th>
-                        <th className="py-3 px-4 font-semibold">Grade</th>
+                        <th className="py-3 px-4 font-semibold">课件</th>
+                        <th className="py-3 px-4 font-semibold">进度</th>
+                        <th className="py-3 px-4 font-semibold">学习时长</th>
+                        <th className="py-3 px-4 font-semibold">状态</th>
+                        <th className="py-3 px-4 font-semibold">最后活动</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {detail.checkin.rows.map((r) => (
+                        <tr
+                          key={r.classroomId}
+                          className="border-b last:border-0 hover:bg-gray-50/50"
+                        >
+                          <td className="py-3 px-4 font-medium text-gray-900">
+                            {r.title}
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
+                              <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full ${
+                                    r.completed
+                                      ? 'bg-green-500'
+                                      : 'bg-blue-500'
+                                  }`}
+                                  style={{
+                                    width: `${Math.min(100, Math.max(0, Number(r.coveragePct) || 0))}%`,
+                                  }}
+                                />
+                              </div>
+                              <span className="text-xs text-gray-600 tabular-nums">
+                                {Math.round(Number(r.coveragePct) || 0)}%
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-gray-700 text-sm">
+                            {formatWatchTime(r.watchSeconds)}
+                          </td>
+                          <td className="py-3 px-4">
+                            {r.completed ? (
+                              <Badge>已打卡</Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-amber-600 border-amber-300">
+                                进行中
+                              </Badge>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-gray-500 text-sm">
+                            {formatDateTimeBeijing(r.updatedAt)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="students">
+          <Card>
+            <CardHeader>
+              <CardTitle>学生档案</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {detail.students.length === 0 ? (
+                <div className="text-gray-500 py-4">
+                  还没有学生档案。
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b text-gray-600 text-sm">
+                        <th className="py-3 px-4 font-semibold">姓名</th>
+                        <th className="py-3 px-4 font-semibold">年级</th>
                         <th className="py-3 px-4 font-semibold">
-                          Teaching Style
+                          教学风格
                         </th>
-                        <th className="py-3 px-4 font-semibold">TTS Voice</th>
-                        <th className="py-3 px-4 font-semibold">Created</th>
+                        <th className="py-3 px-4 font-semibold">TTS 音色</th>
+                        <th className="py-3 px-4 font-semibold">创建时间</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -346,7 +595,7 @@ export default function AdminUserDetailPage() {
                             {s.ttsVoice ?? '—'}
                           </td>
                           <td className="py-3 px-4 text-gray-500 text-sm">
-                            {new Date(s.createdAt).toLocaleDateString()}
+                            {formatDateBeijing(s.createdAt)}
                           </td>
                         </tr>
                       ))}
@@ -362,20 +611,20 @@ export default function AdminUserDetailPage() {
           <Card>
             <CardHeader>
               <CardTitle>
-                Recent Mistakes
+                最近错题
                 {mistakesTotal > 0 && (
                   <Badge variant="secondary" className="ml-2">
-                    {mistakesTotal} total
+                    共 {mistakesTotal} 条
                   </Badge>
                 )}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {mistakesLoading ? (
-                <div className="text-gray-500 py-4">Loading mistakes…</div>
+                <div className="text-gray-500 py-4">正在加载错题…</div>
               ) : mistakes.length === 0 ? (
                 <div className="text-gray-500 py-4">
-                  No mistake records for this user.
+                  该用户还没有错题记录。
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -391,28 +640,28 @@ export default function AdminUserDetailPage() {
                               {m.student.name}
                             </Badge>
                           ) : (
-                            <Badge variant="outline">Unknown student</Badge>
+                            <Badge variant="outline">未关联学生</Badge>
                           )}
                           {m.isResolved ? (
-                            <Badge>Resolved</Badge>
+                            <Badge>已订正</Badge>
                           ) : (
-                            <Badge variant="destructive">Unresolved</Badge>
+                            <Badge variant="destructive">未订正</Badge>
                           )}
                         </div>
                         <span className="text-gray-500 text-xs">
-                          {new Date(m.createdAt).toLocaleString()}
+                          {formatDateTimeBeijing(m.createdAt)}
                         </span>
                       </div>
                       <div className="text-sm">
-                        <span className="text-gray-500">Q: </span>
+                        <span className="text-gray-500">题目: </span>
                         <span className="text-gray-900">{m.question}</span>
                       </div>
                       <div className="text-sm">
-                        <span className="text-gray-500">Their answer: </span>
+                        <span className="text-gray-500">用户答案: </span>
                         <span className="text-red-600">{m.userAnswer}</span>
                       </div>
                       <div className="text-sm">
-                        <span className="text-gray-500">Correct: </span>
+                        <span className="text-gray-500">正确答案: </span>
                         <span className="text-green-700">
                           {m.correctAnswer}
                         </span>

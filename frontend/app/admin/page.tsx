@@ -125,12 +125,12 @@ export default function AdminDashboardPage() {
   return (
     <div className="space-y-6 max-w-6xl">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <Badge variant="secondary">Last 30 days</Badge>
+        <h1 className="text-3xl font-bold text-gray-900">数据看板</h1>
+        <Badge variant="secondary">近 30 天</Badge>
       </div>
 
       {loading ? (
-        <div className="text-gray-500 py-8">Loading stats…</div>
+        <div className="text-gray-500 py-8">正在加载数据…</div>
       ) : error ? (
         <div className="text-red-500 py-8">{error}</div>
       ) : (
