@@ -89,8 +89,31 @@ export async function POST(req: NextRequest) {
   }
 
   // Per-scene aggregation. We pull every submission row this user
-  // has for this classroom and bucket by sceneId, keeping the
-  // latest `score` per scene (in case a student re-answered).
+  // has for this classroom and bucket by sceneId. Per-scene
+  // dedup follows "keep the best (highest-score) submission" —
+  // the same rule used by /lib/server/csp-completion.ts:
+  //
+  //   1. The `csp_quiz_submissions` table is UNIQUE on
+  //      (userId, classroomId, sceneId) and UPSERT-overwritten on
+  //      re-submit, so in steady state there is AT MOST one row
+  //      per (user, scene). The dedup loop below is a defense in
+  //      depth — if a code path ever bypasses the upsert and
+  //      leaves stale rows behind, we still surface the BEST
+  //      attempt to the student, not the oldest.
+  //
+  //   2. The previous version of this code was
+  //      `if (existing && r.updatedAt <= existing.updatedAt) continue;`
+  //      but `csp_quiz_submissions` has no `updatedAt` column
+  //      (only `submittedAt`), so `r.updatedAt` was always
+  //      `undefined` and the guard never fired — meaning a
+  //      legacy multi-row scenario would silently fall back to
+  //      the OLDEST submittedAt row. That explained the
+  //      "重新答题分数没变" user report: re-doing a scene and
+  //      re-submitting UPSERTs the latest row (correctly), but
+  //      the byScene loop then overwrote it with any stale row
+  //      left behind from an earlier code path. Switching to
+  //      "highest points wins" matches csp-completion.ts's rule
+  //      and matches the user-visible "重做全对就算通过" promise.
   const rows = db.cspQuizSubmission.findByUser(userId, classroomId);
   // Build a sceneId → questions[] lookup from the classroom
   // JSON so we can fill in the per-question `points` for
@@ -151,17 +174,14 @@ export async function POST(req: NextRequest) {
       points: number;
       maxPoints: number;
       score: number;
-      updatedAt: string;
+      submittedAt: string;
     }
   >();
   for (const r of rows) {
     const existing = byScene.get(r.sceneId);
-    if (existing && r.updatedAt <= existing.updatedAt) continue;
-    // Parse per-question points from answersJson. Each entry is
-    // { questionId, choice, correct, ms, points? }. We default
-    // missing/non-finite points to the classroom's per-question
-    // `points` field (via lookupPoints), and fall back to 1 only
-    // if the scene is no longer in the classroom JSON.
+    // Compute this row's per-scene point totals regardless of
+    // whether we'll keep it; we need them to compare against
+    // the existing best on a level playing field.
     let perScenePoints = 0;
     let perSceneMaxPoints = 0;
     let perSceneCorrect = 0;
@@ -194,6 +214,14 @@ export async function POST(req: NextRequest) {
       perSceneCorrect = r.correctCount ?? 0;
       perScenePoints = r.correctCount ?? 0;
     }
+    // "Highest points wins" — keep the better of (existing, r).
+    // If the student has done the same scene more than once
+    // (legacy duplicates, or the /reset path being partial),
+    // we want the page to show their best shot, never a
+    // regression to a stale low score.
+    if (existing && perScenePoints <= existing.points) {
+      continue;
+    }
     byScene.set(r.sceneId, {
       correctCount: perSceneCorrect,
       totalQuestions: perSceneTotal,
@@ -203,7 +231,7 @@ export async function POST(req: NextRequest) {
         perSceneMaxPoints > 0
           ? Math.round((perScenePoints / perSceneMaxPoints) * 10000) / 100
           : 0,
-      updatedAt: r.updatedAt,
+      submittedAt: r.submittedAt,
     });
   }
 
