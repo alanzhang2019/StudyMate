@@ -484,9 +484,6 @@ export default async function CspLecturePage() {
               <Link href="/mistake-book" className="hover:text-slate-900">
                 错题本
               </Link>
-              <Link href="/admin/csp-lecture" className="hover:text-slate-900">
-                管理入口
-              </Link>
             </div>
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-3 border-t border-slate-200/70 text-xs text-slate-500">

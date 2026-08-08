@@ -56,12 +56,6 @@ export default function LandingPage() {
           <Button asChild size="sm" variant="outline">
             <Link href="/csp-lecture">📚 学生课件</Link>
           </Button>
-          <Link
-            href="/admin/login"
-            className="text-sm text-slate-600 hover:text-slate-900 hidden sm:inline"
-          >
-            管理员入口
-          </Link>
           <Button asChild size="sm">
             <Link href="/mistake">立即开始</Link>
           </Button>
