@@ -253,10 +253,10 @@ export default async function CspLecturePage() {
                        shadow-md hover:shadow-lg
                        ring-1 ring-purple-300/60
                        transition-all"
-            aria-label="打开 OI 题库（新窗口）"
+            aria-label="打开洛谷做题 AI 分析报告（新窗口）"
           >
             <Trophy className="w-3.5 h-3.5" aria-hidden="true" />
-            OI 题库
+            洛谷 AI 分析
             <ExternalLink className="w-3 h-3 opacity-80" aria-hidden="true" />
           </a>
           <span className="text-xs text-slate-500 hidden sm:inline">
@@ -275,10 +275,11 @@ export default async function CspLecturePage() {
       </nav>
 
       {/*
-       * OI 题库横幅 — 醒目紫色渐变条, 放在页面第二屏
-       * （地图下方、hero 上方）告诉学生"想要刷题来 oi.aijiangti.cn"。
-       * 选用 gradient + trophy 图标 + "限时免费"角标, 在视觉权重上
-       * 高于其他普通链接, 是本页面次级 CTA。
+       * 洛谷做题 AI 分析报告横幅 — 醒目紫色渐变条, 放在页面第二屏
+       * （地图下方、hero 上方）告诉学生"做完 CSP 课件后, 上传洛谷
+       * 做题记录, AI 帮你分析错题原因与薄弱知识点"。
+       * 选用 gradient + trophy 图标 + 大标题, 在视觉权重上高于
+       * 其他普通链接, 是本页面次级 CTA。
        */}
       <section className="max-w-6xl mx-auto px-6 pt-4">
         <a
@@ -308,20 +309,11 @@ export default async function CspLecturePage() {
               <Trophy className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-200" aria-hidden="true" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-lg sm:text-xl font-bold text-white">
-                  CSP 配套题库 · oi.aijiangti.cn
-                </h2>
-                <span
-                  className="text-[10px] font-bold uppercase tracking-wider
-                             bg-yellow-300 text-purple-900 rounded-full
-                             px-2 py-0.5"
-                >
-                  限时免费
-                </span>
-              </div>
+              <h2 className="text-xl sm:text-2xl font-bold text-white leading-tight">
+                洛谷做题 AI 分析报告
+              </h2>
               <p className="mt-1 text-sm text-white/85 leading-relaxed">
-                历年 OI 真题 + 按知识点分组的练习题，做完精讲和真题后直接去刷题巩固。
+                上传洛谷做题记录，AI 帮你分析错题原因与薄弱知识点。
               </p>
             </div>
             <div

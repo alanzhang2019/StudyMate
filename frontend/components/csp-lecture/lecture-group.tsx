@@ -87,23 +87,23 @@ export function LectureGroup({
       >
         <div className="flex items-start gap-3">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span
+            <div className="flex items-center gap-3 flex-wrap">
+              <h2
                 className={cn(
-                  'inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full',
+                  'inline-flex items-center text-base sm:text-xl font-bold px-3 py-1 rounded-full',
                   badgeClass,
                 )}
               >
                 {title}
-              </span>
+              </h2>
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-white/70 rounded-full px-2 py-0.5 border border-slate-200/70">
                 {count} {countLabel}
               </span>
             </div>
-            <p className="mt-2 text-sm text-slate-600">{subtitle}</p>
+            <p className="mt-2.5 text-sm sm:text-base text-slate-600 leading-relaxed">{subtitle}</p>
             <p
               className={cn(
-                'mt-1.5 text-[11px] font-medium transition-colors',
+                'mt-2 text-xs font-medium transition-colors',
                 open ? 'text-slate-400' : 'text-violet-600 group-hover:text-violet-700',
               )}
             >
