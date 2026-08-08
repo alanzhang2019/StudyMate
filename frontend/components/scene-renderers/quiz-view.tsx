@@ -1109,11 +1109,14 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
   const [finalizeError, setFinalizeError] = useState<string | null>(null);
   const [resetError, setResetError] = useState<string | null>(null);
 
-  // Full-paper mode: only true for the 2024 CSP-J 真题卷
-  // (cm_imp_cspj2024j_v1). For v1 we hard-gate on classroomId;
-  // subsequent 真题卷s (cm_imp_cspj2024s_v1 etc) will be added
-  // by extending this set.
-  const FULL_PAPER_CLASSROOM_IDS = new Set<string>(['cm_imp_cspj2024j_v1']);
+  // Full-paper mode: true for the 真题卷s that have the
+  // 交卷" (finalize) flow enabled. As more 真题卷s are added
+  // (cm_imp_cspj2024s_v1, cm_imp_cspj2025j_v1 etc), they
+  // should be appended here so the 交卷 button renders.
+  const FULL_PAPER_CLASSROOM_IDS = new Set<string>([
+    'cm_imp_cspj2024j_v1',
+    'cm_imp_cspj2025j_v1',
+  ]);
   const isFullPaper = FULL_PAPER_CLASSROOM_IDS.has(classroomId);
 
   const handleRetry = useCallback(() => {

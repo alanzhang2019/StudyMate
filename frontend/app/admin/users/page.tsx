@@ -19,6 +19,16 @@ type CheckinStats = {
   inProgress: number;
   totalWatchSeconds: number;
   lastActiveAt: string | null;
+  // 随堂练习聚合: 学生累计在多少 quiz 场景里交过卷 / 多少满分 / 共多少题
+  // (合并所有已开始的课件).
+  quiz?: {
+    totalScenes: number;
+    attemptedScenes: number;
+    fullMarkScenes: number;
+    totalQuestions: number;
+    answeredQuestions: number;
+    lastSubmittedAt: string | null;
+  };
 };
 
 type User = {
@@ -138,6 +148,7 @@ export default function AdminUsersPage() {
                     <th className="py-3 px-4 font-semibold">学生档案</th>
                     <th className="py-3 px-4 font-semibold">已打卡</th>
                     <th className="py-3 px-4 font-semibold">学习时长</th>
+                    <th className="py-3 px-4 font-semibold">随堂练习</th>
                     <th className="py-3 px-4 font-semibold">最近活动</th>
                     <th className="py-3 px-4 font-semibold">注册时间</th>
                     <th className="py-3 px-4 font-semibold text-right">
@@ -186,6 +197,31 @@ export default function AdminUsersPage() {
                         </td>
                         <td className="py-3 px-4 text-gray-700 text-sm">
                           {formatWatchTime(c?.totalWatchSeconds ?? 0)}
+                        </td>
+                        <td className="py-3 px-4 text-gray-700 text-sm">
+                          {c?.quiz ? (
+                            c.quiz.totalScenes > 0 ? (
+                              <div className="flex flex-col gap-0.5">
+                                <span className="tabular-nums">
+                                  已答 {c.quiz.attemptedScenes} / {c.quiz.totalScenes} 场景
+                                </span>
+                                {c.quiz.totalQuestions > 0 && (
+                                  <span className="text-xs text-gray-500 tabular-nums">
+                                    题目 {c.quiz.answeredQuestions} / {c.quiz.totalQuestions}
+                                  </span>
+                                )}
+                                {c.quiz.fullMarkScenes > 0 && (
+                                  <span className="text-xs text-green-600 tabular-nums">
+                                    满分 {c.quiz.fullMarkScenes} 场景
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">—</span>
+                            )
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
                         </td>
                         <td className="py-3 px-4 text-gray-500 text-sm">
                           {c?.lastActiveAt ? (

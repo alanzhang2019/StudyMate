@@ -1,8 +1,85 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { db } from '@/lib/db';
-import { listClassroomSummaries } from '@/lib/server/classroom-storage';
+import {
+  listClassroomSummaries,
+  readClassroom,
+} from '@/lib/server/classroom-storage';
 import { evaluateCompletion } from '@/lib/server/csp-completion';
+
+/**
+ * 统计某个用户在某个课件上的"随堂练习完成情况"。
+ *
+ * 返回:
+ *   - totalQuizScenes: 该课件一共多少个 quiz 场景
+ *   - attemptedScenes: 学生至少交过 1 次的 quiz 场景数
+ *   - fullMarkScenes: 学生交过且 correctCount === totalQuestions 的 quiz 场景数
+ *   - totalQuestions: 所有 quiz 场景的总题数 (来自 classroom JSON)
+ *   - answeredQuestions: 学生做对或做错过的题数 (去重 questionId)
+ *   - lastSubmittedAt: 该课件最近一次 quiz 提交时间
+ *
+ * 之所以用 "做过" 计数而不是 "做对" 计数, 是因为 1) 学生可能
+ * 还没答完; 2) 题目可能没有标准答案 (e.g. 真题卷题目 JSON
+ * 没带 hasAnswer), 答了也拿不到 correct; 这种情况下 "已答 X / 共 Y"
+ * 更能反映进度.
+ */
+function buildQuizStats(userId: string, classroomId: string, classroom: any) {
+  const quizScenes = (classroom?.scenes ?? []).filter(
+    (s: any) => s?.type === 'quiz',
+  );
+  // 总题数: 把所有 quiz 场景的 question 数加总. 如果题面缺失
+  // (e.g. 老 admin 上传的 placeholder), 我们用 0 而不是抛错.
+  const totalQuestions = quizScenes.reduce(
+    (s: number, qs: any) =>
+      s + ((qs?.content?.questions ?? []).length || 0),
+    0,
+  );
+
+  const submissions = db.cspQuizSubmission.findByUser(userId, classroomId);
+  // 按 sceneId 取最高分 (重做全对就算通过, 见 csp-completion.ts 同款语义)
+  const subByScene = new Map<string, any>();
+  for (const s of submissions) {
+    const sid = (s as any).sceneId as string;
+    const prev = subByScene.get(sid);
+    if (!prev || ((s as any).score ?? 0) > (prev.score ?? 0)) {
+      subByScene.set(sid, s);
+    }
+  }
+  const attemptedScenes = subByScene.size;
+  const fullMarkScenes = Array.from(subByScene.values()).filter(
+    (s: any) =>
+      (s.totalQuestions ?? 0) > 0 &&
+      (s.correctCount ?? 0) === (s.totalQuestions ?? 0),
+  ).length;
+  // 答过的题数 (去重 questionId)
+  const answeredQuestions = (() => {
+    const set = new Set<string>();
+    for (const s of submissions) {
+      try {
+        const arr = JSON.parse(s.answersJson ?? '[]');
+        if (Array.isArray(arr)) {
+          for (const e of arr) {
+            if (e?.questionId) set.add(String(e.questionId));
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    return set.size;
+  })();
+  const lastSubmittedAt =
+    submissions.length > 0 ? submissions[0].submittedAt ?? null : null;
+
+  return {
+    totalQuizScenes: quizScenes.length,
+    attemptedScenes,
+    fullMarkScenes,
+    totalQuestions,
+    answeredQuestions,
+    lastSubmittedAt,
+  };
+}
 
 export async function GET(
   _req: NextRequest,
@@ -48,30 +125,78 @@ export async function GET(
     const myRows = progressRows.filter((r) => r.userId === id);
     const summaries = await listClassroomSummaries('csp-lecture');
     const titleById = new Map(summaries.map((s) => [s.id, s.title]));
+    // 课件 JSON 缓存, 避免每个课件都 fs.readFile 一次.
+    const classroomCache = new Map<string, any>();
+    async function getClassroom(cid: string) {
+      if (classroomCache.has(cid)) return classroomCache.get(cid);
+      const c = await readClassroom(cid);
+      classroomCache.set(cid, c);
+      return c;
+    }
 
     // 同样用 evaluateCompletion 评估"是否已完成", 跟 /student/home 保持一致.
+    // 重要: 用 evaluateCompletion 返回的 coveragePct 替代 csp_progress
+    // 表里的 coveragePct, 因为前者是从 viewedScenes 数组重新算的,
+    // 后者只在 scene-complete 时更新 —— 只做了 quiz 没看 scene 的学生会
+    // 显示 0% 但实际有"已答"的数据. 这里用 re-eval 后的真实值.
     const evaluated = await Promise.all(
       myRows.map(async (r) => {
         const completion = await evaluateCompletion(id, r.classroomId);
-        return { row: r, completion };
+        const classroom = await getClassroom(r.classroomId);
+        const quiz = buildQuizStats(id, r.classroomId, classroom);
+        return { row: r, completion, quiz };
       }),
     );
-    const checkinRows = evaluated.map(({ row, completion }) => ({
-      classroomId: row.classroomId,
-      title: titleById.get(row.classroomId) ?? row.classroomId,
-      coveragePct: row.coveragePct,
-      watchSeconds: row.watchSeconds,
-      lastViewedAt: row.lastViewedAt,
-      completedAt: row.completedAt,
-      updatedAt: row.updatedAt,
-      completed: completion.completed,
-    }));
+    const checkinRows = evaluated.map(
+      ({ row, completion, quiz }) => ({
+        classroomId: row.classroomId,
+        title: titleById.get(row.classroomId) ?? row.classroomId,
+        // 用 evaluateCompletion 的真实 viewedScenes 比例
+        // (0-1), 前端展示时 *100 转成百分比
+        coveragePct: Math.round((completion.coveragePct ?? 0) * 1000) / 10,
+        quiz,
+        watchSeconds: row.watchSeconds,
+        lastViewedAt: row.lastViewedAt,
+        completedAt: row.completedAt,
+        updatedAt: row.updatedAt,
+        completed: completion.completed,
+      }),
+    );
     // 按更新时间倒序, 最近活动的课件排前面
     checkinRows.sort((a, b) => {
       const ta = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
       const tb = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
       return tb - ta;
     });
+    // 随堂练习聚合: 全课件汇总
+    const quizStats = {
+      totalScenes: checkinRows.reduce(
+        (s, r) => s + (r.quiz.totalQuizScenes ?? 0),
+        0,
+      ),
+      attemptedScenes: checkinRows.reduce(
+        (s, r) => s + (r.quiz.attemptedScenes ?? 0),
+        0,
+      ),
+      fullMarkScenes: checkinRows.reduce(
+        (s, r) => s + (r.quiz.fullMarkScenes ?? 0),
+        0,
+      ),
+      totalQuestions: checkinRows.reduce(
+        (s, r) => s + (r.quiz.totalQuestions ?? 0),
+        0,
+      ),
+      answeredQuestions: checkinRows.reduce(
+        (s, r) => s + (r.quiz.answeredQuestions ?? 0),
+        0,
+      ),
+      lastSubmittedAt:
+        checkinRows
+          .map((r) => r.quiz.lastSubmittedAt)
+          .filter(Boolean)
+          .sort()
+          .reverse()[0] ?? null,
+    };
     const checkinStats = {
       total: checkinRows.length,
       completed: checkinRows.filter((r) => r.completed).length,
@@ -82,6 +207,7 @@ export async function GET(
       ),
       lastActiveAt:
         checkinRows.length > 0 ? checkinRows[0].updatedAt : null,
+      quiz: quizStats,
     };
 
     return NextResponse.json({

@@ -1,6 +1,62 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { evaluateCompletion } from '@/lib/server/csp-completion';
+import { readClassroom } from '@/lib/server/classroom-storage';
+
+/**
+ * 随堂练习完成情况聚合, 单课件级别. 计算逻辑与
+ * /api/admin/users/[id] 的 buildQuizStats 保持一致.
+ */
+function buildQuizStats(userId: string, classroomId: string, classroom: any) {
+  const quizScenes = (classroom?.scenes ?? []).filter(
+    (s: any) => s?.type === 'quiz',
+  );
+  const totalQuestions = quizScenes.reduce(
+    (s: number, qs: any) =>
+      s + ((qs?.content?.questions ?? []).length || 0),
+    0,
+  );
+  const submissions = db.cspQuizSubmission.findByUser(userId, classroomId);
+  const subByScene = new Map<string, any>();
+  for (const s of submissions) {
+    const sid = (s as any).sceneId as string;
+    const prev = subByScene.get(sid);
+    if (!prev || ((s as any).score ?? 0) > (prev.score ?? 0)) {
+      subByScene.set(sid, s);
+    }
+  }
+  const attemptedScenes = subByScene.size;
+  const fullMarkScenes = Array.from(subByScene.values()).filter(
+    (s: any) =>
+      (s.totalQuestions ?? 0) > 0 &&
+      (s.correctCount ?? 0) === (s.totalQuestions ?? 0),
+  ).length;
+  const answeredQuestions = (() => {
+    const set = new Set<string>();
+    for (const s of submissions) {
+      try {
+        const arr = JSON.parse(s.answersJson ?? '[]');
+        if (Array.isArray(arr)) {
+          for (const e of arr) {
+            if (e?.questionId) set.add(String(e.questionId));
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    return set.size;
+  })();
+  return {
+    totalQuizScenes: quizScenes.length,
+    attemptedScenes,
+    fullMarkScenes,
+    totalQuestions,
+    answeredQuestions,
+    lastSubmittedAt:
+      submissions.length > 0 ? submissions[0].submittedAt ?? null : null,
+  };
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -48,6 +104,15 @@ export async function GET(req: NextRequest) {
       else byUser.set(r.userId, [r]);
     }
 
+    // 课件 JSON 缓存, 跨用户复用, 避免每次 list 都重读文件.
+    const classroomCache = new Map<string, any>();
+    async function getClassroom(cid: string) {
+      if (classroomCache.has(cid)) return classroomCache.get(cid);
+      const c = await readClassroom(cid);
+      classroomCache.set(cid, c);
+      return c;
+    }
+
     const decorated = await Promise.all(
       users.map(async (u: any) => {
         const rows = byUser.get(u.id) ?? [];
@@ -60,23 +125,42 @@ export async function GET(req: NextRequest) {
               inProgress: 0,
               totalWatchSeconds: 0,
               lastActiveAt: null,
+              quiz: {
+                totalScenes: 0,
+                attemptedScenes: 0,
+                fullMarkScenes: 0,
+                totalQuestions: 0,
+                answeredQuestions: 0,
+                lastSubmittedAt: null,
+              },
             },
           };
         }
         const evaluated = await Promise.all(
-          rows.map((r) =>
-            evaluateCompletion(u.id, r.classroomId).then((c) => ({
-              row: r,
-              completed: c.completed,
-            })),
-          ),
+          rows.map(async (r) => {
+            const completion = await evaluateCompletion(u.id, r.classroomId);
+            const classroom = await getClassroom(r.classroomId);
+            const quiz = buildQuizStats(u.id, r.classroomId, classroom);
+            return { row: r, completed: completion.completed, quiz };
+          }),
         );
         let completed = 0;
         let inProgress = 0;
         let totalWatchSeconds = 0;
         let lastActiveAt: string | null = null;
         let lastTs = -1;
-        for (const { row, completed: cCompleted } of evaluated) {
+        // 随堂练习聚合 (全课件)
+        let qTotalScenes = 0;
+        let qAttempted = 0;
+        let qFullMark = 0;
+        let qTotalQ = 0;
+        let qAnsweredQ = 0;
+        let qLastSubmitted: string | null = null;
+        for (const {
+          row,
+          completed: cCompleted,
+          quiz,
+        } of evaluated) {
           if (cCompleted) completed++;
           else inProgress++;
           totalWatchSeconds += Number(row.watchSeconds) || 0;
@@ -84,6 +168,16 @@ export async function GET(req: NextRequest) {
           if (ts > lastTs) {
             lastTs = ts;
             lastActiveAt = row.updatedAt ?? null;
+          }
+          qTotalScenes += quiz.totalQuizScenes ?? 0;
+          qAttempted += quiz.attemptedScenes ?? 0;
+          qFullMark += quiz.fullMarkScenes ?? 0;
+          qTotalQ += quiz.totalQuestions ?? 0;
+          qAnsweredQ += quiz.answeredQuestions ?? 0;
+          if (quiz.lastSubmittedAt) {
+            if (qLastSubmitted === null || quiz.lastSubmittedAt > qLastSubmitted) {
+              qLastSubmitted = quiz.lastSubmittedAt;
+            }
           }
         }
         return {
@@ -94,6 +188,14 @@ export async function GET(req: NextRequest) {
             inProgress,
             totalWatchSeconds,
             lastActiveAt,
+            quiz: {
+              totalScenes: qTotalScenes,
+              attemptedScenes: qAttempted,
+              fullMarkScenes: qFullMark,
+              totalQuestions: qTotalQ,
+              answeredQuestions: qAnsweredQ,
+              lastSubmittedAt: qLastSubmitted,
+            },
           },
         };
       }),

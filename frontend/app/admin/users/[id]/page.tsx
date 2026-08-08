@@ -50,12 +50,24 @@ type Mistake = {
 type CheckinRow = {
   classroomId: string;
   title: string;
+  // 注意: coveragePct 已是百分比 (0-100), 不是 0-1 小数.
+  // 后端用 evaluateCompletion 重新算的, 不再直接读 csp_progress
+  // 表里只在 scene-complete 时才更新的旧字段.
   coveragePct: number;
   watchSeconds: number;
   lastViewedAt: string | null;
   completedAt: string | null;
   updatedAt: string;
   completed: boolean;
+  // 该课件的随堂练习统计
+  quiz: {
+    totalQuizScenes: number;
+    attemptedScenes: number;
+    fullMarkScenes: number;
+    totalQuestions: number;
+    answeredQuestions: number;
+    lastSubmittedAt: string | null;
+  };
 };
 
 type CheckinStats = {
@@ -64,6 +76,15 @@ type CheckinStats = {
   inProgress: number;
   totalWatchSeconds: number;
   lastActiveAt: string | null;
+  // 随堂练习全课件汇总
+  quiz: {
+    totalScenes: number;
+    attemptedScenes: number;
+    fullMarkScenes: number;
+    totalQuestions: number;
+    answeredQuestions: number;
+    lastSubmittedAt: string | null;
+  };
 };
 
 type UserDetail = {
@@ -466,6 +487,31 @@ export default function AdminUserDetailPage() {
                   </div>
                 </div>
               </div>
+              {/* 随堂练习 — 单独一行, 比上面 4 个卡片更细 (满分 / 已答 题目) */}
+              <div className="rounded-lg border p-4 bg-blue-50/40">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div>
+                    <div className="text-sm text-gray-500">随堂练习</div>
+                    <div className="mt-1 text-2xl font-semibold text-gray-900 tabular-nums">
+                      {detail.checkin.stats.quiz.attemptedScenes} / {detail.checkin.stats.quiz.totalScenes}{' '}
+                      <span className="text-sm font-normal text-gray-500">场景已答</span>
+                    </div>
+                    {detail.checkin.stats.quiz.totalQuestions > 0 && (
+                      <div className="text-xs text-gray-500 mt-1 tabular-nums">
+                        题目 {detail.checkin.stats.quiz.answeredQuestions} /{' '}
+                        {detail.checkin.stats.quiz.totalQuestions}
+                        {' · '}
+                        满分 {detail.checkin.stats.quiz.fullMarkScenes} 场景
+                      </div>
+                    )}
+                  </div>
+                  {detail.checkin.stats.quiz.lastSubmittedAt && (
+                    <div className="text-xs text-gray-500">
+                      最近交卷 {formatDateTimeBeijing(detail.checkin.stats.quiz.lastSubmittedAt)}
+                    </div>
+                  )}
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -495,6 +541,7 @@ export default function AdminUserDetailPage() {
                         <th className="py-3 px-4 font-semibold">课件</th>
                         <th className="py-3 px-4 font-semibold">进度</th>
                         <th className="py-3 px-4 font-semibold">学习时长</th>
+                        <th className="py-3 px-4 font-semibold">随堂练习</th>
                         <th className="py-3 px-4 font-semibold">状态</th>
                         <th className="py-3 px-4 font-semibold">最后活动</th>
                       </tr>
@@ -529,6 +576,27 @@ export default function AdminUserDetailPage() {
                           </td>
                           <td className="py-3 px-4 text-gray-700 text-sm">
                             {formatWatchTime(r.watchSeconds)}
+                          </td>
+                          <td className="py-3 px-4 text-gray-700 text-sm">
+                            {r.quiz.totalQuizScenes > 0 ? (
+                              <div className="flex flex-col gap-0.5">
+                                <span className="tabular-nums">
+                                  {r.quiz.attemptedScenes} / {r.quiz.totalQuizScenes} 场景
+                                </span>
+                                {r.quiz.totalQuestions > 0 && (
+                                  <span className="text-xs text-gray-500 tabular-nums">
+                                    题目 {r.quiz.answeredQuestions} / {r.quiz.totalQuestions}
+                                  </span>
+                                )}
+                                {r.quiz.fullMarkScenes > 0 && (
+                                  <span className="text-xs text-green-600 tabular-nums">
+                                    满分 {r.quiz.fullMarkScenes}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">—</span>
+                            )}
                           </td>
                           <td className="py-3 px-4">
                             {r.completed ? (

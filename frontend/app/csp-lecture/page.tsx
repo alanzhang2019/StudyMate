@@ -206,9 +206,35 @@ export default async function CspLecturePage() {
 
   // PDF 真题卷打印链接。打包到 public/ 后, 浏览器打开即可
   // 用 Ctrl+P 打印。文件名不带中文路径, 避免部分环境编码问题。
+  //
+  // 这里把 PDF 文件的 mtime (毫秒) 拼成 `?v=<mtime>` 查询参数, 让
+  // 浏览器把"内容更新"识别为不同 URL ——
+  //   1. next.config.ts 已经设置了 Cache-Control: no-cache,
+  //      must-revalidate, 浏览器每次都会发条件请求;
+  //   2. 但浏览器对 PDF 的内嵌 PDF viewer 有独立的 context 缓存,
+  //      `Ctrl+Shift+R` 也不一定清;
+  //   3. 加上 mtime query 之后, 文件被替换 (docker cp / bind
+  //      mount 同步) 时链接的 v 跟着变, 浏览器一定会重新下载,
+  //      避免出现"服务器文件已经更新, 但打印还是旧 PDF"的情况。
+  async function pdfHrefFor(filename: string): Promise<string> {
+    try {
+      const filePath = path.join(process.cwd(), 'public', filename);
+      const stat = await fs.stat(filePath);
+      // 用 mtime 毫秒数当 cache-buster, 部署替换文件时 mtime 必变。
+      return `/${filename}?v=${stat.mtimeMs.toFixed(0)}`;
+    } catch {
+      return `/${filename}`;
+    }
+  }
+  // 顶层 await —— Next.js 16 的 RSC 支持 async server components,
+  // 这里先把所有 PDF 链接解析完, 再渲染下面的 list.
+  const [pdf2024, pdf2025] = await Promise.all([
+    pdfHrefFor('csp-j-2024-original.pdf'),
+    pdfHrefFor('csp-j-2025-original.pdf'),
+  ]);
   const paperPdfHref: Record<string, string> = {
-    cm_imp_cspj2024j_v1: '/csp-j-2024-original.pdf',
-    cm_imp_cspj2025j_v1: '/csp-j-2025-original.pdf',
+    cm_imp_cspj2024j_v1: pdf2024,
+    cm_imp_cspj2025j_v1: pdf2025,
   };
 
   return (
