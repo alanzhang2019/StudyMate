@@ -1055,6 +1055,32 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
       points: number;
       earnedPoints: number;
     }>;
+    // V4 score history — keyed by sceneId, oldest first. Each
+    // entry is one submitted attempt; the first attempt of a
+    // scene is rendered with a "首次" chip, subsequent ones
+    // get "订正 N". The `paperHistory` is the per-attemptIndex
+    // roll-up across every scene (only emitted when the
+    // student has done every answered scene N times; partial
+    // re-dos are tracked per scene but not at the paper level).
+    historyByScene: Record<
+      string,
+      Array<{
+        attemptIndex: number;
+        score: number;
+        points: number;
+        maxPoints: number;
+        correctCount: number;
+        totalQuestions: number;
+        submittedAt: string;
+      }>
+    >;
+    paperHistory: Array<{
+      attemptIndex: number;
+      totalEarned: number;
+      totalMax: number;
+      score: number;
+      submittedAt: string;
+    }>;
   } | null>(null);
   const [finalizeError, setFinalizeError] = useState<string | null>(null);
   const [resetError, setResetError] = useState<string | null>(null);
@@ -1196,6 +1222,12 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
             earnedPoints: s.points,
           };
         }),
+        // V4 score history. Server returns empty objects / arrays
+        // when there's no prior history (first-ever submit), so we
+        // coerce them here to keep the FinalScorePage's array
+        // access safe.
+        historyByScene: data.historyByScene ?? {},
+        paperHistory: data.paperHistory ?? [],
       });
       setPhase('finalized');
       setIsConfirming(false);
@@ -1564,6 +1596,27 @@ type FinalScoreResult = {
     points: number;
     earnedPoints: number;
   }>;
+  // V4 score history. See the matching field on the
+  // `finalizedResult` state for the full design rationale.
+  historyByScene: Record<
+    string,
+    Array<{
+      attemptIndex: number;
+      score: number;
+      points: number;
+      maxPoints: number;
+      correctCount: number;
+      totalQuestions: number;
+      submittedAt: string;
+    }>
+  >;
+  paperHistory: Array<{
+    attemptIndex: number;
+    totalEarned: number;
+    totalMax: number;
+    score: number;
+    submittedAt: string;
+  }>;
 };
 
 function FinalScorePage({
@@ -1615,6 +1668,110 @@ function FinalScorePage({
           <div className="text-xs text-slate-400 tabular-nums">{pct}%</div>
         )}
       </div>
+
+      {/* V4: Paper-level score history. Only shown when the
+          student has actually made more than one attempt at the
+          whole paper (i.e. the backend could roll up at least
+          2 entries). The "首次" chip on the first attempt gives
+          the student an anchor: "this is the original score
+          you got"; the subsequent "订正 N" rows make the
+          improvement immediately visible. We use a vertical
+          timeline on the left, latest at the top, because the
+          latest number is what the student came here to see. */}
+      {result.paperHistory && result.paperHistory.length > 1 && (
+        <Card>
+          <CardContent className="p-0">
+            <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
+              <span className="text-sm font-semibold text-slate-800">
+                得分历史
+              </span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 rounded-full px-2 py-0.5">
+                {result.paperHistory.length} 次交卷
+              </span>
+            </div>
+            <ol className="divide-y divide-slate-100">
+              {[...result.paperHistory]
+                .sort((a, b) => b.attemptIndex - a.attemptIndex)
+                .map((h, idx) => {
+                  const isFirst = h.attemptIndex === 1;
+                  const isLatest = idx === 0;
+                  // Delta vs the previous attempt (which is the
+                  // row below in the timeline = lower
+                  // attemptIndex, or undefined for the first).
+                  const prev = result.paperHistory.find(
+                    (x) => x.attemptIndex === h.attemptIndex - 1,
+                  );
+                  const delta = prev
+                    ? Math.round((h.score - prev.score) * 100) / 100
+                    : null;
+                  return (
+                    <li
+                      key={h.attemptIndex}
+                      className={`flex items-center gap-3 px-4 py-3 ${
+                        isLatest ? 'bg-violet-50/40' : ''
+                      }`}
+                    >
+                      <div
+                        className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold ${
+                          isFirst
+                            ? 'bg-slate-100 text-slate-600'
+                            : isLatest
+                              ? 'bg-violet-600 text-white'
+                              : 'bg-amber-100 text-amber-700'
+                        }`}
+                      >
+                        {isFirst ? '首' : `订${h.attemptIndex - 1}`}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-slate-800 tabular-nums">
+                          {isFirst ? '首次交卷' : `第 ${h.attemptIndex} 次交卷（订正 ${h.attemptIndex - 1}）`}
+                        </div>
+                        <div className="text-[11px] text-slate-500 tabular-nums">
+                          {h.submittedAt
+                            ? new Date(h.submittedAt).toLocaleString('zh-CN', {
+                                hour12: false,
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })
+                            : '时间未知'}
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0 tabular-nums">
+                        <div
+                          className={`text-base font-bold ${
+                            h.score >= 80
+                              ? 'text-emerald-600'
+                              : h.score >= 60
+                                ? 'text-amber-600'
+                                : 'text-red-600'
+                          }`}
+                        >
+                          {h.totalEarned} / {h.totalMax} 分
+                        </div>
+                        {delta !== null && (
+                          <div
+                            className={`text-[10px] font-semibold ${
+                              delta > 0
+                                ? 'text-emerald-600'
+                                : delta < 0
+                                  ? 'text-red-600'
+                                  : 'text-slate-400'
+                            }`}
+                          >
+                            {delta > 0 ? '↑' : delta < 0 ? '↓' : '·'}{' '}
+                            {Math.abs(delta)} 分
+                          </div>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+            </ol>
+          </CardContent>
+        </Card>
+      )}
 
       {/* V3: 三类分项（单选题 / 程序阅读题 / 完善程序题） */}
       {useV3 && result.breakdown && result.breakdown.length > 0 && (
@@ -1687,42 +1844,95 @@ function FinalScorePage({
                 .trim();
               const displayTitle =
                 compactTitle || s.title || s.sceneId.slice(-8);
+              // V4 per-scene history chips. If the student has
+              // only answered this scene once we skip the chip
+              // row entirely (UI stays uncluttered on the
+              // common case); on redo we render a compact
+              // "首 X / 订正 Y" line so the per-scene
+              // improvement is visible without scrolling.
+              const sceneHistory = result.historyByScene?.[s.sceneId] ?? [];
               return (
                 <div
                   key={s.sceneId}
-                  className="flex items-start gap-3 px-4 py-3"
+                  className="px-4 py-3"
                 >
-                  <div className="flex-1 min-w-0">
-                    <div
-                      className="text-sm font-medium text-slate-800"
-                      title={s.title}
-                    >
-                      {displayTitle}
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div
+                        className="text-sm font-medium text-slate-800"
+                        title={s.title}
+                      >
+                        {displayTitle}
+                      </div>
+                      <div className="text-[11px] text-slate-500 tabular-nums">
+                        答对 {s.correctCount} / {s.totalQuestions} 题 · {scenePct}%
+                      </div>
                     </div>
-                    <div className="text-[11px] text-slate-500 tabular-nums">
-                      答对 {s.correctCount} / {s.totalQuestions} 题 · {scenePct}%
+                    <div className="text-right shrink-0 tabular-nums">
+                      <div
+                        className={`text-sm font-bold ${
+                          ok
+                            ? 'text-emerald-600'
+                            : scenePct >= 60
+                              ? 'text-amber-600'
+                              : 'text-red-600'
+                        }`}
+                      >
+                        {s.earnedPoints} / {s.points} 分
+                      </div>
+                    </div>
+                    <div className="shrink-0">
+                      {ok ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                      ) : (
+                        <XCircle className="w-4 h-4 text-amber-500" />
+                      )}
                     </div>
                   </div>
-                  <div className="text-right shrink-0 tabular-nums">
-                    <div
-                      className={`text-sm font-bold ${
-                        ok
-                          ? 'text-emerald-600'
-                          : scenePct >= 60
-                            ? 'text-amber-600'
-                            : 'text-red-600'
-                      }`}
-                    >
-                      {s.earnedPoints} / {s.points} 分
+                  {/* V4 per-scene history. Only render when there
+                      are 2+ attempts, to keep the first-time
+                      view quiet. Sorted oldest -> newest so
+                      reading left-to-right matches the natural
+                      narrative "I got X, then I redid and got
+                      Y". */}
+                  {sceneHistory.length > 1 && (
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] tabular-nums">
+                      <span className="text-slate-400 mr-0.5">历次:</span>
+                      {sceneHistory.map((h) => {
+                        const isFirst = h.attemptIndex === 1;
+                        return (
+                          <span
+                            key={h.attemptIndex}
+                            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 ${
+                              isFirst
+                                ? 'border-slate-200 bg-slate-50 text-slate-600'
+                                : h.score >= sceneHistory[sceneHistory.length - 2].score
+                                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                  : 'border-amber-200 bg-amber-50 text-amber-700'
+                            }`}
+                            title={
+                              h.submittedAt
+                                ? new Date(h.submittedAt).toLocaleString('zh-CN', {
+                                    hour12: false,
+                                    month: '2-digit',
+                                    day: '2-digit',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })
+                                : ''
+                            }
+                          >
+                            <span className="font-semibold">
+                              {isFirst ? '首次' : `订正 ${h.attemptIndex - 1}`}
+                            </span>
+                            <span>
+                              {h.correctCount}/{h.totalQuestions}
+                            </span>
+                          </span>
+                        );
+                      })}
                     </div>
-                  </div>
-                  <div className="shrink-0">
-                    {ok ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                    ) : (
-                      <XCircle className="w-4 h-4 text-amber-500" />
-                    )}
-                  </div>
+                  )}
                 </div>
               );
             })}

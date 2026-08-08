@@ -87,12 +87,52 @@ export async function POST(req: NextRequest) {
     })),
   );
 
+  // Point-weighted score for the per-scene view: we sum the
+  // `points` field on each question (default 1) instead of just
+  // counting correct answers. Used to drive both the per-scene
+  // history row and the paper-level final score.
+  let points = 0;
+  let maxPoints = 0;
+  for (const a of answers) {
+    const p =
+      typeof a?.points === 'number' && Number.isFinite(a.points) && a.points > 0
+        ? a.points
+        : 1;
+    maxPoints += p;
+    if (a?.correct === true) points += p;
+  }
+
   const row = db.cspQuizSubmission.upsert({
     userId,
     classroomId,
     sceneId,
     totalQuestions: total,
     correctCount,
+    score,
+    answersJson,
+  });
+
+  // Append an audit row to csp_quiz_submission_history. This
+  // table is APPEND-ONLY: csp_quiz_submissions above is
+  // UPSERT-overwritten and only retains the LATEST attempt;
+  // the history table keeps EVERY attempt so the FinalScorePage
+  // can show "首次 80 → 订正 1 88 → 订正 2 95". We don't
+  // delete the history row on the parent upsert — that would
+  // re-create it on the next click, making "重置" a no-op.
+  // If a row already exists for the same attemptIndex (e.g.
+  // a race), the append() function still inserts because there
+  // is no UNIQUE constraint on attemptIndex; the UI shows them
+  // in submittedAt order and the worst case is two rows with
+  // the same number, which the user will see as "第 2 次
+  // (12:34) / 第 2 次 (12:35)".
+  db.cspQuizSubmissionHistory.append({
+    userId,
+    classroomId,
+    sceneId,
+    correctCount,
+    totalQuestions: total,
+    points,
+    maxPoints,
     score,
     answersJson,
   });

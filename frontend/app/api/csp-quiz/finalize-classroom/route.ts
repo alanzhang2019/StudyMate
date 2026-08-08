@@ -280,6 +280,119 @@ export async function POST(req: NextRequest) {
       ? Math.round((totalEarnedV3 / totalMaxV3) * 10000) / 100
       : 0;
 
+  // ─── Score history (V4) ─────────────────────────────────────────
+  // Read every history row for this (user, classroom) and emit
+  // two timelines the UI can render:
+  //
+  //   historyByScene: { [sceneId]: [{
+  //     attemptIndex, score, points, maxPoints, correctCount,
+  //     totalQuestions, submittedAt
+  //   }, ...] }
+  //     Oldest first. Drives the "scene 3: 首次 12 → 订正 18" chips
+  //     on the per-scene rows in the final score page.
+  //
+  //   paperHistory: [{
+  //     attemptIndex, totalEarned, totalMax, score, submittedAt
+  //   }, ...]
+  //     Aggregated across all scenes of this paper at each
+  //     attemptIndex. A "订正" attempt is only counted if the
+  //     student re-did every scene — partial re-dos are tracked
+  //     per scene but don't roll up into a complete "paper
+  //     attempt N" line.
+  //
+  // The history table is APPEND-ONLY, so we read it once here
+  // and group in memory. If the per-scene sub queries get large
+  // (long-running user) we can switch to window functions or
+  // push the aggregation to SQL, but for a single user × single
+  // classroom this is fine.
+  const historyRows = db.cspQuizSubmissionHistory.findByUserClassroom(
+    userId,
+    classroomId,
+  );
+  const historyByScene: Record<
+    string,
+    Array<{
+      attemptIndex: number;
+      score: number;
+      points: number;
+      maxPoints: number;
+      correctCount: number;
+      totalQuestions: number;
+      submittedAt: string;
+    }>
+  > = {};
+  for (const h of historyRows) {
+    if (!h || !h.sceneId) continue;
+    if (!historyByScene[h.sceneId]) historyByScene[h.sceneId] = [];
+    historyByScene[h.sceneId].push({
+      attemptIndex: h.attemptIndex ?? 1,
+      score: typeof h.score === 'number' ? h.score : 0,
+      points: typeof h.points === 'number' ? h.points : 0,
+      maxPoints: typeof h.maxPoints === 'number' ? h.maxPoints : 0,
+      correctCount: typeof h.correctCount === 'number' ? h.correctCount : 0,
+      totalQuestions:
+        typeof h.totalQuestions === 'number' ? h.totalQuestions : 0,
+      submittedAt: h.submittedAt ?? '',
+    });
+  }
+  // Each scene's history is already ASC by submittedAt from the
+  // SQL ORDER BY, but be defensive in case a future migration
+  // changes the ordering.
+  for (const k of Object.keys(historyByScene)) {
+    historyByScene[k].sort((a, b) => a.attemptIndex - b.attemptIndex);
+  }
+
+  // Roll up to paper-level. An "attempt N" exists for this paper
+  // only if every scene the student has ever attempted has at
+  // least one history row at index N. In practice that means
+  // the student finished every scene N times; we don't try to
+  // track partial re-dos at the paper level (UI uses per-scene
+  // history for that).
+  const maxAttemptIndex = historyRows.reduce(
+    (m, h) => Math.max(m, h.attemptIndex ?? 1),
+    1,
+  );
+  const paperHistory: Array<{
+    attemptIndex: number;
+    totalEarned: number;
+    totalMax: number;
+    score: number;
+    submittedAt: string;
+  }> = [];
+  for (let i = 1; i <= maxAttemptIndex; i++) {
+    let totalEarned = 0;
+    let totalMax = 0;
+    let latestAt = '';
+    // The "i-th attempt" of the paper is the i-th attempt of
+    // each scene the student has answered at all. We only roll
+    // up if the student has done every answered scene i times —
+    // otherwise the user only has a partial redo and the per-
+    // scene timeline is the right place to show it.
+    const answeredSceneIds = new Set(
+      historyRows.map((h: any) => h.sceneId).filter(Boolean),
+    );
+    let allScenesCovered = true;
+    for (const sid of answeredSceneIds) {
+      const row = historyByScene[sid]?.find((r) => r.attemptIndex === i);
+      if (!row) {
+        allScenesCovered = false;
+        break;
+      }
+      totalEarned += row.points;
+      totalMax += row.maxPoints;
+      if (row.submittedAt > latestAt) latestAt = row.submittedAt;
+    }
+    if (!allScenesCovered) continue;
+    paperHistory.push({
+      attemptIndex: i,
+      totalEarned,
+      totalMax,
+      score: totalMax > 0 ? Math.round((totalEarned / totalMax) * 10000) / 100 : 0,
+      submittedAt: latestAt,
+    });
+  }
+  void historyRows; // (already used via historyByScene)
+
   return NextResponse.json({
     classroomId,
     totalEarned,
@@ -298,5 +411,13 @@ export async function POST(req: NextRequest) {
     totalEarnedV3,
     totalMaxV3,
     totalScoreV3,
+    // V4 score history. historyByScene keyed by sceneId drives
+    // the per-scene "首次 / 订正" chips; paperHistory is the
+    // aggregated timeline of full-paper attempts for the headline
+    // "第 N 次 X 分" display. When the student has only made
+    // one attempt, historyByScene will have 1 row per scene and
+    // paperHistory will be [{ attemptIndex: 1, score: X, ...}].
+    historyByScene,
+    paperHistory,
   });
 }

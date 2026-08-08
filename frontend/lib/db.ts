@@ -307,6 +307,48 @@ export function getDb(): Database {
     ON csp_quiz_submissions (userId, classroomId);
   CREATE INDEX IF NOT EXISTS idx_csp_quiz_classroom_score
     ON csp_quiz_submissions (classroomId, score DESC);
+
+  // csp_quiz_submission_history:
+  //   Append-only audit log of every quiz submission this user
+  //   has made. Unlike csp_quiz_submissions (which is
+  //   UPSERT-overwritten and only retains the LATEST attempt),
+  //   this table keeps EVERY attempt so the FinalScorePage
+  //   can show "首次 80 → 订正 1 88 → 订正 2 95" and the
+  //   teacher can see score progression.
+  //
+  //   attemptIndex: 1 = 首次, 2 = 订正1, 3 = 订正2 ...
+  //   computed at write time by counting existing rows
+  //   (+1). Concurrent re-submissions from the same user are
+  //   not a real concern in the CSP product (one student, one
+  //   browser tab) but if a race does occur, the worst case
+  //   is two rows with the same attemptIndex — UI shows them
+  //   in submittedAt order and it looks fine.
+  //
+  //   points / maxPoints are stored as REAL because CSP
+  //   questions can be worth 1.5 / 2 / 3 / 4 points. The
+  //   parent csp_quiz_submissions table doesn't store them
+  //   for backwards-compat reasons; we add them here so the
+  //   finalize-classroom endpoint can compute a point-weighted
+  //   paper score from the history (not just from the latest
+  //   submission row).
+  CREATE TABLE IF NOT EXISTS csp_quiz_submission_history (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    classroomId TEXT NOT NULL,
+    sceneId TEXT NOT NULL,
+    correctCount INTEGER NOT NULL,
+    totalQuestions INTEGER NOT NULL,
+    points REAL NOT NULL,
+    maxPoints REAL NOT NULL,
+    score REAL NOT NULL,
+    answersJson TEXT NOT NULL,
+    attemptIndex INTEGER NOT NULL,
+    submittedAt TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_csp_qsh_user_classroom_scene_time
+    ON csp_quiz_submission_history (userId, classroomId, sceneId, submittedAt DESC);
+  CREATE INDEX IF NOT EXISTS idx_csp_qsh_user_classroom_time
+    ON csp_quiz_submission_history (userId, classroomId, submittedAt DESC);
 `)
 
   // CSP 初赛水平摸底：每个学生一行（PRIMARY KEY userId）
@@ -975,6 +1017,116 @@ class PrismaCompatClient {
           'SELECT * FROM csp_quiz_submissions WHERE userId = ? ORDER BY submittedAt DESC',
         )
         .all(userId) as any[]
+    },
+  }
+  // csp_quiz_submission_history: append-only audit log of every
+  // quiz submission. See the schema block above for design
+  // rationale. UI uses this to render "首次 X / 订正 Y / 订正 Z"
+  // and the teacher can see score progression.
+  cspQuizSubmissionHistory = {
+    /**
+     * Append a new history row. Computes attemptIndex by
+     * counting existing rows for the same (userId, classroomId,
+     * sceneId) tuple. Returns the inserted row.
+     */
+    append: (params: {
+      userId: string;
+      classroomId: string;
+      sceneId: string;
+      correctCount: number;
+      totalQuestions: number;
+      points: number;
+      maxPoints: number;
+      score: number;
+      answersJson: string;
+    }) => {
+      const id = `qsh_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+      const dbConn = getDb();
+      // Count existing attempts in a single statement to keep
+      // the read+write tight. SQLite serializes writers so the
+      // race window between SELECT and INSERT is narrow.
+      const existing = dbConn
+        .prepare(
+          'SELECT COUNT(*) as n FROM csp_quiz_submission_history WHERE userId = ? AND classroomId = ? AND sceneId = ?',
+        )
+        .get(params.userId, params.classroomId, params.sceneId) as
+        | { n: number }
+        | undefined;
+      const attemptIndex = (existing?.n ?? 0) + 1;
+      dbConn
+        .prepare(
+          `INSERT INTO csp_quiz_submission_history
+             (id, userId, classroomId, sceneId, correctCount, totalQuestions,
+              points, maxPoints, score, answersJson, attemptIndex, submittedAt)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+        )
+        .run(
+          id,
+          params.userId,
+          params.classroomId,
+          params.sceneId,
+          params.correctCount,
+          params.totalQuestions,
+          params.points,
+          params.maxPoints,
+          params.score,
+          params.answersJson,
+          attemptIndex,
+        );
+      return cspQuizSubmissionHistory.findById(id);
+    },
+    findById: (id: string) => {
+      return (
+        (getDb()
+          .prepare('SELECT * FROM csp_quiz_submission_history WHERE id = ?')
+          .get(id) as any) ?? null
+      );
+    },
+    /** Every history row for one (user, classroom, scene), oldest first. */
+    findByUserClassroomScene: (
+      userId: string,
+      classroomId: string,
+      sceneId: string,
+    ) => {
+      return getDb()
+        .prepare(
+          `SELECT * FROM csp_quiz_submission_history
+             WHERE userId = ? AND classroomId = ? AND sceneId = ?
+             ORDER BY submittedAt ASC, attemptIndex ASC`,
+        )
+        .all(userId, classroomId, sceneId) as any[];
+    },
+    /**
+     * Every history row for a whole classroom, oldest first.
+     * Used by finalize-classroom to build the per-attemptIndex
+     * paper-level score timeline.
+     */
+    findByUserClassroom: (userId: string, classroomId: string) => {
+      return getDb()
+        .prepare(
+          `SELECT * FROM csp_quiz_submission_history
+             WHERE userId = ? AND classroomId = ?
+             ORDER BY submittedAt ASC, attemptIndex ASC`,
+        )
+        .all(userId, classroomId) as any[];
+    },
+    /**
+     * Delete all history rows for one (user, classroom, scene).
+     * Mirrors cspQuizSubmission.deleteByUserScene so the
+     * "重置" flow on the CSP final paper can wipe both the
+     * latest row AND every prior attempt.
+     */
+    deleteByUserClassroomScene: (
+      userId: string,
+      classroomId: string,
+      sceneId: string,
+    ) => {
+      const result = getDb()
+        .prepare(
+          'DELETE FROM csp_quiz_submission_history WHERE userId = ? AND classroomId = ? AND sceneId = ?',
+        )
+        .run(userId, classroomId, sceneId);
+      return result.changes;
     },
   }
   cspPlacement = {

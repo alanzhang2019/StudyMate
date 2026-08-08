@@ -43,6 +43,19 @@ export async function POST(req: NextRequest) {
 
   const deleted = db.cspQuizSubmission.deleteByUserScene(userId, classroomId, sceneId);
 
+  // Also wipe the per-scene history so the student can start
+  // from a clean slate. Without this, "重新答题" would clear
+  // the latest score but leave every prior attempt in
+  // csp_quiz_submission_history, and the next submit would
+  // create a row with `attemptIndex = N+1` — so the
+  // FinalScorePage's "首次" chip would point at the original
+  // session even after a full reset, which is confusing.
+  const deletedHistory = db.cspQuizSubmissionHistory.deleteByUserClassroomScene(
+    userId,
+    classroomId,
+    sceneId,
+  );
+
   // Only clear completedAt if a csp_progress row exists and was
   // already marked complete. Avoids creating an empty row for
   // students who never even started.
@@ -54,6 +67,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     ok: true,
     deletedRows: deleted,
+    deletedHistoryRows: deletedHistory,
     clearedCompletion: Boolean(progress?.completedAt),
   });
 }
