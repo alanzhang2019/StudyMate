@@ -114,17 +114,17 @@ export async function evaluateCompletion(
   // if any older duplicates exist from a code path that bypassed
   // upsert, the map below would silently keep the OLDEST score
   // because Map.set is last-write-wins. We instead keep the
-  // HIGHEST `score` per scene, which matches the user-visible
-  // rule: "重做全对就算通过" (and avoids penalising the
-  // student for an earlier wrong attempt they subsequently
-  // corrected).
+  // LATEST row per scene (first-write-wins, since `findByUser`
+  // already sorts newest-first). This matches the user-visible
+  // rule: "my latest attempt" is what counts for completion,
+  // not "my best ever" — a student who resets and re-does worse
+  // should see their new score, not have the prior high
+  // silently resurrect.
   const subByScene = new Map<string, any>();
   for (const s of submissions) {
     const sid = (s as any).sceneId as string;
-    const existing = subByScene.get(sid);
-    if (!existing || ((s as any).score ?? 0) > (existing.score ?? 0)) {
-      subByScene.set(sid, s);
-    }
+    if (subByScene.has(sid)) continue;
+    subByScene.set(sid, s);
   }
 
   const failedQuizScenes: FailedQuiz[] = [];

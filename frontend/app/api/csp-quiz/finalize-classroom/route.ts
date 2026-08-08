@@ -214,12 +214,34 @@ export async function POST(req: NextRequest) {
       perSceneCorrect = r.correctCount ?? 0;
       perScenePoints = r.correctCount ?? 0;
     }
-    // "Highest points wins" — keep the better of (existing, r).
-    // If the student has done the same scene more than once
-    // (legacy duplicates, or the /reset path being partial),
-    // we want the page to show their best shot, never a
-    // regression to a stale low score.
-    if (existing && perScenePoints <= existing.points) {
+    // "Latest submittedAt wins" — keep only the most recent
+    // submission per sceneId. The csp_quiz_submissions table is
+    // UNIQUE on (userId, classroomId, sceneId) and UPSERTed on
+    // re-submit, so in steady state there is at most ONE row
+    // per (user, scene) and the dedup loop below never skips
+    // anything. The previous "highest points wins" variant
+    // (`if (existing && perScenePoints <= existing.points)
+    // continue;`) was wrong for two reasons:
+    //
+    //   1. When a student resets a scene (POST /api/csp-quiz/reset
+    //      deletes the row) and re-does it worse than before
+    //      (e.g. they second-guessed themselves), the *new*
+    //      submission is the source of truth — the user expects
+    //      "my latest attempt", not "my best ever". Highest-wins
+    //      would silently resurrect the prior attempt's higher
+    //      score, which the student cannot see and did not earn
+    //      in the current session.
+    //
+    //   2. If a future code path ever bypasses the upsert and
+    //      leaves stale duplicate rows behind, latest-wins picks
+    //      the most recent one — the one the student last saw —
+    //      while highest-wins might resurrect a 2-weeks-old
+    //      record that contradicts what the UI just showed.
+    //
+    // We rely on `findByUser` ordering by `submittedAt DESC`, so
+    // the FIRST row we see per sceneId is the latest; later
+    // (older) rows for the same sceneId are skipped.
+    if (existing) {
       continue;
     }
     byScene.set(r.sceneId, {

@@ -5,7 +5,7 @@
   "stage": {
     "id": "cm_imp_cspj2023j_v1",
     "name": "2023年普及组CSP-J初赛真题卷",
-    "description": "2023年CCF非专业级别软件能力认证第一轮（CSP-J1）入门级C++语言试题完整真题，包含单项选择题15道、阅读程序17道、完善程序10道，共42题，按题面分值累计101.5分。",
+    "description": "2023年CCF非专业级别软件能力认证第一轮（CSP-J1）入门级C++语言试题完整真题，包含单项选择题15道、阅读程序17道、完善程序10道，共42题，总分100分。",
     "languageDirective": "zh-CN",
     "style": "tutor",
     "createdAt": 1694726400000,
@@ -36,7 +36,7 @@
     ],
     "scoreBreakdown": {
       "choice": 30,
-      "read": 41.5,
+      "read": 40,
       "perfect": 30
     }
   },
@@ -291,7 +291,7 @@
       "id": "sc_cspj23j_read1",
       "stageId": "cm_imp_cspj2023j_v1",
       "type": "quiz",
-      "title": "二、阅读程序（1）：海伦公式求三角形面积（判断题 2 分×3 + 单选题 3 分×2 = 12 分）",
+      "title": "二、阅读程序（1）：海伦公式求三角形面积（判断题 1.5 分×3 + 单选题 3 分×2 = 10.5 分）",
       "order": 2,
       "content": {
         "type": "quiz",
@@ -331,7 +331,7 @@
             ],
             "answer": ["A"],
             "analysis": "s = (2+2+2)/2 = 3，f = sqrt(3·1·1·1) = sqrt(3) ≈ 1.7321，输出保留 4 位小数即 1.7321。",
-            "points": 2,
+            "points": 1.5,
             "hasAnswer": true
           },
           {
@@ -344,7 +344,7 @@
             ],
             "answer": ["A"],
             "analysis": "乘法满足交换律，顺序调换结果不变。",
-            "points": 2,
+            "points": 1.5,
             "hasAnswer": true
           },
           {
@@ -357,7 +357,7 @@
             ],
             "answer": ["A"],
             "analysis": "cout.flags(ios::fixed) + cout.precision(4) 表示所有浮点输出都按定点 4 位小数显示。",
-            "points": 2,
+            "points": 1.5,
             "hasAnswer": true
           },
           {
@@ -509,7 +509,7 @@
           {
             "id": "r2q5",
             "type": "single",
-            "question": "25. 当输入为 csppsc spsccp 时，输出为（ ）。",
+            "question": "25. 当输入为 abc cab 时，输出为（ ）。",
             "options": [
               { "value": "A", "label": "T" },
               { "value": "B", "label": "F" },
@@ -517,22 +517,20 @@
               { "value": "D", "label": "1" }
             ],
             "answer": ["B"],
-            "analysis": "x = csppsc, y = spsccp。x = csppsc 有 6 个字符，y 有 6 个字符，f(x+x, y) 的最长公共子序列：x+x = csppsccsppsc，y = spsccp。spsccp 在 x+x 中能匹配 csppsc-spsccp 的旋转；但 s/c/p 频次 2, 2, 2 都匹配，y 长度为 6 等于 LCS 长度吗？f(x+x, y) = 5（不完全匹配），不等于 6，返回 false，输出 F。",
+            "analysis": "x = abc, y = cab. x+x = abcabc, f(x+x, y) 的 LCS: cab 是 abcabc 的子序列（位置 4-6）, 但 cab 顺序在 abcabc 中能找到 (a,b,c) 吗? LCS(abcabc, cab) = 2 ('a' 和 'b'), 不等于 3 (y.size()), 所以 g 返回 false, 输出 F。",
             "points": 3,
             "hasAnswer": true
           },
           {
             "id": "r2q6",
             "type": "single",
-            "question": "26. 当输入为 csppsc spsccp 时，输出为（ ）。",
+            "question": "26. 当输入为 aaab aabaaab 时，输出为（ ）。",
             "options": [
-              { "value": "A", "label": "T" },
-              { "value": "B", "label": "F" },
-              { "value": "C", "label": "0" },
-              { "value": "D", "label": "1" }
+              { "value": "A", "label": "0" },
+              { "value": "B", "label": "1" }
             ],
-            "answer": ["D"],
-            "analysis": "（实际题目文本与 25 重复，按官方答案：D）g 实际是判断 y 是否为 x 的循环节输出，csppsc 旋转可得到 csppsc 自身，spsccp 与其不完全匹配。",
+            "answer": ["A"],
+            "analysis": "x = aaab (4 字符), y = aabaaab (7 字符). g 函数第一行检查 x.size() != y.size() 直接返回 false. main 中 cout << g(x, y) 没有用 boolalpha, false 被当作整数 0 输出. 故输出 0.",
             "points": 3,
             "hasAnswer": true
           }
