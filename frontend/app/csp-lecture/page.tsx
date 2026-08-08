@@ -29,6 +29,7 @@ import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { Printer } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CLASSROOMS_DIR } from '@/lib/server/classroom-storage';
@@ -37,6 +38,7 @@ import { auth } from '@/auth';
 import { ExpandChapterList } from './ExpandChapterList';
 import { Leaderboard } from '@/components/leaderboard';
 import { PlacementBanner } from '@/components/csp-lecture/PlacementBanner';
+import { formatDateBeijing } from '@/lib/utils/date';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -66,6 +68,13 @@ async function listCspLectures(): Promise<Lecture[]> {
     throw err;
   }
   const items: Lecture[] = [];
+  // Dedupe by stage name. The admin uploader has historically
+  // produced duplicate CSP要点精讲 classrooms (same content,
+  // different IDs — once as `cm_imp_a39914d3af5c64d6` tagged
+  // `csp-lecture`, once as `cm_imp_b10718503e3a9777` left
+  // untagged). Showing both as separate cards looked broken,
+  // so we keep the first one encountered per stage.name.
+  const seenNames = new Set<string>();
   for (const name of entries) {
     if (!name.endsWith('.json')) continue;
     const id = name.slice(0, -'.json'.length);
@@ -81,16 +90,15 @@ async function listCspLectures(): Promise<Lecture[]> {
         createdAt: string;
         collection?: string;
       };
-      // Show this classroom on the public CSP page if either:
-      //   (a) it's tagged with the csp-lecture collection (new
-      //       uploads via /admin/csp-lecture), OR
-      //   (b) it has no collection tag at all (legacy uploads that
-      //       predate the collection feature — still valid CSP
-      //       content we don't want to hide).
-      // Classrooms with an explicit *other* collection key are
-      // skipped, so unrelated modules' content doesn't leak into
-      // the CSP module page.
-      if (data.collection && data.collection !== 'csp-lecture') continue;
+      // Only show classrooms explicitly tagged as csp-lecture.
+      // The legacy "no collection ⇒ show it" fallback used to
+      // pull in every per-student "错题讲解" classroom (~200
+      // cards) and made the page look chaotic. Student-generated
+      // error-review decks now live on /student/home, not here.
+      if (data.collection !== 'csp-lecture') continue;
+      const stageName = data.stage?.name ?? '未命名课件';
+      if (seenNames.has(stageName)) continue;
+      seenNames.add(stageName);
 
       // Build the chapter list. We always sort by `order` even though
       // most importers write scenes in order — defence in depth for
@@ -164,18 +172,6 @@ async function listCspLectures(): Promise<Lecture[]> {
   return items;
 }
 
-function formatDate(iso: string): string {
-  try {
-    return new Date(iso).toLocaleDateString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    });
-  } catch {
-    return iso;
-  }
-}
-
 export default async function CspLecturePage() {
   // Auth guard. /csp-lecture now requires a signed-in user so
   // we can attribute view progress to a real userId. The
@@ -191,6 +187,28 @@ export default async function CspLecturePage() {
 
   const lectures = await listCspLectures();
   const totalScenes = lectures.reduce((s, l) => s + l.sceneCount, 0);
+
+  // Group lectures into two buckets the page can render
+  // separately. A previous version laid all classrooms (课件
+  // 精讲 + 真题 + per-student 错题讲解 ~200 张) in one flat
+  // grid, which looked chaotic. The two-bucket layout mirrors
+  // the actual curriculum structure: 精讲 = conceptual
+  // building blocks, 真题 = timed practice.
+  //
+  // Bucket assignment is ID-driven rather than title-driven so
+  // renames don't break the grouping.
+  type Bucket = 'primer' | 'paper';
+  const bucketOf = (id: string): Bucket =>
+    id.startsWith('cm_imp_cspj') ? 'paper' : 'primer';
+  const primerLectures = lectures.filter((l) => bucketOf(l.id) === 'primer');
+  const paperLectures = lectures.filter((l) => bucketOf(l.id) === 'paper');
+
+  // PDF 真题卷打印链接。打包到 public/ 后, 浏览器打开即可
+  // 用 Ctrl+P 打印。文件名不带中文路径, 避免部分环境编码问题。
+  const paperPdfHref: Record<string, string> = {
+    cm_imp_cspj2024j_v1: '/csp-j-2024-original.pdf',
+    cm_imp_cspj2025j_v1: '/csp-j-2025-original.pdf',
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -261,7 +279,7 @@ export default async function CspLecturePage() {
         <p className="mt-5 text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
           {lectures.length === 0
             ? '暂无课件，敬请期待。'
-            : `共 ${lectures.length} 个课件 · ${totalScenes} 个讲解场景。点击任意课件展开章节，按顺序学习。`}
+            : `${primerLectures.length} 个精讲课件 · ${paperLectures.length} 套历年真题 · 共 ${totalScenes} 个章节。先精讲后真题，按顺序学完最有效。`}
         </p>
       </section>
 
@@ -312,10 +330,47 @@ export default async function CspLecturePage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                {lectures.map((l) => (
-                  <LectureCard key={l.id} lecture={l} />
-                ))}
+              <div className="space-y-10">
+                {/* 类别 1: CSP要点精讲。 单卡片横跨整列, 让学生
+                    集中在一个核心课件上; 章节目录仍可通过
+                    ExpandChapterList 展开, 不会一上来就被 16 个
+                    章节卡挤满屏幕。 */}
+                {primerLectures.length > 0 && (
+                  <LectureGroup
+                    title="CSP要点精讲"
+                    subtitle="按顺序学完 16 个核心概念章节，建立 CSP 初赛知识框架。"
+                    accentClass="from-indigo-500/15 to-blue-500/5 border-indigo-200/60"
+                    badgeClass="bg-indigo-100 text-indigo-700"
+                  >
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                      {primerLectures.map((l) => (
+                        <LectureCard key={l.id} lecture={l} />
+                      ))}
+                    </div>
+                  </LectureGroup>
+                )}
+
+                {/* 类别 2: 历年真题。 2024/2025 各自一张大卡,
+                    卡片下方提供"打印 PDF 真题卷"按钮, 让学生
+                    想要做纸质卷时一键拿到原始 PDF。 */}
+                {paperLectures.length > 0 && (
+                  <LectureGroup
+                    title="历年真题"
+                    subtitle="按年份做完整模拟卷，单选 / 阅读 / 完善程序 100 分制严格评分。"
+                    accentClass="from-rose-500/15 to-amber-500/5 border-rose-200/60"
+                    badgeClass="bg-rose-100 text-rose-700"
+                  >
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                      {paperLectures.map((l) => (
+                        <PaperLectureCard
+                          key={l.id}
+                          lecture={l}
+                          pdfHref={paperPdfHref[l.id]}
+                        />
+                      ))}
+                    </div>
+                  </LectureGroup>
+                )}
               </div>
             )}
           </div>
@@ -380,7 +435,7 @@ function LectureCard({ lecture }: { lecture: Lecture }) {
           <span className="text-[10px] uppercase tracking-wider text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded">
             CSP初赛
           </span>
-          <span className="text-xs text-slate-400">{formatDate(lecture.createdAt)}</span>
+          <span className="text-xs text-slate-400">{formatDateBeijing(lecture.createdAt)}</span>
         </div>
         <h3 className="text-lg font-semibold text-slate-900 mb-2 line-clamp-2">
           {lecture.title}
@@ -392,6 +447,112 @@ function LectureCard({ lecture }: { lecture: Lecture }) {
         )}
         <div className="mt-auto">
           <ExpandChapterList lectureId={lecture.id} chapters={lecture.chapters} />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/**
+ * Section banner that wraps a group of related lecture cards
+ * ("CSP要点精讲" or "历年真题"). The title + one-line subtitle
+ * sits above the grid so the page reads as a curriculum outline
+ * instead of a single undifferentiated mass of 200+ cards.
+ *
+ * The `accentClass` controls the gradient strip + border colour
+ * so each group has a distinct visual identity at a glance.
+ */
+function LectureGroup({
+  title,
+  subtitle,
+  accentClass,
+  badgeClass,
+  children,
+}: {
+  title: string;
+  subtitle: string;
+  /** Tailwind classes for the gradient strip + outer border. */
+  accentClass: string;
+  /** Tailwind classes for the small title chip. */
+  badgeClass: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section
+      className={`relative rounded-2xl border bg-white/40 backdrop-blur p-5 sm:p-6 ${accentClass}`}
+    >
+      {/* Decorative gradient strip at the very top — gives the
+          group a clear "this is its own thing" visual. */}
+      <div
+        className={`absolute inset-x-0 top-0 h-1 rounded-t-2xl bg-gradient-to-r ${accentClass}`}
+        aria-hidden="true"
+      />
+      <header className="mb-5">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span
+            className={`inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full ${badgeClass}`}
+          >
+            {title}
+          </span>
+        </div>
+        <p className="mt-2 text-sm text-slate-600">{subtitle}</p>
+      </header>
+      {children}
+    </section>
+  );
+}
+
+/**
+ * 真题卡：复用 LectureCard 的章节展开 + 从头学习按钮,
+ * 额外在卡片底部追加"打印 PDF 真题卷"按钮。按钮 href
+ * 指向 /public 下的原始 PDF, 浏览器会调用内置 PDF 阅读器,
+ * 学生再按 Ctrl+P 即可打印（不需要服务器端转换）。
+ */
+function PaperLectureCard({
+  lecture,
+  pdfHref,
+}: {
+  lecture: Lecture;
+  pdfHref?: string;
+}) {
+  return (
+    <Card className="h-full bg-white/85 backdrop-blur border-rose-200/60 hover:shadow-md hover:-translate-y-0.5 transition-all">
+      <CardContent className="pt-6 flex flex-col h-full">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-[10px] uppercase tracking-wider text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded">
+            历年真题
+          </span>
+          <span className="text-xs text-slate-400">{formatDateBeijing(lecture.createdAt)}</span>
+        </div>
+        <h3 className="text-lg font-semibold text-slate-900 mb-2 line-clamp-2">
+          {lecture.title}
+        </h3>
+        {lecture.description && (
+          <p className="text-sm text-slate-600 line-clamp-3 mb-4">
+            {lecture.description}
+          </p>
+        )}
+        <div className="mt-auto space-y-3">
+          <ExpandChapterList lectureId={lecture.id} chapters={lecture.chapters} />
+          {pdfHref && (
+            <a
+              href={pdfHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-1.5 w-full text-sm
+                         font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100
+                         border border-rose-200 rounded-lg px-3 py-2
+                         transition-colors
+                         focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+              aria-label={`打印 ${lecture.title} 原始 PDF 真题卷`}
+            >
+              <Printer className="w-4 h-4" aria-hidden="true" />
+              打印 PDF 真题卷
+              <span className="text-[10px] font-normal text-rose-500/80 ml-1">
+                (新窗口打开后按 Ctrl+P)
+              </span>
+            </a>
+          )}
         </div>
       </CardContent>
     </Card>
