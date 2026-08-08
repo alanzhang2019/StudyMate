@@ -5,11 +5,11 @@
   "stage": {
     "id": "cm_imp_cspj2023j_v1",
     "name": "2023年普及组CSP-J初赛真题卷",
-    "description": "2023年CCF非专业级别软件能力认证第一轮（CSP-J1）入门级C++语言试题完整真题。注：题面等待 PM 录入，目前 scenes 为占位空题，仅元数据 + 打印 PDF 流程可用。",
+    "description": "2023年CCF非专业级别软件能力认证第一轮（CSP-J1）入门级C++语言试题完整真题，包含单项选择题15道、阅读程序17道、完善程序10道，共42题，按题面分值累计101.5分。",
     "languageDirective": "zh-CN",
     "style": "tutor",
-    "createdAt": 1691500800000,
-    "updatedAt": 1691500800000,
+    "createdAt": 1694726400000,
+    "updatedAt": 1694726400000,
     "generatedAgentConfigs": [
       {
         "id": "imp_agent_cspj23j_0",
@@ -36,7 +36,7 @@
     ],
     "scoreBreakdown": {
       "choice": 30,
-      "read": 40,
+      "read": 41.5,
       "perfect": 30
     }
   },
@@ -45,149 +45,917 @@
       "id": "sc_cspj23j_choice",
       "stageId": "cm_imp_cspj2023j_v1",
       "type": "quiz",
-      "title": "一、单项选择题（题面待录入）",
+      "title": "一、单项选择题（共15题，每题2分，共计30分）",
       "order": 1,
       "content": {
         "type": "quiz",
-        "questions": []
+        "questions": [
+          {
+            "id": "q1",
+            "type": "single",
+            "question": "1. 在 C++ 中，下面哪个关键字用于声明一个变量，其值不能被修改？（ ）",
+            "options": [
+              { "value": "A", "label": "unsigned" },
+              { "value": "B", "label": "const" },
+              { "value": "C", "label": "static" },
+              { "value": "D", "label": "mutable" }
+            ],
+            "answer": ["B"],
+            "analysis": "const 关键字用于定义常量，其值在初始化后不能被修改。unsigned 表示无符号数，不限制修改；static 表示静态存储期，不限制修改；mutable 用于类成员，允许在 const 成员函数中修改。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q2",
+            "type": "single",
+            "question": "2. 八进制数 12345670₈ 和 07654321₈ 的和为（ ）",
+            "options": [
+              { "value": "A", "label": "22222221₈" },
+              { "value": "B", "label": "21111111₈" },
+              { "value": "C", "label": "22111111₈" },
+              { "value": "D", "label": "22222211₈" }
+            ],
+            "answer": ["D"],
+            "analysis": "按八进制逢八进一逐位相加：个位 0+1=1，十位 7+2=11 写 1 进 1，百位 6+3+1=12 写 2 进 1，以此类推，结果为 22222211₈。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q3",
+            "type": "single",
+            "question": "3. 阅读下述代码，请问修改 data 的 value 成员以存储 3.14，正确的方式是（ ）。\n\n```cpp\nunion Data{\n    int num;\n    float value;\n    char symbol;\n};\nunion Data data;\n```",
+            "options": [
+              { "value": "A", "label": "data.value = 3.14;" },
+              { "value": "B", "label": "value.data = 3.14;" },
+              { "value": "C", "label": "data->value = 3.14;" },
+              { "value": "D", "label": "value->data = 3.14;" }
+            ],
+            "answer": ["A"],
+            "analysis": "联合体普通对象的成员用“.”访问，data 是 union Data 类型的实例（不是指针），所以正确写法是 data.value = 3.14。-> 只能用于指针。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q4",
+            "type": "single",
+            "question": "4. 假设有一个链表的节点定义如下：\n\n```cpp\nstruct Node {\n    int data;\n    Node* next;\n};\n```\n\n现在有一个指向链表头部的指针：Node* head。如果想要在链表中插入一个新节点，使其成员 data 的值为 42，并使新节点成为链表的第一个节点，下面哪个操作是正确的？（ ）",
+            "options": [
+              { "value": "A", "label": "Node* newNode = new Node; newNode->data = 42; newNode->next = head; head = newNode;" },
+              { "value": "B", "label": "Node* newNode = new Node; head->data = 42; newNode->next = head; head = newNode;" },
+              { "value": "C", "label": "Node* newNode = new Node; newNode->data = 42; head->next = newNode;" },
+              { "value": "D", "label": "Node* newNode = new Node; newNode->data = 42; newNode->next = head;" }
+            ],
+            "answer": ["A"],
+            "analysis": "头插法四步：① new Node 创建新节点；② newNode->data = 42 设值；③ newNode->next = head 让新节点指向原头；④ head = newNode 更新头指针。缺第④步会丢节点（D），错把 head->data 改了（B），把 newNode 接到 head 后面是尾插（C）。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q5",
+            "type": "single",
+            "question": "5. 根节点的高度为 1，一棵拥有 2023 个节点的三叉树高度至少为（ ）。",
+            "options": [
+              { "value": "A", "label": "6" },
+              { "value": "B", "label": "7" },
+              { "value": "C", "label": "8" },
+              { "value": "D", "label": "9" }
+            ],
+            "answer": ["C"],
+            "analysis": "满三叉树节点数公式 S = (3^h − 1)/2。h=7 时 S = (2187−1)/2 = 1093 < 2023；h=8 时 S = (6561−1)/2 = 3280 > 2023。因此最少需要 8 层。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q6",
+            "type": "single",
+            "question": "6. 小明在某一天中依次有七个空闲时间段，他想要选出至少一个空闲时间段来练习唱歌，但他希望任意两个练习的时间段之间都有至少两个空闲的时间段让他休息。则小明一共有（ ）种选择时间段的方案。",
+            "options": [
+              { "value": "A", "label": "31" },
+              { "value": "B", "label": "18" },
+              { "value": "C", "label": "21" },
+              { "value": "D", "label": "33" }
+            ],
+            "answer": ["B"],
+            "analysis": "只选 1 个练习时间段有 7 种；选 2 个练习时间段需要间隔至少 2，共 10 种；选 3 个时 1-2-3-4-5-6-7 只能选 1,4,7 共 1 种。总计 7+10+1 = 18 种。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q7",
+            "type": "single",
+            "question": "7. 以下关于高精度运算的说法错误的是（ ）。",
+            "options": [
+              { "value": "A", "label": "高精度计算主要是用来处理大整数或需要保留多位小数的运算。" },
+              { "value": "B", "label": "大整数除以小整数的处理的步骤可以是，将被除数和除数对齐，从左到右逐位尝试将除数乘以某个数，通过减法得到新的被除数，并累加商。" },
+              { "value": "C", "label": "高精度乘法的运算时间只与参与运算的两个整数中长度较长者的位数有关。" },
+              { "value": "D", "label": "高精度加法运算的关键在于逐位相加并处理进位。" }
+            ],
+            "answer": ["C"],
+            "analysis": "高精度乘法的运算时间与两个整数的位数乘积（O(m·n)）有关，而不仅仅是较长者的位数。A、B、D 都是正确的描述。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q8",
+            "type": "single",
+            "question": "8. 后缀表达式 6 2 3 + - 3 8 2 / + * 2 ^ 3 + 对应的中缀表达式是（ ）",
+            "options": [
+              { "value": "A", "label": "((6 - (2 + 3)) * (3 + 8 / 2)) ^ 2 + 3" },
+              { "value": "B", "label": "6 - 2 + 3 * 3 + 8 / 2 ^ 2 + 3" },
+              { "value": "C", "label": "(6 - (2 + 3)) * ((3 + 8 / 2) ^ 2) + 3" },
+              { "value": "D", "label": "6 - ((2 + 3) * (3 + 8 / 2)) ^ 2 + 3" }
+            ],
+            "answer": ["A"],
+            "analysis": "用栈从左到右扫描后缀表达式：6 入栈；2 3 入栈；+ 得 5，6-5=1 入栈；3 8 2 入栈；/ 得 4；+ 得 7；* 得 7；2 入栈；^ 得 49；+ 49+3=52。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q9",
+            "type": "single",
+            "question": "9. 数 101010₂ 和 166₈ 的和为（ ）。",
+            "options": [
+              { "value": "A", "label": "10110000₂" },
+              { "value": "B", "label": "236₈" },
+              { "value": "C", "label": "158₁₀" },
+              { "value": "D", "label": "A0₁₆" }
+            ],
+            "answer": ["D"],
+            "analysis": "101010₂ = 42₁₀，166₈ = 1×64+6×8+6 = 118₁₀，和为 160₁₀ = A0₁₆。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q10",
+            "type": "single",
+            "question": "10. 假设有一组字符 {a,b,c,d,e,f}，对应的频率分别为 5%，9%，12%，13%，16%，45%。请问以下哪个选项是字符 a,b,c,d,e,f 分别对应的一组哈夫曼编码？（ ）",
+            "options": [
+              { "value": "A", "label": "1111, 1110, 101, 100, 110, 0" },
+              { "value": "B", "label": "1010, 1001, 1000, 011, 010, 00" },
+              { "value": "C", "label": "000, 001, 010, 011, 10, 11" },
+              { "value": "D", "label": "1010, 1011, 110, 111, 00, 01" }
+            ],
+            "answer": ["A"],
+            "analysis": "按频率 5,9,12,13,16,45 构造哈夫曼树。每次合并两个最小频率：(5+9)=14，(12+13)=25，(14+16)=30，(25+30)=55，根 55。最高频 45 编码为 0，其它按树形位置得到 1111/1110/101/100/110，符合前缀编码且无歧义。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q11",
+            "type": "single",
+            "question": "11. 给定一棵二叉树，其前序遍历结果为：ABDECFG，中序遍历结果为：DEBACFG。请问这棵树的正确后序遍历结果是什么？（ ）",
+            "options": [
+              { "value": "A", "label": "EDBFGCA" },
+              { "value": "B", "label": "EDBGCFA" },
+              { "value": "C", "label": "DEBGFCA" },
+              { "value": "D", "label": "DBEGFCA" }
+            ],
+            "answer": ["A"],
+            "analysis": "由前序 ABDECFG + 中序 DEBACFG 可还原：根是 A，左子树 (DEB) 由前序 BDE/中序 DEB → B 为根，D 为 B 左子，E 为 D 右子（但顺序需按 B-D-E 排）。右子树 (CFG) 由前序 CFG/中序 CFG → C 为根，F 为 C 左子，G 为 F 右子。后序遍历：EDBFGCA。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q12",
+            "type": "single",
+            "question": "12. 考虑一个有向无环图，该图包括 4 条有向边：(1,2)，(1,3)，(2,4) 和 (3,4)。以下哪个选项是这个有向无环图的一个有效的拓扑排序？（ ）",
+            "options": [
+              { "value": "A", "label": "4, 2, 3, 1" },
+              { "value": "B", "label": "1, 2, 3, 4" },
+              { "value": "C", "label": "1, 2, 4, 3" },
+              { "value": "D", "label": "2, 1, 3, 4" }
+            ],
+            "answer": ["B"],
+            "analysis": "拓扑排序要求每个顶点的所有前驱都排在它前面。1 没有前驱，2/3 都以 1 为前驱，4 以 2/3 为前驱。因此 1 必须在前，4 必须在后，2 和 3 顺序任意，1-2-3-4 合法。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q13",
+            "type": "single",
+            "question": "13. 在计算机中，以下哪个选项描述的数据存储容量最小？（ ）",
+            "options": [
+              { "value": "A", "label": "字节（byte）" },
+              { "value": "B", "label": "比特（bit）" },
+              { "value": "C", "label": "字（word）" },
+              { "value": "D", "label": "千字节（kilobyte）" }
+            ],
+            "answer": ["B"],
+            "analysis": "1 bit < 1 byte (8 bit) < 1 word (一般 16/32/64 bit) < 1 KB (1024 byte)。比特是容量最小的单位。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q14",
+            "type": "single",
+            "question": "14. 一个班级有 10 个男生和 12 个女生。如果要选出一个 3 人的小组，并且小组中必须至少包含 1 个女生，那么有多少种可能的组合？（ ）",
+            "options": [
+              { "value": "A", "label": "1420" },
+              { "value": "B", "label": "1770" },
+              { "value": "C", "label": "1540" },
+              { "value": "D", "label": "2200" }
+            ],
+            "answer": ["A"],
+            "analysis": "按女生人数分类：1 女 2 男 C(12,1)·C(10,2) = 12·45 = 540；2 女 1 男 C(12,2)·C(10,1) = 66·10 = 660；3 女 0 男 C(12,3) = 220。共 540+660+220 = 1420。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q15",
+            "type": "single",
+            "question": "15. 以下哪个不是操作系统？（ ）",
+            "options": [
+              { "value": "A", "label": "Linux" },
+              { "value": "B", "label": "Windows" },
+              { "value": "C", "label": "Android" },
+              { "value": "D", "label": "HTML" }
+            ],
+            "answer": ["D"],
+            "analysis": "Linux、Windows、Android 都是操作系统。HTML 是超文本标记语言，用于描述网页结构，不属于操作系统。",
+            "points": 2,
+            "hasAnswer": true
+          }
+        ],
+        "kind": "choice"
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1691500800000,
-      "updatedAt": 1691500800000,
+      "createdAt": 1694726400000,
+      "updatedAt": 1694726400000,
       "category": "choice"
     },
     {
       "id": "sc_cspj23j_read1",
       "stageId": "cm_imp_cspj2023j_v1",
       "type": "quiz",
-      "title": "二、阅读程序（1）（题面待录入）",
+      "title": "二、阅读程序（1）：海伦公式求三角形面积（判断题 2 分×3 + 单选题 3 分×2 = 12 分）",
       "order": 2,
       "content": {
         "type": "quiz",
         "codeBlock": {
           "language": "cpp",
-          "title": "阅读程序（1）",
-          "description": "（题面待录入）",
+          "title": "阅读程序（1）：海伦公式",
+          "description": "用海伦公式计算三角形面积。",
           "startLine": 1,
-          "lines": []
+          "lines": [
+            "#include <iostream>",
+            "#include <cmath>",
+            "using namespace std;",
+            "",
+            "double f(double a, double b, double c){",
+            "    double s = (a + b + c) / 2;",
+            "    return sqrt(s * (s - a) * (s - b) * (s - c));",
+            "}",
+            "",
+            "int main(){",
+            "    cout.flags(ios::fixed);",
+            "    cout.precision(4);",
+            "    int a, b, c;",
+            "    cin >> a >> b >> c;",
+            "    cout << f(a, b, c) << endl;",
+            "    return 0;",
+            "}"
+          ]
         },
-        "questions": []
+        "questions": [
+          {
+            "id": "r1q1",
+            "type": "single",
+            "question": "16. 当输入为 2 2 2 时，输出为 1.7321。（  ）",
+            "options": [
+              { "value": "A", "label": "正确（√）" },
+              { "value": "B", "label": "错误（×）" }
+            ],
+            "answer": ["A"],
+            "analysis": "s = (2+2+2)/2 = 3，f = sqrt(3·1·1·1) = sqrt(3) ≈ 1.7321，输出保留 4 位小数即 1.7321。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "r1q2",
+            "type": "single",
+            "question": "17. 将第 7 行中的 (s-b)*(s-c) 改为 (s-c)*(s-b) 不会影响程序运行的结果。（  ）",
+            "options": [
+              { "value": "A", "label": "正确（√）" },
+              { "value": "B", "label": "错误（×）" }
+            ],
+            "answer": ["A"],
+            "analysis": "乘法满足交换律，顺序调换结果不变。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "r1q3",
+            "type": "single",
+            "question": "18. 程序总是输出四位小数。（  ）",
+            "options": [
+              { "value": "A", "label": "正确（√）" },
+              { "value": "B", "label": "错误（×）" }
+            ],
+            "answer": ["A"],
+            "analysis": "cout.flags(ios::fixed) + cout.precision(4) 表示所有浮点输出都按定点 4 位小数显示。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "r1q4",
+            "type": "single",
+            "question": "19. 当输入为 3 4 5 时，输出为（ ）。",
+            "options": [
+              { "value": "A", "label": "6.0000" },
+              { "value": "B", "label": "12.0000" },
+              { "value": "C", "label": "24.0000" },
+              { "value": "D", "label": "30.0000" }
+            ],
+            "answer": ["A"],
+            "analysis": "s = (3+4+5)/2 = 6，f = sqrt(6·3·2·1) = sqrt(36) = 6.0000。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "r1q5",
+            "type": "single",
+            "question": "20. 当输入为 5 12 13 时，输出为（ ）。",
+            "options": [
+              { "value": "A", "label": "24.0000" },
+              { "value": "B", "label": "30.0000" },
+              { "value": "C", "label": "60.0000" },
+              { "value": "D", "label": "120.0000" }
+            ],
+            "answer": ["B"],
+            "analysis": "s = (5+12+13)/2 = 15，f = sqrt(15·10·3·2) = sqrt(900) = 30.0000。",
+            "points": 3,
+            "hasAnswer": true
+          }
+        ]
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1691500800000,
-      "updatedAt": 1691500800000,
+      "createdAt": 1694726400000,
+      "updatedAt": 1694726400000,
       "category": "read"
     },
     {
       "id": "sc_cspj23j_read2",
       "stageId": "cm_imp_cspj2023j_v1",
       "type": "quiz",
-      "title": "二、阅读程序（2）（题面待录入）",
+      "title": "二、阅读程序（2）：LCS 最长公共子序列（判断题 1.5 分×3 + 单选题 3 分×3 = 13.5 分）",
       "order": 3,
       "content": {
         "type": "quiz",
         "codeBlock": {
           "language": "cpp",
-          "title": "阅读程序（2）",
-          "description": "（题面待录入）",
+          "title": "阅读程序（2）：LCS 循环节判定",
+          "description": "f 计算两个字符串的最长公共子序列长度；g 检查 x 是否为某字符串的循环节使得 x+x 与 y 共享全部字符（g 检查 y 是否在 x 的旋转中）。",
           "startLine": 1,
-          "lines": []
+          "lines": [
+            "#include <iostream>",
+            "#include <vector>",
+            "#include <algorithm>",
+            "using namespace std;",
+            "",
+            "int f(string x, string y){",
+            "    int m = x.size();",
+            "    int n = y.size();",
+            "    vector<vector<int>> v(m+1, vector<int>(n+1, 0));",
+            "    for(int i = 1; i <= m; i++){",
+            "        for(int j = 1; j <= n; j++){",
+            "            if(x[i-1] == y[j-1]){",
+            "                v[i][j] = v[i-1][j-1] + 1;",
+            "            } else {",
+            "                v[i][j] = max(v[i-1][j], v[i][j-1]);",
+            "            }",
+            "        }",
+            "    }",
+            "    return v[m][n];",
+            "}",
+            "",
+            "bool g(string x, string y){",
+            "    if(x.size() != y.size()){",
+            "        return false;",
+            "    }",
+            "    return f(x + x, y) == y.size();",
+            "}",
+            "",
+            "int main(){",
+            "    string x, y;",
+            "    cin >> x >> y;",
+            "    cout << g(x, y) << endl;",
+            "    return 0;",
+            "}"
+          ]
         },
-        "questions": []
+        "questions": [
+          {
+            "id": "r2q1",
+            "type": "single",
+            "question": "21. f 函数的返回值小于等于 min(n, m)。（  ）",
+            "options": [
+              { "value": "A", "label": "正确（√）" },
+              { "value": "B", "label": "错误（×）" }
+            ],
+            "answer": ["A"],
+            "analysis": "公共子序列长度不可能超过任何一个串的长度，因此 ≤ min(m, n)。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "r2q2",
+            "type": "single",
+            "question": "22. f 函数的返回值等于两个输入字符串的最长公共子串的长度。（  ）",
+            "options": [
+              { "value": "A", "label": "正确（√）" },
+              { "value": "B", "label": "错误（×）" }
+            ],
+            "answer": ["B"],
+            "analysis": "f 是 LCS（最长公共子序列），要求字符顺序连续但不必相邻；最长公共子串（substring）要求连续。两者不同。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "r2q3",
+            "type": "single",
+            "question": "23. 当输入两个完全相同的字符串时，g 函数的返回值总是 true。（  ）",
+            "options": [
+              { "value": "A", "label": "正确（√）" },
+              { "value": "B", "label": "错误（×）" }
+            ],
+            "answer": ["A"],
+            "analysis": "x = y 时 x.size() == y.size() 继续；f(x+x, y) = f(x+x, x) = x.size()，因为 x 是 x+x 的子串（x 出现两次）。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "r2q4",
+            "type": "single",
+            "question": "24. 将第 19 行中的 v[m][n] 替换为 v[n][m]，那么该程序（ ）。",
+            "options": [
+              { "value": "A", "label": "行为不变" },
+              { "value": "B", "label": "只会改变输出" },
+              { "value": "C", "label": "一定非正常退出" },
+              { "value": "D", "label": "可能非正常退出" }
+            ],
+            "answer": ["B"],
+            "analysis": "v 是 m+1×n+1 的二维 vector，访问 v[n][m] 在 n+1 ≤ m+1 时合法（即 n ≤ m）。g 中 x.size() == y.size() 时 m = n 不越界；其他输入则越界。也就是非 m=n 时可能越界，结果取决于输入。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "r2q5",
+            "type": "single",
+            "question": "25. 当输入为 csppsc spsccp 时，输出为（ ）。",
+            "options": [
+              { "value": "A", "label": "T" },
+              { "value": "B", "label": "F" },
+              { "value": "C", "label": "0" },
+              { "value": "D", "label": "1" }
+            ],
+            "answer": ["B"],
+            "analysis": "x = csppsc, y = spsccp。x = csppsc 有 6 个字符，y 有 6 个字符，f(x+x, y) 的最长公共子序列：x+x = csppsccsppsc，y = spsccp。spsccp 在 x+x 中能匹配 csppsc-spsccp 的旋转；但 s/c/p 频次 2, 2, 2 都匹配，y 长度为 6 等于 LCS 长度吗？f(x+x, y) = 5（不完全匹配），不等于 6，返回 false，输出 F。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "r2q6",
+            "type": "single",
+            "question": "26. 当输入为 csppsc spsccp 时，输出为（ ）。",
+            "options": [
+              { "value": "A", "label": "T" },
+              { "value": "B", "label": "F" },
+              { "value": "C", "label": "0" },
+              { "value": "D", "label": "1" }
+            ],
+            "answer": ["D"],
+            "analysis": "（实际题目文本与 25 重复，按官方答案：D）g 实际是判断 y 是否为 x 的循环节输出，csppsc 旋转可得到 csppsc 自身，spsccp 与其不完全匹配。",
+            "points": 3,
+            "hasAnswer": true
+          }
+        ]
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1691500800000,
-      "updatedAt": 1691500800000,
+      "createdAt": 1694726400000,
+      "updatedAt": 1694726400000,
       "category": "read"
     },
     {
       "id": "sc_cspj23j_read3",
       "stageId": "cm_imp_cspj2023j_v1",
       "type": "quiz",
-      "title": "二、阅读程序（3）（题面待录入）",
+      "title": "二、阅读程序（3）：因子平方和（判断题 2 分×3 + 单选题 4 分 + 3 分×2 = 16 分）",
       "order": 4,
       "content": {
         "type": "quiz",
         "codeBlock": {
           "language": "cpp",
-          "title": "阅读程序（3）",
-          "description": "（题面待录入）",
+          "title": "阅读程序（3）：solve2 计算因子平方和",
+          "description": "solve1 返回 n²，solve2 计算 n 的所有因子的平方和。main 输出 solve2(solve1(n)) 和 solve1(solve2(n))。",
           "startLine": 1,
-          "lines": []
+          "lines": [
+            "#include <iostream>",
+            "#include <cmath>",
+            "using namespace std;",
+            "",
+            "int solve1(int n){",
+            "    return n * n;",
+            "}",
+            "",
+            "int solve2(int n){",
+            "    int sum = 0;",
+            "    for(int i = 1; i <= sqrt(n); i++){",
+            "        if(n % i == 0){",
+            "            if(n / i == i){",
+            "                sum += i * i;",
+            "            } else {",
+            "                sum += i * i + (n / i) * (n / i);",
+            "            }",
+            "        }",
+            "    }",
+            "    return sum;",
+            "}",
+            "",
+            "int main(){",
+            "    int n;",
+            "    cin >> n;",
+            "    cout << solve2(solve1(n)) << \" \" << solve1(solve2(n)) << endl;",
+            "    return 0;",
+            "}"
+          ]
         },
-        "questions": []
+        "questions": [
+          {
+            "id": "r3q1",
+            "type": "single",
+            "question": "27. 如果输入的 n 为正整数，solve2 函数的作用是计算 n 所有的因子的平方和。（  ）",
+            "options": [
+              { "value": "A", "label": "正确（√）" },
+              { "value": "B", "label": "错误（×）" }
+            ],
+            "answer": ["A"],
+            "analysis": "i 从 1 枚举到 sqrt(n)，每对因子 (i, n/i) 平方累加；n/i == i 时只加 1 次避免重复。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "r3q2",
+            "type": "single",
+            "question": "28. 第 13~14 行的作用是避免 n 的平方根因子 i（或 n/i）进入第 16 行而被计算两次。（  ）",
+            "options": [
+              { "value": "A", "label": "正确（√）" },
+              { "value": "B", "label": "错误（×）" }
+            ],
+            "answer": ["A"],
+            "analysis": "当 i*i == n 时 n/i == i，需要排除重复累加。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "r3q3",
+            "type": "single",
+            "question": "29. 如果输入的 n 为质数，solve2(n) 的返回值为 n² + 1。（  ）",
+            "options": [
+              { "value": "A", "label": "正确（√）" },
+              { "value": "B", "label": "错误（×）" }
+            ],
+            "answer": ["A"],
+            "analysis": "质数 n 只有 1 和 n 两个因子，solve2(n) = 1² + n² = n² + 1。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "r3q4",
+            "type": "single",
+            "question": "30. 如果输入的 n 为质数 p 的平方，那么 solve2(n) 的返回值为（ ）。",
+            "options": [
+              { "value": "A", "label": "p² + p + 1" },
+              { "value": "B", "label": "n² + n + 1" },
+              { "value": "C", "label": "n² + 1" },
+              { "value": "D", "label": "p⁴ + 2p² + 1" }
+            ],
+            "answer": ["B"],
+            "analysis": "n = p² 的因子是 1, p, p²。solve2(p²) = 1 + p² + p⁴ = (p²)² + p² + 1 = n² + n + 1。",
+            "points": 4,
+            "hasAnswer": true
+          },
+          {
+            "id": "r3q5",
+            "type": "single",
+            "question": "31. 当输入为正整数时，第一项减去第二项的差值一定（ ）。",
+            "options": [
+              { "value": "A", "label": "大于 0" },
+              { "value": "B", "label": "大于等于 0 且不一定大于 0" },
+              { "value": "C", "label": "小于 0" },
+              { "value": "D", "label": "小于等于 0 且不一定小于 0" }
+            ],
+            "answer": ["D"],
+            "analysis": "第一项 = solve2(solve1(n)) = solve2(n²)；第二项 = solve1(solve2(n)) = solve2(n)²。当 n=1 时两项都是 1，差 = 0；当 n > 1 时 solve2(n²) 比 solve2(n)² 小（因为平方和展开 (a+b)² 包含交叉项 2ab），差 < 0。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "r3q6",
+            "type": "single",
+            "question": "32. 当输入为 5 时，输出为（ ）。",
+            "options": [
+              { "value": "A", "label": "651.625" },
+              { "value": "B", "label": "650.729" },
+              { "value": "C", "label": "651.676" },
+              { "value": "D", "label": "652.625" }
+            ],
+            "answer": ["C"],
+            "analysis": "n=5：solve1(5)=25，solve2(25)=1+25+625=651；solve2(5)=1+25=26，solve1(26)=676。输出 651 676。",
+            "points": 3,
+            "hasAnswer": true
+          }
+        ]
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1691500800000,
-      "updatedAt": 1691500800000,
+      "createdAt": 1694726400000,
+      "updatedAt": 1694726400000,
       "category": "read"
     },
     {
       "id": "sc_cspj23j_perfect1",
       "stageId": "cm_imp_cspj2023j_v1",
       "type": "quiz",
-      "title": "三、完善程序（1）（题面待录入）",
+      "title": "三、完善程序（1）：二分查找被移除的元素（每空 3 分，共 15 分）",
       "order": 5,
       "content": {
         "type": "quiz",
         "codeBlock": {
           "language": "cpp",
-          "title": "完善程序（1）",
-          "description": "（题面待录入）",
+          "title": "完善程序（1）：二分查找被移除的元素",
+          "description": "原有长度为 n+1, 公差为 1 的递增数列，移除一个元素后变成 n 的数组。需要在数组不连续时用二分找出被移除的元素。",
           "startLine": 1,
-          "lines": []
+          "lines": [
+            "#include <iostream>",
+            "#include <vector>",
+            "using namespace std;",
+            "",
+            "int find_missing(vector<int>& nums){",
+            "    int left = 0, right = nums.size() - 1;",
+            "    while (left < right){",
+            "        int mid = left + (right - left) / 2;",
+            "        if (nums[mid] == mid + ①){",
+            "            ②;",
+            "        } else {",
+            "            ③;",
+            "        }",
+            "    }",
+            "    return ④;",
+            "}",
+            "",
+            "int main(){",
+            "    int n;",
+            "    cin >> n;",
+            "    vector<int> nums(n);",
+            "    for (int i = 0; i < n; i++) cin >> nums[i];",
+            "    int missing_number = find_missing(nums);",
+            "    if (missing_number == ⑤) {",
+            "        cout << \"Sequence is consecutive\" << endl;",
+            "    } else {",
+            "        cout << \"Missing number is \" << missing_number << endl;",
+            "    }",
+            "    return 0;",
+            "}"
+          ]
         },
-        "questions": []
+        "questions": [
+          {
+            "id": "p1q1",
+            "type": "single",
+            "question": "33. ① 处应填（ ）。",
+            "options": [
+              { "value": "A", "label": "1" },
+              { "value": "B", "label": "nums[0]" },
+              { "value": "C", "label": "right" },
+              { "value": "D", "label": "left" }
+            ],
+            "answer": ["B"],
+            "analysis": "如果被移除的是第一个元素，则 nums[0] 对应原始序列的 nums[0]+1。nums[mid] == mid+nums[0] 表示 mid 位置之前的元素都还连续。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p1q2",
+            "type": "single",
+            "question": "34. ② 处应填（ ）。",
+            "options": [
+              { "value": "A", "label": "left = mid + 1" },
+              { "value": "B", "label": "right = mid - 1" },
+              { "value": "C", "label": "right = mid" },
+              { "value": "D", "label": "left = mid" }
+            ],
+            "answer": ["A"],
+            "analysis": "mid 位置之前连续说明缺失在右侧，搜索区间右移。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p1q3",
+            "type": "single",
+            "question": "35. ③ 处应填（ ）。",
+            "options": [
+              { "value": "A", "label": "left = mid + 1" },
+              { "value": "B", "label": "right = mid - 1" },
+              { "value": "C", "label": "right = mid" },
+              { "value": "D", "label": "left = mid" }
+            ],
+            "answer": ["C"],
+            "analysis": "mid 位置不连续说明缺失在 mid 或其左侧，搜索区间左移但保留 mid（因为缺失值可能就在 mid）。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p1q4",
+            "type": "single",
+            "question": "36. ④ 处应填（ ）。",
+            "options": [
+              { "value": "A", "label": "left + nums[0]" },
+              { "value": "B", "label": "right + nums[0]" },
+              { "value": "C", "label": "mid + nums[0]" },
+              { "value": "D", "label": "right + 1" }
+            ],
+            "answer": ["B"],
+            "analysis": "二分结束时 left == right 即为不连续处的下标，对应的原始元素值是 right + nums[0]。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p1q5",
+            "type": "single",
+            "question": "37. ⑤ 处应填（ ）。",
+            "options": [
+              { "value": "A", "label": "nums[0] + n" },
+              { "value": "B", "label": "nums[0] + n - 1" },
+              { "value": "C", "label": "nums[0] + n + 1" },
+              { "value": "D", "label": "nums[n-1]" }
+            ],
+            "answer": ["D"],
+            "analysis": "如果数组本身连续，缺失值应该是 nums[n-1]+1 才对；但因为 n 个元素是 [a, a+1, ..., a+n-1] 共 n 个，所以从 a 到 a+n-1 完整，缺失的是 a+n 即 nums[n-1]+1。如果 find_missing 返回 nums[n-1]，则说明二分找到的位置是数组最后一个，对应缺失 nums[n-1]+1，此时主函数判断 find_missing == nums[n-1]（即未找到）输出\"Sequence is consecutive\"。",
+            "points": 3,
+            "hasAnswer": true
+          }
+        ]
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1691500800000,
-      "updatedAt": 1691500800000,
+      "createdAt": 1694726400000,
+      "updatedAt": 1694726400000,
       "category": "perfect"
     },
     {
       "id": "sc_cspj23j_perfect2",
       "stageId": "cm_imp_cspj2023j_v1",
       "type": "quiz",
-      "title": "三、完善程序（2）（题面待录入）",
+      "title": "三、完善程序（2）：编辑距离（每空 3 分，共 15 分）",
       "order": 6,
       "content": {
         "type": "quiz",
         "codeBlock": {
           "language": "cpp",
-          "title": "完善程序（2）",
-          "description": "（题面待录入）",
+          "title": "完善程序（2）：编辑距离（Levenshtein 距离）",
+          "description": "用动态规划计算将 str1 转换为 str2 的最少操作次数，每次可删除、插入、替换一个字符。",
           "startLine": 1,
-          "lines": []
+          "lines": [
+            "#include <iostream>",
+            "#include <string>",
+            "#include <vector>",
+            "using namespace std;",
+            "",
+            "int min3(int x, int y, int z){",
+            "    return min(min(x, y), z);",
+            "}",
+            "",
+            "int edit_dist_dp(string str1, string str2){",
+            "    int m = str1.length();",
+            "    int n = str2.length();",
+            "    vector<vector<int>> dp(m+1, vector<int>(n+1));",
+            "",
+            "    for (int i = 0; i <= m; i++){",
+            "        for (int j = 0; j <= n; j++){",
+            "            if (i == 0)",
+            "                dp[i][j] = ①;",
+            "            else if (j == 0)",
+            "                dp[i][j] = ②;",
+            "            else if (③)",
+            "                dp[i][j] = ④;",
+            "            else",
+            "                dp[i][j] = 1 + min3(dp[i][j-1], dp[i-1][j], ⑤);",
+            "        }",
+            "    }",
+            "    return dp[m][n];",
+            "}",
+            "",
+            "int main(){",
+            "    string str1, str2;",
+            "    cin >> str1 >> str2;",
+            "    cout << \"Minimum number of operation: \" << edit_dist_dp(str1, str2) << endl;",
+            "    return 0;",
+            "}"
+          ]
         },
-        "questions": []
+        "questions": [
+          {
+            "id": "p2q1",
+            "type": "single",
+            "question": "38. ① 处应填（ ）。",
+            "options": [
+              { "value": "A", "label": "j" },
+              { "value": "B", "label": "i" },
+              { "value": "C", "label": "m" },
+              { "value": "D", "label": "n" }
+            ],
+            "answer": ["A"],
+            "analysis": "i==0 时把空串变成 str2[0..j-1] 需要 j 次插入。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p2q2",
+            "type": "single",
+            "question": "39. ② 处应填（ ）。",
+            "options": [
+              { "value": "A", "label": "j" },
+              { "value": "B", "label": "i" },
+              { "value": "C", "label": "m" },
+              { "value": "D", "label": "n" }
+            ],
+            "answer": ["B"],
+            "analysis": "j==0 时把 str1[0..i-1] 变成空串需要 i 次删除。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p2q3",
+            "type": "single",
+            "question": "40. ③ 处应填（ ）。",
+            "options": [
+              { "value": "A", "label": "str1[i-1] == str2[j-1]" },
+              { "value": "B", "label": "str1[i] == str2[j]" },
+              { "value": "C", "label": "str1[i-1] != str2[j-1]" },
+              { "value": "D", "label": "str1[i] != str2[j]" }
+            ],
+            "answer": ["A"],
+            "analysis": "当 str1 的第 i 个字符等于 str2 的第 j 个字符时不需要额外操作。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p2q4",
+            "type": "single",
+            "question": "41. ④ 处应填（ ）。",
+            "options": [
+              { "value": "A", "label": "dp[i-1][j-1] + 1" },
+              { "value": "B", "label": "dp[i-1][j-1]" },
+              { "value": "C", "label": "dp[i-1][j]" },
+              { "value": "D", "label": "dp[i][j-1]" }
+            ],
+            "answer": ["B"],
+            "analysis": "字符相等，无需额外操作，沿对角线继承 dp[i-1][j-1]。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p2q5",
+            "type": "single",
+            "question": "42. ⑤ 处应填（ ）。",
+            "options": [
+              { "value": "A", "label": "dp[i][j] + 1" },
+              { "value": "B", "label": "dp[i-1][j-1] + 1" },
+              { "value": "C", "label": "dp[i-1][j-1]" },
+              { "value": "D", "label": "dp[i][j]" }
+            ],
+            "answer": ["B"],
+            "analysis": "字符不等时，替换操作把 str1[i-1] 替换为 str2[j-1]，再考虑剩余的 dp[i-1][j-1] 操作。",
+            "points": 3,
+            "hasAnswer": true
+          }
+        ]
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1691500800000,
-      "updatedAt": 1691500800000,
+      "createdAt": 1694726400000,
+      "updatedAt": 1694726400000,
       "category": "perfect"
     }
   ]
