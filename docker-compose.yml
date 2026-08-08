@@ -69,8 +69,17 @@ services:
     # `docker cp`。SQLite db 仍然落在 named volume 上，避免
     # 宿主用户写权限问题（Next.js 在容器内跑在非 root，写
     # 宿主机 bind 的 db 容易 EACCES）。
+    #
+    # Bind mount `./frontend/public` → `/app/public`:
+    # 静态资源（图片 / PDF / 模型 / favicon 等）直接同步宿主机
+    # git 工作区。换图/CSP 难度地图/打印 PDF 等不再需要
+    # `git add + push + docker build`，直接覆盖文件后
+    # `docker compose restart frontend` 即可（5 秒生效）。
+    # 注意：替换 `next.config.js` 里通过 images.remotePatterns
+    # 引用的远程域名资源不在本 volume 范围内。
     volumes:
       - ./frontend/data/classrooms:/app/data/classrooms
+      - ./frontend/public:/app/public
       - studymate-frontend-data:/app/data
     networks:
       - studymate-net
