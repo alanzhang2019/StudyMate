@@ -38,6 +38,7 @@ import { auth } from '@/auth';
 import { ExpandChapterList } from './ExpandChapterList';
 import { Leaderboard } from '@/components/leaderboard';
 import { PlacementBanner } from '@/components/csp-lecture/PlacementBanner';
+import { LectureGroup } from '@/components/csp-lecture/lecture-group';
 import { formatDateBeijing } from '@/lib/utils/date';
 
 export const dynamic = 'force-dynamic';
