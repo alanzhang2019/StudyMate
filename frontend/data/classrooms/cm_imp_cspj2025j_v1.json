@@ -5,7 +5,7 @@
   "stage": {
     "id": "cm_imp_cspj2025j_v1",
     "name": "2025年普及组CSP-J初赛真题卷",
-    "description": "2025年CCF非专业级别软件能力认证第一轮（CSP-J1）入门级C++语言试题完整真题，包含单项选择题15道、阅读程序3道、完善程序2道，共43题，总分100.5分。",
+    "description": "2025年CCF非专业级别软件能力认证第一轮（CSP-J1）入门级C++语言试题完整真题，包含单项选择题15道、阅读程序3道、完善程序2道，共43题，总分100分。",
     "languageDirective": "zh-CN",
     "style": "tutor",
     "createdAt": 1753728000000,
@@ -339,7 +339,7 @@
             ],
             "answer": ["A"],
             "analysis": "当 n=2 时，最内层循环 k 从 j+1=3 开始，不满足 k≤2，循环不进，因此第 16 行的 if 判断不会执行。",
-            "points": 1.5,
+            "points": 1,
             "hasAnswer": true
           },
           {
@@ -410,7 +410,7 @@
             ],
             "answer": ["A"],
             "analysis": "gcd(36, 42) = gcd(42, 36) = gcd(36, 6) = gcd(6, 0) = 6。",
-            "points": 3,
+            "points": 4,
             "hasAnswer": true
           }
         ],
@@ -474,7 +474,7 @@
             ],
             "answer": ["A"],
             "analysis": "排序去重后序列为 1 2 3，满足极差 ≤1 的最少分组数为 2（{1,2} 一组，{3} 单独一组）。",
-            "points": 1.5,
+            "points": 1,
             "hasAnswer": true
           },
           {
@@ -564,7 +564,7 @@
       "id": "sc_cspj25j_read3",
       "stageId": "cm_imp_cspj2025j_v1",
       "type": "quiz",
-      "title": "四、阅读程序（3）：最长公共子序列 LCS（判断题 1.5 分 ×3 + 单选题 3 分 ×3 = 13.5 分）",
+      "title": "四、阅读程序（3）：最长公共子序列 LCS（判断题 ×3 + 单选题 ×3，共 13 分）",
       "order": 4,
       "content": {
         "type": "quiz",
@@ -614,7 +614,7 @@
             ],
             "answer": ["A"],
             "analysis": "序列 a=[1,2,3,4] 与序列 b=[1,3,2,2] 的最长公共子序列为 (1,2) 或 (1,3)，长度为 2。",
-            "points": 1.5,
+            "points": 1,
             "hasAnswer": true
           },
           {
