@@ -62,7 +62,15 @@ services:
     # after this change is a one-time migration: existing in-container
     # data is copied out to the new volume on the server (see deploy
     # runbook).
+    #
+    # Bind mount `./frontend/data/classrooms` → `/app/data/classrooms`:
+    # 课件 JSON 直接同步宿主机 git 工作区。新增/改名课件后只需
+    # `git pull && docker compose restart frontend`，不再需要
+    # `docker cp`。SQLite db 仍然落在 named volume 上，避免
+    # 宿主用户写权限问题（Next.js 在容器内跑在非 root，写
+    # 宿主机 bind 的 db 容易 EACCES）。
     volumes:
+      - ./frontend/data/classrooms:/app/data/classrooms
       - studymate-frontend-data:/app/data
     networks:
       - studymate-net
