@@ -190,9 +190,6 @@ export default function LandingPage() {
               <Link href="/parent/dashboard" className="hover:text-slate-900">
                 我是父母
               </Link>
-              <Link href="/admin/login" className="hover:text-slate-900">
-                管理后台
-              </Link>
             </div>
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-3 border-t border-slate-200/70 text-xs text-slate-500">

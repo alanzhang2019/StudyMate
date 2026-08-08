@@ -29,7 +29,7 @@ import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { Printer } from 'lucide-react';
+import { Printer, Trophy, ExternalLink, ArrowRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CLASSROOMS_DIR } from '@/lib/server/classroom-storage';
@@ -228,6 +228,23 @@ export default async function CspLecturePage() {
               <Link href="/student/home">我的学习</Link>
             </Button>
           )}
+          <a
+            href="https://oi.aijiangti.cn"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold
+                       text-white bg-gradient-to-r from-fuchsia-500 via-purple-500
+                       to-indigo-500 hover:from-fuchsia-600 hover:via-purple-600
+                       hover:to-indigo-600 rounded-lg px-3 py-1.5
+                       shadow-md hover:shadow-lg
+                       ring-1 ring-purple-300/60
+                       transition-all"
+            aria-label="打开 OI 题库（新窗口）"
+          >
+            <Trophy className="w-3.5 h-3.5" aria-hidden="true" />
+            OI 题库
+            <ExternalLink className="w-3 h-3 opacity-80" aria-hidden="true" />
+          </a>
           <span className="text-xs text-slate-500 hidden sm:inline">
             {userName}
           </span>
@@ -242,6 +259,69 @@ export default async function CspLecturePage() {
           </Button>
         </div>
       </nav>
+
+      {/*
+       * OI 题库横幅 — 醒目紫色渐变条, 放在页面第二屏
+       * （地图下方、hero 上方）告诉学生"想要刷题来 oi.aijiangti.cn"。
+       * 选用 gradient + trophy 图标 + "限时免费"角标, 在视觉权重上
+       * 高于其他普通链接, 是本页面次级 CTA。
+       */}
+      <section className="max-w-6xl mx-auto px-6 pt-4">
+        <a
+          href="https://oi.aijiangti.cn"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group block relative overflow-hidden rounded-2xl
+                     bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600
+                     px-6 py-5 sm:px-8 sm:py-6
+                     shadow-lg hover:shadow-2xl
+                     ring-1 ring-white/20
+                     transition-all hover:-translate-y-0.5"
+        >
+          {/* 装饰光晕 — 右上角斜向光斑, 让横幅不显得呆板 */}
+          <div
+            className="pointer-events-none absolute -top-12 -right-10 w-64 h-64
+                       rounded-full bg-white/15 blur-2xl
+                       group-hover:bg-white/25 transition-colors"
+            aria-hidden="true"
+          />
+          <div className="relative flex items-center gap-4 flex-wrap">
+            <div
+              className="shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl
+                         bg-white/15 backdrop-blur flex items-center justify-center
+                         ring-1 ring-white/30"
+            >
+              <Trophy className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-200" aria-hidden="true" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-lg sm:text-xl font-bold text-white">
+                  CSP 配套题库 · oi.aijiangti.cn
+                </h2>
+                <span
+                  className="text-[10px] font-bold uppercase tracking-wider
+                             bg-yellow-300 text-purple-900 rounded-full
+                             px-2 py-0.5"
+                >
+                  限时免费
+                </span>
+              </div>
+              <p className="mt-1 text-sm text-white/85 leading-relaxed">
+                历年 OI 真题 + 按知识点分组的练习题，做完精讲和真题后直接去刷题巩固。
+              </p>
+            </div>
+            <div
+              className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold
+                         text-purple-700 bg-white hover:bg-yellow-50
+                         rounded-lg px-4 py-2 shadow-sm
+                         group-hover:translate-x-0.5 transition-transform"
+            >
+              立即打开
+              <ArrowRight className="w-4 h-4" aria-hidden="true" />
+            </div>
+          </div>
+        </a>
+      </section>
 
       {/*
        * CSP 晋级难度地图 — 放在页面最开头, 让新学生先看到自己所在省份
