@@ -117,11 +117,12 @@ export function combinedLevel(answers: PlacementAnswers): CspLevel {
 
 /**
  * Hard-coded 3-classroom recommendations used when the LLM
- * call fails or times out. The IDs here are the two
+ * call fails or times out. The IDs here are the three
  * `csp-lecture`-collection anchor classrooms that have been
  * around since 2026-07-26:
  *   - cm_imp_a39914d3af5c64d6  CSP初赛要点精讲 (基础入门)
  *   - cm_imp_cspj2024j_v1       2024年普及组CSP-J初赛真题卷 (真题)
+ *   - cm_imp_cspj2025j_v1       2025年普及组CSP-J初赛真题卷 (真题)
  *
  * This is only consulted by `filterToValidIds` and the
  * level-based fallback in `scoreClassroomsForLevel` when the
@@ -132,8 +133,12 @@ export function combinedLevel(answers: PlacementAnswers): CspLevel {
  */
 export const FALLBACK_RECOMMENDATIONS: Record<CspLevel, string[]> = {
   beginner: ['cm_imp_a39914d3af5c64d6'],
-  intermediate: ['cm_imp_a39914d3af5c64d6', 'cm_imp_cspj2024j_v1'],
-  advanced: ['cm_imp_cspj2024j_v1'],
+  intermediate: [
+    'cm_imp_a39914d3af5c64d6',
+    'cm_imp_cspj2024j_v1',
+    'cm_imp_cspj2025j_v1',
+  ],
+  advanced: ['cm_imp_cspj2024j_v1', 'cm_imp_cspj2025j_v1'],
 };
 
 /**
