@@ -903,6 +903,20 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
     [updateAnswersCache],
   );
 
+  // Per-scene "submit-sent" dedup set. The post-grading useEffect
+  // below writes the per-question results to the server exactly
+  // once per (sceneId, grading cycle) pair; handleSubmit deletes
+  // the current sceneId from the set so a re-submit in full-paper
+  // mode goes through. Keying on sceneId (rather than a single
+  // boolean) means switching between scenes never accidentally
+  // latches a sibling scene's submit state — which was the
+  // root cause of "随堂练习 answers never make it into
+  // csp_quiz_submissions, so 错题本 only shows 真题卷 mistakes".
+  // Declared up here (before handleSubmit references it) so the
+  // useCallback closure below resolves at call time, not at hook
+  // declaration time.
+  const submitSentForScene = useRef<Set<string>>(new Set());
+
   const handleSubmit = useCallback(() => {
     setPhase('grading');
     // Reset the "submitted to server" guard so the post-grading
@@ -910,7 +924,15 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
     // scenes (which stay in `answering` instead of transitioning
     // to `reviewing`) would silently skip the server push and the
     // student's answers would never make it to csp_quiz_submissions.
-    quizSubmitSentRef.current = false;
+    //
+    // Note: the dedup gate is now a `Set<sceneId>` rather than a
+    // single boolean, so we need to delete THIS sceneId from the
+    // set so a re-submit (or a re-grade in full-paper mode where
+    // grading runs in-place) goes through. Other scenes' sent
+    // state is preserved, so a student who already submitted scene
+    // A will not re-submit scene A if handleSubmit is somehow
+    // called twice for that scene.
+    submitSentForScene.current.delete(sceneId);
     clearAnswersCache();
     writeSubmittedAnswers(sceneId, answers);
   }, [clearAnswersCache, answers, sceneId]);
@@ -986,11 +1008,12 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
   // the final "交卷" only saw the last scene's data and the
   // 6-scene aggregator in /api/csp-quiz/finalize returned
   // a partial (or empty) score.
-  const quizSubmitSentRef = useRef(false);
+  // (submitSentForScene is declared up near handleSubmit so the
+  // closure resolves before this useEffect runs.)
   useEffect(() => {
     if (results.length === 0) return;
-    if (quizSubmitSentRef.current) return;
-    quizSubmitSentRef.current = true;
+    if (submitSentForScene.current.has(sceneId)) return;
+    submitSentForScene.current.add(sceneId);
     // Build a lookup of questionId → points so the submit payload
     // can carry per-question point values. The CSP paper has
     // questions worth 1.5 / 2 / etc. points (not always 1), and
@@ -1021,7 +1044,8 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
     void cspProgress.reportSceneComplete(sceneId);
     // intentionally no deps on `cspProgress` — the hook
     // returns a stable object keyed on classroomId, and we
-    // only want this to fire once per grading cycle.
+    // only want this to fire once per (sceneId, grading-cycle)
+    // pair, not on every parent re-render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, results, sceneId, questions]);
 
