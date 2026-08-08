@@ -187,6 +187,49 @@ const nextConfig: NextConfig = {
     const frameAncestors = extraAncestors ? `'self' ${extraAncestors}` : "'self'";
 
     return [
+      // 课程资源永久不缓存。
+      //
+      // 原因: 运营会通过 1Panel 文件管理器或 docker cp 直接替换
+      // /home/ubuntu/studymate/frontend/public/ 下的 PDF / 图片, 但
+      // 浏览器对 PDF 的本地缓存非常激进 (新窗口打开的 PDF 走独立
+      // context, Ctrl+Shift+R 强刷也不清). 加上 `Cache-Control:
+      // no-cache, must-revalidate` 之后, 浏览器每次都带
+      // If-Modified-Since / If-None-Match 头验证, 服务器
+      // Last-Modified 变了就回 200 + 新内容.
+      //
+      // `no-cache` 而不是 `no-store` 的好处: 浏览器保留本地副本,
+      // 没改时走 304 Not Modified 不重新下载整个 1.8 MB PDF.
+      // 每次访问的开销 = 1 个 HEAD 验证, 可忽略.
+      {
+        source: '/csp-j-2024-original.pdf',
+        headers: [
+          { key: 'Cache-Control', value: 'no-cache, must-revalidate' },
+        ],
+      },
+      {
+        source: '/csp-j-2025-original.pdf',
+        headers: [
+          { key: 'Cache-Control', value: 'no-cache, must-revalidate' },
+        ],
+      },
+      {
+        source: '/csp-difficulty-map.png',
+        headers: [
+          { key: 'Cache-Control', value: 'no-cache, must-revalidate' },
+        ],
+      },
+      {
+        source: '/csp-difficulty-map-v2.png',
+        headers: [
+          { key: 'Cache-Control', value: 'no-cache, must-revalidate' },
+        ],
+      },
+      {
+        source: '/:path(csp-*.{pdf,png,jpg,jpeg,svg,webp})',
+        headers: [
+          { key: 'Cache-Control', value: 'no-cache, must-revalidate' },
+        ],
+      },
       {
         source: '/(.*)',
         headers: [
