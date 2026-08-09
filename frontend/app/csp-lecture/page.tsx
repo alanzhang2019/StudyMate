@@ -126,16 +126,19 @@ async function listCspLectures(): Promise<Lecture[]> {
       // skip corrupted file
     }
   }
-  // Sort by the lecture's display order. We try three patterns in
+  // Sort by the lecture's display order. We try four patterns in
   // priority order:
   //   1. Leading "N、" or "N," at the start of the title (the author
   //      has been hand-numbering the CSP-J/S curriculum with these
   //      prefixes — most authoritative).
   //   2. "精讲N" embedded in the middle of the title (fallback for
   //      titles that haven't been re-numbered yet).
-  //   3. Anything else (e.g. "CSP-J/S初赛题型一览") goes to the end
-  //      with a stable secondary sort by title so the layout doesn't
-  //      reshuffle on every render.
+  //   3. "YYYY年" at the start of the title (used by 21 套真
+  //      题卷 "2023年普及组CSP-J初赛真题卷" etc — extracts the
+  //      year as the sort key so 真题卷按年份升序排列).
+  //   4. Anything else (e.g. "CSP-J/S初赛题型一览") goes to the
+  //      end with a stable secondary sort by title so the layout
+  //      doesn't reshuffle on every render.
   //
   // Earlier we used `localeCompare(..., { numeric: true })` which
   // collated "网络" before "基础2" in zh-CN, putting 精讲3 ahead
@@ -146,12 +149,20 @@ async function listCspLectures(): Promise<Lecture[]> {
     if (leading) return parseInt(leading[1], 10);
     const inline = title.match(/精讲\s*(\d+)/);
     if (inline) return parseInt(inline[1], 10);
+    const yearPrefix = title.match(/^(\d{4})\s*年/);
+    if (yearPrefix) return parseInt(yearPrefix[1], 10);
     return Number.POSITIVE_INFINITY;
   };
   items.sort((a, b) => {
     const ao = titleOrder(a.title ?? '');
     const bo = titleOrder(b.title ?? '');
     if (ao !== bo) return ao - bo;
+    // Same primary key (年份) — break ties by ID so
+    // `cspj…j` (普及组 J) 排在 `csps…s` (提高组 S) 之前.
+    // 这样 21 套真题按年份升序, 同一年 J 在前 S 在后.
+    const aIsJ = a.id.startsWith('cm_imp_cspj') ? 0 : 1;
+    const bIsJ = b.id.startsWith('cm_imp_cspj') ? 0 : 1;
+    if (aIsJ !== bIsJ) return aIsJ - bIsJ;
     return (a.title ?? '').localeCompare(b.title ?? '', 'zh-CN');
   });
   // DEBUG: log the resolved order so we can verify the sort is
@@ -197,10 +208,11 @@ export default async function CspLecturePage() {
   // building blocks, 真题 = timed practice.
   //
   // Bucket assignment is ID-driven rather than title-driven so
-  // renames don't break the grouping.
+  // renames don't break the grouping. Both J (`cspj…j`) and S
+  // (`csps…s`) 真题 land in the `paper` bucket.
   type Bucket = 'primer' | 'paper';
   const bucketOf = (id: string): Bucket =>
-    id.startsWith('cm_imp_cspj') ? 'paper' : 'primer';
+    id.startsWith('cm_imp_cspj') || id.startsWith('cm_imp_csps') ? 'paper' : 'primer';
   const primerLectures = lectures.filter((l) => bucketOf(l.id) === 'primer');
   const paperLectures = lectures.filter((l) => bucketOf(l.id) === 'paper');
 
@@ -228,16 +240,45 @@ export default async function CspLecturePage() {
   }
   // 顶层 await —— Next.js 16 的 RSC 支持 async server components,
   // 这里先把所有 PDF 链接解析完, 再渲染下面的 list.
-  const [pdf2023, pdf2024, pdf2025] = await Promise.all([
-    pdfHrefFor('csp-j-2023-original.pdf'),
-    pdfHrefFor('csp-j-2024-original.pdf'),
-    pdfHrefFor('csp-j-2025-original.pdf'),
-  ]);
-  const paperPdfHref: Record<string, string> = {
-    cm_imp_cspj2023j_v1: pdf2023,
-    cm_imp_cspj2024j_v1: pdf2024,
-    cm_imp_cspj2025j_v1: pdf2025,
+  //
+  // 21 套真题 (J 组 9 套 2014-2022 + S 组 12 套 2014-2025) 一并解析
+  // 出带 `?v=<mtimeMs>` cache-buster 的 href。文件名规则:
+  //   csp-j-YYYY-original.pdf  /  csp-s-YYYY-original.pdf
+  const paperPdfFileMap: Record<string, string> = {
+    // J 组 2014-2022 + 2023/2024/2025 (沿用旧名)
+    cm_imp_cspj2014j_v1: 'csp-j-2014-original.pdf',
+    cm_imp_cspj2015j_v1: 'csp-j-2015-original.pdf',
+    cm_imp_cspj2016j_v1: 'csp-j-2016-original.pdf',
+    cm_imp_cspj2017j_v1: 'csp-j-2017-original.pdf',
+    cm_imp_cspj2018j_v1: 'csp-j-2018-original.pdf',
+    cm_imp_cspj2019j_v1: 'csp-j-2019-original.pdf',
+    cm_imp_cspj2020j_v1: 'csp-j-2020-original.pdf',
+    cm_imp_cspj2021j_v1: 'csp-j-2021-original.pdf',
+    cm_imp_cspj2022j_v1: 'csp-j-2022-original.pdf',
+    cm_imp_cspj2023j_v1: 'csp-j-2023-original.pdf',
+    cm_imp_cspj2024j_v1: 'csp-j-2024-original.pdf',
+    cm_imp_cspj2025j_v1: 'csp-j-2025-original.pdf',
+    // S 组 2014-2025
+    cm_imp_csps2014s_v1: 'csp-s-2014-original.pdf',
+    cm_imp_csps2015s_v1: 'csp-s-2015-original.pdf',
+    cm_imp_csps2016s_v1: 'csp-s-2016-original.pdf',
+    cm_imp_csps2017s_v1: 'csp-s-2017-original.pdf',
+    cm_imp_csps2018s_v1: 'csp-s-2018-original.pdf',
+    cm_imp_csps2019s_v1: 'csp-s-2019-original.pdf',
+    cm_imp_csps2020s_v1: 'csp-s-2020-original.pdf',
+    cm_imp_csps2021s_v1: 'csp-s-2021-original.pdf',
+    cm_imp_csps2022s_v1: 'csp-s-2022-original.pdf',
+    cm_imp_csps2023s_v1: 'csp-s-2023-original.pdf',
+    cm_imp_csps2024s_v1: 'csp-s-2024-original.pdf',
+    cm_imp_csps2025s_v1: 'csp-s-2025-original.pdf',
   };
+  const paperPdfEntries = await Promise.all(
+    Object.entries(paperPdfFileMap).map(async ([id, filename]) => [
+      id,
+      await pdfHrefFor(filename),
+    ]),
+  );
+  const paperPdfHref: Record<string, string> = Object.fromEntries(paperPdfEntries);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">

@@ -1111,12 +1111,37 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
 
   // Full-paper mode: true for the 真题卷s that have the
   // 交卷" (finalize) flow enabled. As more 真题卷s are added
-  // (cm_imp_cspj2023j_v1, cm_imp_cspj2024s_v1, etc), they
+  // (cm_imp_cspj2023j_v1, cm_imp_csps2014s_v1, etc), they
   // should be appended here so the 交卷 button renders.
+  //
+  // 当前覆盖 21 套 (J 组 9 + S 组 12 + 既有 3 套 J=2023/24/25):
+  //   J 组: 2014j ~ 2025j
+  //   S 组: 2014s ~ 2025s
   const FULL_PAPER_CLASSROOM_IDS = new Set<string>([
+    'cm_imp_cspj2014j_v1',
+    'cm_imp_cspj2015j_v1',
+    'cm_imp_cspj2016j_v1',
+    'cm_imp_cspj2017j_v1',
+    'cm_imp_cspj2018j_v1',
+    'cm_imp_cspj2019j_v1',
+    'cm_imp_cspj2020j_v1',
+    'cm_imp_cspj2021j_v1',
+    'cm_imp_cspj2022j_v1',
     'cm_imp_cspj2023j_v1',
     'cm_imp_cspj2024j_v1',
     'cm_imp_cspj2025j_v1',
+    'cm_imp_csps2014s_v1',
+    'cm_imp_csps2015s_v1',
+    'cm_imp_csps2016s_v1',
+    'cm_imp_csps2017s_v1',
+    'cm_imp_csps2018s_v1',
+    'cm_imp_csps2019s_v1',
+    'cm_imp_csps2020s_v1',
+    'cm_imp_csps2021s_v1',
+    'cm_imp_csps2022s_v1',
+    'cm_imp_csps2023s_v1',
+    'cm_imp_csps2024s_v1',
+    'cm_imp_csps2025s_v1',
   ]);
   const isFullPaper = FULL_PAPER_CLASSROOM_IDS.has(classroomId);
 
