@@ -4,12 +4,12 @@
   "collection": "csp-lecture",
   "stage": {
     "id": "cm_imp_cspj2015j_v1",
-    "name": "2015年普及组CSP-J初赛真题卷",
-    "description": "2015年CCF NOIP 普及组初赛完整真题（PDF原件已上传至公共目录），共15道单项选择题、阅读程序题与完善程序题，总分100分。本卷题面与答案解析待补充，请参考 PDF 文档填写。",
+    "name": "2015年普及组NOIP初赛真题卷",
+    "description": "2015年CCF NOIP普及组初赛完整真题（第二十一届全国青少年信息学奥林匹克联赛初赛），共单项选择题20道（30分）、问题求解2题（10分）、阅读程序写结果4题（32分）、完善程序2题（28分），总分100分。",
     "languageDirective": "zh-CN",
     "style": "tutor",
-    "createdAt": 1786227990338,
-    "updatedAt": 1786227990338,
+    "createdAt": 1786243608578,
+    "updatedAt": 1786243608578,
     "generatedAgentConfigs": [
       {
         "id": "imp_agent_cspj15j_0",
@@ -33,8 +33,8 @@
     "agentIds": [],
     "scoreBreakdown": {
       "choice": 30,
-      "read": 40,
-      "perfect": 30
+      "read": 42,
+      "perfect": 28
     }
   },
   "scenes": [
@@ -42,11 +42,592 @@
       "id": "sc_cspj15j_choice",
       "stageId": "cm_imp_cspj2015j_v1",
       "type": "quiz",
-      "title": "一、单项选择题（共15题，每题2分，共计30分）",
+      "title": "一、单项选择题（共 20 题，每题 1.5 分，共计 30 分）",
       "order": 1,
       "content": {
         "type": "quiz",
-        "questions": [],
+        "questions": [
+          {
+            "id": "q1",
+            "type": "single",
+            "question": "1. 1MB 等于（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "1000 字节"
+              },
+              {
+                "value": "B",
+                "label": "1024 字节"
+              },
+              {
+                "value": "C",
+                "label": "1000 × 1000 字节"
+              },
+              {
+                "value": "D",
+                "label": "1024 × 1024 字节"
+              }
+            ],
+            "answer": [
+              "D"
+            ],
+            "analysis": "1MB = 1024 × 1024 = 2^20 字节。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q2",
+            "type": "single",
+            "question": "2. 在 PC 机中，PENTIUM（奔腾）、酷睿、赛扬等是指（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "生产厂家名称"
+              },
+              {
+                "value": "B",
+                "label": "硬盘的型号"
+              },
+              {
+                "value": "C",
+                "label": "CPU 的型号"
+              },
+              {
+                "value": "D",
+                "label": "显示器的型号"
+              }
+            ],
+            "answer": [
+              "C"
+            ],
+            "analysis": "这些都是 Intel 公司的 CPU 型号。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q3",
+            "type": "single",
+            "question": "3. 操作系统的作用是（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "把源程序译成目标程序"
+              },
+              {
+                "value": "B",
+                "label": "便于进行数据管理"
+              },
+              {
+                "value": "C",
+                "label": "控制和管理系统资源"
+              },
+              {
+                "value": "D",
+                "label": "实现硬件之间的连接"
+              }
+            ],
+            "answer": [
+              "C"
+            ],
+            "analysis": "OS 的核心作用是控制和管理系统资源。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q4",
+            "type": "single",
+            "question": "4. 在计算机内部用来传送、存贮、加工处理的数据或指令都是以（ ）形式进行的。",
+            "options": [
+              {
+                "value": "A",
+                "label": "二进制码"
+              },
+              {
+                "value": "B",
+                "label": "八进制码"
+              },
+              {
+                "value": "C",
+                "label": "十进制码"
+              },
+              {
+                "value": "D",
+                "label": "智能拼音码"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "计算机内部一切数据/指令均以二进制形式表示。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q5",
+            "type": "single",
+            "question": "5. 下列说法正确的是（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "CPU 的主要任务是执行数据运算和程序控制"
+              },
+              {
+                "value": "B",
+                "label": "存储器具有记忆能力，其中信息任何时候都不会丢失"
+              },
+              {
+                "value": "C",
+                "label": "两个显示器屏幕尺寸相同，则它们的分辨率必定相同"
+              },
+              {
+                "value": "D",
+                "label": "个人用户只能使用 Wifi 的方式连接到 Internet"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "B 错（RAM 断电丢失）；C 错（尺寸相同分辨率可以不同）；D 错（还有有线等）。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q6",
+            "type": "single",
+            "question": "6. 二进制数 00100100 和 00010100 的和是（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "00101000"
+              },
+              {
+                "value": "B",
+                "label": "01110011"
+              },
+              {
+                "value": "C",
+                "label": "01000100"
+              },
+              {
+                "value": "D",
+                "label": "00111000"
+              }
+            ],
+            "answer": [
+              "D"
+            ],
+            "analysis": "00100100 (36) + 00010100 (20) = 56 = 00111000。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q7",
+            "type": "single",
+            "question": "7. 与二进制小数 0.1 相等的十六进制数是（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "0.8"
+              },
+              {
+                "value": "B",
+                "label": "0.4"
+              },
+              {
+                "value": "C",
+                "label": "0.2"
+              },
+              {
+                "value": "D",
+                "label": "0.1"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "二进制 0.1 = 1/2，十六进制 0.8 = 8/16 = 1/2。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q8",
+            "type": "single",
+            "question": "8. 所谓的\"中断\"是指（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "操作系统随意停止一个程序的运行"
+              },
+              {
+                "value": "B",
+                "label": "当出现需要时，CPU 暂时停止当前程序的执行转而执行处理新情况的过程"
+              },
+              {
+                "value": "C",
+                "label": "因停机而停止一个程序的运行"
+              },
+              {
+                "value": "D",
+                "label": "电脑死机"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "中断是 CPU 暂停当前任务去处理突发事件，处理完后返回继续。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q9",
+            "type": "single",
+            "question": "9. 计算机病毒是（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "通过计算机传播的危害人体健康的一种病毒"
+              },
+              {
+                "value": "B",
+                "label": "人为制造的能够侵入计算机系统并给计算机带来故障的程序或指令集合"
+              },
+              {
+                "value": "C",
+                "label": "一种由于计算机元器件老化而产生的对生态环境有害的物质"
+              },
+              {
+                "value": "D",
+                "label": "利用计算机的海量高速运算能力而研制出来的用于疾病预防的新型病毒"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "计算机病毒是人为编制的破坏性程序。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q10",
+            "type": "single",
+            "question": "10. FTP 可以用于（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "远程传输文件"
+              },
+              {
+                "value": "B",
+                "label": "发送电子邮件"
+              },
+              {
+                "value": "C",
+                "label": "浏览网页"
+              },
+              {
+                "value": "D",
+                "label": "网上聊天"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "FTP (File Transfer Protocol) 用于文件传输。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q11",
+            "type": "single",
+            "question": "11. 下面哪种软件不属于即时通信软件（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "QQ"
+              },
+              {
+                "value": "B",
+                "label": "MSN"
+              },
+              {
+                "value": "C",
+                "label": "微信"
+              },
+              {
+                "value": "D",
+                "label": "P2P"
+              }
+            ],
+            "answer": [
+              "D"
+            ],
+            "analysis": "P2P 是一种网络架构（点对点），不是具体即时通信软件。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q12",
+            "type": "single",
+            "question": "12. 6 个顶点的连通图的最小生成树，其边数为（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "6"
+              },
+              {
+                "value": "B",
+                "label": "5"
+              },
+              {
+                "value": "C",
+                "label": "7"
+              },
+              {
+                "value": "D",
+                "label": "4"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "n 个顶点的连通图生成树边数 = n-1 = 5。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q13",
+            "type": "single",
+            "question": "13. 链表不具备的特点是（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "可随机访问任何一个元素"
+              },
+              {
+                "value": "B",
+                "label": "插入、删除操作不需要移动元素"
+              },
+              {
+                "value": "C",
+                "label": "无需事先估计存储空间大小"
+              },
+              {
+                "value": "D",
+                "label": "所需存储空间与存储元素个数成正比"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "链表不支持随机访问，只能顺序访问，这是与数组的主要区别。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q14",
+            "type": "single",
+            "question": "14. 线性表若采用链表存储结构，要求内存中可用存储单元地址（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "必须连续"
+              },
+              {
+                "value": "B",
+                "label": "部分地址必须连续"
+              },
+              {
+                "value": "C",
+                "label": "一定不连续"
+              },
+              {
+                "value": "D",
+                "label": "连续不连续均可"
+              }
+            ],
+            "answer": [
+              "D"
+            ],
+            "analysis": "链表节点通过指针链接，物理地址可不连续。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q15",
+            "type": "single",
+            "question": "15. 今有一空栈 S，对下列待进栈的数据元素序列 a,b,c,d,e,f 依次进行进栈，进栈，出栈，进栈，进栈，出栈的操作，则此操作完成后，栈 S 的栈顶元素为（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "f"
+              },
+              {
+                "value": "B",
+                "label": "c"
+              },
+              {
+                "value": "C",
+                "label": "a"
+              },
+              {
+                "value": "D",
+                "label": "b"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "push a, push b, pop→b, push c, push d, pop→d。栈内：a c, 栈顶 c。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q16",
+            "type": "single",
+            "question": "16. 前序遍历序列与中序遍历序列相同的二叉树为（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "根结点无左子树的二叉树"
+              },
+              {
+                "value": "B",
+                "label": "根结点无右子树的二叉树"
+              },
+              {
+                "value": "C",
+                "label": "只有根结点的二叉树或非叶子结点只有左子树的二叉树"
+              },
+              {
+                "value": "D",
+                "label": "只有根结点的二叉树或非叶子结点只有右子树的二叉树"
+              }
+            ],
+            "answer": [
+              "C"
+            ],
+            "analysis": "前序=根左右，中序=左根右，要使两者相同：必须没有右子树（或只有根）。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q17",
+            "type": "single",
+            "question": "17. 如果根的高度为 1，具有 61 个结点的完全二叉树的高度为（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "5"
+              },
+              {
+                "value": "B",
+                "label": "6"
+              },
+              {
+                "value": "C",
+                "label": "7"
+              },
+              {
+                "value": "D",
+                "label": "8"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "完全二叉树高度 h 最多 2^h-1 结点。2^6-1=63≥61, 2^5-1=31<61, 所以 h=6。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q18",
+            "type": "single",
+            "question": "18. 下列选项中不属于视频文件格式的是（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "TXT"
+              },
+              {
+                "value": "B",
+                "label": "AVI"
+              },
+              {
+                "value": "C",
+                "label": "MOV"
+              },
+              {
+                "value": "D",
+                "label": "RMVB"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "TXT 是纯文本格式。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q19",
+            "type": "single",
+            "question": "19. 设某算法的计算时间表示为递推关系式 T(n) = T(n - 1) + n（n 为正整数）及 T(0) = 1，则该算法的时间复杂度为（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "O(log n)"
+              },
+              {
+                "value": "B",
+                "label": "O(n log n)"
+              },
+              {
+                "value": "C",
+                "label": "O(n)"
+              },
+              {
+                "value": "D",
+                "label": "O(n²)"
+              }
+            ],
+            "answer": [
+              "D"
+            ],
+            "analysis": "T(n) = T(n-1) + n = n+(n-1)+…+1+1 = n(n+1)/2 = O(n²)。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q20",
+            "type": "single",
+            "question": "20. 在 NOI 系列赛事中参赛选手必须使用由承办单位统一提供的设备。下列物品中不允许选手自带的是（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "鼠标"
+              },
+              {
+                "value": "B",
+                "label": "笔"
+              },
+              {
+                "value": "C",
+                "label": "身份证"
+              },
+              {
+                "value": "D",
+                "label": "准考证"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "NOI 现场统一提供键盘鼠标，选手可自带笔等文具。",
+            "points": 1.5,
+            "hasAnswer": true
+          }
+        ],
         "kind": "choice"
       },
       "actions": [],
@@ -54,19 +635,78 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786227990338,
-      "updatedAt": 1786227990338,
+      "createdAt": 1786243608578,
+      "updatedAt": 1786243608578,
       "category": "choice"
     },
     {
-      "id": "sc_cspj15j_read",
+      "id": "sc_cspj15j_problem_solving",
       "stageId": "cm_imp_cspj2015j_v1",
       "type": "quiz",
-      "title": "二、阅读程序题（判断+选择，共计40分）",
+      "title": "二、问题求解（共 2 题，每题 5 分，共计 10 分）",
       "order": 2,
       "content": {
         "type": "quiz",
-        "questions": [],
+        "questions": [
+          {
+            "id": "ps1",
+            "type": "single",
+            "question": "1. 重新排列 1234 使得每一个数字都不在原来的位置上，一共有_________种排法。",
+            "options": [
+              {
+                "value": "A",
+                "label": "6"
+              },
+              {
+                "value": "B",
+                "label": "7"
+              },
+              {
+                "value": "C",
+                "label": "8"
+              },
+              {
+                "value": "D",
+                "label": "9"
+              }
+            ],
+            "answer": [
+              "D"
+            ],
+            "analysis": "错排数 D(4) = 4!(1-1+1/2-1/6+1/24) = 24×9/24 = 9。",
+            "points": 5,
+            "hasAnswer": true
+          },
+          {
+            "id": "ps2",
+            "type": "single",
+            "question": "2. 一棵结点数为 2015 的二叉树最多有_________个叶子结点。",
+            "options": [
+              {
+                "value": "A",
+                "label": "1007"
+              },
+              {
+                "value": "B",
+                "label": "1008"
+              },
+              {
+                "value": "C",
+                "label": "1009"
+              },
+              {
+                "value": "D",
+                "label": "2015"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "2015 节点最多叶子数 = (n+1)/2 = 1008（当 n 为奇数时）。",
+            "points": 5,
+            "hasAnswer": true
+          }
+        ],
         "kind": "code-reading"
       },
       "actions": [],
@@ -74,19 +714,533 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786227990338,
-      "updatedAt": 1786227990338,
+      "createdAt": 1786243608578,
+      "updatedAt": 1786243608578,
+      "category": "read"
+    },
+    {
+      "id": "sc_cspj15j_read_1",
+      "stageId": "cm_imp_cspj2015j_v1",
+      "type": "quiz",
+      "title": "三、阅读程序写结果 1（8 分）",
+      "order": 3,
+      "content": {
+        "type": "quiz",
+        "codeBlock": {
+          "language": "cpp",
+          "title": "阅读程序（1）",
+          "description": "比较三个数 a、b、c，按条件输出。",
+          "lines": [
+            "#include <iostream>",
+            "using namespace std;",
+            "int main() {",
+            "  int a, b, c;",
+            "  a = 1; b = 2; c = 3;",
+            "  if (a > b) {",
+            "    if (a > c) cout << a << ' ';",
+            "    else cout << b << ' ';",
+            "  }",
+            "  cout << c << endl;",
+            "  return 0;",
+            "}"
+          ]
+        },
+        "questions": [
+          {
+            "id": "cr1",
+            "type": "single",
+            "codeLines": [
+              "#include <iostream>",
+              "using namespace std;",
+              "int main() {",
+              "  int a, b, c;",
+              "  a = 1; b = 2; c = 3;",
+              "  if (a > b) {",
+              "    if (a > c) cout << a << ' ';",
+              "    else cout << b << ' ';",
+              "  }",
+              "  cout << c << endl;",
+              "  return 0;",
+              "}"
+            ],
+            "codeTitle": "阅读程序（1）",
+            "codeDescription": "比较三个数 a、b、c，按条件输出。",
+            "question": "输出：",
+            "options": [
+              {
+                "value": "A",
+                "label": "3"
+              },
+              {
+                "value": "B",
+                "label": "1 3"
+              },
+              {
+                "value": "C",
+                "label": "2 3"
+              },
+              {
+                "value": "D",
+                "label": "1 2 3"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "a=1, b=2, c=3。a>b 为假，整个 if 不进入，直接输出 c=3。",
+            "points": 8,
+            "hasAnswer": true
+          }
+        ],
+        "kind": "code-reading"
+      },
+      "actions": [],
+      "multiAgent": {
+        "enabled": false,
+        "agentIds": []
+      },
+      "createdAt": 1786243608578,
+      "updatedAt": 1786243608578,
+      "category": "read"
+    },
+    {
+      "id": "sc_cspj15j_read_2",
+      "stageId": "cm_imp_cspj2015j_v1",
+      "type": "quiz",
+      "title": "三、阅读程序写结果 2（8 分）",
+      "order": 4,
+      "content": {
+        "type": "quiz",
+        "codeBlock": {
+          "language": "cpp",
+          "title": "阅读程序（2）",
+          "description": "嵌套结构体 EX 包含成员 a、b 和 point 类型的 c，输出 c 的两个字段。",
+          "lines": [
+            "#include <iostream>",
+            "using namespace std;",
+            "struct point { int x; int y; };",
+            "int main() {",
+            "  struct EX { int a; int b; point c; } e;",
+            "  e.a = 1; e.b = 2;",
+            "  e.c.x = e.a + e.b;",
+            "  e.c.y = e.a * e.b;",
+            "  cout << e.c.x << ',' << e.c.y << endl;",
+            "  return 0;",
+            "}"
+          ]
+        },
+        "questions": [
+          {
+            "id": "cr2",
+            "type": "single",
+            "codeLines": [
+              "#include <iostream>",
+              "using namespace std;",
+              "struct point { int x; int y; };",
+              "int main() {",
+              "  struct EX { int a; int b; point c; } e;",
+              "  e.a = 1; e.b = 2;",
+              "  e.c.x = e.a + e.b;",
+              "  e.c.y = e.a * e.b;",
+              "  cout << e.c.x << ',' << e.c.y << endl;",
+              "  return 0;",
+              "}"
+            ],
+            "codeTitle": "阅读程序（2）",
+            "codeDescription": "嵌套结构体 EX 包含成员 a、b 和 point 类型的 c，输出 c 的两个字段。",
+            "question": "输出：",
+            "options": [
+              {
+                "value": "A",
+                "label": "1,2"
+              },
+              {
+                "value": "B",
+                "label": "2,1"
+              },
+              {
+                "value": "C",
+                "label": "3,2"
+              },
+              {
+                "value": "D",
+                "label": "2,3"
+              }
+            ],
+            "answer": [
+              "C"
+            ],
+            "analysis": "e.c.x = 1+2 = 3, e.c.y = 1*2 = 2，输出 \"3,2\"。",
+            "points": 8,
+            "hasAnswer": true
+          }
+        ],
+        "kind": "code-reading"
+      },
+      "actions": [],
+      "multiAgent": {
+        "enabled": false,
+        "agentIds": []
+      },
+      "createdAt": 1786243608578,
+      "updatedAt": 1786243608578,
+      "category": "read"
+    },
+    {
+      "id": "sc_cspj15j_read_3",
+      "stageId": "cm_imp_cspj2015j_v1",
+      "type": "quiz",
+      "title": "三、阅读程序写结果 3（8 分）",
+      "order": 5,
+      "content": {
+        "type": "quiz",
+        "codeBlock": {
+          "language": "cpp",
+          "title": "阅读程序（3）",
+          "description": "统计输入字符串中所有小写字母的个数。",
+          "lines": [
+            "#include <iostream>",
+            "#include <string>",
+            "using namespace std;",
+            "int main() {",
+            "  string str; int i; int count;",
+            "  count = 0;",
+            "  getline(cin, str);",
+            "  for (i = 0; i < str.length(); i++) {",
+            "    if (str[i] >= 'a' && str[i] <= 'z') count++;",
+            "  }",
+            "  cout << \"It has \" << count << \" lowercases\" << endl;",
+            "  return 0;",
+            "}"
+          ]
+        },
+        "questions": [
+          {
+            "id": "cr3",
+            "type": "single",
+            "codeLines": [
+              "#include <iostream>",
+              "#include <string>",
+              "using namespace std;",
+              "int main() {",
+              "  string str; int i; int count;",
+              "  count = 0;",
+              "  getline(cin, str);",
+              "  for (i = 0; i < str.length(); i++) {",
+              "    if (str[i] >= 'a' && str[i] <= 'z') count++;",
+              "  }",
+              "  cout << \"It has \" << count << \" lowercases\" << endl;",
+              "  return 0;",
+              "}"
+            ],
+            "codeTitle": "阅读程序（3）",
+            "codeDescription": "统计输入字符串中所有小写字母的个数。",
+            "question": "输入：NOI2016 will be held in Mian Yang.\n输出：",
+            "options": [
+              {
+                "value": "A",
+                "label": "It has 16 lowercases"
+              },
+              {
+                "value": "B",
+                "label": "It has 17 lowercases"
+              },
+              {
+                "value": "C",
+                "label": "It has 18 lowercases"
+              },
+              {
+                "value": "D",
+                "label": "It has 19 lowercases"
+              }
+            ],
+            "answer": [
+              "D"
+            ],
+            "analysis": "逐个字母数：oi(2) + ill(3) + be(2) + held(4) + in(2) + ian(3) + ang(3) = 19。",
+            "points": 8,
+            "hasAnswer": true
+          }
+        ],
+        "kind": "code-reading"
+      },
+      "actions": [],
+      "multiAgent": {
+        "enabled": false,
+        "agentIds": []
+      },
+      "createdAt": 1786243608578,
+      "updatedAt": 1786243608578,
+      "category": "read"
+    },
+    {
+      "id": "sc_cspj15j_read_4",
+      "stageId": "cm_imp_cspj2015j_v1",
+      "type": "quiz",
+      "title": "三、阅读程序写结果 4（8 分）",
+      "order": 6,
+      "content": {
+        "type": "quiz",
+        "codeBlock": {
+          "language": "cpp",
+          "title": "阅读程序（4）",
+          "description": "fun 中 a 是 p1 的局部副本，修改 a 不影响 c1；(*a)++ 修改 b 指向的 c2。",
+          "lines": [
+            "#include <iostream>",
+            "using namespace std;",
+            "void fun(char *a, char *b) {",
+            "  a = b;",
+            "  (*a)++;",
+            "}",
+            "int main() {",
+            "  char c1, c2, *p1, *p2;",
+            "  c1 = 'A'; c2 = 'a';",
+            "  p1 = &c1; p2 = &c2;",
+            "  fun(p1, p2);",
+            "  cout << c1 << c2 << endl;",
+            "  return 0;",
+            "}"
+          ]
+        },
+        "questions": [
+          {
+            "id": "cr4",
+            "type": "single",
+            "codeLines": [
+              "#include <iostream>",
+              "using namespace std;",
+              "void fun(char *a, char *b) {",
+              "  a = b;",
+              "  (*a)++;",
+              "}",
+              "int main() {",
+              "  char c1, c2, *p1, *p2;",
+              "  c1 = 'A'; c2 = 'a';",
+              "  p1 = &c1; p2 = &c2;",
+              "  fun(p1, p2);",
+              "  cout << c1 << c2 << endl;",
+              "  return 0;",
+              "}"
+            ],
+            "codeTitle": "阅读程序（4）",
+            "codeDescription": "fun 中 a 是 p1 的局部副本，修改 a 不影响 c1；(*a)++ 修改 b 指向的 c2。",
+            "question": "输出：",
+            "options": [
+              {
+                "value": "A",
+                "label": "Ab"
+              },
+              {
+                "value": "B",
+                "label": "Aa"
+              },
+              {
+                "value": "C",
+                "label": "Bb"
+              },
+              {
+                "value": "D",
+                "label": "Ba"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "a = b 后 a 和 p2 都指向 c2；(*a)++ 即 c2 = 'a'+1 = 'b'。c1 未变仍是 'A'，输出 \"Ab\"。",
+            "points": 8,
+            "hasAnswer": true
+          }
+        ],
+        "kind": "code-reading"
+      },
+      "actions": [],
+      "multiAgent": {
+        "enabled": false,
+        "agentIds": []
+      },
+      "createdAt": 1786243608578,
+      "updatedAt": 1786243608578,
       "category": "read"
     },
     {
       "id": "sc_cspj15j_perfect",
       "stageId": "cm_imp_cspj2015j_v1",
       "type": "quiz",
-      "title": "三、完善程序题（单空填空，共计30分）",
-      "order": 3,
+      "title": "四、完善程序（1）打印月历（第三、四空 2.5 分，其余 3 分，共 14 分）",
+      "order": 7,
       "content": {
         "type": "quiz",
-        "questions": [],
+        "codeBlock": {
+          "language": "cpp",
+          "title": "完善程序（1）打印月历",
+          "description": "输入月份 m（1 ≤ m ≤ 12），按一定格式打印 2015 年第 m 月的月历。",
+          "lines": [
+            "#include <iostream>",
+            "using namespace std;",
+            "const int dayNum[]={-1, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};",
+            "int m, offset, i;",
+            "int main() {",
+            "  cin >> m;",
+            "  cout << \"S\\tM\\tT\\tW\\tT\\tF\\tS\" << endl;",
+            "  (1) ;",
+            "  for (i = 1; i < m; i++) offset = (2) ;",
+            "  for (i = 0; i < offset; i++) cout << '\\t';",
+            "  for (i = 1; i <= (3) ; i++) {",
+            "    cout << (4) ;",
+            "    if (i == dayNum[m] || (5) == 0) cout << endl;",
+            "    else cout << '\\t';",
+            "  }",
+            "  return 0;",
+            "}"
+          ]
+        },
+        "questions": [
+          {
+            "id": "p1_1",
+            "type": "single",
+            "question": "完善程序（1）打印月历。填空 (1)：offset 初始化为？",
+            "options": [
+              {
+                "value": "A",
+                "label": "0"
+              },
+              {
+                "value": "B",
+                "label": "1"
+              },
+              {
+                "value": "C",
+                "label": "-1"
+              },
+              {
+                "value": "D",
+                "label": "m"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "offset 应初始化为 0，表示本月 1 号从周日开始（2015 年 1 月 1 日是周四，但偏移量需根据前面月份天数累加，初值 0）。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p1_2",
+            "type": "single",
+            "question": "填空 (2)：offset 累加公式？",
+            "options": [
+              {
+                "value": "A",
+                "label": "offset + dayNum[i]"
+              },
+              {
+                "value": "B",
+                "label": "(offset + dayNum[i]) % 7"
+              },
+              {
+                "value": "C",
+                "label": "dayNum[i] % 7"
+              },
+              {
+                "value": "D",
+                "label": "(offset + dayNum[i]) * 7"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "每月天数累加后取模 7 才是周偏移量。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p1_3",
+            "type": "single",
+            "question": "填空 (3)：i 的上限？",
+            "options": [
+              {
+                "value": "A",
+                "label": "dayNum[m]"
+              },
+              {
+                "value": "B",
+                "label": "dayNum[m] - 1"
+              },
+              {
+                "value": "C",
+                "label": "m"
+              },
+              {
+                "value": "D",
+                "label": "31"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "从 1 打印到本月的最后一天 dayNum[m]。",
+            "points": 2.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "p1_4",
+            "type": "single",
+            "question": "填空 (4)：cout 输出？",
+            "options": [
+              {
+                "value": "A",
+                "label": "offset"
+              },
+              {
+                "value": "B",
+                "label": "i"
+              },
+              {
+                "value": "C",
+                "label": "dayNum[m]"
+              },
+              {
+                "value": "D",
+                "label": "(i + offset) % 7"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "直接输出当前日期数字 i。",
+            "points": 2.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "p1_5",
+            "type": "single",
+            "question": "填空 (5)：换行判断条件？",
+            "options": [
+              {
+                "value": "A",
+                "label": "i % 7"
+              },
+              {
+                "value": "B",
+                "label": "(i + 1) % 7"
+              },
+              {
+                "value": "C",
+                "label": "(i + offset) % 7"
+              },
+              {
+                "value": "D",
+                "label": "offset % 7"
+              }
+            ],
+            "answer": [
+              "C"
+            ],
+            "analysis": "当 (日期 + 月首偏移) % 7 == 0 时是周六，应换行。",
+            "points": 3,
+            "hasAnswer": true
+          }
+        ],
         "kind": "code-completion"
       },
       "actions": [],
@@ -94,8 +1248,202 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786227990338,
-      "updatedAt": 1786227990338,
+      "createdAt": 1786243608578,
+      "updatedAt": 1786243608578,
+      "category": "perfect"
+    },
+    {
+      "id": "sc_cspj15j_perfect2",
+      "stageId": "cm_imp_cspj2015j_v1",
+      "type": "quiz",
+      "title": "四、完善程序（2）中位数（第五空 2 分，其余 3 分，共 14 分）",
+      "order": 8,
+      "content": {
+        "type": "quiz",
+        "codeBlock": {
+          "language": "cpp",
+          "title": "完善程序（2）中位数",
+          "description": "给定 n（n 为奇数且小于 1000）个整数，用二分法求中位数。",
+          "lines": [
+            "#include <iostream>",
+            "using namespace std;",
+            "const int MAXN = 1000;",
+            "int n, i, lbound, rbound, mid, m, count;",
+            "int x[MAXN];",
+            "int main() {",
+            "  cin >> n >> m;",
+            "  for (i = 0; i < n; i++) cin >> x[i];",
+            "  lbound = 0;",
+            "  rbound = m;",
+            "  while ( (1) ) {",
+            "    mid = (lbound + rbound) / 2;",
+            "    (2) ;",
+            "    for (i = 0; i < n; i++)",
+            "      if ( (3) ) (4) ;",
+            "    if (count > n / 2) lbound = mid + 1;",
+            "    else (5) ;",
+            "  }",
+            "  cout << rbound << endl;",
+            "  return 0;",
+            "}"
+          ]
+        },
+        "questions": [
+          {
+            "id": "p2_1",
+            "type": "single",
+            "question": "完善程序（2）中位数。填空 (1)：二分循环条件？",
+            "options": [
+              {
+                "value": "A",
+                "label": "lbound < rbound"
+              },
+              {
+                "value": "B",
+                "label": "lbound <= rbound"
+              },
+              {
+                "value": "C",
+                "label": "lbound != rbound"
+              },
+              {
+                "value": "D",
+                "label": "lbound > rbound"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "标准二分循环条件是 lbound <= rbound。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p2_2",
+            "type": "single",
+            "question": "填空 (2)：每次循环开始？",
+            "options": [
+              {
+                "value": "A",
+                "label": "count = 0"
+              },
+              {
+                "value": "B",
+                "label": "count = n"
+              },
+              {
+                "value": "C",
+                "label": "count = m"
+              },
+              {
+                "value": "D",
+                "label": "count++"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "count 用于统计 ≤ mid 的元素个数，每次循环开始需重置为 0。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p2_3",
+            "type": "single",
+            "question": "填空 (3)：判断条件？",
+            "options": [
+              {
+                "value": "A",
+                "label": "x[i] < mid"
+              },
+              {
+                "value": "B",
+                "label": "x[i] <= mid"
+              },
+              {
+                "value": "C",
+                "label": "x[i] > mid"
+              },
+              {
+                "value": "D",
+                "label": "x[i] >= mid"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "统计小于等于 mid 的元素个数。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p2_4",
+            "type": "single",
+            "question": "填空 (4)：满足条件时？",
+            "options": [
+              {
+                "value": "A",
+                "label": "count = i"
+              },
+              {
+                "value": "B",
+                "label": "count++"
+              },
+              {
+                "value": "C",
+                "label": "count--"
+              },
+              {
+                "value": "D",
+                "label": "count = mid"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "count++ 累加满足条件的元素数。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "p2_5",
+            "type": "single",
+            "question": "填空 (5)：否则 rbound 更新为？",
+            "options": [
+              {
+                "value": "A",
+                "label": "mid"
+              },
+              {
+                "value": "B",
+                "label": "mid - 1"
+              },
+              {
+                "value": "C",
+                "label": "mid + 1"
+              },
+              {
+                "value": "D",
+                "label": "lbound"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "当 count ≤ n/2 时中位数 ≤ mid，rbound 收缩到 mid。",
+            "points": 3,
+            "hasAnswer": true
+          }
+        ],
+        "kind": "code-completion"
+      },
+      "actions": [],
+      "multiAgent": {
+        "enabled": false,
+        "agentIds": []
+      },
+      "createdAt": 1786243608578,
+      "updatedAt": 1786243608578,
       "category": "perfect"
     }
   ]
