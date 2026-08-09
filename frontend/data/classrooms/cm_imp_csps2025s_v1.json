@@ -1,0 +1,102 @@
+{
+  "id": "cm_imp_csps2025s_v1",
+  "createdAt": "2026-08-09T00:00:00.000Z",
+  "collection": "csp-lecture",
+  "stage": {
+    "id": "cm_imp_csps2025s_v1",
+    "name": "2025年提高组CSP-S初赛真题卷",
+    "description": "2025年CCF CSP 提高级（CSP-S1）初赛完整真题（PDF原件已上传至公共目录），共15道单项选择题、阅读程序题与完善程序题，总分100分。本卷题面与答案解析待补充，请参考 PDF 文档填写。",
+    "languageDirective": "zh-CN",
+    "style": "tutor",
+    "createdAt": 1786227990345,
+    "updatedAt": 1786227990345,
+    "generatedAgentConfigs": [
+      {
+        "id": "imp_agent_csps25s_0",
+        "name": "张老师",
+        "role": "teacher",
+        "persona": "经验丰富的CSP初赛教练，熟悉历年真题考点，讲解清晰且直击要点，耐心引导学员分析每道题的解题思路。",
+        "avatar": "/avatars/teacher.png",
+        "color": "#3b82f6",
+        "priority": 10
+      },
+      {
+        "id": "imp_agent_csps25s_1",
+        "name": "小慧",
+        "role": "assistant",
+        "persona": "聪明耐心的女助教，擅长总结归纳易错点，帮助学员梳理解题思路，在测验后给出鼓励和易错提醒。",
+        "avatar": "/avatars/assist.png",
+        "color": "#ec4899",
+        "priority": 7
+      }
+    ],
+    "agentIds": [],
+    "scoreBreakdown": {
+      "choice": 30,
+      "read": 40,
+      "perfect": 30
+    }
+  },
+  "scenes": [
+    {
+      "id": "sc_csps25s_choice",
+      "stageId": "cm_imp_csps2025s_v1",
+      "type": "quiz",
+      "title": "一、单项选择题（共15题，每题2分，共计30分）",
+      "order": 1,
+      "content": {
+        "type": "quiz",
+        "questions": [],
+        "kind": "choice"
+      },
+      "actions": [],
+      "multiAgent": {
+        "enabled": false,
+        "agentIds": []
+      },
+      "createdAt": 1786227990345,
+      "updatedAt": 1786227990345,
+      "category": "choice"
+    },
+    {
+      "id": "sc_csps25s_read",
+      "stageId": "cm_imp_csps2025s_v1",
+      "type": "quiz",
+      "title": "二、阅读程序题（判断+选择，共计40分）",
+      "order": 2,
+      "content": {
+        "type": "quiz",
+        "questions": [],
+        "kind": "code-reading"
+      },
+      "actions": [],
+      "multiAgent": {
+        "enabled": false,
+        "agentIds": []
+      },
+      "createdAt": 1786227990345,
+      "updatedAt": 1786227990345,
+      "category": "read"
+    },
+    {
+      "id": "sc_csps25s_perfect",
+      "stageId": "cm_imp_csps2025s_v1",
+      "type": "quiz",
+      "title": "三、完善程序题（单空填空，共计30分）",
+      "order": 3,
+      "content": {
+        "type": "quiz",
+        "questions": [],
+        "kind": "code-completion"
+      },
+      "actions": [],
+      "multiAgent": {
+        "enabled": false,
+        "agentIds": []
+      },
+      "createdAt": 1786227990345,
+      "updatedAt": 1786227990345,
+      "category": "perfect"
+    }
+  ]
+}
