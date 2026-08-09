@@ -259,30 +259,14 @@ for (b = 1; b &lt;= c; b++) s += 1;
     <h2>三、阅读程序写结果 3（8 分）</h2>
     <p class="meta">类别: read · 题数: 1</p>
     <div class="codeblock">
-    
-    
-    <div class="codeblock-frame"></div>
+    <div class="codeblock-title">阅读程序（3）</div>
+    <div class="codeblock-desc">将字符串中所有小写字母转换为大写，其它字符不变。</div>
+    <div class="codeblock-frame"><div class="code-row"><span class="code-gutter">01</span><pre class="code-line">#include &lt;iostream&gt;</pre></div><div class="code-row"><span class="code-gutter">02</span><pre class="code-line">#include &lt;string&gt;</pre></div><div class="code-row"><span class="code-gutter">03</span><pre class="code-line">using namespace std;</pre></div><div class="code-row"><span class="code-gutter">04</span><pre class="code-line">int main() {</pre></div><div class="code-row"><span class="code-gutter">05</span><pre class="code-line">  string st; int i, len;</pre></div><div class="code-row"><span class="code-gutter">06</span><pre class="code-line">  getline(cin, st);</pre></div><div class="code-row"><span class="code-gutter">07</span><pre class="code-line">  len = st.size();</pre></div><div class="code-row"><span class="code-gutter">08</span><pre class="code-line">  for (i = 0; i &lt; len; i++) {</pre></div><div class="code-row"><span class="code-gutter">09</span><pre class="code-line">    if (st[i] &gt;= 'a' &amp;&amp; st[i] &lt;= 'z') st[i] = st[i] - 'a' + 'A';</pre></div><div class="code-row"><span class="code-gutter">10</span><pre class="code-line">  }</pre></div><div class="code-row"><span class="code-gutter">11</span><pre class="code-line">  cout &lt;&lt; st &lt;&lt; endl;</pre></div><div class="code-row"><span class="code-gutter">12</span><pre class="code-line">  return 0;</pre></div><div class="code-row"><span class="code-gutter">13</span><pre class="code-line">}</pre></div></div>
     <div class="codeblock-foot">cpp</div>
   </div>
     <div class="q">
       <div class="qhead"><span class="qid">cr3</span> <span class="qpts">8 分</span></div>
-      <pre class="qbody">3. 阅读下面程序：
-```cpp
-#include &lt;iostream&gt;
-#include &lt;string&gt;
-using namespace std;
-int main() {
-  string st; int i, len;
-  getline(cin, st);
-  len = st.size();
-  for (i = 0; i &lt; len; i++) {
-    if (st[i] &gt;= 'a' &amp;&amp; st[i] &lt;= 'z') st[i] = st[i] - 'a' + 'A';
-  }
-  cout &lt;&lt; st &lt;&lt; endl;
-  return 0;
-}
-```
-输入：Hello, my name is Lostmonkey.
+      <pre class="qbody">输入：Hello, my name is Lostmonkey.
 输出：</pre>
       <div class="opts"><div class="opt "><b>A.</b> hello, my name is lostmonkey.</div><div class="opt "><b>B.</b> Hello, My Name Is Lostmonkey.</div><div class="opt ans"><b>C.</b> HELLO, MY NAME IS LOSTMONKEY. <span class="badge">AI推断</span></div><div class="opt "><b>D.</b> hELLO, mY nAME iS lOSTMONKEY.</div></div>
       <div class="analysis"><b>解析:</b> 程序把小写字母转大写，其它字符不变。</div>
@@ -292,33 +276,14 @@ int main() {
     <h2>三、阅读程序写结果 4（8 分）</h2>
     <p class="meta">类别: read · 题数: 1</p>
     <div class="codeblock">
-    
-    
-    <div class="codeblock-frame"></div>
+    <div class="codeblock-title">阅读程序（4）</div>
+    <div class="codeblock-desc">埃拉托斯特尼筛法（Sieve of Eratosthenes）统计 1~n 内的素数个数。</div>
+    <div class="codeblock-frame"><div class="code-row"><span class="code-gutter">01</span><pre class="code-line">#include &lt;iostream&gt;</pre></div><div class="code-row"><span class="code-gutter">02</span><pre class="code-line">using namespace std;</pre></div><div class="code-row"><span class="code-gutter">03</span><pre class="code-line">const int SIZE = 100;</pre></div><div class="code-row"><span class="code-gutter">04</span><pre class="code-line">int main() {</pre></div><div class="code-row"><span class="code-gutter">05</span><pre class="code-line">  int p[SIZE]; int n, tot, i, cn;</pre></div><div class="code-row"><span class="code-gutter">06</span><pre class="code-line">  tot = 0;</pre></div><div class="code-row"><span class="code-gutter">07</span><pre class="code-line">  cin &gt;&gt; n;</pre></div><div class="code-row"><span class="code-gutter">08</span><pre class="code-line">  for (i = 1; i &lt;= n; i++) p[i] = 1;</pre></div><div class="code-row"><span class="code-gutter">09</span><pre class="code-line">  for (i = 2; i &lt;= n; i++) {</pre></div><div class="code-row"><span class="code-gutter">10</span><pre class="code-line">    if (p[i] == 1) tot++;</pre></div><div class="code-row"><span class="code-gutter">11</span><pre class="code-line">    cn = i * 2;</pre></div><div class="code-row"><span class="code-gutter">12</span><pre class="code-line">    while (cn &lt;= n) { p[cn] = 0; cn += i; }</pre></div><div class="code-row"><span class="code-gutter">13</span><pre class="code-line">  }</pre></div><div class="code-row"><span class="code-gutter">14</span><pre class="code-line">  cout &lt;&lt; tot &lt;&lt; endl;</pre></div><div class="code-row"><span class="code-gutter">15</span><pre class="code-line">  return 0;</pre></div><div class="code-row"><span class="code-gutter">16</span><pre class="code-line">}</pre></div></div>
     <div class="codeblock-foot">cpp</div>
   </div>
     <div class="q">
       <div class="qhead"><span class="qid">cr4</span> <span class="qpts">8 分</span></div>
-      <pre class="qbody">4. 阅读下面程序：
-```cpp
-#include &lt;iostream&gt;
-using namespace std;
-const int SIZE = 100;
-int main() {
-  int p[SIZE]; int n, tot, i, cn;
-  tot = 0;
-  cin &gt;&gt; n;
-  for (i = 1; i &lt;= n; i++) p[i] = 1;
-  for (i = 2; i &lt;= n; i++) {
-    if (p[i] == 1) tot++;
-    cn = i * 2;
-    while (cn &lt;= n) { p[cn] = 0; cn += i; }
-  }
-  cout &lt;&lt; tot &lt;&lt; endl;
-  return 0;
-}
-```
-输入：30
+      <pre class="qbody">输入：30
 输出：</pre>
       <div class="opts"><div class="opt "><b>A.</b> 8</div><div class="opt "><b>B.</b> 9</div><div class="opt ans"><b>C.</b> 10 <span class="badge">AI推断</span></div><div class="opt "><b>D.</b> 11</div></div>
       <div class="analysis"><b>解析:</b> 筛素数，1~30 内素数有 2,3,5,7,11,13,17,19,23,29 共 10 个。</div>

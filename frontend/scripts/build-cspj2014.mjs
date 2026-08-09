@@ -1,4 +1,4 @@
-// 2014 NOIP普及组 classroom JSON 构建器
+﻿// 2014 NOIP普及组 classroom JSON 构建器
 // 全部题目用 'single' 类型(单选), 不再使用 short_answer
 // 优点: 自动判分, 不需要 AI 评分, 答案明确
 //
@@ -173,8 +173,25 @@ const codeReadingQuestions = [
   },
   {
     id: 'cr3',
+    codeLines: [
+      '#include <iostream>',
+      '#include <string>',
+      'using namespace std;',
+      'int main() {',
+      '  string st; int i, len;',
+      '  getline(cin, st);',
+      '  len = st.size();',
+      '  for (i = 0; i < len; i++) {',
+      '    if (st[i] >= \'a\' && st[i] <= \'z\') st[i] = st[i] - \'a\' + \'A\';',
+      '  }',
+      '  cout << st << endl;',
+      '  return 0;',
+      '}',
+    ],
+    codeTitle: '阅读程序（3）',
+    codeDescription: '将字符串中所有小写字母转换为大写，其它字符不变。',
     type: 'single',
-    question: '3. 阅读下面程序：\n```cpp\n#include <iostream>\n#include <string>\nusing namespace std;\nint main() {\n  string st; int i, len;\n  getline(cin, st);\n  len = st.size();\n  for (i = 0; i < len; i++) {\n    if (st[i] >= \'a\' && st[i] <= \'z\') st[i] = st[i] - \'a\' + \'A\';\n  }\n  cout << st << endl;\n  return 0;\n}\n```\n输入：Hello, my name is Lostmonkey.\n输出：',
+    question: '输入：Hello, my name is Lostmonkey.\n输出：',
     options: [
       { value: 'A', label: 'hello, my name is lostmonkey.' },
       { value: 'B', label: 'Hello, My Name Is Lostmonkey.' },
@@ -188,8 +205,28 @@ const codeReadingQuestions = [
   },
   {
     id: 'cr4',
+    codeLines: [
+      '#include <iostream>',
+      'using namespace std;',
+      'const int SIZE = 100;',
+      'int main() {',
+      '  int p[SIZE]; int n, tot, i, cn;',
+      '  tot = 0;',
+      '  cin >> n;',
+      '  for (i = 1; i <= n; i++) p[i] = 1;',
+      '  for (i = 2; i <= n; i++) {',
+      '    if (p[i] == 1) tot++;',
+      '    cn = i * 2;',
+      '    while (cn <= n) { p[cn] = 0; cn += i; }',
+      '  }',
+      '  cout << tot << endl;',
+      '  return 0;',
+      '}',
+    ],
+    codeTitle: '阅读程序（4）',
+    codeDescription: '埃拉托斯特尼筛法（Sieve of Eratosthenes）统计 1~n 内的素数个数。',
     type: 'single',
-    question: '4. 阅读下面程序：\n```cpp\n#include <iostream>\nusing namespace std;\nconst int SIZE = 100;\nint main() {\n  int p[SIZE]; int n, tot, i, cn;\n  tot = 0;\n  cin >> n;\n  for (i = 1; i <= n; i++) p[i] = 1;\n  for (i = 2; i <= n; i++) {\n    if (p[i] == 1) tot++;\n    cn = i * 2;\n    while (cn <= n) { p[cn] = 0; cn += i; }\n  }\n  cout << tot << endl;\n  return 0;\n}\n```\n输入：30\n输出：',
+    question: '输入：30\n输出：',
     options: [
       { value: 'A', label: '8' },
       { value: 'B', label: '9' },

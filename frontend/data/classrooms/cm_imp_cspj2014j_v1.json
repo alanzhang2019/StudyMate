@@ -8,8 +8,8 @@
     "description": "2014年CCF NOIP普及组初赛完整真题（第二十届全国青少年信息学奥林匹克联赛初赛），共单项选择题20道（30分）、问题求解2题（10分）、阅读程序写结果4题（32分）、完善程序2题（28分），总分100分。",
     "languageDirective": "zh-CN",
     "style": "tutor",
-    "createdAt": 1786243324371,
-    "updatedAt": 1786243324371,
+    "createdAt": 1786244179411,
+    "updatedAt": 1786244179411,
     "generatedAgentConfigs": [
       {
         "id": "imp_agent_cspj14j_0",
@@ -635,8 +635,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786243324371,
-      "updatedAt": 1786243324371,
+      "createdAt": 1786244179411,
+      "updatedAt": 1786244179411,
       "category": "choice"
     },
     {
@@ -714,8 +714,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786243324371,
-      "updatedAt": 1786243324371,
+      "createdAt": 1786244179411,
+      "updatedAt": 1786244179411,
       "category": "read"
     },
     {
@@ -797,8 +797,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786243324371,
-      "updatedAt": 1786243324371,
+      "createdAt": 1786244179411,
+      "updatedAt": 1786244179411,
       "category": "read"
     },
     {
@@ -882,8 +882,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786243324371,
-      "updatedAt": 1786243324371,
+      "createdAt": 1786244179411,
+      "updatedAt": 1786244179411,
       "category": "read"
     },
     {
@@ -895,13 +895,47 @@
       "content": {
         "type": "quiz",
         "codeBlock": {
-          "language": "cpp"
+          "language": "cpp",
+          "title": "阅读程序（3）",
+          "description": "将字符串中所有小写字母转换为大写，其它字符不变。",
+          "lines": [
+            "#include <iostream>",
+            "#include <string>",
+            "using namespace std;",
+            "int main() {",
+            "  string st; int i, len;",
+            "  getline(cin, st);",
+            "  len = st.size();",
+            "  for (i = 0; i < len; i++) {",
+            "    if (st[i] >= 'a' && st[i] <= 'z') st[i] = st[i] - 'a' + 'A';",
+            "  }",
+            "  cout << st << endl;",
+            "  return 0;",
+            "}"
+          ]
         },
         "questions": [
           {
             "id": "cr3",
+            "codeLines": [
+              "#include <iostream>",
+              "#include <string>",
+              "using namespace std;",
+              "int main() {",
+              "  string st; int i, len;",
+              "  getline(cin, st);",
+              "  len = st.size();",
+              "  for (i = 0; i < len; i++) {",
+              "    if (st[i] >= 'a' && st[i] <= 'z') st[i] = st[i] - 'a' + 'A';",
+              "  }",
+              "  cout << st << endl;",
+              "  return 0;",
+              "}"
+            ],
+            "codeTitle": "阅读程序（3）",
+            "codeDescription": "将字符串中所有小写字母转换为大写，其它字符不变。",
             "type": "single",
-            "question": "3. 阅读下面程序：\n```cpp\n#include <iostream>\n#include <string>\nusing namespace std;\nint main() {\n  string st; int i, len;\n  getline(cin, st);\n  len = st.size();\n  for (i = 0; i < len; i++) {\n    if (st[i] >= 'a' && st[i] <= 'z') st[i] = st[i] - 'a' + 'A';\n  }\n  cout << st << endl;\n  return 0;\n}\n```\n输入：Hello, my name is Lostmonkey.\n输出：",
+            "question": "输入：Hello, my name is Lostmonkey.\n输出：",
             "options": [
               {
                 "value": "A",
@@ -935,8 +969,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786243324371,
-      "updatedAt": 1786243324371,
+      "createdAt": 1786244179411,
+      "updatedAt": 1786244179411,
       "category": "read"
     },
     {
@@ -948,13 +982,53 @@
       "content": {
         "type": "quiz",
         "codeBlock": {
-          "language": "cpp"
+          "language": "cpp",
+          "title": "阅读程序（4）",
+          "description": "埃拉托斯特尼筛法（Sieve of Eratosthenes）统计 1~n 内的素数个数。",
+          "lines": [
+            "#include <iostream>",
+            "using namespace std;",
+            "const int SIZE = 100;",
+            "int main() {",
+            "  int p[SIZE]; int n, tot, i, cn;",
+            "  tot = 0;",
+            "  cin >> n;",
+            "  for (i = 1; i <= n; i++) p[i] = 1;",
+            "  for (i = 2; i <= n; i++) {",
+            "    if (p[i] == 1) tot++;",
+            "    cn = i * 2;",
+            "    while (cn <= n) { p[cn] = 0; cn += i; }",
+            "  }",
+            "  cout << tot << endl;",
+            "  return 0;",
+            "}"
+          ]
         },
         "questions": [
           {
             "id": "cr4",
+            "codeLines": [
+              "#include <iostream>",
+              "using namespace std;",
+              "const int SIZE = 100;",
+              "int main() {",
+              "  int p[SIZE]; int n, tot, i, cn;",
+              "  tot = 0;",
+              "  cin >> n;",
+              "  for (i = 1; i <= n; i++) p[i] = 1;",
+              "  for (i = 2; i <= n; i++) {",
+              "    if (p[i] == 1) tot++;",
+              "    cn = i * 2;",
+              "    while (cn <= n) { p[cn] = 0; cn += i; }",
+              "  }",
+              "  cout << tot << endl;",
+              "  return 0;",
+              "}"
+            ],
+            "codeTitle": "阅读程序（4）",
+            "codeDescription": "埃拉托斯特尼筛法（Sieve of Eratosthenes）统计 1~n 内的素数个数。",
             "type": "single",
-            "question": "4. 阅读下面程序：\n```cpp\n#include <iostream>\nusing namespace std;\nconst int SIZE = 100;\nint main() {\n  int p[SIZE]; int n, tot, i, cn;\n  tot = 0;\n  cin >> n;\n  for (i = 1; i <= n; i++) p[i] = 1;\n  for (i = 2; i <= n; i++) {\n    if (p[i] == 1) tot++;\n    cn = i * 2;\n    while (cn <= n) { p[cn] = 0; cn += i; }\n  }\n  cout << tot << endl;\n  return 0;\n}\n```\n输入：30\n输出：",
+            "question": "输入：30\n输出：",
             "options": [
               {
                 "value": "A",
@@ -988,8 +1062,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786243324371,
-      "updatedAt": 1786243324371,
+      "createdAt": 1786244179411,
+      "updatedAt": 1786244179411,
       "category": "read"
     },
     {
@@ -1154,8 +1228,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786243324371,
-      "updatedAt": 1786243324371,
+      "createdAt": 1786244179411,
+      "updatedAt": 1786244179411,
       "category": "perfect"
     },
     {
@@ -1353,8 +1427,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786243324371,
-      "updatedAt": 1786243324371,
+      "createdAt": 1786244179411,
+      "updatedAt": 1786244179411,
       "category": "perfect"
     }
   ]
