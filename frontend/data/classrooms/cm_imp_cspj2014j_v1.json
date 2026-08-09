@@ -8,8 +8,8 @@
     "description": "2014年CCF NOIP普及组初赛完整真题（第二十届全国青少年信息学奥林匹克联赛初赛），共单项选择题20道（30分）、问题求解2题（10分）、阅读程序写结果4题（32分）、完善程序2题（28分），总分100分。",
     "languageDirective": "zh-CN",
     "style": "tutor",
-    "createdAt": 1786241298883,
-    "updatedAt": 1786241298883,
+    "createdAt": 1786243324371,
+    "updatedAt": 1786243324371,
     "generatedAgentConfigs": [
       {
         "id": "imp_agent_cspj14j_0",
@@ -635,15 +635,15 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786241298883,
-      "updatedAt": 1786241298883,
+      "createdAt": 1786243324371,
+      "updatedAt": 1786243324371,
       "category": "choice"
     },
     {
-      "id": "sc_cspj14j_read",
+      "id": "sc_cspj14j_problem_solving",
       "stageId": "cm_imp_cspj2014j_v1",
       "type": "quiz",
-      "title": "二、问题求解 + 三、阅读程序写结果（共计 42 分）",
+      "title": "二、问题求解（共 2 题，每题 5 分，共计 10 分）",
       "order": 2,
       "content": {
         "type": "quiz",
@@ -705,11 +705,65 @@
             "analysis": "Dijkstra 最短路径题，标准答案为 14 (需参照 PDF 中的图结构)。",
             "points": 5,
             "hasAnswer": true
-          },
+          }
+        ],
+        "kind": "code-reading"
+      },
+      "actions": [],
+      "multiAgent": {
+        "enabled": false,
+        "agentIds": []
+      },
+      "createdAt": 1786243324371,
+      "updatedAt": 1786243324371,
+      "category": "read"
+    },
+    {
+      "id": "sc_cspj14j_read_1",
+      "stageId": "cm_imp_cspj2014j_v1",
+      "type": "quiz",
+      "title": "三、阅读程序写结果 1（8 分）",
+      "order": 3,
+      "content": {
+        "type": "quiz",
+        "codeBlock": {
+          "language": "cpp",
+          "title": "阅读程序（1）",
+          "description": "读入三个整数 a、b、c，按指定公式计算 ans 并输出。",
+          "lines": [
+            "#include <iostream>",
+            "using namespace std;",
+            "int main() {",
+            "  int a, b, c, d, ans;",
+            "  cin >> a >> b >> c;",
+            "  d = a - b;",
+            "  a = d + c;",
+            "  ans = a * b;",
+            "  cout << \"Ans = \" << ans << endl;",
+            "  return 0;",
+            "}"
+          ]
+        },
+        "questions": [
           {
             "id": "cr1",
+            "codeLines": [
+              "#include <iostream>",
+              "using namespace std;",
+              "int main() {",
+              "  int a, b, c, d, ans;",
+              "  cin >> a >> b >> c;",
+              "  d = a - b;",
+              "  a = d + c;",
+              "  ans = a * b;",
+              "  cout << \"Ans = \" << ans << endl;",
+              "  return 0;",
+              "}"
+            ],
+            "codeTitle": "阅读程序（1）",
+            "codeDescription": "读入三个整数 a、b、c，按指定公式计算 ans 并输出。",
             "type": "single",
-            "question": "1. 阅读下面程序：\n```cpp\n#include <iostream>\nusing namespace std;\nint main() {\n  int a, b, c, d, ans;\n  cin >> a >> b >> c;\n  d = a - b;\n  a = d + c;\n  ans = a * b;\n  cout << \"Ans = \" << ans << endl;\n  return 0;\n}\n```\n输入：2 3 4\n输出：",
+            "question": "输入：2 3 4\n输出：",
             "options": [
               {
                 "value": "A",
@@ -734,11 +788,67 @@
             "analysis": "a=2, b=3, c=4。d = a - b = 2-3 = -1。a = d + c = -1+4 = 3。ans = a * b = 3*3 = 9。输出 \"Ans = 9\"。",
             "points": 8,
             "hasAnswer": true
-          },
+          }
+        ],
+        "kind": "code-reading"
+      },
+      "actions": [],
+      "multiAgent": {
+        "enabled": false,
+        "agentIds": []
+      },
+      "createdAt": 1786243324371,
+      "updatedAt": 1786243324371,
+      "category": "read"
+    },
+    {
+      "id": "sc_cspj14j_read_2",
+      "stageId": "cm_imp_cspj2014j_v1",
+      "type": "quiz",
+      "title": "三、阅读程序写结果 2（8 分）",
+      "order": 4,
+      "content": {
+        "type": "quiz",
+        "codeBlock": {
+          "language": "cpp",
+          "title": "阅读程序（2）",
+          "description": "fun 递归函数，fun(1)=1, fun(2)=2, fun(n) = fun(n-2) - fun(n-1)。",
+          "lines": [
+            "#include <iostream>",
+            "using namespace std;",
+            "int fun(int n) {",
+            "  if (n == 1) return 1;",
+            "  if (n == 2) return 2;",
+            "  return fun(n - 2) - fun(n - 1);",
+            "}",
+            "int main() {",
+            "  int n; cin >> n;",
+            "  cout << fun(n) << endl;",
+            "  return 0;",
+            "}"
+          ]
+        },
+        "questions": [
           {
             "id": "cr2",
+            "codeLines": [
+              "#include <iostream>",
+              "using namespace std;",
+              "int fun(int n) {",
+              "  if (n == 1) return 1;",
+              "  if (n == 2) return 2;",
+              "  return fun(n - 2) - fun(n - 1);",
+              "}",
+              "int main() {",
+              "  int n; cin >> n;",
+              "  cout << fun(n) << endl;",
+              "  return 0;",
+              "}"
+            ],
+            "codeTitle": "阅读程序（2）",
+            "codeDescription": "fun 递归函数，fun(1)=1, fun(2)=2, fun(n) = fun(n-2) - fun(n-1)。",
             "type": "single",
-            "question": "2. 阅读下面程序：\n```cpp\n#include <iostream>\nusing namespace std;\nint fun(int n) {\n  if (n == 1) return 1;\n  if (n == 2) return 2;\n  return fun(n - 2) - fun(n - 1);\n}\nint main() {\n  int n; cin >> n;\n  cout << fun(n) << endl;\n  return 0;\n}\n```\n输入：7\n输出：",
+            "question": "输入：7\n输出：",
             "options": [
               {
                 "value": "A",
@@ -763,7 +873,31 @@
             "analysis": "fun(1)=1, fun(2)=2, fun(3)=fun(1)-fun(2)=1-2=-1, fun(4)=fun(2)-fun(3)=2-(-1)=3, fun(5)=fun(3)-fun(4)=-1-3=-4, fun(6)=fun(4)-fun(5)=3-(-4)=7, fun(7)=fun(5)-fun(6)=-4-7=-11。",
             "points": 8,
             "hasAnswer": true
-          },
+          }
+        ],
+        "kind": "code-reading"
+      },
+      "actions": [],
+      "multiAgent": {
+        "enabled": false,
+        "agentIds": []
+      },
+      "createdAt": 1786243324371,
+      "updatedAt": 1786243324371,
+      "category": "read"
+    },
+    {
+      "id": "sc_cspj14j_read_3",
+      "stageId": "cm_imp_cspj2014j_v1",
+      "type": "quiz",
+      "title": "三、阅读程序写结果 3（8 分）",
+      "order": 5,
+      "content": {
+        "type": "quiz",
+        "codeBlock": {
+          "language": "cpp"
+        },
+        "questions": [
           {
             "id": "cr3",
             "type": "single",
@@ -792,7 +926,31 @@
             "analysis": "程序把小写字母转大写，其它字符不变。",
             "points": 8,
             "hasAnswer": true
-          },
+          }
+        ],
+        "kind": "code-reading"
+      },
+      "actions": [],
+      "multiAgent": {
+        "enabled": false,
+        "agentIds": []
+      },
+      "createdAt": 1786243324371,
+      "updatedAt": 1786243324371,
+      "category": "read"
+    },
+    {
+      "id": "sc_cspj14j_read_4",
+      "stageId": "cm_imp_cspj2014j_v1",
+      "type": "quiz",
+      "title": "三、阅读程序写结果 4（8 分）",
+      "order": 6,
+      "content": {
+        "type": "quiz",
+        "codeBlock": {
+          "language": "cpp"
+        },
+        "questions": [
           {
             "id": "cr4",
             "type": "single",
@@ -830,8 +988,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786241298883,
-      "updatedAt": 1786241298883,
+      "createdAt": 1786243324371,
+      "updatedAt": 1786243324371,
       "category": "read"
     },
     {
@@ -996,8 +1154,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786241298883,
-      "updatedAt": 1786241298883,
+      "createdAt": 1786243324371,
+      "updatedAt": 1786243324371,
       "category": "perfect"
     },
     {
@@ -1005,7 +1163,7 @@
       "stageId": "cm_imp_cspj2014j_v1",
       "type": "quiz",
       "title": "四、完善程序（2）最大子矩阵和（最后一空 4 分，其余 3 分，共 16 分）",
-      "order": 4,
+      "order": 8,
       "content": {
         "type": "quiz",
         "codeBlock": {
@@ -1195,8 +1353,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786241298883,
-      "updatedAt": 1786241298883,
+      "createdAt": 1786243324371,
+      "updatedAt": 1786243324371,
       "category": "perfect"
     }
   ]

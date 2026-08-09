@@ -203,8 +203,8 @@ for (b = 1; b &lt;= c; b++) s += 1;
       <div class="answer"><b>答案:</b> C</div>
     </div>
   </div><div class="scene">
-    <h2>二、问题求解 + 三、阅读程序写结果（共计 42 分）</h2>
-    <p class="meta">类别: read · 题数: 6</p>
+    <h2>二、问题求解（共 2 题，每题 5 分，共计 10 分）</h2>
+    <p class="meta">类别: read · 题数: 2</p>
     
     <div class="q">
       <div class="qhead"><span class="qid">ps1</span> <span class="qpts">5 分</span></div>
@@ -220,50 +220,51 @@ for (b = 1; b &lt;= c; b++) s += 1;
       <div class="opts"><div class="opt "><b>A.</b> 12</div><div class="opt ans"><b>B.</b> 14 <span class="badge">AI推断</span></div><div class="opt "><b>C.</b> 16</div><div class="opt "><b>D.</b> 18</div></div>
       <div class="analysis"><b>解析:</b> Dijkstra 最短路径题，标准答案为 14 (需参照 PDF 中的图结构)。</div>
       <div class="answer"><b>答案:</b> B</div>
-    </div><div class="q">
+    </div>
+  </div><div class="scene">
+    <h2>三、阅读程序写结果 1（8 分）</h2>
+    <p class="meta">类别: read · 题数: 1</p>
+    <div class="codeblock">
+    <div class="codeblock-title">阅读程序（1）</div>
+    <div class="codeblock-desc">读入三个整数 a、b、c，按指定公式计算 ans 并输出。</div>
+    <div class="codeblock-frame"><div class="code-row"><span class="code-gutter">01</span><pre class="code-line">#include &lt;iostream&gt;</pre></div><div class="code-row"><span class="code-gutter">02</span><pre class="code-line">using namespace std;</pre></div><div class="code-row"><span class="code-gutter">03</span><pre class="code-line">int main() {</pre></div><div class="code-row"><span class="code-gutter">04</span><pre class="code-line">  int a, b, c, d, ans;</pre></div><div class="code-row"><span class="code-gutter">05</span><pre class="code-line">  cin &gt;&gt; a &gt;&gt; b &gt;&gt; c;</pre></div><div class="code-row"><span class="code-gutter">06</span><pre class="code-line">  d = a - b;</pre></div><div class="code-row"><span class="code-gutter">07</span><pre class="code-line">  a = d + c;</pre></div><div class="code-row"><span class="code-gutter">08</span><pre class="code-line">  ans = a * b;</pre></div><div class="code-row"><span class="code-gutter">09</span><pre class="code-line">  cout &lt;&lt; "Ans = " &lt;&lt; ans &lt;&lt; endl;</pre></div><div class="code-row"><span class="code-gutter">10</span><pre class="code-line">  return 0;</pre></div><div class="code-row"><span class="code-gutter">11</span><pre class="code-line">}</pre></div></div>
+    <div class="codeblock-foot">cpp</div>
+  </div>
+    <div class="q">
       <div class="qhead"><span class="qid">cr1</span> <span class="qpts">8 分</span></div>
-      <pre class="qbody">1. 阅读下面程序：
-```cpp
-#include &lt;iostream&gt;
-using namespace std;
-int main() {
-  int a, b, c, d, ans;
-  cin &gt;&gt; a &gt;&gt; b &gt;&gt; c;
-  d = a - b;
-  a = d + c;
-  ans = a * b;
-  cout &lt;&lt; "Ans = " &lt;&lt; ans &lt;&lt; endl;
-  return 0;
-}
-```
-输入：2 3 4
+      <pre class="qbody">输入：2 3 4
 输出：</pre>
       <div class="opts"><div class="opt "><b>A.</b> Ans = 3</div><div class="opt "><b>B.</b> Ans = 6</div><div class="opt ans"><b>C.</b> Ans = 9 <span class="badge">AI推断</span></div><div class="opt "><b>D.</b> Ans = 12</div></div>
       <div class="analysis"><b>解析:</b> a=2, b=3, c=4。d = a - b = 2-3 = -1。a = d + c = -1+4 = 3。ans = a * b = 3*3 = 9。输出 "Ans = 9"。</div>
       <div class="answer"><b>答案:</b> C</div>
-    </div><div class="q">
+    </div>
+  </div><div class="scene">
+    <h2>三、阅读程序写结果 2（8 分）</h2>
+    <p class="meta">类别: read · 题数: 1</p>
+    <div class="codeblock">
+    <div class="codeblock-title">阅读程序（2）</div>
+    <div class="codeblock-desc">fun 递归函数，fun(1)=1, fun(2)=2, fun(n) = fun(n-2) - fun(n-1)。</div>
+    <div class="codeblock-frame"><div class="code-row"><span class="code-gutter">01</span><pre class="code-line">#include &lt;iostream&gt;</pre></div><div class="code-row"><span class="code-gutter">02</span><pre class="code-line">using namespace std;</pre></div><div class="code-row"><span class="code-gutter">03</span><pre class="code-line">int fun(int n) {</pre></div><div class="code-row"><span class="code-gutter">04</span><pre class="code-line">  if (n == 1) return 1;</pre></div><div class="code-row"><span class="code-gutter">05</span><pre class="code-line">  if (n == 2) return 2;</pre></div><div class="code-row"><span class="code-gutter">06</span><pre class="code-line">  return fun(n - 2) - fun(n - 1);</pre></div><div class="code-row"><span class="code-gutter">07</span><pre class="code-line">}</pre></div><div class="code-row"><span class="code-gutter">08</span><pre class="code-line">int main() {</pre></div><div class="code-row"><span class="code-gutter">09</span><pre class="code-line">  int n; cin &gt;&gt; n;</pre></div><div class="code-row"><span class="code-gutter">10</span><pre class="code-line">  cout &lt;&lt; fun(n) &lt;&lt; endl;</pre></div><div class="code-row"><span class="code-gutter">11</span><pre class="code-line">  return 0;</pre></div><div class="code-row"><span class="code-gutter">12</span><pre class="code-line">}</pre></div></div>
+    <div class="codeblock-foot">cpp</div>
+  </div>
+    <div class="q">
       <div class="qhead"><span class="qid">cr2</span> <span class="qpts">8 分</span></div>
-      <pre class="qbody">2. 阅读下面程序：
-```cpp
-#include &lt;iostream&gt;
-using namespace std;
-int fun(int n) {
-  if (n == 1) return 1;
-  if (n == 2) return 2;
-  return fun(n - 2) - fun(n - 1);
-}
-int main() {
-  int n; cin &gt;&gt; n;
-  cout &lt;&lt; fun(n) &lt;&lt; endl;
-  return 0;
-}
-```
-输入：7
+      <pre class="qbody">输入：7
 输出：</pre>
       <div class="opts"><div class="opt ans"><b>A.</b> -11 <span class="badge">AI推断</span></div><div class="opt "><b>B.</b> -4</div><div class="opt "><b>C.</b> 3</div><div class="opt "><b>D.</b> 7</div></div>
       <div class="analysis"><b>解析:</b> fun(1)=1, fun(2)=2, fun(3)=fun(1)-fun(2)=1-2=-1, fun(4)=fun(2)-fun(3)=2-(-1)=3, fun(5)=fun(3)-fun(4)=-1-3=-4, fun(6)=fun(4)-fun(5)=3-(-4)=7, fun(7)=fun(5)-fun(6)=-4-7=-11。</div>
       <div class="answer"><b>答案:</b> A</div>
-    </div><div class="q">
+    </div>
+  </div><div class="scene">
+    <h2>三、阅读程序写结果 3（8 分）</h2>
+    <p class="meta">类别: read · 题数: 1</p>
+    <div class="codeblock">
+    
+    
+    <div class="codeblock-frame"></div>
+    <div class="codeblock-foot">cpp</div>
+  </div>
+    <div class="q">
       <div class="qhead"><span class="qid">cr3</span> <span class="qpts">8 分</span></div>
       <pre class="qbody">3. 阅读下面程序：
 ```cpp
@@ -286,7 +287,17 @@ int main() {
       <div class="opts"><div class="opt "><b>A.</b> hello, my name is lostmonkey.</div><div class="opt "><b>B.</b> Hello, My Name Is Lostmonkey.</div><div class="opt ans"><b>C.</b> HELLO, MY NAME IS LOSTMONKEY. <span class="badge">AI推断</span></div><div class="opt "><b>D.</b> hELLO, mY nAME iS lOSTMONKEY.</div></div>
       <div class="analysis"><b>解析:</b> 程序把小写字母转大写，其它字符不变。</div>
       <div class="answer"><b>答案:</b> C</div>
-    </div><div class="q">
+    </div>
+  </div><div class="scene">
+    <h2>三、阅读程序写结果 4（8 分）</h2>
+    <p class="meta">类别: read · 题数: 1</p>
+    <div class="codeblock">
+    
+    
+    <div class="codeblock-frame"></div>
+    <div class="codeblock-foot">cpp</div>
+  </div>
+    <div class="q">
       <div class="qhead"><span class="qid">cr4</span> <span class="qpts">8 分</span></div>
       <pre class="qbody">4. 阅读下面程序：
 ```cpp

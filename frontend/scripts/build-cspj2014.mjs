@@ -108,11 +108,27 @@ const problemSolvingQuestions = [
 ];
 
 // =========== 阅读程序 4 题 (single_choice 形式) ===========
+// 每道题都有独立的 codeLines, 在 scene 构建时分配到 codeBlock.lines
 const codeReadingQuestions = [
   {
     id: 'cr1',
+    codeLines: [
+      '#include <iostream>',
+      'using namespace std;',
+      'int main() {',
+      '  int a, b, c, d, ans;',
+      '  cin >> a >> b >> c;',
+      '  d = a - b;',
+      '  a = d + c;',
+      '  ans = a * b;',
+      '  cout << "Ans = " << ans << endl;',
+      '  return 0;',
+      '}',
+    ],
+    codeTitle: '阅读程序（1）',
+    codeDescription: '读入三个整数 a、b、c，按指定公式计算 ans 并输出。',
     type: 'single',
-    question: '1. 阅读下面程序：\n```cpp\n#include <iostream>\nusing namespace std;\nint main() {\n  int a, b, c, d, ans;\n  cin >> a >> b >> c;\n  d = a - b;\n  a = d + c;\n  ans = a * b;\n  cout << "Ans = " << ans << endl;\n  return 0;\n}\n```\n输入：2 3 4\n输出：',
+    question: '输入：2 3 4\n输出：',
     options: [
       { value: 'A', label: 'Ans = 3' },
       { value: 'B', label: 'Ans = 6' },
@@ -126,8 +142,24 @@ const codeReadingQuestions = [
   },
   {
     id: 'cr2',
+    codeLines: [
+      '#include <iostream>',
+      'using namespace std;',
+      'int fun(int n) {',
+      '  if (n == 1) return 1;',
+      '  if (n == 2) return 2;',
+      '  return fun(n - 2) - fun(n - 1);',
+      '}',
+      'int main() {',
+      '  int n; cin >> n;',
+      '  cout << fun(n) << endl;',
+      '  return 0;',
+      '}',
+    ],
+    codeTitle: '阅读程序（2）',
+    codeDescription: 'fun 递归函数，fun(1)=1, fun(2)=2, fun(n) = fun(n-2) - fun(n-1)。',
     type: 'single',
-    question: '2. 阅读下面程序：\n```cpp\n#include <iostream>\nusing namespace std;\nint fun(int n) {\n  if (n == 1) return 1;\n  if (n == 2) return 2;\n  return fun(n - 2) - fun(n - 1);\n}\nint main() {\n  int n; cin >> n;\n  cout << fun(n) << endl;\n  return 0;\n}\n```\n输入：7\n输出：',
+    question: '输入：7\n输出：',
     options: [
       { value: 'A', label: '-11' },
       { value: 'B', label: '-4' },
@@ -363,11 +395,33 @@ const perfect2Questions = [
   },
 ];
 
-// 组合 read scene 的所有题 (问题求解 2 + 阅读程序 4 = 6 题)
-// ps_title / cr_title 占位题已删除 - 用 scene 标题说明分段
-const readSceneQuestions = [
-  ...problemSolvingQuestions,
-  ...codeReadingQuestions,
+// 构造 6 个 read 类 scene:
+// 1. 问题求解 (ps1+ps2, 无 codeBlock, kind='code-reading' 仍合适 -- 这是 text-only 思考题)
+// 2-5. 阅读程序 1-4 (每题独立 scene, 各自带 codeBlock)
+const readScenes = [
+  {
+    id: 'sc_cspj14j_problem_solving',
+    title: '二、问题求解（共 2 题，每题 5 分，共计 10 分）',
+    order: 2,
+    kind: 'code-reading',
+    category: 'read',
+    codeBlock: null,
+    questions: problemSolvingQuestions,
+  },
+  ...codeReadingQuestions.map((q, idx) => ({
+    id: `sc_cspj14j_read_${idx + 1}`,
+    title: `三、阅读程序写结果 ${idx + 1}（8 分）`,
+    order: 3 + idx,
+    kind: 'code-reading',
+    category: 'read',
+    codeBlock: {
+      language: 'cpp',
+      title: q.codeTitle,
+      description: q.codeDescription,
+      lines: q.codeLines,
+    },
+    questions: [q], // 每题独立 scene
+  })),
 ];
 
 // =========== 构造完整 classroom JSON ===========
@@ -428,23 +482,24 @@ const classroom = {
       updatedAt: Date.now(),
       category: 'choice',
     },
-    {
-      id: 'sc_cspj14j_read',
+    ...readScenes.map((rs) => ({
+      id: rs.id,
       stageId: 'cm_imp_cspj2014j_v1',
       type: 'quiz',
-      title: '二、问题求解 + 三、阅读程序写结果（共计 42 分）',
-      order: 2,
+      title: rs.title,
+      order: rs.order,
       content: {
         type: 'quiz',
-        questions: readSceneQuestions,
-        kind: 'code-reading',
+        ...(rs.codeBlock ? { codeBlock: rs.codeBlock } : {}),
+        questions: rs.questions,
+        kind: rs.kind,
       },
       actions: [],
       multiAgent: { enabled: false, agentIds: [] },
       createdAt: Date.now(),
       updatedAt: Date.now(),
-      category: 'read',
-    },
+      category: rs.category,
+    })),
     {
       id: 'sc_cspj14j_perfect',
       stageId: 'cm_imp_cspj2014j_v1',
@@ -473,7 +528,7 @@ const classroom = {
       stageId: 'cm_imp_cspj2014j_v1',
       type: 'quiz',
       title: '四、完善程序（2）最大子矩阵和（最后一空 4 分，其余 3 分，共 16 分）',
-      order: 4,
+      order: 8,
       content: {
         type: 'quiz',
         codeBlock: {
@@ -497,11 +552,12 @@ const classroom = {
 await writeFile(JSON_OUT, JSON.stringify(classroom, null, 2), 'utf-8');
 console.log(`OK: ${JSON_OUT}`);
 console.log(`  choice questions: ${choiceSceneQuestions.length}`);
-console.log(`  read questions: ${readSceneQuestions.length} (2 问题求解 + 4 阅读程序, 无占位题)`);
+console.log(`  problem_solving questions: ${problemSolvingQuestions.length}`);
+console.log(`  code reading questions: ${codeReadingQuestions.length} (1 question per scene, 4 scenes)`);
 console.log(`  perfect1 questions: ${perfect1Questions.length} (数字删除 4 空)`);
 console.log(`  perfect2 questions: ${perfect2Questions.length} (最大子矩阵和 5 空)`);
-console.log(`  total questions: ${choiceSceneQuestions.length + readSceneQuestions.length + perfect1Questions.length + perfect2Questions.length}`);
-console.log(`  total scenes: ${classroom.scenes.length}`);
-// 验证所有题都是 single 类型 (除标题占位)
+console.log(`  total questions: ${choiceSceneQuestions.length + problemSolvingQuestions.length + codeReadingQuestions.length + perfect1Questions.length + perfect2Questions.length}`);
+console.log(`  total scenes: ${classroom.scenes.length} (1 choice + 1 problem_solving + 4 code_reading + 2 perfect)`);
+// 验证所有题都是 single 类型
 const shortAnswer = classroom.scenes.flatMap(s => s.content.questions).filter(q => q.type !== 'single');
 console.log(`  short_answer 残留: ${shortAnswer.length}`);
