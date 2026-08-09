@@ -364,32 +364,9 @@ const perfect2Questions = [
 ];
 
 // 组合 read scene 的所有题 (问题求解 2 + 阅读程序 4 = 6 题)
+// ps_title / cr_title 占位题已删除 - 用 scene 标题说明分段
 const readSceneQuestions = [
-  {
-    id: 'ps_title',
-    type: 'single',
-    question: '【二、问题求解】（共 2 题，每题 5 分，共计 10 分；每题全部答对得 5 分）',
-    options: [
-      { value: 'A', label: '【继续作答】' },
-    ],
-    answer: ['A'],
-    analysis: '问题求解部分说明：每题全部答对得 5 分，没有部分分。',
-    points: 0,
-    hasAnswer: true,
-  },
   ...problemSolvingQuestions,
-  {
-    id: 'cr_title',
-    type: 'single',
-    question: '【三、阅读程序写结果】（共 4 题，每题 8 分，共计 32 分）',
-    options: [
-      { value: 'A', label: '【继续作答】' },
-    ],
-    answer: ['A'],
-    analysis: '阅读程序写结果部分说明。',
-    points: 0,
-    hasAnswer: true,
-  },
   ...codeReadingQuestions,
 ];
 
@@ -520,11 +497,11 @@ const classroom = {
 await writeFile(JSON_OUT, JSON.stringify(classroom, null, 2), 'utf-8');
 console.log(`OK: ${JSON_OUT}`);
 console.log(`  choice questions: ${choiceSceneQuestions.length}`);
-console.log(`  read questions: ${readSceneQuestions.length} (含 2 标题占位 + 2 问题求解 + 4 阅读程序)`);
+console.log(`  read questions: ${readSceneQuestions.length} (2 问题求解 + 4 阅读程序, 无占位题)`);
 console.log(`  perfect1 questions: ${perfect1Questions.length} (数字删除 4 空)`);
 console.log(`  perfect2 questions: ${perfect2Questions.length} (最大子矩阵和 5 空)`);
 console.log(`  total questions: ${choiceSceneQuestions.length + readSceneQuestions.length + perfect1Questions.length + perfect2Questions.length}`);
 console.log(`  total scenes: ${classroom.scenes.length}`);
 // 验证所有题都是 single 类型 (除标题占位)
 const shortAnswer = classroom.scenes.flatMap(s => s.content.questions).filter(q => q.type !== 'single');
-console.log(`  short_answer 残留: ${shortAnswer.length} (仅标题占位)`);
+console.log(`  short_answer 残留: ${shortAnswer.length}`);

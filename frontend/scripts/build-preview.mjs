@@ -6,13 +6,27 @@ const json = JSON.parse(await readFile('D:/AItrade/ai-math-mistake-machine/front
 
 const esc = (s) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
+// 渲染一个 scene 的 codeBlock (如果有)
+const renderCodeBlock = (codeBlock) => {
+  if (!codeBlock) return '';
+  const lines = (codeBlock.lines || []).map((ln, i) => {
+    const padded = String(i + (codeBlock.startLine ?? 1)).padStart(2, '0');
+    return `<div class="code-row"><span class="code-gutter">${padded}</span><pre class="code-line">${esc(ln || ' ')}</pre></div>`;
+  }).join('');
+  return `<div class="codeblock">
+    ${codeBlock.title ? `<div class="codeblock-title">${esc(codeBlock.title)}</div>` : ''}
+    ${codeBlock.description ? `<div class="codeblock-desc">${esc(codeBlock.description)}</div>` : ''}
+    <div class="codeblock-frame">${lines}</div>
+    ${codeBlock.language ? `<div class="codeblock-foot">${esc(codeBlock.language)}</div>` : ''}
+  </div>`;
+};
+
 const scenesHTML = json.scenes.map((s, i) => {
   const questionsHTML = s.content.questions.map((q, j) => {
     const optsHTML = (q.options || []).map((o, k) => {
       const isAns = (q.answer || []).includes(o.value);
       return `<div class="opt ${isAns?'ans':''}"><b>${esc(o.value)}.</b> ${esc(o.label)}${isAns?' <span class="badge">AI推断</span>':''}</div>`;
     }).join('');
-    const codeBlock = (q.question || '').includes('```');
     return `<div class="q">
       <div class="qhead"><span class="qid">${esc(q.id)}</span> <span class="qpts">${q.points||1} 分</span></div>
       <pre class="qbody">${esc(q.question)}</pre>
@@ -24,6 +38,7 @@ const scenesHTML = json.scenes.map((s, i) => {
   return `<div class="scene">
     <h2>${esc(s.title)}</h2>
     <p class="meta">类别: ${s.category} · 题数: ${s.content.questions.length}</p>
+    ${renderCodeBlock(s.content.codeBlock)}
     ${questionsHTML}
   </div>`;
 }).join('');
@@ -50,6 +65,15 @@ h2 { color: #be185d; margin-top: 32px; background: #fdf2f8; padding: 8px 12px; b
 .badge { background: #f59e0b; color: white; padding: 1px 6px; font-size: 11px; border-radius: 3px; margin-left: 6px; }
 .analysis { background: #eff6ff; padding: 6px 10px; margin-top: 6px; border-radius: 3px; font-size: 13px; }
 .answer { background: #d1fae5; padding: 6px 10px; margin-top: 6px; border-radius: 3px; font-size: 13px; }
+.codeblock { margin: 12px 0 18px; border: 2px solid #94a3b8; border-radius: 6px; overflow: hidden; background: #ffffff; }
+.codeblock-title { background: #f1f5f9; padding: 8px 12px; font-weight: 600; border-bottom: 1px solid #cbd5e1; font-size: 14px; color: #0f172a; }
+.codeblock-desc { background: #f8fafc; padding: 6px 12px; font-size: 12px; color: #475569; border-bottom: 1px solid #e2e8f0; }
+.codeblock-frame { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; font-size: 12.5px; line-height: 1.7; max-height: 50vh; overflow-y: auto; }
+.code-row { display: flex; border-bottom: 1px solid #e2e8f0; }
+.code-row:last-child { border-bottom: none; }
+.code-gutter { background: #f1f5f9; color: #64748b; padding: 2px 8px; min-width: 3.5em; text-align: right; user-select: none; border-right: 1px solid #cbd5e1; }
+.code-line { margin: 0; padding: 2px 12px; flex: 1; white-space: pre; overflow-x: auto; color: #0f172a; }
+.codeblock-foot { background: #f1f5f9; padding: 4px 12px; font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; border-top: 1px solid #cbd5e1; }
 .toolbar { background: #1e293b; color: white; padding: 12px; border-radius: 6px; margin-bottom: 20px; }
 .toolbar a { color: #38bdf8; margin-right: 12px; }
 .warn { background: #fef3c7; padding: 8px; border-radius: 4px; margin-bottom: 16px; font-size: 13px; }

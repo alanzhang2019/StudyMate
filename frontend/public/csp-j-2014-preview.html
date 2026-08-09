@@ -20,6 +20,15 @@ h2 { color: #be185d; margin-top: 32px; background: #fdf2f8; padding: 8px 12px; b
 .badge { background: #f59e0b; color: white; padding: 1px 6px; font-size: 11px; border-radius: 3px; margin-left: 6px; }
 .analysis { background: #eff6ff; padding: 6px 10px; margin-top: 6px; border-radius: 3px; font-size: 13px; }
 .answer { background: #d1fae5; padding: 6px 10px; margin-top: 6px; border-radius: 3px; font-size: 13px; }
+.codeblock { margin: 12px 0 18px; border: 2px solid #94a3b8; border-radius: 6px; overflow: hidden; background: #ffffff; }
+.codeblock-title { background: #f1f5f9; padding: 8px 12px; font-weight: 600; border-bottom: 1px solid #cbd5e1; font-size: 14px; color: #0f172a; }
+.codeblock-desc { background: #f8fafc; padding: 6px 12px; font-size: 12px; color: #475569; border-bottom: 1px solid #e2e8f0; }
+.codeblock-frame { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; font-size: 12.5px; line-height: 1.7; max-height: 50vh; overflow-y: auto; }
+.code-row { display: flex; border-bottom: 1px solid #e2e8f0; }
+.code-row:last-child { border-bottom: none; }
+.code-gutter { background: #f1f5f9; color: #64748b; padding: 2px 8px; min-width: 3.5em; text-align: right; user-select: none; border-right: 1px solid #cbd5e1; }
+.code-line { margin: 0; padding: 2px 12px; flex: 1; white-space: pre; overflow-x: auto; color: #0f172a; }
+.codeblock-foot { background: #f1f5f9; padding: 4px 12px; font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; border-top: 1px solid #cbd5e1; }
 .toolbar { background: #1e293b; color: white; padding: 12px; border-radius: 6px; margin-bottom: 20px; }
 .toolbar a { color: #38bdf8; margin-right: 12px; }
 .warn { background: #fef3c7; padding: 8px; border-radius: 4px; margin-bottom: 16px; font-size: 13px; }
@@ -41,6 +50,7 @@ h2 { color: #be185d; margin-top: 32px; background: #fdf2f8; padding: 8px 12px; b
 <div class="scene">
     <h2>一、单项选择题（共 20 题，每题 1.5 分，共计 30 分）</h2>
     <p class="meta">类别: choice · 题数: 20</p>
+    
     <div class="q">
       <div class="qhead"><span class="qid">q1</span> <span class="qpts">1.5 分</span></div>
       <pre class="qbody">1. 以下哪个是面向对象的高级语言（ ）。</pre>
@@ -194,14 +204,9 @@ for (b = 1; b &lt;= c; b++) s += 1;
     </div>
   </div><div class="scene">
     <h2>二、问题求解 + 三、阅读程序写结果（共计 42 分）</h2>
-    <p class="meta">类别: read · 题数: 8</p>
+    <p class="meta">类别: read · 题数: 6</p>
+    
     <div class="q">
-      <div class="qhead"><span class="qid">ps_title</span> <span class="qpts">1 分</span></div>
-      <pre class="qbody">【二、问题求解】（共 2 题，每题 5 分，共计 10 分；每题全部答对得 5 分）</pre>
-      <div class="opts"><div class="opt ans"><b>A.</b> 【继续作答】 <span class="badge">AI推断</span></div></div>
-      <div class="analysis"><b>解析:</b> 问题求解部分说明：每题全部答对得 5 分，没有部分分。</div>
-      <div class="answer"><b>答案:</b> A</div>
-    </div><div class="q">
       <div class="qhead"><span class="qid">ps1</span> <span class="qpts">5 分</span></div>
       <pre class="qbody">1. 把 M 个同样的球放到 N 个同样的袋子里，允许有的袋子空着不放，问共有多少种不同的放置方法？（用 K 表示）。
 例如：M = 7，N = 3 时，K = 8；在这里认为（5,1,1）和（1,5,1）是同一种放置方法。
@@ -215,12 +220,6 @@ for (b = 1; b &lt;= c; b++) s += 1;
       <div class="opts"><div class="opt "><b>A.</b> 12</div><div class="opt ans"><b>B.</b> 14 <span class="badge">AI推断</span></div><div class="opt "><b>C.</b> 16</div><div class="opt "><b>D.</b> 18</div></div>
       <div class="analysis"><b>解析:</b> Dijkstra 最短路径题，标准答案为 14 (需参照 PDF 中的图结构)。</div>
       <div class="answer"><b>答案:</b> B</div>
-    </div><div class="q">
-      <div class="qhead"><span class="qid">cr_title</span> <span class="qpts">1 分</span></div>
-      <pre class="qbody">【三、阅读程序写结果】（共 4 题，每题 8 分，共计 32 分）</pre>
-      <div class="opts"><div class="opt ans"><b>A.</b> 【继续作答】 <span class="badge">AI推断</span></div></div>
-      <div class="analysis"><b>解析:</b> 阅读程序写结果部分说明。</div>
-      <div class="answer"><b>答案:</b> A</div>
     </div><div class="q">
       <div class="qhead"><span class="qid">cr1</span> <span class="qpts">8 分</span></div>
       <pre class="qbody">1. 阅读下面程序：
@@ -317,6 +316,12 @@ int main() {
   </div><div class="scene">
     <h2>四、完善程序（1）数字删除（每空 3 分，共 12 分）</h2>
     <p class="meta">类别: perfect · 题数: 4</p>
+    <div class="codeblock">
+    <div class="codeblock-title">完善程序（1）数字删除</div>
+    <div class="codeblock-desc">下面程序的功能是将字符串中的数字字符删除后输出。</div>
+    <div class="codeblock-frame"><div class="code-row"><span class="code-gutter">01</span><pre class="code-line">#include &lt;iostream&gt;</pre></div><div class="code-row"><span class="code-gutter">02</span><pre class="code-line">using namespace std;</pre></div><div class="code-row"><span class="code-gutter">03</span><pre class="code-line">int delnum(char *s) {</pre></div><div class="code-row"><span class="code-gutter">04</span><pre class="code-line">  int i, j;</pre></div><div class="code-row"><span class="code-gutter">05</span><pre class="code-line">  j = 0;</pre></div><div class="code-row"><span class="code-gutter">06</span><pre class="code-line">  for (i = 0; s[i] != '\0'; i++)</pre></div><div class="code-row"><span class="code-gutter">07</span><pre class="code-line">    if (s[i] &lt; '0' (1) s[i] &gt; '9') {</pre></div><div class="code-row"><span class="code-gutter">08</span><pre class="code-line">      s[j] = s[i];</pre></div><div class="code-row"><span class="code-gutter">09</span><pre class="code-line">      (2) ;</pre></div><div class="code-row"><span class="code-gutter">10</span><pre class="code-line">    }</pre></div><div class="code-row"><span class="code-gutter">11</span><pre class="code-line">  return (3) ;</pre></div><div class="code-row"><span class="code-gutter">12</span><pre class="code-line">}</pre></div><div class="code-row"><span class="code-gutter">13</span><pre class="code-line">const int SIZE = 30;</pre></div><div class="code-row"><span class="code-gutter">14</span><pre class="code-line">int main() {</pre></div><div class="code-row"><span class="code-gutter">15</span><pre class="code-line">  char s[SIZE];</pre></div><div class="code-row"><span class="code-gutter">16</span><pre class="code-line">  int len, i;</pre></div><div class="code-row"><span class="code-gutter">17</span><pre class="code-line">  cin.getline(s, sizeof(s));</pre></div><div class="code-row"><span class="code-gutter">18</span><pre class="code-line">  len = delnum(s);</pre></div><div class="code-row"><span class="code-gutter">19</span><pre class="code-line">  for (i = 0; i &lt; len; i++) cout &lt;&lt; (4) ;</pre></div><div class="code-row"><span class="code-gutter">20</span><pre class="code-line">  cout &lt;&lt; endl;</pre></div><div class="code-row"><span class="code-gutter">21</span><pre class="code-line">  return 0;</pre></div><div class="code-row"><span class="code-gutter">22</span><pre class="code-line">}</pre></div></div>
+    <div class="codeblock-foot">cpp</div>
+  </div>
     <div class="q">
       <div class="qhead"><span class="qid">p1_1</span> <span class="qpts">3 分</span></div>
       <pre class="qbody">完善程序（1）数字删除。填空 (1)：判断是否为非数字字符的逻辑运算符是？</pre>
@@ -345,6 +350,12 @@ int main() {
   </div><div class="scene">
     <h2>四、完善程序（2）最大子矩阵和（最后一空 4 分，其余 3 分，共 16 分）</h2>
     <p class="meta">类别: perfect · 题数: 5</p>
+    <div class="codeblock">
+    <div class="codeblock-title">完善程序（2）最大子矩阵和</div>
+    <div class="codeblock-desc">给出 m 行 n 列的整数矩阵，求最大的子矩阵和（子矩阵不能为空）。</div>
+    <div class="codeblock-frame"><div class="code-row"><span class="code-gutter">01</span><pre class="code-line">#include &lt;iostream&gt;</pre></div><div class="code-row"><span class="code-gutter">02</span><pre class="code-line">using namespace std;</pre></div><div class="code-row"><span class="code-gutter">03</span><pre class="code-line">const int SIZE = 100;</pre></div><div class="code-row"><span class="code-gutter">04</span><pre class="code-line">int matrix[SIZE + 1][SIZE + 1];</pre></div><div class="code-row"><span class="code-gutter">05</span><pre class="code-line">int rowsum[SIZE + 1][SIZE + 1]; //rowsum[i][j]记录第 i 行前 j 个数的和</pre></div><div class="code-row"><span class="code-gutter">06</span><pre class="code-line">int m, n, i, j, first, last, area, ans;</pre></div><div class="code-row"><span class="code-gutter">07</span><pre class="code-line">int main() {</pre></div><div class="code-row"><span class="code-gutter">08</span><pre class="code-line">  cin &gt;&gt; m &gt;&gt; n;</pre></div><div class="code-row"><span class="code-gutter">09</span><pre class="code-line">  for (i = 1; i &lt;= m; i++)</pre></div><div class="code-row"><span class="code-gutter">10</span><pre class="code-line">    for (j = 1; j &lt;= n; j++) cin &gt;&gt; matrix[i][j];</pre></div><div class="code-row"><span class="code-gutter">11</span><pre class="code-line">  ans = matrix (1) ;</pre></div><div class="code-row"><span class="code-gutter">12</span><pre class="code-line">  for (i = 1; i &lt;= m; i++) (2) ;</pre></div><div class="code-row"><span class="code-gutter">13</span><pre class="code-line">  for (i = 1; i &lt;= m; i++)</pre></div><div class="code-row"><span class="code-gutter">14</span><pre class="code-line">    for (j = 1; j &lt;= n; j++) rowsum[i][j] = (3) ;</pre></div><div class="code-row"><span class="code-gutter">15</span><pre class="code-line">  for (first = 1; first &lt;= n; first++)</pre></div><div class="code-row"><span class="code-gutter">16</span><pre class="code-line">    for (last = first; last &lt;= n; last++) {</pre></div><div class="code-row"><span class="code-gutter">17</span><pre class="code-line">      (4) ;</pre></div><div class="code-row"><span class="code-gutter">18</span><pre class="code-line">      for (i = 1; i &lt;= m; i++) {</pre></div><div class="code-row"><span class="code-gutter">19</span><pre class="code-line">        area += (5) ;</pre></div><div class="code-row"><span class="code-gutter">20</span><pre class="code-line">        if (area &gt; ans) ans = area;</pre></div><div class="code-row"><span class="code-gutter">21</span><pre class="code-line">        if (area &lt; 0) area = 0;</pre></div><div class="code-row"><span class="code-gutter">22</span><pre class="code-line">      }</pre></div><div class="code-row"><span class="code-gutter">23</span><pre class="code-line">    }</pre></div><div class="code-row"><span class="code-gutter">24</span><pre class="code-line">  cout &lt;&lt; ans &lt;&lt; endl;</pre></div><div class="code-row"><span class="code-gutter">25</span><pre class="code-line">  return 0;</pre></div><div class="code-row"><span class="code-gutter">26</span><pre class="code-line">}</pre></div></div>
+    <div class="codeblock-foot">cpp</div>
+  </div>
     <div class="q">
       <div class="qhead"><span class="qid">p2_1</span> <span class="qpts">3 分</span></div>
       <pre class="qbody">完善程序（2）最大子矩阵和。填空 (1)：ans 初始化的值？</pre>
