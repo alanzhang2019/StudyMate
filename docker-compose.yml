@@ -21,12 +21,19 @@ services:
         # IMPORTANT: these are baked into the server bundle by webpack's env
         # inlining. Whatever is here at `docker compose build` time is what
         # runs. Change at runtime via .env does NOT take effect — must rebuild.
-        # Default switched to kimi:deepseek/deepseek-v4-flash because that is
-        # the first entry of the KIMI_MODELS allowlist in the deployment env.
-        # The previous kimi:moonshotai/kimi-k2.5 was NOT in the allowlist, so
-        # every server-side LLM call was silently rejected by resolveModel.
-        DEFAULT_MODEL: ${DEFAULT_MODEL:-kimi:deepseek/deepseek-v4-flash}
-        MISTAKE_OCR_MODEL: ${MISTAKE_OCR_MODEL:-kimi:deepseek/deepseek-v4-flash}
+        #
+        # Default switched to kimi:deepseek/deepseek-v4-flash-20260731.
+        # The user confirmed this exact model id (note the date suffix)
+        # IS available on 七牛云's OpenAI-compatible endpoint
+        # (https://api.qnaigc.com/v1). Earlier attempts used
+        # `deepseek/deepseek-v4-flash` WITHOUT the date suffix, which
+        # 七牛云 silently rejected with an empty 200 response. The
+        # `kimi:` label is purely cosmetic — providers.ts registers
+        # `kimi` as type `openai`, so the SDK still speaks OpenAI
+        # protocol but reads KIMI_* env vars. Keep these in sync with
+        # the `environment` block below AND with `frontend/.env`.
+        DEFAULT_MODEL: ${DEFAULT_MODEL:-kimi:deepseek/deepseek-v4-flash-20260731}
+        MISTAKE_OCR_MODEL: ${MISTAKE_OCR_MODEL:-kimi:moonshot-v1-8k}
     container_name: studymate-frontend
     # Listen on 0.0.0.0 so the oi.aijiangti.cn reverse proxy (Singapore)
     # can reach us during the ICP filing window. Restrict via Tencent Cloud
@@ -52,9 +59,20 @@ services:
       # NOT in KIMI_MODELS) cannot silently break the CSP placement
       # AI recommender and other server-side LLM calls. `environment`
       # is merged AFTER `env_file`, so these values win.
-      - DEFAULT_MODEL=kimi:deepseek/deepseek-v4-flash
-      - MISTAKE_OCR_MODEL=kimi:qwen3-vl-30b-a3b-instruct
-      - MISTAKE_CLASSROOM_MODEL=kimi:deepseek/deepseek-v4-flash
+      #
+      # Use `kimi:` provider (NOT `openai:`) because the .env only
+      # configures KIMI_API_KEY / KIMI_BASE_URL pointing at
+      # https://api.qnaigc.com/v1 (七牛云). The `kimi` provider in
+      # providers.ts is registered as type `openai`, so the SDK still
+      # speaks OpenAI protocol — it just reads KIMI_* env vars. The
+      # default model is `deepseek/deepseek-v4-flash-20260731`
+      # (confirmed by user, IS available on 七牛云); OCR keeps the
+      # safe `moonshot-v1-8k` text fallback because the deepseek
+      # flash model is text-only and OCR needs vision. Keep these
+      # in sync with the `args` block above AND with `frontend/.env`.
+      - DEFAULT_MODEL=kimi:deepseek/deepseek-v4-flash-20260731
+      - MISTAKE_OCR_MODEL=kimi:moonshot-v1-8k
+      - MISTAKE_CLASSROOM_MODEL=kimi:moonshot-v1-8k
     # Persist /app/data (classroom JSONs, mistake-sessions, generated audio
     # recordings, SQLite database, etc.) on a named volume. Without this,
     # every `docker compose up -d --force-recreate` destroys the writable
