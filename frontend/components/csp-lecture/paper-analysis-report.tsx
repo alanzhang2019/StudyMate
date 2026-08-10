@@ -35,6 +35,11 @@ import {
   Send,
   ChevronDown,
   ChevronUp,
+  Volume2,
+  VolumeX,
+  Pause,
+  Play,
+  Lightbulb,
 } from 'lucide-react';
 import {
   Dialog,
@@ -53,6 +58,8 @@ import {
   AWARD_COLOR,
   type CspGroup,
 } from '@/lib/csp-score-lines';
+import { useBrowserTTS } from '@/lib/hooks/use-browser-tts';
+import { useSettingsStore } from '@/lib/store/settings';
 
 type RootCauseType =
   | 'concept-confusion'
@@ -650,8 +657,20 @@ function WrongQuestionCard({
   classroomId: string;
 }) {
   const [showQa, setShowQa] = useState(false);
+  // pendingQuestion: 父组件 (这里就是卡片本身) 给 QaChat 投递的"待
+  // 发"问题。点击下方话术 chip 时, 先把它设上, 再展开聊天 — QaChat
+  // 的 useEffect 监听到变化后自动 send, 然后回调 onPendingConsumed
+  // 把这个 prop 清空, 避免重复触发。
+  const [pendingQuestion, setPendingQuestion] = useState<string>('');
   const cat = question.sceneCategory;
   const isChoice = cat === 'choice';
+
+  // 点话术 chip 的一站式行为: 展开聊天 + 投递问题。
+  // 同一句再次点击会被 QaChat 的 lastPendingRef 去重, 不会重复发。
+  const askSuggestion = (q: string) => {
+    setShowQa(true);
+    setPendingQuestion(q);
+  };
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white">
@@ -745,7 +764,7 @@ function WrongQuestionCard({
           </div>
         )}
 
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mt-3 flex items-center gap-2 flex-wrap">
           <Button
             size="sm"
             variant={showQa ? 'default' : 'outline'}
@@ -764,16 +783,39 @@ function WrongQuestionCard({
               <ChevronDown className="w-3.5 h-3.5 ml-1" />
             )}
           </Button>
-          <span className="text-[10px] text-slate-400">
-            针对这一题, 自由提问, AI 围绕本题作答
+          <span className="text-[11px] text-slate-500">
+            没看懂? 下面任选一句直接发给 AI 老师
           </span>
+        </div>
+
+        {/* 话术 chip 区 — 这是用户提到的"更明显的指引"。即使
+            聊天还没展开, 学生也能一眼看到建议的问法, 点一下
+            就同时打开聊天 + 自动发送, 减少"我不会问"的门槛。
+            不展示所有 5 句, 取前 3 句最常用的, 其余进聊天里还有。 */}
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {SUGGESTED_QUESTIONS.slice(0, 3).map((q) => (
+            <button
+              key={q}
+              type="button"
+              onClick={() => askSuggestion(q)}
+              className="inline-flex items-center gap-1 rounded-full bg-sky-50 border border-sky-200 px-2.5 py-1 text-[11px] text-sky-800 hover:bg-sky-100 hover:border-sky-300 transition-colors"
+            >
+              <Lightbulb className="w-3 h-3" />
+              {q}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* AI 答疑区：展开后内联渲染聊天 */}
       {showQa && (
         <div className="border-t border-slate-100 bg-slate-50/40 px-4 py-3">
-          <QaChat classroomId={classroomId} question={question} />
+          <QaChat
+            classroomId={classroomId}
+            question={question}
+            pendingQuestion={pendingQuestion}
+            onPendingConsumed={() => setPendingQuestion('')}
+          />
         </div>
       )}
     </div>
@@ -789,30 +831,92 @@ type QaMessage = {
   error?: boolean;
 };
 
+// 卡片里展示的快捷问句 + 聊天初次打开时的推荐话术。
+// 设计原则：贴近学生真实口语, 而不是"解题八股" — "为什么不对" /
+// "知识点是啥"这种太书面, 学生平时不会这样说话。下面这一组更像
+// 一个真实学生问老师的话: "给我讲讲", "我没懂", "再细一点" …
 const SUGGESTED_QUESTIONS = [
-  '为什么这个选项不对?',
-  '正确答案的关键思路是什么?',
-  '这道题考的知识点是?',
-  '我错在哪个步骤?',
+  '给我讲解一下这道题',
+  '有点不懂，能再详细一点吗？',
+  '为什么选这个答案？',
+  '能再讲讲这个知识点吗？',
+  '还有类似的题目吗？',
 ];
 
 function QaChat({
   classroomId,
   question,
+  pendingQuestion,
+  onPendingConsumed,
 }: {
   classroomId: string;
   question: WrongQuestion;
+  /**
+   * 父组件 (WrongQuestionCard) 可以通过这个 prop 触发"一键提问":
+   * 把它设成一句话 (例如点了一个建议话术 chip), QaChat 内部会在
+   * pendingQuestion 变化时自动 send 一次, 然后调用 onPendingConsumed
+   * 让父组件清空这个 prop, 这样学生点同一句不会重复发。
+   */
+  pendingQuestion?: string;
+  onPendingConsumed?: () => void;
 }) {
   const [messages, setMessages] = useState<QaMessage[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  // 哪一条 AI 消息正在被 TTS 朗读. 一个聊天里只允许一个 TTS 在播,
+  // 新的会打断旧的 (useBrowserTTS.speak 内部 cancel 上一个).
+  const [speakingMsgId, setSpeakingMsgId] = useState<number | null>(null);
+
+  // 读全局 TTS 设置 (静音 / 音量 / 语速). 没有从 settings 里读 enabled,
+  // 因为即便全局禁用了, 答疑区的朗读仍可手动开启 (跟其它"主动触发"
+  // 的 TTS 行为一致 —— 学生在阅读 AI 长文时希望可以听一遍)。
+  const ttsMuted = useSettingsStore((s) => s.ttsMuted);
+  const ttsVolume = useSettingsStore((s) => s.ttsVolume);
+  const ttsSpeed = useSettingsStore((s) => s.ttsSpeed);
+
+  const {
+    speak: ttsSpeak,
+    pause: ttsPause,
+    resume: ttsResume,
+    cancel: ttsCancel,
+    isSpeaking,
+    isPaused,
+  } = useBrowserTTS({
+    rate: ttsSpeed,
+    volume: ttsMuted ? 0 : ttsVolume,
+    lang: 'zh-CN',
+    onEnd: () => setSpeakingMsgId(null),
+    onError: () => setSpeakingMsgId(null),
+  });
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, sending]);
+
+  // 组件卸载时取消正在播的 TTS, 避免遗留朗读 (切到别的题目或关闭报告
+  // 的时候还听到上一个 AI 在说话, 体验很怪)。
+  useEffect(() => {
+    return () => {
+      ttsCancel();
+    };
+  }, [ttsCancel]);
+
+  // 监听 pendingQuestion: 父组件点了一个建议话术 → 这里自动 send。
+  // 用 ref 记录上次消费过的值, 防止 React 18 严格模式下 effect 重跑
+  // 造成重复 send。
+  const lastPendingRef = useRef<string | null>(null);
+  useEffect(() => {
+    const q = (pendingQuestion ?? '').trim();
+    if (!q) return;
+    if (lastPendingRef.current === pendingQuestion) return;
+    lastPendingRef.current = pendingQuestion;
+    void send(q);
+    onPendingConsumed?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingQuestion]);
 
   const send = async (text: string) => {
     const trimmed = text.trim();
@@ -871,27 +975,54 @@ function QaChat({
     }
   };
 
+  // AI 回复的 TTS 控制 — 同一时刻只允许一个消息在播。
+  // 行为：
+  //   - 空闲时点 🔊      → speak(content), 把 speakingMsgId 设为 i
+  //   - 正在播同一条时点  → pause
+  //   - 暂停时点 ▶        → resume
+  //   - 正在播时点 🔊     → cancel + speak(content) (从头开始)
+  const handleSpeak = (idx: number, content: string) => {
+    if (speakingMsgId === idx) {
+      if (isPaused) {
+        ttsResume();
+      } else {
+        ttsPause();
+      }
+      return;
+    }
+    ttsCancel();
+    setSpeakingMsgId(idx);
+    ttsSpeak(content);
+  };
+
   return (
     <div>
       {/* 对话历史 */}
       <div
         ref={scrollRef}
-        className="max-h-72 overflow-y-auto pr-1 space-y-2 mb-3"
+        className="max-h-80 overflow-y-auto pr-1 space-y-2 mb-3"
       >
         {messages.length === 0 && (
-          <div className="text-xs text-slate-500 space-y-2">
-            <p>💡 你可以这样问 AI:</p>
+          <div className="rounded-lg border border-sky-200/70 bg-sky-50/40 px-3 py-2.5 text-xs text-slate-600 space-y-2">
+            <div className="flex items-center gap-1.5 text-sky-700 font-semibold">
+              <Lightbulb className="w-3.5 h-3.5" />
+              点下面任一话术, 直接向 AI 老师提问
+            </div>
             <div className="flex flex-wrap gap-1.5">
               {SUGGESTED_QUESTIONS.map((q) => (
                 <button
                   key={q}
                   onClick={() => send(q)}
-                  className="px-2.5 py-1 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-sky-50 hover:border-sky-200 hover:text-sky-700 transition-colors text-[11px]"
+                  className="px-2.5 py-1 rounded-full bg-white border border-sky-200 text-slate-700 hover:bg-sky-100 hover:border-sky-300 hover:text-sky-800 transition-colors text-[11px]"
                 >
                   {q}
                 </button>
               ))}
             </div>
+            <p className="text-[10px] text-slate-400">
+              也可以在下方输入框自由提问 (⌘/Ctrl+Enter 发送), AI 会
+              针对这一题作答。
+            </p>
           </div>
         )}
         {messages.map((m, i) => (
@@ -911,7 +1042,55 @@ function QaChat({
                     : 'bg-white text-slate-800 border border-slate-200 rounded-bl-sm')
               }
             >
-              {m.content}
+              <div>{m.content}</div>
+              {/* AI 回复才有朗读按钮: user 不朗读自己的话; error 状态
+                  的也算"AI 回复", 但学生一般不需要听报错, 仍给个
+                  按钮方便看不动的用户听。 */}
+              {m.role === 'assistant' && (
+                <button
+                  type="button"
+                  onClick={() => handleSpeak(i, m.content)}
+                  title={
+                    speakingMsgId === i
+                      ? isPaused
+                        ? '继续朗读'
+                        : '暂停朗读'
+                      : '朗读这条 AI 回复'
+                  }
+                  aria-label={
+                    speakingMsgId === i
+                      ? isPaused
+                        ? '继续朗读'
+                        : '暂停朗读'
+                      : '朗读这条 AI 回复'
+                  }
+                  className={
+                    'mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold transition-colors ' +
+                    (speakingMsgId === i && isSpeaking && !isPaused
+                      ? 'bg-sky-100 text-sky-700 border border-sky-200 hover:bg-sky-200'
+                      : speakingMsgId === i && isPaused
+                        ? 'bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100'
+                        : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-sky-50 hover:text-sky-700 hover:border-sky-200')
+                  }
+                >
+                  {speakingMsgId === i && isSpeaking && !isPaused ? (
+                    <>
+                      <Pause className="w-3 h-3" />
+                      朗读中… 点这里暂停
+                    </>
+                  ) : speakingMsgId === i && isPaused ? (
+                    <>
+                      <Play className="w-3 h-3" />
+                      已暂停, 点这里继续
+                    </>
+                  ) : (
+                    <>
+                      <Volume2 className="w-3 h-3" />
+                      朗读
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         ))}
