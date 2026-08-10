@@ -168,9 +168,25 @@ export function PaperAnalysisReport({ open, onOpenChange, classroomId }: Props) 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ classroomId, forceRefresh: force }),
       });
-      const json = await res.json();
+      // 先读 text 再尝试 JSON, 这样即便后端 (反代 / 容器)
+      // 返回 502/504/500 这种非 JSON 响应, 我们也能展示可读
+      // 的错误信息 (如 "Bad Gateway", "AI 调用失败" 等), 而
+      // 不是直接吞掉一个 "Unexpected token < in JSON at position 0"
+      // SyntaxError。502 在用户的部署里通常意味着 LLM 上游
+      // 不可达 / API key 失效 / baseURL 选错, 提示文案要直白。
+      const text = await res.text();
+      let json: any = null;
+      try {
+        json = text ? JSON.parse(text) : null;
+      } catch {
+        json = null;
+      }
       if (!res.ok || !json?.success) {
-        throw new Error(json?.error || `HTTP ${res.status}`);
+        const detail =
+          (json && (json.error || json.message)) ||
+          (text && text.trim().slice(0, 200)) ||
+          `HTTP ${res.status}`;
+        throw new Error(detail);
       }
       setReport(json.report as Report);
     } catch (e: any) {
