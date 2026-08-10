@@ -43,6 +43,7 @@ import {
   TitleComponent,
   TooltipComponent,
   LegendComponent,
+  MarkLineComponent,
 } from 'echarts/components';
 import { SVGRenderer } from 'echarts/renderers';
 
@@ -52,8 +53,17 @@ echarts.use([
   TitleComponent,
   TooltipComponent,
   LegendComponent,
+  MarkLineComponent,
   SVGRenderer,
 ]);
+
+import {
+  getScoreLine,
+  SCORE_LINE_META,
+  SCORE_LINE_KEYS,
+  type CspGroup,
+  type ScoreLineKey,
+} from '@/lib/csp-score-lines';
 
 type CategoryKey = 'choice' | 'read' | 'perfect';
 
@@ -179,7 +189,8 @@ export function PaperScoreTrendChart({ className, hideFooterLink }: Props) {
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
               共完成 {totalAttempted} 套真题 · 折线显示单项选择 / 阅读程序 /
-              完善程序 / 总分 4 个维度的得分随年份变化
+              完善程序 / 总分 4 个维度的得分随年份变化 · 横向参考线为
+              对应年份的广东晋级线与全国一/二/三等线
             </p>
           </div>
         </div>
@@ -306,6 +317,49 @@ function SubChart({
       z: isTotal ? 10 : 1,
     });
 
+    // 构造 markLine 数据 —— 把"广东晋级 / 全国一等 / 二等 / 三等"4 条
+    // 参考线在每一年画成一段横向虚线段 (yAxis = 该年分数线)，
+    // 让学生看到自己的总分点距离哪条线最近。
+    //
+    // 实现：使用 { xAxis: <year>, yAxis: <scoreLine> } 数据点形式，
+    // ECharts 会在两点之间画一条线段。我们用 [yearStr, yearStr] 配
+    // 同一 yAxis (分数线) 让"线段"在 X 轴方向退化为一条短虚线，
+    // 但 markLine 接受单个点 { yAxis } 自动跨整个 X 轴。
+    //
+    // 为了避免 4 条线 7 年 * 4 = 28 个 label 互相重叠, 每条线只在
+    // 该年第一个有数据的年份显示一次 label, 但整条线 (跨全图) 用
+    // 浅色虚线绘制。
+    const buildMarkLine = (key: ScoreLineKey) => {
+      const meta = SCORE_LINE_META[key];
+      return {
+        silent: true,
+        symbol: 'none',
+        animation: false,
+        lineStyle: {
+          color: meta.color,
+          width: 1.2,
+          type: 'dashed',
+          opacity: 0.55,
+        },
+        label: {
+          show: true,
+          position: 'insideStartTop',
+          formatter: () => meta.short,
+          color: meta.color,
+          fontSize: 10,
+          fontWeight: 600,
+          backgroundColor: 'rgba(255,255,255,0.85)',
+          padding: [1, 4],
+          borderRadius: 3,
+        },
+        data: years.map((y) => {
+          const line = getScoreLine(y, group);
+          if (!line) return { yAxis: 0 }; // 占位, 但会被 symbol:none 隐
+          return { yAxis: line[key] };
+        }),
+      };
+    };
+
     inst.current.setOption(
       {
         animation: false,
@@ -365,6 +419,38 @@ function SubChart({
                   : '—'
               }</span></div>`,
             );
+            // 补一段"该年分数线对照"，让 tooltip 同时给出广东晋级 / 全国奖项参考。
+            const scoreLine = getScoreLine(paper.year, group);
+            if (scoreLine) {
+              const gap = (current: number) =>
+                current >= 0
+                  ? `+${current.toFixed(1)}`
+                  : current.toFixed(1);
+              lines.push(
+                `<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.15);font-size:11px;opacity:0.85">`,
+              );
+              lines.push(
+                `<div style="display:flex;justify-content:space-between;gap:12px"><span>广东晋级线</span><span>${scoreLine.promotion} （${
+                  paper.total.score >= scoreLine.promotion ? '✓ 已过' : `${gap(paper.total.score - scoreLine.promotion)}`
+                }）</span></div>`,
+              );
+              lines.push(
+                `<div style="display:flex;justify-content:space-between;gap:12px"><span>全国一等线</span><span>${scoreLine.first} （${
+                  paper.total.score >= scoreLine.first ? '✓ 已过' : `${gap(paper.total.score - scoreLine.first)}`
+                }）</span></div>`,
+              );
+              lines.push(
+                `<div style="display:flex;justify-content:space-between;gap:12px"><span>全国二等线</span><span>${scoreLine.second} （${
+                  paper.total.score >= scoreLine.second ? '✓ 已过' : `${gap(paper.total.score - scoreLine.second)}`
+                }）</span></div>`,
+              );
+              lines.push(
+                `<div style="display:flex;justify-content:space-between;gap:12px"><span>全国三等线</span><span>${scoreLine.third} （${
+                  paper.total.score >= scoreLine.third ? '✓ 已过' : `${gap(paper.total.score - scoreLine.third)}`
+                }）</span></div>`,
+              );
+              lines.push(`</div>`);
+            }
             return lines.join('');
           },
         },
@@ -394,7 +480,31 @@ function SubChart({
           buildSeries('choice', CATEGORY_COLORS.choice, CATEGORY_LINE_WIDTH.choice, false),
           buildSeries('read', CATEGORY_COLORS.read, CATEGORY_LINE_WIDTH.read, false),
           buildSeries('perfect', CATEGORY_COLORS.perfect, CATEGORY_LINE_WIDTH.perfect, false),
-          buildSeries('choice', TOTAL_COLOR, TOTAL_LINE_WIDTH, true),
+          {
+            // 单独画一条"总分"折线, 把 markLine 都挂在它上面,
+            // 这样 4 条参考线和总分线共享同坐标系, tooltip 联动。
+            name: '总分',
+            type: 'line',
+            smooth: false,
+            symbol: 'circle',
+            symbolSize: 8,
+            showSymbol: true,
+            lineStyle: { color: TOTAL_COLOR, width: TOTAL_LINE_WIDTH, type: 'solid' },
+            itemStyle: { color: TOTAL_COLOR, borderColor: '#fff', borderWidth: 1.5 },
+            data: years.map((y) => {
+              const p = papers.find((it) => it.year === y);
+              if (!p) return null;
+              if (p.total.max <= 0) return null;
+              return p.total.score;
+            }),
+            markLine: {
+              symbol: 'none',
+              silent: true,
+              animation: false,
+              data: SCORE_LINE_KEYS.map((k) => buildMarkLine(k)),
+            },
+            z: 10,
+          },
         ],
       },
       true,
@@ -419,8 +529,25 @@ function SubChart({
     <div className="rounded-2xl border border-slate-200/70 bg-white px-3 py-3">
       <div className="text-xs font-semibold text-slate-700 px-2 mb-1">{title}</div>
       <div ref={ref} style={{ width: '100%', height: 240 }} />
-      <div className="text-[10px] text-slate-400 px-2 mt-1">
-        Y 轴 0–100 分 · 实线 = 总分，虚线 = 各题型
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-2 mt-1 text-[10px] text-slate-500">
+        <span>Y 轴 0–100 分 · 实线 = 总分，虚线 = 各题型</span>
+        <span className="text-slate-300">|</span>
+        <span className="inline-flex items-center gap-1">
+          <span className="inline-block w-3 h-0.5" style={{ background: SCORE_LINE_META.promotion.color, opacity: 0.7 }} />
+          晋级
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="inline-block w-3 h-0.5" style={{ background: SCORE_LINE_META.first.color, opacity: 0.7 }} />
+          一等
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="inline-block w-3 h-0.5" style={{ background: SCORE_LINE_META.second.color, opacity: 0.7 }} />
+          二等
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="inline-block w-3 h-0.5" style={{ background: SCORE_LINE_META.third.color, opacity: 0.7 }} />
+          三等
+        </span>
       </div>
     </div>
   );

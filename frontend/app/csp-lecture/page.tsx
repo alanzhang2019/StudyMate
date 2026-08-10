@@ -40,6 +40,7 @@ import { Leaderboard } from '@/components/leaderboard';
 import { PlacementBanner } from '@/components/csp-lecture/PlacementBanner';
 import { LectureGroup } from '@/components/csp-lecture/lecture-group';
 import { PaperScoreTrendChart } from '@/components/csp-lecture/paper-score-trend';
+import { ScoreLineTable } from '@/components/csp-lecture/score-line-table';
 import { formatDateBeijing } from '@/lib/utils/date';
 
 export const dynamic = 'force-dynamic';
@@ -154,18 +155,45 @@ async function listCspLectures(): Promise<Lecture[]> {
     if (yearPrefix) return parseInt(yearPrefix[1], 10);
     return Number.POSITIVE_INFINITY;
   };
-  items.sort((a, b) => {
+  // 在 sort 之前先按 ID 拆成 primer / paper 两个桶, 让两类内容各自
+  // 用合适的排序键: 课件 (精讲1, 精讲2, ...) 按手编数字升序;
+  // 真题 (2025, 2024, ..., 2014) 按年份倒序, 让最新一年排在最前。
+  //
+  // 为什么不在 sort 后拆分: 之前代码是把所有 item 混在一起 sort,
+  // 课件数字 (1..16) 比年份 (2014..2025) 小, 所以课件永远在前面,
+  // 真题按年份升序排 → 14 年排最后, 学生要从底部爬到顶部才能找到
+  // 最新一年的卷子, 体验差。
+  //
+  // Bucket assignment is ID-driven rather than title-driven so
+  // renames don't break the grouping. Both J (`cspj…j`) and S
+  // (`csps…s`) 真题 land in the `paper` bucket.
+  type Bucket = 'primer' | 'paper';
+  const bucketOf = (id: string): Bucket =>
+    id.startsWith('cm_imp_cspj') || id.startsWith('cm_imp_csps') ? 'paper' : 'primer';
+  const primerItems = items.filter((it) => bucketOf(it.id) === 'primer');
+  const paperItems = items.filter((it) => bucketOf(it.id) === 'paper');
+
+  // 课件排序: 沿用旧的 "1、" / "精讲1" / fallback 数字逻辑, 升序。
+  primerItems.sort((a, b) => {
     const ao = titleOrder(a.title ?? '');
     const bo = titleOrder(b.title ?? '');
     if (ao !== bo) return ao - bo;
-    // Same primary key (年份) — break ties by ID so
-    // `cspj…j` (普及组 J) 排在 `csps…s` (提高组 S) 之前.
-    // 这样 21 套真题按年份升序, 同一年 J 在前 S 在后.
+    return (a.title ?? '').localeCompare(b.title ?? '', 'zh-CN');
+  });
+
+  // 真题排序: 年份倒序 (2025 → 2014); 同一年 J (cspj) 在 S (csps) 之前。
+  paperItems.sort((a, b) => {
+    const ay = titleOrder(a.title ?? ''); // 用 titleOrder 抽出 YYYY
+    const by = titleOrder(b.title ?? '');
+    if (ay !== by) return by - ay; // ← 这里把减法反过来就是倒序
+    // 同一年份 — J 在 S 之前, 让 2025-J 与 2025-S 配对展示。
     const aIsJ = a.id.startsWith('cm_imp_cspj') ? 0 : 1;
     const bIsJ = b.id.startsWith('cm_imp_cspj') ? 0 : 1;
     if (aIsJ !== bIsJ) return aIsJ - bIsJ;
     return (a.title ?? '').localeCompare(b.title ?? '', 'zh-CN');
   });
+
+  const ordered = [...primerItems, ...paperItems];
   // DEBUG: log the resolved order so we can verify the sort is
   // actually firing on the deployed image. The user has reported
   // repeated "still not in order" complaints; this log is the
@@ -175,14 +203,15 @@ async function listCspLectures(): Promise<Lecture[]> {
     // eslint-disable-next-line no-console
     console.log(
       '[csp-lecture] sorted order:',
-      items.map((it) => ({
+      ordered.map((it) => ({
         id: it.id.slice(0, 20),
         title: it.title,
         order: titleOrder(it.title ?? ''),
+        bucket: bucketOf(it.id),
       })),
     );
   }
-  return items;
+  return ordered;
 }
 
 export default async function CspLecturePage() {
@@ -201,21 +230,15 @@ export default async function CspLecturePage() {
   const lectures = await listCspLectures();
   const totalScenes = lectures.reduce((s, l) => s + l.sceneCount, 0);
 
-  // Group lectures into two buckets the page can render
-  // separately. A previous version laid all classrooms (课件
-  // 精讲 + 真题 + per-student 错题讲解 ~200 张) in one flat
-  // grid, which looked chaotic. The two-bucket layout mirrors
-  // the actual curriculum structure: 精讲 = conceptual
-  // building blocks, 真题 = timed practice.
-  //
-  // Bucket assignment is ID-driven rather than title-driven so
-  // renames don't break the grouping. Both J (`cspj…j`) and S
-  // (`csps…s`) 真题 land in the `paper` bucket.
-  type Bucket = 'primer' | 'paper';
-  const bucketOf = (id: string): Bucket =>
-    id.startsWith('cm_imp_cspj') || id.startsWith('cm_imp_csps') ? 'paper' : 'primer';
-  const primerLectures = lectures.filter((l) => bucketOf(l.id) === 'primer');
-  const paperLectures = lectures.filter((l) => bucketOf(l.id) === 'paper');
+  // `listCspLectures()` 已经在内部把课件 (primer) 和 真题 (paper) 分别
+  // 排序后再拼接返回, 这里只需要再拆一次拿到各自的引用即可:
+  // 课件保持 精讲1..N 的手编数字升序, 真题按年份倒序 (2025 → 2014)。
+  const primerLectures = lectures.filter(
+    (l) => l.id.startsWith('cm_imp_cspj') || l.id.startsWith('cm_imp_csps') ? false : true,
+  );
+  const paperLectures = lectures.filter((l) =>
+    l.id.startsWith('cm_imp_cspj') || l.id.startsWith('cm_imp_csps'),
+  );
 
   // PDF 真题卷打印链接。打包到 public/ 后, 浏览器打开即可
   // 用 Ctrl+P 打印。文件名不带中文路径, 避免部分环境编码问题。
@@ -527,6 +550,7 @@ export default async function CspLecturePage() {
                      * 不再二次判定）。新用户 / 还没做题的用户会看
                      * 到空状态文案 + "去做一套"提示。
                      */}
+                    <ScoreLineTable className="mb-4" />
                     <PaperScoreTrendChart className="mb-2" />
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
                       {paperLectures.map((l) => (

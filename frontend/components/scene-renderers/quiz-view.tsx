@@ -30,6 +30,7 @@ import { gradeChoiceQuestions, isShortAnswer, type QuestionResult } from '@/lib/
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { scoreToLevel, levelLabel } from '@/lib/server/csp-placement';
+import { PaperAnalysisReport } from '@/components/csp-lecture/paper-analysis-report';
 import {
   clearSubmitted,
   draftKey,
@@ -1738,6 +1739,7 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
               onReset={handleReset}
               isResetting={isResetting}
               resetError={resetError}
+              classroomId={classroomId}
             />
           </motion.div>
         )}
@@ -1821,11 +1823,13 @@ function FinalScorePage({
   onReset,
   isResetting,
   resetError,
+  classroomId,
 }: {
   result: FinalScoreResult;
   onReset: () => void;
   isResetting: boolean;
   resetError: string | null;
+  classroomId?: string;
 }) {
   // V3 (standard or category-grouped): show the per-category
   // breakdown whenever *any* scene has a category. Standard mode
@@ -1844,6 +1848,16 @@ function FinalScorePage({
       ? Math.round((headlineEarned / headlineMax) * 100)
       : 0;
   const level = scoreToLevel(pct);
+
+  // AI 分析报告 — 打开 / 关闭状态。"有错题" = 任一 scene 的
+  // correctCount < totalQuestions。满分 (wrongCount === 0) 时
+  // 按钮不渲染, 不浪费一次 AI 调用。
+  const [analysisOpen, setAnalysisOpen] = useState(false);
+  const sceneWrongCount = (result.sceneResults ?? []).reduce(
+    (s, r) => s + Math.max(0, (r.totalQuestions ?? 0) - (r.correctCount ?? 0)),
+    0,
+  );
+  const canAnalyze = !!classroomId && sceneWrongCount > 0;
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
