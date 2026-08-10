@@ -33,11 +33,13 @@ import { scoreToLevel, levelLabel } from '@/lib/server/csp-placement';
 import {
   clearSubmitted,
   draftKey,
+  readAnswersForSummary,
   readSubmittedState,
   writeSubmittedAnswers,
   writeSubmittedResults,
   type SubmittedState,
 } from '@/lib/quiz/persistence';
+import { useStageStore } from '@/lib/store';
 
 /**
  * Stringify a user's answer to a single field for the
@@ -1072,6 +1074,7 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
     }>;
     sceneResults: Array<{
       sceneId: string;
+      category: 'choice' | 'read' | 'perfect' | null;
       title: string;
       order: number;
       totalQuestions: number;
@@ -1172,6 +1175,21 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
   // to see "you have 0 / 100 so far") should still be able to
   // hit 确认交卷 and get a sensible response. The server is
   // the source of truth for the score.
+  //
+  // V3: BEFORE the finalize round-trip, auto-submit any scene
+  // that has local answers (from the per-scene "提交答案" flow
+  // OR from the in-progress draft cache) but has not yet been
+  // pushed to the server. Without this, a student who clicks
+  // 交卷 without first clicking 提交答案 for each scene would
+  // get back a 0/100 with sceneCount=0, because the per-scene
+  // csp_quiz_submissions rows were never written. We grade
+  // choice questions locally (same code as the per-scene
+  // grading path) and POST each scene's results to
+  // /api/csp-quiz/submit, then proceed to the finalize call.
+  // Short-answer questions in a scene with only the in-
+  // progress draft fall back to `correct: false` because we
+  // don't have AI-graded results for them; the student can
+  // re-do the scene from 重新答题 to trigger the real grading.
   const handleFinalize = useCallback(async () => {
     if (!isFullPaper) return;
     setIsFinalizing(true);
@@ -1184,6 +1202,111 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
       const localPoints = questions.reduce((s, q) => s + (q.points ?? 1), 0);
       const localEarned = results.reduce((s, r) => s + r.earned, 0);
       const localCorrect = results.filter((r) => r.status === 'correct').length;
+
+      // Build a per-scene localAnswers map from localStorage for
+      // every quiz scene in this classroom. We also remember
+      // which scene we're "on" (the currently rendered one) so
+      // the in-memory `answers` state (which hasn't been
+      // written to localStorage yet on this final-page render
+      // path) is preferred over the storage value when they
+      // differ. Each entry is `Record<questionId, string|string[]>`.
+      const allScenes = useStageStore.getState().scenes ?? [];
+      const localAnswersByScene = new Map<string, Record<string, string | string[]>>();
+      for (const s of allScenes) {
+        if (!s || !s.id) continue;
+        const c = s.content;
+        if (!c || c.type !== 'quiz') continue;
+        const stored = readAnswersForSummary(s.id);
+        if (Object.keys(stored).length > 0) {
+          localAnswersByScene.set(s.id, stored);
+        }
+      }
+      // Overlay the in-memory current scene (which may have
+      // answers the user just changed but hasn't clicked
+      // 提交答案 for yet).
+      if (Object.keys(answers).length > 0) {
+        localAnswersByScene.set(sceneId, answers);
+      }
+
+      // Track scenes we've already submitted in this finalize
+      // pass. We must avoid double-submitting (1) the current
+      // scene that may have already been submitted via the
+      // per-scene useEffect, and (2) the same scene twice if
+      // it appears in both the current-scene overlay and the
+      // loop. The submit endpoint is idempotent (UPSERT), so
+      // duplicates are not corrupting — but they waste a
+      // round-trip and can race the finalize query.
+      const alreadySentInThisPass = new Set<string>(
+        Array.from(submitSentForScene.current),
+      );
+
+      // 1. Force-submit the current scene if it has local
+      //    answers we haven't already pushed.
+      const currentHasAnswers =
+        localAnswersByScene.has(sceneId) &&
+        Object.keys(localAnswersByScene.get(sceneId) || {}).length > 0;
+      if (currentHasAnswers && !alreadySentInThisPass.has(sceneId)) {
+        const sceneAnswers = localAnswersByScene.get(sceneId)!;
+        const sceneResults =
+          results.length > 0
+            ? results
+            : gradeChoiceQuestions(questions, sceneAnswers);
+        const payload: ReportQuizPayload = {
+          sceneId,
+          totalQuestions: questions.length,
+          answers: questions.map((q) => {
+            const r = sceneResults.find((x) => x.questionId === q.id);
+            return {
+              questionId: q.id,
+              choice: pickChoice(sceneAnswers[q.id]),
+              // If we have a graded result, use it; otherwise
+              // mark short-answer / ungraded questions as
+              // incorrect (better than crashing; the student
+              // can re-do via 重新答题 to get the real grade).
+              correct: r ? r.status === 'correct' : false,
+              ms: 0,
+              points: q.points ?? 1,
+            };
+          }),
+        };
+        await cspProgress.reportQuizSubmit(payload);
+        alreadySentInThisPass.add(sceneId);
+      }
+
+      // 2. Force-submit every OTHER quiz scene that has local
+      //    answers (from localStorage) but hasn't been
+      //    submitted yet. This covers the case where the
+      //    student answered scenes 1, 2, 3, … but only
+      //    clicked 交卷 at the end without ever hitting
+      //    提交答案.
+      for (const s of allScenes) {
+        if (!s || !s.id) continue;
+        if (s.id === sceneId) continue; // already handled above
+        if (alreadySentInThisPass.has(s.id)) continue;
+        const c = s.content;
+        if (!c || c.type !== 'quiz') continue;
+        const sceneAnswers = localAnswersByScene.get(s.id);
+        if (!sceneAnswers || Object.keys(sceneAnswers).length === 0) continue;
+        const sceneQuestions = c.questions;
+        if (!Array.isArray(sceneQuestions) || sceneQuestions.length === 0) continue;
+        const sceneResults = gradeChoiceQuestions(sceneQuestions, sceneAnswers);
+        const payload: ReportQuizPayload = {
+          sceneId: s.id,
+          totalQuestions: sceneQuestions.length,
+          answers: sceneQuestions.map((q) => {
+            const r = sceneResults.find((x) => x.questionId === q.id);
+            return {
+              questionId: q.id,
+              choice: pickChoice(sceneAnswers[q.id]),
+              correct: r ? r.status === 'correct' : false,
+              ms: 0,
+              points: q.points ?? 1,
+            };
+          }),
+        };
+        await cspProgress.reportQuizSubmit(payload);
+        alreadySentInThisPass.add(s.id);
+      }
 
       const res = await fetch('/api/csp-quiz/finalize-classroom', {
         method: 'POST',
@@ -1214,6 +1337,8 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
         }>;
         sceneResults: {
           sceneId: string;
+          title?: string;
+          order?: number;
           category: 'choice' | 'read' | 'perfect' | null;
           correctCount: number;
           totalQuestions: number;
@@ -1221,6 +1346,25 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
           maxPoints: number;
           score: number;
         }[];
+        historyByScene?: Record<
+          string,
+          Array<{
+            attemptIndex: number;
+            score: number;
+            points: number;
+            maxPoints: number;
+            correctCount: number;
+            totalQuestions: number;
+            submittedAt: string;
+          }>
+        >;
+        paperHistory?: Array<{
+          attemptIndex: number;
+          totalEarned: number;
+          totalMax: number;
+          score: number;
+          submittedAt: string;
+        }>;
       } = await res.json();
       setFinalizedResult({
         // Keep the count-based fields (correctCount / totalQuestions)
@@ -1290,7 +1434,7 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
     } finally {
       setIsFinalizing(false);
     }
-  }, [isFullPaper, results, questions, sceneId, classroomId]);
+  }, [isFullPaper, results, questions, sceneId, classroomId, answers, cspProgress]);
 
   // handleReset: triggered by "重新答题" on the total score
   // page. Calls /api/csp-quiz/reset for THIS scene, clears
@@ -2015,7 +2159,7 @@ function FinalScorePage({
       </div>
 
       <p className="text-center text-xs text-slate-400">
-        交卷后全 6 scene 成绩已汇总写入排行榜。重新答题只重置当前 scene。
+        交卷后全 {result.sceneResults.length} scene 成绩已汇总写入排行榜。重新答题只重置当前 scene。
       </p>
     </div>
   );
