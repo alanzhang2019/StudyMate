@@ -984,7 +984,7 @@ class PrismaCompatClient {
           params.score,
           params.answersJson,
         )
-      return cspQuizSubmission.findByUserScene(params.userId, params.classroomId, params.sceneId)
+      return this.cspQuizSubmission.findByUserScene(params.userId, params.classroomId, params.sceneId)
     },
     // deleteByUserScene: remove a single submission row so the
     // student can re-take the quiz from a clean slate. Returns
@@ -1073,7 +1073,7 @@ class PrismaCompatClient {
           params.answersJson,
           attemptIndex,
         );
-      return cspQuizSubmissionHistory.findById(id);
+      return this.cspQuizSubmissionHistory.findById(id);
     },
     findById: (id: string) => {
       return (
