@@ -2157,6 +2157,20 @@ function FinalScorePage({
       )}
 
       <div className="flex flex-wrap items-center justify-center gap-2">
+        {/* AI 智能分析按钮 — 学生交卷后, 在"重新答题 / 返回课件列表"
+            旁边放一个明显的入口 (渐变 + 闪光图标), 有错题才显示,
+            满分时节省一次 AI 调用。点击后弹出 PaperAnalysisReport
+            模态对话框, 内含总体诊断 / 薄弱知识点 / 根因 / 建议 / 单题
+            AI 答疑 5 个板块。 */}
+        {canAnalyze && classroomId && (
+          <Button
+            className="bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white shadow-md shadow-violet-200/50"
+            onClick={() => setAnalysisOpen(true)}
+          >
+            <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+            AI 智能分析
+          </Button>
+        )}
         <Button variant="outline" onClick={onReset} disabled={isResetting}>
           {isResetting ? (
             <>
@@ -2175,6 +2189,18 @@ function FinalScorePage({
       <p className="text-center text-xs text-slate-400">
         交卷后全 {result.sceneResults.length} scene 成绩已汇总写入排行榜。重新答题只重置当前 scene。
       </p>
+
+      {/* AI 分析报告 模态框 — 仅在 canAnalyze (有 classroomId 且有
+          错题) 时挂载, 避免空字符串 classroomId 触发 fetch 报错。
+          内部已实现分题型错题逐题展示 + 5 条建议话术 + TTS 朗读
+          (见 /components/csp-lecture/paper-analysis-report.tsx)。 */}
+      {canAnalyze && classroomId && (
+        <PaperAnalysisReport
+          open={analysisOpen}
+          onOpenChange={setAnalysisOpen}
+          classroomId={classroomId}
+        />
+      )}
     </div>
   );
 }
