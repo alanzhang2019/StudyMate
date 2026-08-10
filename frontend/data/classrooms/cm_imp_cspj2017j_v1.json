@@ -701,7 +701,7 @@
             "analysis": "通过 4 次操作可使 13 格全 0 (中心操作 + 3 个角的协同)。"
           }
         ],
-        "kind": "code-reading"
+        "kind": "choice"
       },
       "actions": [],
       "multiAgent": {

@@ -568,7 +568,7 @@
             "hasAnswer": true
           }
         ],
-        "kind": "multi-choice"
+        "kind": "choice"
       },
       "actions": [],
       "multiAgent": {
@@ -647,7 +647,7 @@
             "hasAnswer": true
           }
         ],
-        "kind": "code-reading"
+        "kind": "choice"
       },
       "actions": [],
       "multiAgent": {

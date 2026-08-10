@@ -562,7 +562,7 @@
             "hasAnswer": true
           }
         ],
-        "kind": "code-reading"
+        "kind": "choice"
       },
       "actions": [],
       "multiAgent": {
