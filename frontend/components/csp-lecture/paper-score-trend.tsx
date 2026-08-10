@@ -317,41 +317,62 @@ function SubChart({
     });
 
     // 构造 markLine 数据 —— 把"广东晋级 / 全国一等 / 二等 / 三等"4 条
-    // 参考线在每一年画成一段横向虚线 (yAxis = 该年分数线),
-    // 让学生看到自己的总分点距离哪条线最近。
+    // 参考线画成 4 条水平虚线 (per key), yAxis 取该 key 在所有数据年
+    // 的中位数, 让学生看到"自己的总分大致在哪个等级附近"。
     //
-    // ECharts 的 markLine.data 必须是 `Array<{ yAxis }>` 或
-    // `Array<[x, y]>`, 不能再嵌套完整的 markLine 配置对象 (早期
-    // 版本 buildMarkLine 返回了带 silent/lineStyle/label 的子对象,
-    // 被 ECharts 当成单个 data item, 内部访问 .coord 时抛
-    // "Cannot read properties of undefined (reading 'coord')")。
+    // 早期版本 (commit 23bfe81) 错误地"每年画 4 条线跨整个 X 轴",
+    // 4 keys * N years = 4N 条线段叠在一起, 折线被参考线完全淹没,
+    // 学生根本看不清自己的得分走势。这里改为只画 4 条线, 用中位数
+    // 作为代表性 yAxis, 视觉效果清爽。
     //
-    // 因此把 4 条线 (promotion/first/second/third) 各自的样式
-    // 直接 inline 到每个 data item 上, 一年 4 条参考线。每个 data
-    // item 是一条跨整个 X 轴的水平虚线, 颜色与 key 对应。
-    //
-    // 不显示 label (4 keys * N years = 4N 个 label 会重叠), 改为
-    // 在 tooltip 弹层里展示该年的完整对照 (见下方 formatter)。
-    const scoreLineData: any[] = [];
-    for (const y of years) {
-      const line = getScoreLine(y, group);
-      if (!line) continue; // 该年无对照分数线, 跳过
-      for (const key of SCORE_LINE_KEYS) {
-        const meta = SCORE_LINE_META[key];
-        scoreLineData.push({
-          yAxis: line[key],
-          silent: true,
-          symbol: 'none',
-          animation: false,
-          lineStyle: {
-            color: meta.color,
-            width: 1.2,
-            type: 'dashed',
-            opacity: 0.55,
-          },
-          label: { show: false },
-        });
+    // 具体年份的精确对照仍然在 tooltip 弹层里给出 (下方 formatter),
+    // 包括"该年实际分数线 + 与本年总分的差距"。
+    const yAxisByKey = new Map<string, number>();
+    {
+      const arrByKey = new Map<string, number[]>();
+      for (const key of SCORE_LINE_KEYS) arrByKey.set(key, []);
+      for (const y of years) {
+        const line = getScoreLine(y, group);
+        if (!line) continue;
+        for (const key of SCORE_LINE_KEYS) {
+          arrByKey.get(key)!.push(line[key]);
+        }
       }
+      for (const key of SCORE_LINE_KEYS) {
+        const arr = arrByKey.get(key)!;
+        if (arr.length === 0) continue;
+        arr.sort((a, b) => a - b);
+        yAxisByKey.set(key, arr[Math.floor(arr.length / 2)]);
+      }
+    }
+    const scoreLineData: any[] = [];
+    for (const key of SCORE_LINE_KEYS) {
+      const y = yAxisByKey.get(key);
+      if (y === undefined) continue;
+      const meta = SCORE_LINE_META[key];
+      scoreLineData.push({
+        yAxis: y,
+        silent: true,
+        symbol: 'none',
+        animation: false,
+        lineStyle: {
+          color: meta.color,
+          width: 1.2,
+          type: 'dashed',
+          opacity: 0.55,
+        },
+        label: {
+          show: true,
+          position: 'insideEndTop',
+          formatter: () => meta.short,
+          color: meta.color,
+          fontSize: 10,
+          fontWeight: 600,
+          backgroundColor: 'rgba(255,255,255,0.85)',
+          padding: [1, 4],
+          borderRadius: 3,
+        },
+      });
     }
 
     inst.current.setOption(
