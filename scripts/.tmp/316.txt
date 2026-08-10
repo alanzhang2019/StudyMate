@@ -1,0 +1,24 @@
+﻿commit 316285a38ae1e5d621a901eae06728a4a678593c
+Author: Bot <bot@example.com>
+Date:   Sat Aug 8 15:05:55 2026 +0800
+
+    feat(csp-lecture): 课件按类别分组，0-15 精讲 + 真题两个区，真题卡新增打印 PDF 按钮
+    
+    - listCspLectures 改为只显示 collection=csp-lecture 的 classroom，
+      移除 legacy fallback（个人错题讲解 ~200 张此前会混入页面）
+    - 按 stage.name 去重，避免相同课件多次上传产生重复卡片
+    - 页面布局拆为两个 LectureGroup：
+      1. CSP要点精讲（primerLectures，含 a39914d3 的 16 章节）
+      2. 历年真题（paperLectures，2024/2025 各一张）
+    - PaperLectureCard 底部新增「打印 PDF 真题卷」按钮，
+      链接到 /public/csp-j-2024-original.pdf / csp-j-2025-original.pdf
+    - public/ 复制 2024CSP-J初赛试题.pdf → csp-j-2024-original.pdf
+    - public/ 复制 2025年CSP-J真题(4).pdf → csp-j-2025-original.pdf
+    - hero 文案改为「1 个精讲 + 2 套真题 + 16 章节」
+    
+    部署地址：https://aijiangti.cn/csp-lecture
+
+ frontend/app/csp-lecture/page.tsx       | 217 +++++++++++++++++++++++++++-----
+ frontend/public/csp-j-2024-original.pdf | Bin 0 -> 1803823 bytes
+ frontend/public/csp-j-2025-original.pdf | Bin 0 -> 10904608 bytes
+ 3 files changed, 189 insertions(+), 28 deletions(-)

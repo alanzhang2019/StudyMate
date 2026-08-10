@@ -1,0 +1,302 @@
+// 2020 CSP-S1 提高级 classroom JSON 构建器
+// 2020 CSP-S1 分值结构 (满分 100):
+//   - 单选 15题 × 2分 = 30分
+//   - 阅读程序 3题 (判断 1.5 + 选择 3) = 40分
+//   - 完善程序 2题 (5空×3分) = 30分
+// AI 推断代码 (基于 dotcpp 抓取的代码片段); 答案来自 dotcpp 参考答案。
+import { promises as fs } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const JSON_OUT = path.resolve(__dirname, '../data/classrooms/cm_imp_csps2020s_v1.json');
+
+const choice = [
+  { id:'q1', p:2, q:'1. 请选出以下最大的数（ ）。', opts:[{v:'A',l:'(550)₁₀'},{v:'B',l:'(777)₈'},{v:'C',l:'2¹⁰'},{v:'D',l:'(22F)₁₆'}], a:['C'], an:'550 < 1024 = 2¹⁰, (777)₈ = 511 < 1024, (22F)₁₆ = 559 < 1024。' },
+  { id:'q2', p:2, q:'2. 操作系统的功能是（ ）。', opts:[{v:'A',l:'负责外设与主机之间的信息交换'},{v:'B',l:'控制和管理计算机系统的各种硬件和软件资源的使用'},{v:'C',l:'负责诊断机器的故障'},{v:'D',l:'将源程序编译成目标程序'}], a:['B'], an:'操作系统负责控制和管理计算机系统的硬件和软件资源。' },
+  { id:'q3', p:2, q:'3. 现有一段 8 分钟的视频文件, 播放速度是每秒 24 帧图像, 每帧图像是一幅分辨率为 2048×1024 像素的 32 位真彩色图像。请问要存储这段原始无压缩视频, 需要多大的存储空间（ ）。', opts:[{v:'A',l:'30G'},{v:'B',l:'90G'},{v:'C',l:'150G'},{v:'D',l:'450G'}], a:['B'], an:'8×60×24×2048×1024×4B = 90G。' },
+  { id:'q4', p:2, q:'4. 今有一空栈 S, 对下列待进栈的数据元素序列 a, b, c, d, e, f 依次进行: 进栈, 进栈, 出栈, 进栈, 进栈, 出栈的操作, 则此操作完成后, 栈底元素为（ ）。', opts:[{v:'A',l:'b'},{v:'B',l:'a'},{v:'C',l:'d'},{v:'D',l:'c'}], a:['B'], an:'操作后栈内为 a, d, e, 栈底是 a。' },
+  { id:'q5', p:2, q:'5. 将 (2, 7, 10, 18) 分别存储到某个地址区间为 0~10 的哈希表中, 如果哈希函数 h(x) = ( ), 将不会产生冲突, 其中 a mod b 表示 a 除以 b 的余数。', opts:[{v:'A',l:'x² mod 11'},{v:'B',l:'2x mod 11'},{v:'C',l:'x mod 11'},{v:'D',l:'⌊x/2⌋ mod 11'}], a:['D'], analysis:'⌊2/2⌋=1, ⌊7/2⌋=3, ⌊10/2⌋=5, ⌊18/2⌋=9, 均不冲突。', points:2, hasAnswer:true },
+  { id:'q6', p:2, q:'6. 下列哪些问题不能用贪心法精确求解（ ）。', opts:[{v:'A',l:'霍夫曼编码问题'},{v:'B',l:'0-1 背包问题'},{v:'C',l:'最小生成树问题'},{v:'D',l:'单源最短路径问题'}], a:['B'], an:'0-1 背包问题不能用贪心精确求解, 需动态规划。' },
+  { id:'q7', p:2, q:'7. 具有 n 个顶点, e 条边的图采用邻接表存储结构, 进行深度优先遍历运算的时间复杂度为（ ）。', opts:[{v:'A',l:'Θ(n+e)'},{v:'B',l:'Θ(n²)'},{v:'C',l:'Θ(e²)'},{v:'D',l:'Θ(n)'}], a:['A'], an:'邻接表 DFS 时间复杂度 O(n+e)。' },
+  { id:'q8', p:2, q:'8. 二分图是指能将顶点划分成两个部分, 每一部分内的顶点间没有边相连的简单无向图。那么, 24 个顶点的二分图至多有（ ）条边。', opts:[{v:'A',l:'144'},{v:'B',l:'100'},{v:'C',l:'48'},{v:'D',l:'122'}], a:['A'], an:'12×12 = 144 条。' },
+  { id:'q9', p:2, q:'9. 广度优先搜索时, 一定需要用到的数据结构是（ ）。', opts:[{v:'A',l:'栈'},{v:'B',l:'二叉树'},{v:'C',l:'队列'},{v:'D',l:'哈希表'}], a:['C'], an:'BFS 用队列。' },
+  { id:'q10', p:2, q:'10. 一个班学生分组做游戏, 如果每组三人就多两人, 每组五人就多三人, 每组七人就多四人, 问这个班的学生人数 n 在以下哪个区间（n<60）（ ）。', opts:[{v:'A',l:'30 < n < 40'},{v:'B',l:'40 < n < 50'},{v:'C',l:'50 < n < 60'},{v:'D',l:'20 < n < 30'}], a:['C'], an:'n ≡ 2 mod 3, n ≡ 3 mod 5, n ≡ 4 mod 7, 解 53。' },
+  { id:'q11', p:2, q:'11. 小明想通过走楼梯来锻炼身体, 假设从第 1 层走到第 2 层消耗 10 卡热量, 接着从第 2 层走到第 3 层消耗 20 卡热量, 再从第 3 层走到第 4 层消耗 30 卡热量, 依此类推, 从第 k 层走到第 k+1 层消耗 10k 卡热量 (k>1)。如果小明想从 1 层开始, 通过连续向上爬楼梯消耗 1000 卡热量, 至少要爬到第几层楼（ ）。', opts:[{v:'A',l:'14'},{v:'B',l:'16'},{v:'C',l:'15'},{v:'D',l:'13'}], a:['A'], an:'10+20+30+...+10(k-1) ≥ 1000, k(k+1)/2 ≥ 100, k≥14。' },
+  { id:'q12', p:2, q:'12. 二进制数 1011 转换成十进制是（ ）。', opts:[{v:'A',l:'11'},{v:'B',l:'10'},{v:'C',l:'13'},{v:'D',l:'12'}], a:['A'], an:'1×8+0×4+1×2+1=11。' },
+  { id:'q13', p:2, q:'13. 一棵深度为 h 的满 k 叉树（除最后一层外都有 k 个子结点）共有（ ）个结点。', opts:[{v:'A',l:'(k^(h+1)-1)/(k-1)'},{v:'B',l:'k^(h-1)'},{v:'C',l:'k^h'},{v:'D',l:'(k^(h-1))/(k-1)'}], a:['A'], an:'满 k 叉树节点数 = (k^(h+1)-1)/(k-1)。' },
+  { id:'q14', p:2, q:'14. 表达式 a*d-b*c 的前缀形式是（ ）。', opts:[{v:'A',l:'a d * b c * -'},{v:'B',l:'- * a d * b c'},{v:'C',l:'a * d - b * c'},{v:'D',l:'- * * a d b c'}], a:['B'], an:'(a*d) 前缀 * a d, (b*c) 前缀 * b c, 相减前缀 - * a d * b c。' },
+  { id:'q15', p:2, q:'15. 一棵树有 n 个节点, 从 1 到 n 编号, 树根为 1 号节点。深度优先遍历得到的节点序列是 1, 2, 4, 3, 5, 6。则该树的广度优先遍历序列是（ ）。', opts:[{v:'A',l:'1, 2, 3, 4, 5, 6'},{v:'B',l:'1, 2, 3, 4, 6, 5'},{v:'C',l:'1, 2, 3, 5, 6, 4'},{v:'D',l:'1, 2, 4, 5, 3, 6'}], a:['A'], an:'DFS 1,2,4,3,5,6, 树结构: 1-2-4, 1-3-5, 3-6, BFS 1,2,3,4,5,6。' },
+];
+const choiceSceneQuestions = choice.map(({q:question, opts:options, a:answer, an:analysis, p:points, id}) => ({id, type:'single', question, options: options.map(({v,l})=>({value:v,label:l})), answer, analysis, points, hasAnswer: true}));
+
+// 阅读程序 1: d[1000] + max + AND
+const read1Code = `#include <iostream>
+using namespace std;
+int n;
+int d[1000];
+
+int main() {
+    cin >> n;
+    for (int i = 0; i < n; i++) {
+        cin >> d[i];
+    }
+    int ans = -1;
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            if (d[i] < d[j])
+                ans = max(ans, d[i] + d[j] - (d[i] & d[j]));
+    cout << ans;
+    return 0;
+}`;
+const read1Q = [
+  { id:'r1d1', type:'single', points:1.5, question:'16. n 必须小于 1000, 否则程序可能会发生错误（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['B'], analysis:'n 大于等于 1000 时, 数组访问越界可能发生错误, 但 n 小于等于 1000 也可能错误 (例如 n=1000)。', hasAnswer:true },
+  { id:'r1d2', type:'single', points:1.5, question:'17. 输出一定大于等于 0（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['B'], analysis:'ans 初始为 -1, 若没有 d[i]<d[j], 输出 -1 < 0。', hasAnswer:true },
+  { id:'r1d3', type:'single', points:1.5, question:'18. 若将第 13 行的 "j = 0" 改为 "j = i + 1", 程序输出可能会改变（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['A'], analysis:'去掉 d[i]>=d[j] 的情况和 i==j 的情况, 输出可能改变。', hasAnswer:true },
+  { id:'r1d4', type:'single', points:1.5, question:'19. 将第 14 行的 "d[i] < d[j]" 改为 "d[i] != d[j]", 程序输出不会改变（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['A'], analysis:'d[i]+d[j]-(d[i]&d[j]) = d[i]|d[j], 不等于时不影响最大值。', hasAnswer:true },
+  { id:'r1s1', type:'single', points:3, question:'20. 若输入 n=4, d[4]={2, 7, 10, 18}, 输出为（ ）。', options:[{value:'A',label:'25'},{value:'B',label:'26'},{value:'C',label:'20'},{value:'D',label:'24'}], answer:['B'], analysis:'d[i]<d[j]: (2,7)→7, (2,10)→10, (2,18)→18, (7,10)→13, (7,18)→25, (10,18)→26, max=26。', hasAnswer:true },
+  { id:'r1s2', type:'single', points:3, question:'21. 当所有 d[i] 相等时, 程序的输出为（ ）。', options:[{value:'A',label:'该值'},{value:'B',label:'0'},{value:'C',label:'-1'},{value:'D',label:'该值 2 倍'}], answer:['C'], analysis:'d[i] 不小于 d[j], ans 保持 -1, 输出 -1。', hasAnswer:true },
+];
+
+// 阅读程序 2: 快速选择 (找第 k 小)
+const read2Code = `#include <iostream>
+#include <cstdlib>
+using namespace std;
+int n;
+int d[10000];
+
+int find(int L, int R, int k) {
+    int x = rand() % (R - L + 1) + L;
+    swap(d[L], d[x]);
+    int a = L + 1, b = R;
+    while (a < b) {
+        while (a < b && d[a] < d[L]) ++a;
+        while (a < b && d[b] >= d[L]) --b;
+        swap(d[a], d[b]);
+    }
+    if (d[a] < d[L]) ++a;
+    if (a - L == k) return d[L];
+    if (a - L < k) return find(a, R, k - (a - L));
+    return find(L + 1, a - 1, k);
+}
+
+int main() {
+    int k;
+    cin >> n;
+    cin >> k;
+    for (int i = 0; i < n; ++i)
+        cin >> d[i];
+    cout << find(0, n - 1, k);
+    return 0;
+}`;
+const read2Q = [
+  { id:'r2d1', type:'single', points:1.5, question:'22. 第 9 行的 "x" 的数值范围是 L+1 到 R, 即 [L+1, R]（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['B'], analysis:'rand()%(R-L+1) 范围 [0, R-L], 加 L 后 [L, R], 不是 [L+1, R]。', hasAnswer:true },
+  { id:'r2d2', type:'single', points:1.5, question:'23. 将第 19 行的 "d[a]" 改为 "d[b]", 程序不会发生运行错误（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['A'], analysis:'a 和 b 位置均合法, 修改后不影响。', hasAnswer:true },
+  { id:'r2d3', type:'single', points:1.5, question:'24. 此程序的时间复杂度平均为（ ）。', options:[{value:'A',label:'O(n)'},{value:'B',label:'O(n log n)'},{value:'C',label:'O(n²)'},{value:'D',label:'O(log n)'}], answer:['B'], analysis:'快速选择平均时间 O(n)。', hasAnswer:true },
+  { id:'r2d4', type:'single', points:1.5, question:'25. 当 k=1 时, 程序输出（ ）。', options:[{value:'A',label:'最大值'},{value:'B',label:'最小值'},{value:'C',label:'中位数'},{value:'D',label:'随机值'}], answer:['B'], analysis:'k=1 时返回第 1 小, 即最小值。', hasAnswer:true },
+  { id:'r2s1', type:'single', points:3, question:'26. 若 n=5, d={3, 1, 4, 1, 5}, k=3, 输出为（ ）。', options:[{value:'A',label:'3'},{value:'B',label:'4'},{value:'C',label:'5'},{value:'D',label:'1'}], answer:['A'], analysis:'排序 {1,1,3,4,5}, 第 3 小是 3。', hasAnswer:true },
+  { id:'r2s2', type:'single', points:3, question:'27. 此程序最坏时间复杂度是（ ）。', options:[{value:'A',label:'O(n)'},{value:'B',label:'O(n log n)'},{value:'C',label:'O(n²)'},{value:'D',label:'O(2ⁿ)'}], answer:['C'], analysis:'快速选择最坏 O(n²)。', hasAnswer:true },
+];
+
+// 阅读程序 3: 字符串最短变换 (BFS)
+const read3Code = `#include <iostream>
+#include <queue>
+using namespace std;
+const int maxl = 2000000000;
+
+class Map {
+    struct item { string key; int value; } d[maxl];
+    int cnt;
+public:
+    int find(string x) {
+        for (int i = 0; i < cnt; i++)
+            if (d[i].key == x) return d[i].value;
+        return -1;
+    }
+    static int end() { return -1; }
+    void insert(string k, int v) { d[cnt].key = k; d[cnt++].value = v; }
+} s[2];
+
+class Queue {
+    string q[maxl];
+    int head, tail;
+public:
+    void pop() { ++head; }
+    string front() { return q[head + 1]; }
+    bool empty() { return head == tail; }
+    void push(string x) { q[++tail] = x; }
+} q[2];
+
+string st0, st1;
+int m;
+
+string LtoR(string s, int L, int R) {
+    string t = s;
+    char tmp = t[L];
+    for (int i = L; i < R; ++i) t[i] = t[i + 1];
+    t[R] = tmp;
+    return t;
+}
+
+string RtoL(string s, int L, int R) {
+    string t = s;
+    char tmp = t[R];
+    for (int i = R; i > L; --i) t[i] = t[i - 1];
+    t[L] = tmp;
+    return t;
+}
+
+bool check(string st, int p, int step) {
+    if (s[p].find(st) != s[p].end()) return false;
+    ++step;
+    if (s[p ^ 1].find(st) == s[p].end()) {
+        s[p].insert(st, step);
+        q[p].push(st);
+        return false;
+    }
+    cout << s[p ^ 1].find(st) + step << endl;
+    return true;
+}
+
+int main() {
+    cin >> st0 >> st1;
+    int len = st0.length();
+    if (len != st1.length()) { cout << -1 << endl; return 0; }
+    if (st0 == st1) { cout << 0 << endl; return 0; }
+    cin >> m;
+    s[0].insert(st0, 0); s[1].insert(st1, 0);
+    q[0].push(st0); q[1].push(st1);
+    for (int p = 0; !(q[0].empty() && q[1].empty()); p ^= 1) {
+        string st = q[p].front(); q[p].pop();
+        int step = s[p].find(st);
+        if ((p == 0 && (check(LtoR(st, m, len - 1), p, step) ||
+                         check(RtoL(st, 0, m), p, step))) ||
+            (p == 1 && (check(LtoR(st, 0, m), p, step) ||
+                         check(RtoL(st, m, len - 1), p, step))))
+            return 0;
+    }
+    cout << -1 << endl;
+    return 0;
+}`;
+const read3Q = [
+  { id:'r3d1', type:'single', points:1.5, question:'28. 输出可能为 0（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['A'], analysis:'st0==st1 时输出 0。', hasAnswer:true },
+  { id:'r3d2', type:'single', points:1.5, question:'29. 若输入的两个字符串长度均为 101 时, 则 m=0 时的输出与 m=100 时的输出是一样的（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['B'], analysis:'m=0 和 m=100 时操作位置不同, 输出可能不同。', hasAnswer:true },
+  { id:'r3d3', type:'single', points:1.5, question:'30. 若两个字符串的长度均为 n, 则最坏情况下, 此程序的时间复杂度为 Θ(n!)（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['B'], analysis:'双向 BFS 时间复杂度远小于 n!。', hasAnswer:true },
+  { id:'r3d4', type:'single', points:1.5, question:'31. 程序使用的数据结构, 时间复杂度主要与（ ）相关。', options:[{value:'A',label:'字符串长度'},{value:'B',label:'BFS 层数'},{value:'C',label:'操作数'},{value:'D',label:'状态空间大小'}], answer:['D'], analysis:'时间复杂度与状态空间大小相关。', hasAnswer:true },
+  { id:'r3s1', type:'single', points:3, question:'32. 当输入 st0="1234", st1="4321", m=2 时, 输出可能为（ ）。', options:[{value:'A',label:'1'},{value:'B',label:'2'},{value:'C',label:'3'},{value:'D',label:'-1'}], answer:['B'], analysis:'经过 2 次 LtoR 转换可达, 输出 2。', hasAnswer:true },
+  { id:'r3s2', type:'single', points:4, question:'33. 当两个字符串不能通过操作互转时, 程序输出（ ）。', options:[{value:'A',label:'-1'},{value:'B',label:'0'},{value:'C',label:'正整数'},{value:'D',label:'无法确定'}], answer:['A'], analysis:'不能互转时输出 -1。', hasAnswer:true },
+];
+
+// 完善程序 1: 中位数+中位数
+const perfect1Code = `#include <iostream>
+#include <algorithm>
+using namespace std;
+const int MAXN = 100005;
+int a[MAXN], b[MAXN], c[2 * MAXN];
+int n;
+
+int main() {
+    cin >> n;
+    for (int i = 0; i < n; ++i) cin >> a[i];
+    for (int i = 0; i < n; ++i) cin >> b[i];
+    sort(a, a + n);
+    sort(b, b + n);
+    int i = 0, j = 0, k = 0;
+    while (i < n && j < n) {
+        if (a[i] < b[j]) c[k++] = ①;
+        else c[k++] = ②;
+    }
+    while (i < n) c[k++] = ③;
+    while (j < n) c[k++] = ④;
+    cout << c[⑤] << endl;
+    return 0;
+}`;
+const perfect1Q = [
+  { id:'p1_1', type:'single', question:'填空(1): ①处应填（ ）。', options:[{value:'A',label:'a[i++]; i++'},{value:'B',label:'a[i]; i++'},{value:'A',label:'a[i++];'},{value:'B',label:'a[i], i++'}], answer:['A'], analysis:'a[i] 较小时放入, 然后 i++。', points:3, hasAnswer:true },
+  { id:'p1_2', type:'single', question:'填空(2): ②处应填（ ）。', options:[{value:'A',label:'b[j++];'},{value:'B',label:'b[j]; j++'},{value:'C',label:'b[j]; ++j'},{value:'D',label:'b[j++]'}], answer:['A'], analysis:'b[j] 较小时放入, 然后 j++。', points:3, hasAnswer:true },
+  { id:'p1_3', type:'single', question:'填空(3): ③处应填（ ）。', options:[{value:'A',label:'a[i++];'},{value:'B',label:'a[i]; i++'},{value:'C',label:'a[i]; ++i'},{value:'D',label:'a[i++]; i--'}], answer:['A'], analysis:'剩余 a 元素。', points:3, hasAnswer:true },
+  { id:'p1_4', type:'single', question:'填空(4): ④处应填（ ）。', options:[{value:'A',label:'b[j++];'},{value:'B',label:'b[j]; j++'},{value:'C',label:'b[j++]; j--'},{value:'D',label:'b[j]'}], answer:['A'], analysis:'剩余 b 元素。', points:3, hasAnswer:true },
+  { id:'p1_5', type:'single', question:'填空(5): ⑤处应填（ ）。', options:[{value:'A',label:'n'},{value:'B',label:'2*n'},{value:'C',label:'n-1'},{value:'D',label:'2*n-1'}], answer:['D'], analysis:'2n 个数的中位数, 下标 2n-1 (0 起始)。', points:3, hasAnswer:true },
+];
+
+// 完善程序 2: 最长上升子序列
+const perfect2Code = `#include <iostream>
+#include <algorithm>
+using namespace std;
+const int MAXN = 100005;
+int n, a[MAXN], f[MAXN];
+
+int main() {
+    cin >> n;
+    for (int i = 0; i < n; ++i) cin >> a[i];
+    int len = 0;
+    f[0] = ①;
+    for (int i = 1; i < n; ++i) {
+        if (a[i] > f[len]) {
+            f[++len] = ②;
+        } else {
+            int pos = lower_bound(f, f + len + 1, a[i]) - f;
+            f[pos] = ③;
+        }
+    }
+    cout << ④ << endl;
+    return 0;
+}`;
+const perfect2Q = [
+  { id:'p2_1', type:'single', question:'填空(1): ①处应填（ ）。', options:[{value:'A',label:'a[0]'},{value:'B',label:'0'},{value:'C',label:'a[0] - 1'},{value:'D',label:'INT_MAX'}], answer:['A'], analysis:'f[0] 初始化为 a[0]。', points:3, hasAnswer:true },
+  { id:'p2_2', type:'single', question:'填空(2): ②处应填（ ）。', options:[{value:'A',label:'a[i]'},{value:'B',label:'a[i-1]'},{value:'C',label:'a[i] + 1'},{value:'D',label:'f[len]'}], answer:['A'], analysis:'a[i] > f[len] 时, 扩展子序列, f[++len] = a[i]。', points:3, hasAnswer:true },
+  { id:'p2_3', type:'single', question:'填空(3): ③处应填（ ）。', options:[{value:'A',label:'a[i]'},{value:'B',label:'a[i-1]'},{value:'C',label:'a[pos]'},{value:'D',label:'f[pos]'}], answer:['A'], analysis:'替换 f[pos] 为 a[i]。', points:3, hasAnswer:true },
+  { id:'p2_4', type:'single', question:'填空(4): ④处应填（ ）。', options:[{value:'A',label:'len'},{value:'B',label:'len + 1'},{value:'C',label:'n'},{value:'D',label:'0'}], answer:['B'], analysis:'LIS 长度为 len+1。', points:3, hasAnswer:true },
+  { id:'p2_5', type:'single', question:'填空(5): 此程序的时间复杂度为（ ）。', options:[{value:'A',label:'O(n)'},{value:'B',label:'O(n log n)'},{value:'C',label:'O(n²)'},{value:'D',label:'O(2ⁿ)'}], answer:['B'], analysis:'二分查找优化后 O(n log n)。', points:3, hasAnswer:true },
+];
+
+const readScenes = [
+  { id:'sc_csps20s_read1', title:'二、阅读程序（1）最大和位与（判断 1.5 分, 选择 3 分, 共 12 分）', order:2, kind:'code-reading', category:'read',
+    codeBlock:{ language:'cpp', title:'阅读程序（1）', description:'遍历 d[i]<d[j] 的对, 求 d[i]+d[j]-(d[i]&d[j]) 的最大值。', lines: read1Code.split('\n') },
+    questions: read1Q },
+  { id:'sc_csps20s_read2', title:'二、阅读程序（2）快速选择（判断 1.5 分, 选择 3 分, 共 12 分）', order:3, kind:'code-reading', category:'read',
+    codeBlock:{ language:'cpp', title:'阅读程序（2）', description:'随机选择基准的快速选择, 找第 k 小元素。', lines: read2Code.split('\n') },
+    questions: read2Q },
+  { id:'sc_csps20s_read3', title:'二、阅读程序（3）字符串最短变换（判断 1.5 分, 选择 3/4 分, 共 13 分）', order:4, kind:'code-reading', category:'read',
+    codeBlock:{ language:'cpp', title:'阅读程序（3）', description:'双向 BFS, 字符串通过循环移位操作互转的最短步数。', lines: read3Code.split('\n') },
+    questions: read3Q },
+];
+
+const classroom = {
+  id:'cm_imp_csps2020s_v1', createdAt:'2026-08-09T00:00:00.000Z', collection:'csp-lecture',
+  stage:{
+    id:'cm_imp_csps2020s_v1', name:'2020年提高级CSP-S初赛真题卷',
+    description:'2020年CCF CSP-S1提高级初赛完整真题（C++语言），共单项选择题15道（30分）、阅读程序3题（40分）、完善程序2题（30分），总分100分。',
+    languageDirective:'zh-CN', style:'tutor',
+    createdAt:Date.now(), updatedAt:Date.now(),
+    generatedAgentConfigs:[
+      { id:'imp_agent_csps20s_0', name:'张老师', role:'teacher', persona:'经验丰富的CSP初赛教练', avatar:'/avatars/teacher.png', color:'#3b82f6', priority:10 },
+      { id:'imp_agent_csps20s_1', name:'小慧', role:'assistant', persona:'聪明耐心的女助教', avatar:'/avatars/assist.png', color:'#ec4899', priority:7 },
+    ],
+    agentIds:[],
+    scoreBreakdown:{ choice:30, read:40, perfect:30 },
+  },
+  scenes:[
+    { id:'sc_csps20s_choice', stageId:'cm_imp_csps2020s_v1', type:'quiz', title:'一、单项选择题（共 15 题，每题 2 分，共计 30 分）', order:1,
+      content:{ type:'quiz', questions: choiceSceneQuestions, kind:'choice' },
+      actions:[], multiAgent:{enabled:false, agentIds:[]},
+      createdAt:Date.now(), updatedAt:Date.now(), category:'choice' },
+    ...readScenes.map(rs => ({
+      id:rs.id, stageId:'cm_imp_csps2020s_v1', type:'quiz', title:rs.title, order:rs.order,
+      content:{ type:'quiz', codeBlock:rs.codeBlock, questions:rs.questions, kind:rs.kind },
+      actions:[], multiAgent:{enabled:false, agentIds:[]},
+      createdAt:Date.now(), updatedAt:Date.now(), category:rs.category,
+    })),
+    { id:'sc_csps20s_perfect1', stageId:'cm_imp_csps2020s_v1', type:'quiz', title:'三、完善程序（1）两个有序数组求中位数（5 空 × 3 分 = 15 分）', order:5,
+      content:{ type:'quiz', codeBlock:{ language:'cpp', title:'完善程序（1）（AI 推断代码）', description:'两个有序数组合并后求中位数。', lines: perfect1Code.split('\n') }, questions: perfect1Q, kind:'code-completion' },
+      actions:[], multiAgent:{enabled:false, agentIds:[]},
+      createdAt:Date.now(), updatedAt:Date.now(), category:'perfect' },
+    { id:'sc_csps20s_perfect2', stageId:'cm_imp_csps2020s_v1', type:'quiz', title:'三、完善程序（2）最长上升子序列（5 空 × 3 分 = 15 分）', order:6,
+      content:{ type:'quiz', codeBlock:{ language:'cpp', title:'完善程序（2）（AI 推断代码）', description:'贪心 + 二分查找, 求最长上升子序列长度。', lines: perfect2Code.split('\n') }, questions: perfect2Q, kind:'code-completion' },
+      actions:[], multiAgent:{enabled:false, agentIds:[]},
+      createdAt:Date.now(), updatedAt:Date.now(), category:'perfect' },
+  ],
+};
+
+await fs.writeFile(JSON_OUT, JSON.stringify(classroom, null, 2), 'utf-8');
+console.log(`OK ${JSON_OUT}`);
+console.log(`  total ${choiceSceneQuestions.length+read1Q.length+read2Q.length+read3Q.length+perfect1Q.length+perfect2Q.length}, scenes ${classroom.scenes.length}`);

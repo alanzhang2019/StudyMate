@@ -1,0 +1,150 @@
+﻿commit 675b951a38eb63717479198a214cc6b21edee906
+Author: Bot <bot@example.com>
+Date:   Sat Aug 8 15:22:28 2026 +0800
+
+    fix(admin): /admin/users 报 Application error + bind mount classrooms 目录
+    
+    /api/admin/users: 把 select._count.select.profiles 改成
+    select._count.select.studentProfiles。
+    原因: lib/db.ts PrismaCompatClient.user.findMany 只识别
+    studentProfiles, 用 profiles 会让 _count 变 undefined,
+    UI 访问 u._count.profiles 抛 TypeError 把整页客户端树炸掉。
+    现在 db.ts 看到 studentProfiles 后, 改写为
+    { _count: { profiles: <n> } } 暴露给调用方。
+    
+    app/admin/error.tsx (新增): Next.js 错误边界。
+    任何 /admin/* 子页面 throw 时, 不再让整页 'Application
+    error', 而是渲染一个带错误消息 + '重试/返回 Dashboard'
+    按钮的卡片, 侧栏 nav 仍可用, 学生/老师可以继续操作。
+    
+    docker-compose.yml: frontend.volumes 加 bind mount
+      ./frontend/data/classrooms:/app/data/classrooms
+    named volume 仍保留, 装 SQLite db + 其他持久化数据。
+    新增/改名课件 JSON 后只需
+      git pull && docker compose restart frontend
+    不再需要 'docker cp' 手动同步。
+
+diff --git a/docker-compose.yml b/docker-compose.yml
+index 9e0120f..d84c1a7 100644
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -62,7 +62,15 @@ services:
+     # after this change is a one-time migration: existing in-container
+     # data is copied out to the new volume on the server (see deploy
+     # runbook).
++    #
++    # Bind mount `./frontend/data/classrooms` → `/app/data/classrooms`:
++    # 课件 JSON 直接同步宿主机 git 工作区。新增/改名课件后只需
++    # `git pull && docker compose restart frontend`，不再需要
++    # `docker cp`。SQLite db 仍然落在 named volume 上，避免
++    # 宿主用户写权限问题（Next.js 在容器内跑在非 root，写
++    # 宿主机 bind 的 db 容易 EACCES）。
+     volumes:
++      - ./frontend/data/classrooms:/app/data/classrooms
+       - studymate-frontend-data:/app/data
+     networks:
+       - studymate-net
+diff --git a/frontend/app/admin/error.tsx b/frontend/app/admin/error.tsx
+new file mode 100644
+index 0000000..0bc66b3
+--- /dev/null
++++ b/frontend/app/admin/error.tsx
+@@ -0,0 +1,72 @@
++'use client';
++
++// /admin/error.tsx
++//
++// Next.js 错误边界。如果 /admin/* 任一子页面 throw（典型场景：
++// 后端返回的数据结构与 UI 假设不匹配，访问 undefined.x 抛
++// TypeError），Next.js 默认会把整棵客户端树炸掉，显示一整页
++// "Application error: a client-side exception has occurred"。
++// 在 admin 段加 error.tsx 后，崩的页面会被隔离成可读的错误
++// 卡片，侧栏 nav 仍可用，学生/老师可以点回 Dashboard 继续
++// 操作，不至于被卡死。
++
++import { useEffect } from 'react';
++import Link from 'next/link';
++
++export default function AdminError({
++  error,
++  reset,
++}: {
++  error: Error & { digest?: string };
++  reset: () => void;
++}) {
++  useEffect(() => {
++    // 错误信息打到浏览器 console，方便排查；不会上报远端
++    console.error('[admin] 子页面崩了', error);
++  }, [error]);
++
++  return (
++    <div className="max-w-2xl mx-auto mt-12">
++      <div className="rounded-2xl border border-red-200 bg-white p-8 shadow-sm">
++        <div className="flex items-center gap-3 mb-4">
++          <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-2xl">
++            ⚠️
++          </div>
++          <div>
++            <h1 className="text-lg font-bold text-slate-900">
++              这个页面出错了
++            </h1>
++            <p className="text-sm text-slate-500">
++              请刷新或返回 Dashboard。错误已记录到控制台。
++            </p>
++          </div>
++        </div>
++
++        <pre className="text-xs bg-slate-50 border border-slate-200 rounded-lg p-3 overflow-auto max-h-40 text-slate-700 whitespace-pre-wrap break-words">
++          {error.message}
++          {error.digest && `\n(digest: ${error.digest})`}
++        </pre>
++
++        <div className="mt-6 flex gap-2">
++          <button
++            type="button"
++            onClick={reset}
++            className="inline-flex items-center gap-1.5 text-sm font-semibold
++                       text-white bg-blue-600 hover:bg-blue-700
++                       rounded-lg px-4 py-2 transition-colors"
++          >
++            重试
++          </button>
++          <Link
++            href="/admin"
++            className="inline-flex items-center gap-1.5 text-sm font-semibold
++                       text-slate-700 bg-slate-100 hover:bg-slate-200
++                       rounded-lg px-4 py-2 transition-colors"
++          >
++            ← 返回 Dashboard
++          </Link>
++        </div>
++      </div>
++    </div>
++  );
++}
+diff --git a/frontend/app/api/admin/users/route.ts b/frontend/app/api/admin/users/route.ts
+index f23891e..0326171 100644
+--- a/frontend/app/api/admin/users/route.ts
++++ b/frontend/app/api/admin/users/route.ts
+@@ -9,12 +9,17 @@ export async function GET() {
+         id: true,
+         email: true,
+         createdAt: true,
++        // 必须传 `studentProfiles`，因为 lib/db.ts PrismaCompatClient
++        // 的 user.findMany 只识别 `_count.select.studentProfiles`，
++        // 然后把结果改写为 `{ _count: { profiles: <n> } }` 暴露
++        // 给调用方。用 `profiles` 会让 _count 变 undefined，
++        // 触发 `u._count.profiles` 的 TypeError 把整页崩掉。
+         _count: {
+-          select: { profiles: true }
+-        }
+-      }
++          select: { studentProfiles: true },
++        },
++      },
+     });
+-    
++
+     return NextResponse.json(users);
+   } catch (error) {
+     console.error('Failed to fetch users:', error);

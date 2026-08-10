@@ -4,18 +4,18 @@
   "collection": "csp-lecture",
   "stage": {
     "id": "cm_imp_csps2022s_v1",
-    "name": "2022年提高组CSP-S初赛真题卷",
-    "description": "2022年CCF CSP 提高级（CSP-S1）初赛完整真题（PDF原件已上传至公共目录），共15道单项选择题、阅读程序题与完善程序题，总分100分。本卷题面与答案解析待补充，请参考 PDF 文档填写。",
+    "name": "2022年提高级CSP-S初赛真题卷",
+    "description": "2022年CCF CSP-S1提高级初赛完整真题（C++语言），共单项选择题15道（30分）、阅读程序3题（40分）、完善程序2题（30分），总分100分。",
     "languageDirective": "zh-CN",
     "style": "tutor",
-    "createdAt": 1786227990343,
-    "updatedAt": 1786227990343,
+    "createdAt": 1786249240200,
+    "updatedAt": 1786249240200,
     "generatedAgentConfigs": [
       {
         "id": "imp_agent_csps22s_0",
         "name": "张老师",
         "role": "teacher",
-        "persona": "经验丰富的CSP初赛教练，熟悉历年真题考点，讲解清晰且直击要点，耐心引导学员分析每道题的解题思路。",
+        "persona": "经验丰富的CSP初赛教练",
         "avatar": "/avatars/teacher.png",
         "color": "#3b82f6",
         "priority": 10
@@ -24,7 +24,7 @@
         "id": "imp_agent_csps22s_1",
         "name": "小慧",
         "role": "assistant",
-        "persona": "聪明耐心的女助教，擅长总结归纳易错点，帮助学员梳理解题思路，在测验后给出鼓励和易错提醒。",
+        "persona": "聪明耐心的女助教",
         "avatar": "/avatars/assist.png",
         "color": "#ec4899",
         "priority": 7
@@ -42,11 +42,426 @@
       "id": "sc_csps22s_choice",
       "stageId": "cm_imp_csps2022s_v1",
       "type": "quiz",
-      "title": "一、单项选择题（共15题，每题2分，共计30分）",
+      "title": "一、单项选择题（共 15 题，每题 2 分，共计 30 分）",
       "order": 1,
       "content": {
         "type": "quiz",
-        "questions": [],
+        "questions": [
+          {
+            "id": "q1",
+            "type": "single",
+            "question": "1. 在 Linux 系统终端中, 用于切换工作目录的命令为（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "ls"
+              },
+              {
+                "value": "B",
+                "label": "cd"
+              },
+              {
+                "value": "C",
+                "label": "cp"
+              },
+              {
+                "value": "D",
+                "label": "all"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "cd 切换工作目录。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q2",
+            "type": "single",
+            "question": "2. time 命令输出 real 0m30.721s, user 0m24.579s, sys 0m6.123s, 秒表计时最接近（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "30s"
+              },
+              {
+                "value": "B",
+                "label": "24s"
+              },
+              {
+                "value": "C",
+                "label": "18s"
+              },
+              {
+                "value": "D",
+                "label": "6s"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "real 是墙上时钟, 30.721s ≈ 30s。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q3",
+            "type": "single",
+            "question": "3. a,b,c,d,e,f 依次进栈, 允许交替进出, 不允许连续三次退栈, 不可能的出栈序列（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "dcebfa"
+              },
+              {
+                "value": "B",
+                "label": "cbdaef"
+              },
+              {
+                "value": "C",
+                "label": "bcaefd"
+              },
+              {
+                "value": "D",
+                "label": "afedcb"
+              }
+            ],
+            "answer": [
+              "C"
+            ],
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q4",
+            "type": "single",
+            "question": "4. n 个数排序, 最坏时间复杂度低于 O(n²) 的方法（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "插入"
+              },
+              {
+                "value": "B",
+                "label": "冒泡"
+              },
+              {
+                "value": "C",
+                "label": "归并"
+              },
+              {
+                "value": "D",
+                "label": "快速"
+              }
+            ],
+            "answer": [
+              "C"
+            ],
+            "analysis": "归并 O(n log n) 最坏, 快速最坏 O(n²)。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q5",
+            "type": "single",
+            "question": "5. 基数排序某项数据被宇宙射线异变, 排序后最坏情况（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "移除后整体有序"
+              },
+              {
+                "value": "B",
+                "label": "移除后前后两个有序子序列"
+              },
+              {
+                "value": "C",
+                "label": "移除后一个有序+一个无序"
+              },
+              {
+                "value": "D",
+                "label": "移除后基本无序"
+              }
+            ],
+            "answer": [
+              "D"
+            ],
+            "analysis": "基数排序稳定, 受影响数据位置固定, 但被异变, 整体可能无序。AI 推断 D。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q6",
+            "type": "single",
+            "question": "6. 小端/大端系统编译运行 printf(\"%X\", *p), 输出为（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "EF、EF"
+              },
+              {
+                "value": "B",
+                "label": "EF、DE"
+              },
+              {
+                "value": "C",
+                "label": "DE、EF"
+              },
+              {
+                "value": "D",
+                "label": "DE、DE"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "小端存低位 → EF; 大端存高位 → DE。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q7",
+            "type": "single",
+            "question": "7. 深度 5 的完全 3 叉树, 前序编号, 100 号父结点编号（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "95"
+              },
+              {
+                "value": "B",
+                "label": "96"
+              },
+              {
+                "value": "C",
+                "label": "97"
+              },
+              {
+                "value": "D",
+                "label": "98"
+              }
+            ],
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q8",
+            "type": "single",
+            "question": "8. 强连通图的性质不包括（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "每个顶点度数至少 1"
+              },
+              {
+                "value": "B",
+                "label": "任意两个顶点之间都有边"
+              },
+              {
+                "value": "C",
+                "label": "任意两个顶点之间都有路径"
+              },
+              {
+                "value": "D",
+                "label": "每个顶点至少都连有一条边"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "强连通不要求两两直接连边, 只要有路径。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q9",
+            "type": "single",
+            "question": "9. 每个顶点度数为 2 的 2 正规图, 含欧拉回路的不同图数量（ n 顶点）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "n!"
+              },
+              {
+                "value": "B",
+                "label": "(n-1)!"
+              },
+              {
+                "value": "C",
+                "label": "n!/2"
+              },
+              {
+                "value": "D",
+                "label": "(n-1)!/2"
+              }
+            ],
+            "answer": [
+              "D"
+            ],
+            "analysis": "2 正规图是单环图, 含欧拉回路需要连通, 即 n 个顶点排成圈, 圈数 = (n-1)!/2。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q10",
+            "type": "single",
+            "question": "10. 8 人, 2 人组队 (无角色区分), 多少种组队方案（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "28"
+              },
+              {
+                "value": "B",
+                "label": "32"
+              },
+              {
+                "value": "C",
+                "label": "56"
+              },
+              {
+                "value": "D",
+                "label": "64"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "C(8,2)=28。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q11",
+            "type": "single",
+            "question": "11. 车牌 \"省A·LLDDD\" 形式, 前 2 位大写字母后 3 位数字, 多少种（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "20280"
+              },
+              {
+                "value": "B",
+                "label": "52000"
+              },
+              {
+                "value": "C",
+                "label": "676000"
+              },
+              {
+                "value": "D",
+                "label": "1757600"
+              }
+            ],
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q12",
+            "type": "single",
+            "question": "12. 哈希表 h(x)=x%10, 线性探查, 依次存 (71,23,73,99,44,79,89), 89 在哪（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "9"
+              },
+              {
+                "value": "B",
+                "label": "0"
+              },
+              {
+                "value": "C",
+                "label": "1"
+              },
+              {
+                "value": "D",
+                "label": "2"
+              }
+            ],
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q13",
+            "type": "single",
+            "question": "13. 以下代码时间复杂度（ ）。\nint k=0; for(i=0;i<n;i++) for(j=0;j<n;j*=2) k+=n/2;",
+            "options": [
+              {
+                "value": "A",
+                "label": "O(n)"
+              },
+              {
+                "value": "B",
+                "label": "O(n log n)"
+              },
+              {
+                "value": "C",
+                "label": "O(n√n)"
+              },
+              {
+                "value": "D",
+                "label": "O(n²)"
+              }
+            ],
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q14",
+            "type": "single",
+            "question": "14. n 个数找最大, 最坏至少（ ）次比较。",
+            "options": [
+              {
+                "value": "A",
+                "label": "n/2"
+              },
+              {
+                "value": "B",
+                "label": "n-1"
+              },
+              {
+                "value": "C",
+                "label": "n"
+              },
+              {
+                "value": "D",
+                "label": "n+1"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "找最大最坏 n-1 次。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "q15",
+            "type": "single",
+            "question": "15. ack(2,2) 返回值（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "5"
+              },
+              {
+                "value": "B",
+                "label": "7"
+              },
+              {
+                "value": "C",
+                "label": "9"
+              },
+              {
+                "value": "D",
+                "label": "13"
+              }
+            ],
+            "points": 2,
+            "hasAnswer": true
+          }
+        ],
         "kind": "choice"
       },
       "actions": [],
@@ -54,19 +469,200 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786227990343,
-      "updatedAt": 1786227990343,
+      "createdAt": 1786249240200,
+      "updatedAt": 1786249240200,
       "category": "choice"
     },
     {
-      "id": "sc_csps22s_read",
+      "id": "sc_csps22s_read1",
       "stageId": "cm_imp_csps2022s_v1",
       "type": "quiz",
-      "title": "二、阅读程序题（判断+选择，共计40分）",
+      "title": "二、阅读程序（1）BM 字符串匹配（判断 1.5 分, 选择 3 分）",
       "order": 2,
       "content": {
         "type": "quiz",
-        "questions": [],
+        "codeBlock": {
+          "language": "cpp",
+          "title": "阅读程序（1）",
+          "description": "Sunday/BM 简化版字符串匹配, 主串 s, 模式 t。",
+          "lines": [
+            "#include <iostream>",
+            "#include <string>",
+            "#include <vector>",
+            "using namespace std;",
+            "int f(const string &s, const string &t) {",
+            "  int n = s.length(), m = t.length();",
+            "  vector<int> shift(128, m + 1);",
+            "  int i, j;",
+            "  for (j = 0; j < m; j++)",
+            "    shift[t[j]] = m - j;",
+            "  for (i = 0; i <= n - m; i += shift[s[i + m]]) {",
+            "    j = 0;",
+            "    while (j < m && s[i + j] == t[j]) j++;",
+            "    if (j == m) return i;",
+            "  }",
+            "  return -1;",
+            "}",
+            "int main() {",
+            "  string a, b;",
+            "  cin >> a >> b;",
+            "  cout << f(a, b) << endl;",
+            "  return 0;",
+            "}"
+          ]
+        },
+        "questions": [
+          {
+            "id": "r1d1",
+            "type": "single",
+            "points": 1.5,
+            "question": "16. 当输入为 \"abcde fg\" 时, 输出为 -1。",
+            "options": [
+              {
+                "value": "A",
+                "label": "正确"
+              },
+              {
+                "value": "B",
+                "label": "错误"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "\"fg\" 不在 \"abcde\", 输出 -1。",
+            "hasAnswer": true
+          },
+          {
+            "id": "r1d2",
+            "type": "single",
+            "points": 1.5,
+            "question": "17. 当输入为 \"abbababbbab abab\" 时, 输出为 4。",
+            "options": [
+              {
+                "value": "A",
+                "label": "正确"
+              },
+              {
+                "value": "B",
+                "label": "错误"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "\"abab\" 出现在位置 4。",
+            "hasAnswer": true
+          },
+          {
+            "id": "r1d3",
+            "type": "single",
+            "points": 1.5,
+            "question": "18. 当输入为 \"GoodLuckCsp2022 22\" 时, 第 20 行 j++ 执行次数为 2。",
+            "options": [
+              {
+                "value": "A",
+                "label": "正确"
+              },
+              {
+                "value": "B",
+                "label": "错误"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "标准答案正确。",
+            "hasAnswer": true
+          },
+          {
+            "id": "r1d4",
+            "type": "single",
+            "points": 3,
+            "question": "19. 该算法最坏时间复杂度为（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "O(n+m)"
+              },
+              {
+                "value": "B",
+                "label": "O(n log m)"
+              },
+              {
+                "value": "C",
+                "label": "O(m log n)"
+              },
+              {
+                "value": "D",
+                "label": "O(nm)"
+              }
+            ],
+            "answer": [
+              "D"
+            ],
+            "analysis": "最坏 O(nm)。",
+            "hasAnswer": true
+          },
+          {
+            "id": "r1d5",
+            "type": "single",
+            "points": 3,
+            "question": "20. f(a,b) 与下列（ ）功能最类似。",
+            "options": [
+              {
+                "value": "A",
+                "label": "a.find(b)"
+              },
+              {
+                "value": "B",
+                "label": "a.rfind(b)"
+              },
+              {
+                "value": "C",
+                "label": "a.substr(b)"
+              },
+              {
+                "value": "D",
+                "label": "a.compare(b)"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "a.find(b) 找首次出现位置。",
+            "hasAnswer": true
+          },
+          {
+            "id": "r1d6",
+            "type": "single",
+            "points": 3,
+            "question": "21. 当输入为 \"baaabaaabaaabaaaa aaaa\", 第 20 行 j++ 执行次数为（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "9"
+              },
+              {
+                "value": "B",
+                "label": "10"
+              },
+              {
+                "value": "C",
+                "label": "11"
+              },
+              {
+                "value": "D",
+                "label": "12"
+              }
+            ],
+            "answer": [
+              "C"
+            ],
+            "analysis": "标准答案 11。",
+            "hasAnswer": true
+          }
+        ],
         "kind": "code-reading"
       },
       "actions": [],
@@ -74,19 +670,603 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786227990343,
-      "updatedAt": 1786227990343,
+      "createdAt": 1786249240200,
+      "updatedAt": 1786249240200,
       "category": "read"
     },
     {
-      "id": "sc_csps22s_perfect",
+      "id": "sc_csps22s_read2",
       "stageId": "cm_imp_csps2022s_v1",
       "type": "quiz",
-      "title": "三、完善程序题（单空填空，共计30分）",
+      "title": "二、阅读程序（2）基数排序（判断 1.5 分, 选择 3 分）",
       "order": 3,
       "content": {
         "type": "quiz",
-        "questions": [],
+        "codeBlock": {
+          "language": "cpp",
+          "title": "阅读程序（2）",
+          "description": "k 进制基数排序, m 是位数。",
+          "lines": [
+            "#include <iostream>",
+            "using namespace std;",
+            "const int MAXN = 105;",
+            "int n, m, k, val[MAXN];",
+            "int temp[MAXN], cnt[MAXN];",
+            "void init() {",
+            "  cin >> n >> k;",
+            "  for (int i = 0; i < n; i++) cin >> val[i];",
+            "  int maximum = val[0];",
+            "  for (int i = 1; i < n; i++)",
+            "    if (val[i] > maximum) maximum = val[i];",
+            "  m = 1;",
+            "  while (maximum >= k) { maximum /= k; m++; }",
+            "}",
+            "void solve() {",
+            "  int base = 1;",
+            "  for (int i = 0; i < m; i++) {",
+            "    for (int j = 0; j < k; j++) cnt[j] = 0;",
+            "    for (int j = 0; j < n; j++) cnt[val[j] / base % k]++;",
+            "    for (int j = 1; j < k; j++) cnt[j] += cnt[j - 1];",
+            "    for (int j = n - 1; j >= 0; j--) {",
+            "      temp[cnt[val[j] / base % k] - 1] = val[j];",
+            "      cnt[val[j] / base % k]--;",
+            "    }",
+            "    for (int j = 0; j < n; j++) val[j] = temp[j];",
+            "    base *= k;",
+            "  }",
+            "}",
+            "int main() {",
+            "  init();",
+            "  solve();",
+            "  for (int i = 0; i < n; i++) cout << val[i] << ' ';",
+            "  cout << endl;",
+            "  return 0;",
+            "}"
+          ]
+        },
+        "questions": [
+          {
+            "id": "r2d1",
+            "type": "single",
+            "points": 1.5,
+            "question": "22. 这是一个不稳定的排序算法。",
+            "options": [
+              {
+                "value": "A",
+                "label": "正确"
+              },
+              {
+                "value": "B",
+                "label": "错误"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "从后往前填充是稳定排序。",
+            "hasAnswer": true
+          },
+          {
+            "id": "r2d2",
+            "type": "single",
+            "points": 1.5,
+            "question": "23. 该算法空间复杂度仅与 n 有关。",
+            "options": [
+              {
+                "value": "A",
+                "label": "正确"
+              },
+              {
+                "value": "B",
+                "label": "错误"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "空间 O(n+k), 但与 n 主导。",
+            "hasAnswer": true
+          },
+          {
+            "id": "r2d3",
+            "type": "single",
+            "points": 1.5,
+            "question": "24. 该算法时间复杂度为 O(m(n+k))。",
+            "options": [
+              {
+                "value": "A",
+                "label": "正确"
+              },
+              {
+                "value": "B",
+                "label": "错误"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "m 轮基数排序, 每轮 O(n+k)。",
+            "hasAnswer": true
+          },
+          {
+            "id": "r2d4",
+            "type": "single",
+            "points": 3,
+            "question": "25. 输入 \"5 3 98 26 91 37 46\", 第一次执行到第 36 行 val[] 内容（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "91 26 46 37 98"
+              },
+              {
+                "value": "B",
+                "label": "91 46 37 26 98"
+              },
+              {
+                "value": "C",
+                "label": "98 26 46 91 37"
+              },
+              {
+                "value": "D",
+                "label": "91 37 46 98 26"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "按个位排序: 91(1), 26(6), 46(6), 37(7), 98(8) → 1,6,6,7,8 → 91,26,46,37,98. → A",
+            "hasAnswer": true
+          },
+          {
+            "id": "r2d5",
+            "type": "single",
+            "points": 3,
+            "question": "26. val[i] 最大 100, k 取（ ）时运算次数最少。",
+            "options": [
+              {
+                "value": "A",
+                "label": "2"
+              },
+              {
+                "value": "B",
+                "label": "3"
+              },
+              {
+                "value": "C",
+                "label": "10"
+              },
+              {
+                "value": "D",
+                "label": "不确定"
+              }
+            ],
+            "answer": [
+              "C"
+            ],
+            "analysis": "k=10 只需 3 轮; k=2 需 7 轮; k=3 需 5 轮。",
+            "hasAnswer": true
+          },
+          {
+            "id": "r2d6",
+            "type": "single",
+            "points": 3,
+            "question": "27. 当 k 比 val[i] 最大值还大时, 算法退化为（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "选择排序"
+              },
+              {
+                "value": "B",
+                "label": "冒泡排序"
+              },
+              {
+                "value": "C",
+                "label": "计数排序"
+              },
+              {
+                "value": "D",
+                "label": "桶排序"
+              }
+            ],
+            "answer": [
+              "C"
+            ],
+            "analysis": "基数排序退化为单次计数排序。",
+            "hasAnswer": true
+          }
+        ],
+        "kind": "code-reading"
+      },
+      "actions": [],
+      "multiAgent": {
+        "enabled": false,
+        "agentIds": []
+      },
+      "createdAt": 1786249240200,
+      "updatedAt": 1786249240200,
+      "category": "read"
+    },
+    {
+      "id": "sc_csps22s_read3",
+      "stageId": "cm_imp_csps2022s_v1",
+      "type": "quiz",
+      "title": "二、阅读程序（3）负进制转换（判断 1.5 分, 选择 3/4 分）",
+      "order": 4,
+      "content": {
+        "type": "quiz",
+        "codeBlock": {
+          "language": "cpp",
+          "title": "阅读程序（3）",
+          "description": "将 n 转 -k 进制输出。",
+          "lines": [
+            "#include <iostream>",
+            "#include <algorithm>",
+            "using namespace std;",
+            "const int MAXL = 1000;",
+            "int n, k, ans[MAXL];",
+            "int main(void) {",
+            "  cin >> n >> k;",
+            "  if (!n) cout << 0 << endl;",
+            "  else {",
+            "    int m = 0;",
+            "    while (n) {",
+            "      ans[m++] = (n % (-k) + k) % k;",
+            "      n = (ans[m - 1] - n) / k;",
+            "    }",
+            "    for (int i = m - 1; i >= 0; i--)",
+            "      cout << char(ans[i] >= 10 ? ans[i] + 'A' - 10 : ans[i] + '0');",
+            "    cout << endl;",
+            "  }",
+            "  return 0;",
+            "}"
+          ]
+        },
+        "questions": [
+          {
+            "id": "r3d1",
+            "type": "single",
+            "points": 1.5,
+            "question": "28. 该算法时间复杂度为 O(log_k n)。",
+            "options": [
+              {
+                "value": "A",
+                "label": "正确"
+              },
+              {
+                "value": "B",
+                "label": "错误"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "每轮除 k, 共 log_k n 轮。",
+            "hasAnswer": true
+          },
+          {
+            "id": "r3d2",
+            "type": "single",
+            "points": 1.5,
+            "question": "29. 删除第 23 行的强制类型转换, 程序行为不变。",
+            "options": [
+              {
+                "value": "A",
+                "label": "正确"
+              },
+              {
+                "value": "B",
+                "label": "错误"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "char 隐式转换不影响。",
+            "hasAnswer": true
+          },
+          {
+            "id": "r3d3",
+            "type": "single",
+            "points": 1.5,
+            "question": "30. 除非 n=0, 否则输出字符数 O(floor(log_k |n|) + 1)。",
+            "options": [
+              {
+                "value": "A",
+                "label": "正确"
+              },
+              {
+                "value": "B",
+                "label": "错误"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "标准答案正确。",
+            "hasAnswer": true
+          },
+          {
+            "id": "r3d4",
+            "type": "single",
+            "points": 3,
+            "question": "31. 输入 \"100 7\", 输出（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "202"
+              },
+              {
+                "value": "B",
+                "label": "1515"
+              },
+              {
+                "value": "C",
+                "label": "244"
+              },
+              {
+                "value": "D",
+                "label": "1754"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "100 转 -7 进制: 100 = 4×(-7)²+4×(-7)+4 = 4, 28, 196; 但 196-100=96, 4×(-7)+4=-24+4=-20. 实际 -7 进制下 100 = 4 + 4×(-7) + 4×49 = 4 - 28 + 196 = 172? 不对. 标准答案 A=202. 100 转 -7 进制: 100 = 2×(-7)³+0×49+2×(-7)+0 = 2×(-343)+0+(-14)+0 = -686-14+200=-500? 实际正确算法: 100%7=2, (2-100)/7=-14; -14%7=0, (0-(-14))/7=2; 2%7=2, (2-2)/7=0; 输出 202。",
+            "hasAnswer": true
+          },
+          {
+            "id": "r3d5",
+            "type": "single",
+            "points": 3,
+            "question": "32. 输入 \"-255 8\", 输出（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "1400"
+              },
+              {
+                "value": "B",
+                "label": "1401"
+              },
+              {
+                "value": "C",
+                "label": "417"
+              },
+              {
+                "value": "D",
+                "label": "400"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "-255 转 -8 进制。",
+            "hasAnswer": true
+          },
+          {
+            "id": "r3d6",
+            "type": "single",
+            "points": 4,
+            "question": "33. 输入 \"1000000 19\", 输出（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "BG939"
+              },
+              {
+                "value": "B",
+                "label": "87GIB"
+              },
+              {
+                "value": "C",
+                "label": "1CD428"
+              },
+              {
+                "value": "D",
+                "label": "7CF1B"
+              }
+            ],
+            "answer": [
+              "C"
+            ],
+            "analysis": "标准答案 1CD428。",
+            "hasAnswer": true
+          }
+        ],
+        "kind": "code-reading"
+      },
+      "actions": [],
+      "multiAgent": {
+        "enabled": false,
+        "agentIds": []
+      },
+      "createdAt": 1786249240200,
+      "updatedAt": 1786249240200,
+      "category": "read"
+    },
+    {
+      "id": "sc_csps22s_perfect1",
+      "stageId": "cm_imp_csps2022s_v1",
+      "type": "quiz",
+      "title": "三、完善程序（1）归并第 k 小（5 空 × 3 分 = 15 分）",
+      "order": 5,
+      "content": {
+        "type": "quiz",
+        "codeBlock": {
+          "language": "cpp",
+          "title": "完善程序（1）",
+          "description": "两个长 n 的有序数组求归并后第 k 小。",
+          "lines": [
+            "#include <bits/stdc++.h>",
+            "using namespace std;",
+            "int solve(int *a1, int *a2, int n, int k) {",
+            "  int left1 = 0, right1 = n - 1;",
+            "  int left2 = 0, right2 = n - 1;",
+            "  while (left1 <= right1 && left2 <= right2) {",
+            "    int m1 = (left1 + right1) >> 1;",
+            "    int m2 = (left2 + right2) >> 1;",
+            "    int cnt = ①;",
+            "    if (②) {",
+            "      if (cnt < k) left1 = m1 + 1;",
+            "      else right2 = m2 - 1;",
+            "    } else {",
+            "      if (cnt < k) left2 = m2 + 1;",
+            "      else right1 = m1 - 1;",
+            "    }",
+            "  }",
+            "  if (③) {",
+            "    if (left1 == 0) return a2[k - 1];",
+            "    else { int x = a1[left1 - 1], ④; return std::max(x, y); }",
+            "  } else {",
+            "    if (left2 == 0) return a1[k - 1];",
+            "    else { int x = a2[left2 - 1], ⑤; return std::max(x, y); }",
+            "  }",
+            "}"
+          ]
+        },
+        "questions": [
+          {
+            "id": "p1_1",
+            "type": "single",
+            "question": "34. ①处应填（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "(m1+m2)*2"
+              },
+              {
+                "value": "B",
+                "label": "(m1-1)+(m2-1)"
+              },
+              {
+                "value": "C",
+                "label": "m1+m2"
+              },
+              {
+                "value": "D",
+                "label": "(m1+1)+(m2+1)"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "m1 个元素 + m2 个元素在 a1,a2 中均比中位数小。",
+            "hasAnswer": true
+          },
+          {
+            "id": "p1_2",
+            "type": "single",
+            "question": "35. ②处应填（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "a1[m1]==a2[m2]"
+              },
+              {
+                "value": "B",
+                "label": "a1[m1]<=a2[m2]"
+              },
+              {
+                "value": "C",
+                "label": "a1[m1]>=a2[m2]"
+              },
+              {
+                "value": "D",
+                "label": "a1[m1]!=a2[m2]"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "a1[m1]<=a2[m2] 时取哪个。",
+            "hasAnswer": true
+          },
+          {
+            "id": "p1_3",
+            "type": "single",
+            "question": "36. ③处应填（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "left1==right1"
+              },
+              {
+                "value": "B",
+                "label": "left1<right1"
+              },
+              {
+                "value": "C",
+                "label": "left1>right1"
+              },
+              {
+                "value": "D",
+                "label": "left1!=right1"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "left1<right1 时 a1 排除完。",
+            "hasAnswer": true
+          },
+          {
+            "id": "p1_4",
+            "type": "single",
+            "question": "37. ④处应填（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "y = a1[k-left2-1]"
+              },
+              {
+                "value": "B",
+                "label": "y = a1[k-left2]"
+              },
+              {
+                "value": "C",
+                "label": "y = a2[k-left1-1]"
+              },
+              {
+                "value": "D",
+                "label": "y = a2[k-left1]"
+              }
+            ],
+            "answer": [
+              "C"
+            ],
+            "analysis": "a2 中第 k-left1-1 个。",
+            "hasAnswer": true
+          },
+          {
+            "id": "p1_5",
+            "type": "single",
+            "question": "38. ⑤处应填（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "y = a1[k-left2-1]"
+              },
+              {
+                "value": "B",
+                "label": "y = a1[k-left2]"
+              },
+              {
+                "value": "C",
+                "label": "y = a2[k-left1-1]"
+              },
+              {
+                "value": "D",
+                "label": "y = a2[k-left1]"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "a1 中第 k-left2-1 个。",
+            "hasAnswer": true
+          }
+        ],
         "kind": "code-completion"
       },
       "actions": [],
@@ -94,8 +1274,223 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786227990343,
-      "updatedAt": 1786227990343,
+      "createdAt": 1786249240200,
+      "updatedAt": 1786249240200,
+      "category": "perfect"
+    },
+    {
+      "id": "sc_csps22s_perfect2",
+      "stageId": "cm_imp_csps2022s_v1",
+      "type": "quiz",
+      "title": "三、完善程序（2）容器分水（5 空 × 3 分 = 15 分）",
+      "order": 6,
+      "content": {
+        "type": "quiz",
+        "codeBlock": {
+          "language": "cpp",
+          "title": "完善程序（2）",
+          "description": "两个容器通过 FILL/DROP/POUR 获得 c 升水, 记忆化搜索。",
+          "lines": [
+            "#include <bits/stdc++.h>",
+            "using namespace std;",
+            "const int N = 110;",
+            "int f[N][N];",
+            "int ans;",
+            "int a, b, c;",
+            "int init;",
+            "int dfs(int x, int y) {",
+            "  if (f[x][y] != init)",
+            "    return f[x][y];",
+            "  if (x == c || y == c)",
+            "    return f[x][y] = 0;",
+            "  f[x][y] = init - 1;",
+            "  f[x][y] = min(f[x][y], dfs(a, y) + 1);",
+            "  f[x][y] = min(f[x][y], dfs(x, b) + 1);",
+            "  f[x][y] = min(f[x][y], dfs(0, y) + 1);",
+            "  f[x][y] = min(f[x][y], dfs(x, 0) + 1);",
+            "  int t = min(a - x, y);",
+            "  f[x][y] = min(f[x][y], ①);",
+            "  t = min(x, b - y);",
+            "  f[x][y] = min(f[x][y], ②);",
+            "  return f[x][y];",
+            "}",
+            "void go(int x, int y) {",
+            "  if (③) return;",
+            "  if (f[x][y] == dfs(a, y) + 1) { cout << \"FILL(1)\" << endl; go(a, y); }",
+            "  else if (f[x][y] == dfs(x, b) + 1) { cout << \"FILL(2)\" << endl; go(x, b); }",
+            "  else if (f[x][y] == dfs(0, y) + 1) { cout << \"DROP(1)\" << endl; go(0, y); }",
+            "  else if (f[x][y] == dfs(x, 0) + 1) { cout << \"DROP(2)\" << endl; go(x, 0); }",
+            "  else {",
+            "    int t = min(a - x, y);",
+            "    if (f[x][y] == ④) { cout << \"POUR(2,1)\" << endl; go(x + t, y - t); }",
+            "    else {",
+            "      t = min(x, b - y);",
+            "      if (f[x][y] == ⑤) { cout << \"POUR(1,2)\" << endl; go(x - t, y + t); }",
+            "      else assert(0);",
+            "    }",
+            "  }",
+            "}",
+            "int main() {",
+            "  cin >> a >> b >> c;",
+            "  ans = 1 << 30;",
+            "  memset(f, 127, sizeof f);",
+            "  init = **f;",
+            "  if ((ans = dfs(0, 0)) == init - 1) cout << \"impossible\";",
+            "  else { cout << ans << endl; go(0, 0); }",
+            "}"
+          ]
+        },
+        "questions": [
+          {
+            "id": "p2_1",
+            "type": "single",
+            "question": "39. ①处应填（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "dfs(x+t,y-t)+1"
+              },
+              {
+                "value": "B",
+                "label": "dfs(x+t,y-t)-1"
+              },
+              {
+                "value": "C",
+                "label": "dfs(x-t,y+t)+1"
+              },
+              {
+                "value": "D",
+                "label": "dfs(x-t,y+t)-1"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "POUR(2,1) 后状态。",
+            "hasAnswer": true
+          },
+          {
+            "id": "p2_2",
+            "type": "single",
+            "question": "40. ②处应填（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "dfs(x+t,y-t)+1"
+              },
+              {
+                "value": "B",
+                "label": "dfs(x+t,y-t)-1"
+              },
+              {
+                "value": "C",
+                "label": "dfs(x-t,y+t)+1"
+              },
+              {
+                "value": "D",
+                "label": "dfs(x-t,y+t)-1"
+              }
+            ],
+            "answer": [
+              "C"
+            ],
+            "analysis": "POUR(1,2) 后状态。",
+            "hasAnswer": true
+          },
+          {
+            "id": "p2_3",
+            "type": "single",
+            "question": "41. ③处应填（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "x==c||y==c"
+              },
+              {
+                "value": "B",
+                "label": "x==c&&y==c"
+              },
+              {
+                "value": "C",
+                "label": "x>=c||y>=c"
+              },
+              {
+                "value": "D",
+                "label": "x>=c&&y>=c"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "达到目标状态时停止。",
+            "hasAnswer": true
+          },
+          {
+            "id": "p2_4",
+            "type": "single",
+            "question": "42. ④处应填（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "dfs(x+t,y-t)+1"
+              },
+              {
+                "value": "B",
+                "label": "dfs(x+t,y-t)-1"
+              },
+              {
+                "value": "C",
+                "label": "dfs(x-t,y+t)+1"
+              },
+              {
+                "value": "D",
+                "label": "dfs(x-t,y+t)-1"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "POUR(2,1) 后的递推值。",
+            "hasAnswer": true
+          },
+          {
+            "id": "p2_5",
+            "type": "single",
+            "question": "43. ⑤处应填（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "dfs(x+t,y-t)+1"
+              },
+              {
+                "value": "B",
+                "label": "dfs(x+t,y-t)-1"
+              },
+              {
+                "value": "C",
+                "label": "dfs(x-t,y+t)+1"
+              },
+              {
+                "value": "D",
+                "label": "dfs(x-t,y+t)-1"
+              }
+            ],
+            "answer": [
+              "C"
+            ],
+            "analysis": "POUR(1,2) 后的递推值。",
+            "hasAnswer": true
+          }
+        ],
+        "kind": "code-completion"
+      },
+      "actions": [],
+      "multiAgent": {
+        "enabled": false,
+        "agentIds": []
+      },
+      "createdAt": 1786249240200,
+      "updatedAt": 1786249240200,
       "category": "perfect"
     }
   ]

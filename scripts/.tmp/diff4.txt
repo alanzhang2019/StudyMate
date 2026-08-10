@@ -1,0 +1,9 @@
+﻿git : warning: in the working copy of 'frontend/app/api/admin/users/route.ts', LF will be replaced by CRLF the next tim
+e Git touches it
+At C:\Users\Administrator\AppData\Local\Temp\trae-agent-toolhost\jobs\job-8aefe838282c4842b0b585b95bd12017\command.ps1:
+15 char:7643
++ ... e-machine"; git diff --check frontend/app/api/admin/users/route.ts 2> ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: in the... Git touches it:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

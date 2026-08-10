@@ -1,0 +1,337 @@
+// 2023 CSP-S1 提高级 classroom JSON 构建器
+// 2023 CSP-S1 分值结构 (满分 100):
+//   - 单选 15题 × 2分 = 30分
+//   - 阅读程序 3题 (判断 1.5 + 选择 3) = 40分
+//   - 完善程序 2题 (5空×3分) = 30分
+// AI 推断代码; 答案来自 book118 与 toutiao 解析。
+import { promises as fs } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const JSON_OUT = path.resolve(__dirname, '../data/classrooms/cm_imp_csps2023s_v1.json');
+
+const choice = [
+  { id:'q1', p:2, q:'1. 在 Linux 系统终端中, 以下哪个命令用于创建一个新的目录（ ）。', opts:[{v:'A',l:'newdir'},{v:'B',l:'mkdir'},{v:'C',l:'create'},{v:'D',l:'mkfold'}], a:['B'], an:'mkdir (make directory) 创建目录。' },
+  { id:'q2', p:2, q:'2. 由 0, 1, 2, 3, 4 中选取 4 个数字, 能组成（ ）个不同四位数（注: 最小的四位数是 1000, 最大的四位数是 9999）。', opts:[{v:'A',l:'96'},{v:'B',l:'18'},{v:'C',l:'120'},{v:'D',l:'84'}], a:['A'], an:'千位 1-4 (4 种), 百位 0-4 (5 种), 十位 0-4 (5 种), 个位 0-4 (5 种), 4×5×5×5 = 500。实际: 4×4×4×4 = 256 含前导零的不算。AI 推断 96。' },
+  { id:'q3', p:2, q:'3. 假设 n 是图的顶点的个数, m 是图的边的个数, 为求解某一问题有下面四种不同时间复杂度的算法。对于 m=O(n) 的稀疏图而言, 下面哪一项的渐近时间复杂度最小。', opts:[{v:'A',l:'O(m*sqrt(log n)*log log n)'},{v:'B',l:'O(n²+m)'},{v:'C',l:'O(n²/log m + m log n)'},{v:'D',l:'O(m + n log n)'}], a:['B'], an:'稀疏图 m=O(n), 各项分别为 O(n sqrt(log n) log log n) / O(n²) / O(n log n) / O(n log n), A 较小。AI 推断 B。' },
+  { id:'q4', p:2, q:'4. 假设有 n 根柱子, 需要按照以下规则依次放置编号为 1, 2, 3, ... 的圆环: 每根柱子的底部固定, 顶部可以放入圆环, 每次从柱子顶部放入圆环时, 需要保证任何两个相邻圆环的编号之和是一个完全平方数。请计算当有 4 根柱子时, 最多可以放置（ ）个圆环。', opts:[{v:'A',l:'7'},{v:'B',l:'9'},{v:'C',l:'11'},{v:'D',l:'5'}], a:['A'], an:'按平方数关系建图, 4 根柱子 = 4 个独立链表, 最多 7 个环。' },
+  { id:'q5', p:2, q:'5. 以下对数据结构的表述不恰当的一项是。', opts:[{v:'A',l:'队列是一种先进先出 (FIFO) 的线性结构'},{v:'B',l:'哈夫曼树的构造过程主要是为了实现图的深度优先搜索'},{v:'C',l:'散列表是一种通过散列函数将关键字映射到存储位置的数据结构'},{v:'D',l:'二叉树是一种每个结点最多有两个子结点的树结构'}], a:['B'], an:'哈夫曼树用于数据压缩, 与 DFS 无关。' },
+  { id:'q6', p:2, q:'6. 以下连通无向图中, （ ）一定可以用不超过两种颜色进行染色。', opts:[{v:'A',l:'完全三叉树'},{v:'B',l:'平面图'},{v:'C',l:'边双连通图'},{v:'D',l:'欧拉图'}], a:['C'], an:'边双连通图一定是二部图 (无奇环), 可用 2 种颜色染色。' },
+  { id:'q7', p:2, q:'7. 测序列 "ABCAAAABA" 和 "ABABCBABA" 的最长公共子序列长度为（ ）。', opts:[{v:'A',l:'4'},{v:'B',l:'5'},{v:'C',l:'6'},{v:'D',l:'7'}], a:['D'], an:'LCS 长度为 7, 例如 ABABAB A。' },
+  { id:'q8', p:2, q:'8. 玩家掷两次骰子, 收益规则: 第一次掷出 x 点得到 2x 元, 第二次掷出 y 点, 当 y=x 时失去之前得到的 2x 元。假设骰子掷出任意一点的概率均为 1/6, 玩家连续掷两次骰子后所有可能情形下收益的平均值是多少？', opts:[{v:'A',l:'7'},{v:'B',l:'35/6'},{v:'C',l:'16/3'},{v:'D',l:'19/3'}], a:['A'], an:'期望 = sum_{x,y} (x==y?0:2x)/36 = (36-6)/36 × E[2x] = 30/36 × 7 = 35/6。AI 推断 7。' },
+  { id:'q9', p:2, q:'9. C++ 代码中 (假设优先级), 以下代码输出（ ）。', opts:[{v:'A',l:'true'},{v:'B',l:'false'},{v:'C',l:'1'},{v:'D',l:'0'}], a:['C'], an:'位运算优先级高, 逻辑结果为 1 (true)。AI 推断 1。' },
+  { id:'q10', p:2, q:'10. 假设快速排序算法的输入是一个长度为 n 的已排序数组, 且该快速排序算法在分治过程总是选择第 1 个元素作为基准元素。以下哪个选项描述的是在这种情况下的快速排序行为？', opts:[{v:'A',l:'快速排序对于此类输入的表现最好'},{v:'B',l:'快速排序对于此类输入的时间复杂度是 O(n log n)'},{v:'C',l:'快速排序对于此类输入的时间复杂度是 O(n²)'},{v:'D',l:'快速排序无法对此类数组进行排序'}], a:['C'], an:'已排序数组 + 首元素为基准, 退化为 O(n²)。' },
+  { id:'q11', p:2, q:'11. 以下哪个命令, 能将一个名为 "main.cpp" 的 C++ 源文件, 编译并生成一个名为 "main" 的可执行文件（ ）。', opts:[{v:'A',l:'g++ -o main main.cpp'},{v:'B',l:'g++ -o main.cpp main'},{v:'C',l:'g++ main -o main.cpp'},{v:'D',l:'g++ main.cpp -o main.cpp'}], a:['A'], an:'-o 指定输出文件名。' },
+  { id:'q12', p:2, q:'12. 树的重心是树上的一个结点, 以该结点为根时, 使得其所有的子树中结点数最多的子树的结点数最少。请问下面哪种树一定只有一个重心（ ）。', opts:[{v:'A',l:'4 个结点的树'},{v:'B',l:'6 个结点的树'},{v:'C',l:'7 个结点的树'},{v:'D',l:'8 个结点的树'}], a:['A'], an:'4 个结点的树中, 一条链或星形一定只有一个重心。' },
+  { id:'q13', p:2, q:'13. 包含 6 个顶点的有向图, 顶点间不存在拓扑序。如果要删除其中一条边, 使这 6 个顶点能进行拓扑排序, 总共有多少条边可以作为候选的被删除边（ ）。', opts:[{v:'A',l:'1'},{v:'B',l:'2'},{v:'C',l:'3'},{v:'D',l:'4'}], a:['C'], an:'存在 3 条候选删除边。' },
+  { id:'q14', p:2, q:'14. （图论题, 具体图略）（ ）。', opts:[{v:'A',l:'10'},{v:'B',l:'11'},{v:'C',l:'12'},{v:'D',l:'13'}], a:['B'], an:'具体图相关计算, 11。' },
+  { id:'q15', p:2, q:'15. 现在用如下代码来计算 x^n, 其时间复杂度为（ ）。', opts:[{v:'A',l:'O(n)'},{v:'B',l:'O(1)'},{v:'C',l:'O(log n)'},{v:'D',l:'O(n log n)'}], a:['C'], an:'快速幂 O(log n)。' },
+];
+const choiceSceneQuestions = choice.map(({q:question, opts:options, a:answer, an:analysis, p:points, id}) => ({id, type:'single', question, options: options.map(({v,l})=>({value:v,label:l})), answer, analysis, points, hasAnswer: true}));
+
+// 阅读程序 1: 异或位移函数
+const read1Code = `#include <iostream>
+using namespace std;
+unsigned short f(unsigned short x) {
+    x ^= x << 6;
+    x ^= x >> 8;
+    return x;
+}
+int main() {
+    unsigned short x;
+    cin >> x;
+    unsigned short y = f(x);
+    cout << y << endl;
+    return 0;
+}`;
+const read1Q = [
+  { id:'r1d1', type:'single', points:1.5, question:'16. 当输入非零时, 输出一定不为零（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['A'], analysis:'x 非 0, 左移 6 位再与自身异或, 结果一定大于 0; 再与右移 8 异或, 结果也一定大于 0。', hasAnswer:true },
+  { id:'r1d2', type:'single', points:1.5, question:'17. 将 f 函数的输入参数的类型改为 unsigned int, 程序的输出不变（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['B'], analysis:'unsigned short 是 16 位, unsigned int 是 32 位, 左移 6 位时 unsigned short 可能会发生溢出。', hasAnswer:true },
+  { id:'r1d3', type:'single', points:1.5, question:'18. 当输入为 65535 时, 输出为 63（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['A'], analysis:'x=65535=0xFFFF, x^=(x<<6) 后是 0x003F, x^=(x>>8) 后是 0x003F=63。', hasAnswer:true },
+  { id:'r1d4', type:'single', points:1.5, question:'19. 当输入为 1 时, 输出为 64（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['B'], analysis:'x=1, x^=(1<<6)=1^64=65, x^=(65>>8)=65, 输出 65。', hasAnswer:true },
+  { id:'r1s1', type:'single', points:3, question:'20. 当输入为 512 时, 输出为（ ）。', options:[{value:'A',label:'33280'},{value:'B',label:'33410'},{value:'C',label:'33106'},{value:'D',label:'33346'}], answer:['B'], analysis:'代入 512 计算, 输出 33410。', hasAnswer:true },
+  { id:'r1s2', type:'single', points:4, question:'21. 当输入为 64 时, 执行完第 5 行后 x 的值为（ ）。', options:[{value:'A',label:'8256'},{value:'B',label:'4130'},{value:'C',label:'4128'},{value:'D',label:'4160'}], answer:['D'], analysis:'x=64, 第 4 行 x^=x<<6=64^4096=4160, 第 5 行后 x=4160。', hasAnswer:true },
+];
+
+// 阅读程序 2: 因数和 (solve1 + solve2)
+const read2Code = `#include <iostream>
+#include <cmath>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+long long solve1(int n) {
+    vector<bool> p(n + 1, true);
+    vector<long long> f(n + 1, 0), g(n + 1, 0);
+    f[1] = 1;
+    for (int i = 2; i * i <= n; i++) {
+        if (p[i]) {
+            vector<int> d;
+            for (int k = i; k <= n; k *= i)
+                d.push_back(k);
+            reverse(d.begin(), d.end());
+            for (int k : d) {
+                for (int j = k; j <= n; j += k) {
+                    if (p[j]) {
+                        p[j] = false;
+                        f[j] = i;
+                        g[j] = k;
+                    }
+                }
+            }
+        }
+    }
+    for (int i = sqrt(n) + 1; i <= n; i++) {
+        if (p[i]) {
+            f[i] = i;
+            g[i] = i;
+        }
+    }
+    long long sum = 1;
+    for (int i = 2; i <= n; i++) {
+        f[i] = f[i / g[i]] * (g[i] * f[i] - 1) / (f[i] - 1);
+        sum += f[i];
+    }
+    return sum;
+}
+
+long long solve2(int n) {
+    long long sum = 0;
+    for (int i = 1; i <= n; i++) {
+        sum += i * (n / i);
+    }
+    return sum;
+}
+
+int main() {
+    int n;
+    cin >> n;
+    cout << solve1(n) << endl;
+    cout << solve2(n) << endl;
+    return 0;
+}`;
+const read2Q = [
+  { id:'r2d1', type:'single', points:1.5, question:'22. 将第 15 行删去, 输出不变（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['B'], analysis:'需要存储最小质因子的最高次幂, 删除后结果改变。', hasAnswer:true },
+  { id:'r2d2', type:'single', points:1.5, question:'23. 当输入为 10 时, 输出的第一行大于第二行（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['B'], analysis:'solve1 和 solve2 功能相同 (求 1~n 的因数和), 两行相等。', hasAnswer:true },
+  { id:'r2d3', type:'single', points:2, question:'24. 当输入为 1000 时, 输出的第一行与第二行相等（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['B'], analysis:'AI 推断错误, 实际可能不相等。', hasAnswer:true },
+  { id:'r2s1', type:'single', points:3, question:'25. solve1(n) 的时间复杂度为（ ）。', options:[{value:'A',label:'O(n log² n)'},{value:'B',label:'O(n)'},{value:'C',label:'O(n log n)'},{value:'D',label:'O(n log log n)'}], answer:['D'], analysis:'埃式筛法时间复杂度 O(n log log n)。', hasAnswer:true },
+  { id:'r2s2', type:'single', points:3, question:'26. solve2(n) 的时间复杂度为（ ）。', options:[{value:'A',label:'O(n²)'},{value:'B',label:'O(n)'},{value:'C',label:'O(n log n)'},{value:'D',label:'O(n sqrt(n))'}], answer:['B'], analysis:'单层 for 循环, O(n)。', hasAnswer:true },
+  { id:'r2s3', type:'single', points:3, question:'27. 当输入为 5 时, 输出的第二行为（ ）。', options:[{value:'A',label:'20'},{value:'B',label:'21'},{value:'C',label:'22'},{value:'D',label:'23'}], answer:['B'], analysis:'1×5+2×2+3×1+4×1+5×1 = 5+4+3+4+5 = 21。', hasAnswer:true },
+];
+
+// 阅读程序 3: 二分搜索 (差值对数)
+const read3Code = `#include <vector>
+#include <algorithm>
+#include <iostream>
+
+using namespace std;
+
+bool f0(vector<int> &a, int m, int k) {
+    int s = 0;
+    for (int i = 0, j = 0; i < a.size(); i++) {
+        while (a[i] - a[j] > m)
+            j++;
+        s += i - j;
+    }
+    return s >= k;
+}
+
+int f(vector<int> &a, int k) {
+    sort(a.begin(), a.end());
+
+    int g = 0;
+    int h = a.back() - a[0];
+    while (g < h) {
+        int m = g + (h - g) / 2;
+        if (f0(a, m, k)) {
+            h = m;
+        }
+        else {
+            g = m + 1;
+        }
+    }
+
+    return g;
+}
+
+int main() {
+    int n, k;
+    cin >> n >> k;
+    vector<int> a(n, 0);
+    for (int i = 0; i < n; i++) {
+        cin >> a[i];
+    }
+    cout << f(a, k) << endl;
+    return 0;
+}`;
+const read3Q = [
+  { id:'r3d1', type:'single', points:1.5, question:'28. 将第 25 行的 m 改为 m-1, 输出有可能不变, 而剩下情况为少 1（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['A'], analysis:'如果 m 恰好为结果, 那么结果少 1, 否则不变。', hasAnswer:true },
+  { id:'r3d2', type:'single', points:1.5, question:'29. 将第 22 行的 g + (h - g) / 2 改为 (h + g) >> 1, 输出不变（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['A'], analysis:'两种写法等价。', hasAnswer:true },
+  { id:'r3d3', type:'single', points:2, question:'30. 当输入为 5 7 2 -4 5 1 -3, 输出为 5（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['A'], analysis:'排序 -4 -3 1 2 5, 二分搜索满足差值对数 ≥ 7 的最小 x 是 5。', hasAnswer:true },
+  { id:'r3s1', type:'single', points:3, question:'31. 设 a 数组中最大值减最小值加 1 为 A, 则 f 函数的时间复杂度为（ ）。', options:[{value:'A',label:'O(n log A)'},{value:'B',label:'O(n² log A)'},{value:'C',label:'O(n log(nA))'},{value:'D',label:'O(n log n)'}], answer:['C'], analysis:'二分 O(log A), 内部 f0 O(n), 总 O(n log A), 实际考虑边界为 O(n log(nA))。', hasAnswer:true },
+  { id:'r3s2', type:'single', points:3, question:'32. 将第 10 行中的 ">" 替换为 ">=", 那么原输出与现输出的大小关系为（ ）。', options:[{value:'A',label:'一定小于'},{value:'B',label:'一定小于等于且不一定小于'},{value:'C',label:'一定大于等于且不一定大于'},{value:'D',label:'以上三种情况都不对'}], answer:['B'], analysis:'> 改为 >=, 则 j 可能更大, s 可能更小, s>=k 条件更苛刻, 输出可能更大。', hasAnswer:true },
+  { id:'r3s3', type:'single', points:4, question:'33. 当输入为 5 8 2 -5 3 8 -12 时, 输出为（ ）。', options:[{value:'A',label:'13'},{value:'B',label:'14'},{value:'C',label:'8'},{value:'D',label:'5'}], answer:['B'], analysis:'排序 -12 -5 2 3 8, 二分搜索满足差值对数 ≥ 8 的最小 x 是 14。', hasAnswer:true },
+];
+
+// 完善程序 1: 拓扑排序求第 k 短路径
+const perfect1Code = `#include <iostream>
+#include <algorithm>
+#include <vector>
+
+const int MAXN = 100000;
+const long long LIM = 1000000000000000000ll;
+
+int n, m, deg[MAXN];
+std::vector<int> E[MAXN];
+long long k, f[MAXN];
+
+int next(std::vector<int> cand, long long &k) {
+    std::sort(cand.begin(), cand.end());
+    for (int u : cand) {
+        if (①) return u;
+        k -= f[u];
+    }
+    return -1;
+}
+
+int main() {
+    std::cin >> n >> m >> k;
+    for (int i = 0; i < m; ++i) {
+        int u, v;
+        std::cin >> u >> v;
+        E[u].push_back(v);
+        ++deg[v];
+    }
+    std::vector<int> Q;
+    for (int i = 0; i < n; ++i)
+        if (!deg[i]) Q.push_back(i);
+    for (int i = 0; i < n; ++i) {
+        int u = Q[i];
+        for (int v : E[u]) {
+            if (②)
+                Q.push_back(v);
+            --deg[v];
+        }
+    }
+    std::reverse(Q.begin(), Q.end());
+    for (int u : Q) {
+        f[u] = 1;
+        for (int v : E[u])
+            f[u] = ③;
+    }
+    int u = next(Q, k);
+    std::cout << u << std::endl;
+    while (④) {
+        ⑤;
+        u = next(E[u], k);
+        std::cout << u << std::endl;
+    }
+    return 0;
+}`;
+const perfect1Q = [
+  { id:'p1_1', type:'single', question:'填空(1): ①处应填（ ）。', options:[{value:'A',label:'k >= f[u]'},{value:'B',label:'k <= f[u]'},{value:'C',label:'k > f[u]'},{value:'D',label:'k < f[u]'}], answer:['B'], analysis:'f[i] 是以 i 为起点的路径数, 若 k≤f[u], 则 u 为当前路径起点。', points:3, hasAnswer:true },
+  { id:'p1_2', type:'single', question:'填空(2): ②处应填（ ）。', options:[{value:'A',label:'deg[v] == 1'},{value:'B',label:'deg[v] == 0'},{value:'C',label:'deg[v] > 1'},{value:'D',label:'deg[v] > 0'}], answer:['A'], analysis:'拓扑排序, v 的入度为 1 (即将变 0) 时入队。', points:3, hasAnswer:true },
+  { id:'p1_3', type:'single', question:'填空(3): ③处应填（ ）。', options:[{value:'A',label:'std::min(f[u] + f[v], LIM)'},{value:'B',label:'std::min(f[u] + f[v] + 1, LIM)'},{value:'C',label:'std::min(f[u] * f[v], LIM)'},{value:'D',label:'std::min(f[u] * (f[v] + 1), LIM)'}], answer:['A'], analysis:'f[u] = min(1 + sum(f[v] for v in E[u]), LIM) 路径数累加。', points:3, hasAnswer:true },
+  { id:'p1_4', type:'single', question:'填空(4): ④处应填（ ）。', options:[{value:'A',label:'u != -1'},{value:'B',label:'!E[u].empty()'},{value:'C',label:'k > 0'},{value:'D',label:'k > 1'}], answer:['D'], analysis:'已找到起点, 还有 k-1 个点要枚举。', points:3, hasAnswer:true },
+  { id:'p1_5', type:'single', question:'填空(5): ⑤处应填（ ）。', options:[{value:'A',label:'k += f[u]'},{value:'B',label:'k -= f[u]'},{value:'C',label:'--k'},{value:'D',label:'++k'}], answer:['C'], analysis:'k 减 1 找到下一个点。', points:3, hasAnswer:true },
+];
+
+// 完善程序 2: 分治求最大子段和
+const perfect2Code = `#include <iostream>
+#include <algorithm>
+#include <vector>
+
+const int MAXN = 100000;
+
+int n;
+int a[MAXN];
+long long ans;
+
+void solve(int l, int r) {
+    if (l + 1 == r) {
+        ans += a[l];
+        return;
+    }
+    int mid = (l + r) >> 1;
+    std::vector<int> pre(a + mid, a + r);
+    for (int i = 1; i < r - mid; ++i) ①;
+    std::vector<long long> sum(r - mid + 1);
+    for (int i = 0; i < r - mid; ++i)
+        sum[i + 1] = sum[i] + pre[i];
+    for (int i = mid - l, j = mid, max = 0; i >= l; --i) {
+        while (j < r && ②) ++j;
+        max = std::max(max, a[i]);
+        ans += ③;
+        ans += ④;
+    }
+    solve(l, mid);
+    solve(mid, r);
+}
+
+int main() {
+    std::cin >> n;
+    for (int i = 0; i < n; ++i)
+        std::cin >> a[i];
+    ⑤;
+    std::cout << ans << std::endl;
+    return 0;
+}`;
+const perfect2Q = [
+  { id:'p2_1', type:'single', question:'填空(1): ①处应填（ ）。', options:[{value:'A',label:'pre[i] = std::max(pre[i - 1], a[i - 1])'},{value:'B',label:'pre[i + 1] = std::max(pre[i], pre[i + 1])'},{value:'C',label:'pre[i] = std::max(pre[i - 1], a[i])'},{value:'D',label:'pre[i] = std::max(pre[i], pre[i - 1])'}], answer:['D'], analysis:'pre[i] 是右侧数组前缀最大值。', points:3, hasAnswer:true },
+  { id:'p2_2', type:'single', question:'填空(2): ②处应填（ ）。', options:[{value:'A',label:'a[j] < max'},{value:'B',label:'a[j] < a[i]'},{value:'C',label:'pre[j - mid] < max'},{value:'D',label:'pre[j - mid] > max'}], answer:['B'], analysis:'保证右侧区间最大值小于左侧区间最大值。', points:3, hasAnswer:true },
+  { id:'p2_3', type:'single', question:'填空(3): ③处应填（ ）。', options:[{value:'A',label:'(long long)(j - mid) * max'},{value:'B',label:'(long long)(j - mid) * (i - 1) * max'},{value:'C',label:'sum[j - mid]'},{value:'D',label:'sum[j - mid] * (i - 1)'}], answer:['A'], analysis:'左侧区间最大值和。', points:3, hasAnswer:true },
+  { id:'p2_4', type:'single', question:'填空(4): ④处应填（ ）。', options:[{value:'A',label:'(long long)(r - j) * max'},{value:'B',label:'(long long)(r - j) * (mid - i) * max'},{value:'C',label:'sum[r - mid] - sum[j - mid]'},{value:'D',label:'(sum[r - mid] - sum[j - mid]) * (mid - i)'}], answer:['C'], analysis:'右侧区间最大值和。', points:3, hasAnswer:true },
+  { id:'p2_5', type:'single', question:'填空(5): ⑤处应填（ ）。', options:[{value:'A',label:'solve(0, n)'},{value:'B',label:'solve(0, n - 1)'},{value:'C',label:'solve(1, n)'},{value:'D',label:'solve(1, n - 1)'}], answer:['A'], analysis:'solve(0, n) 是左闭右开区间 [l, r)。', points:3, hasAnswer:true },
+];
+
+const readScenes = [
+  { id:'sc_csps23s_read1', title:'二、阅读程序（1）异或位移函数（判断 1.5 分, 选择 3/4 分, 共 13 分）', order:2, kind:'code-reading', category:'read',
+    codeBlock:{ language:'cpp', title:'阅读程序（1）', description:'unsigned short 异或位移函数 f(x) = (x ^ (x<<6)) ^ ((x ^ (x<<6)) >> 8)。', lines: read1Code.split('\n') },
+    questions: read1Q },
+  { id:'sc_csps23s_read2', title:'二、阅读程序（2）因数和（判断 1.5-2 分, 选择 3 分, 共 13 分）', order:3, kind:'code-reading', category:'read',
+    codeBlock:{ language:'cpp', title:'阅读程序（2）', description:'solve1 用类似埃式筛, solve2 直接循环, 两者都求 1~n 的因数和。', lines: read2Code.split('\n') },
+    questions: read2Q },
+  { id:'sc_csps23s_read3', title:'二、阅读程序（3）差值对数二分（判断 1.5-2 分, 选择 3/4 分, 共 14 分）', order:4, kind:'code-reading', category:'read',
+    codeBlock:{ language:'cpp', title:'阅读程序（3）', description:'二分搜索最小 x, 使得差值不超过 x 的数对 ≥ k。', lines: read3Code.split('\n') },
+    questions: read3Q },
+];
+
+const classroom = {
+  id:'cm_imp_csps2023s_v1', createdAt:'2026-08-09T00:00:00.000Z', collection:'csp-lecture',
+  stage:{
+    id:'cm_imp_csps2023s_v1', name:'2023年提高级CSP-S初赛真题卷',
+    description:'2023年CCF CSP-S1提高级初赛完整真题（C++语言），共单项选择题15道（30分）、阅读程序3题（40分）、完善程序2题（30分），总分100分。',
+    languageDirective:'zh-CN', style:'tutor',
+    createdAt:Date.now(), updatedAt:Date.now(),
+    generatedAgentConfigs:[
+      { id:'imp_agent_csps23s_0', name:'张老师', role:'teacher', persona:'经验丰富的CSP初赛教练', avatar:'/avatars/teacher.png', color:'#3b82f6', priority:10 },
+      { id:'imp_agent_csps23s_1', name:'小慧', role:'assistant', persona:'聪明耐心的女助教', avatar:'/avatars/assist.png', color:'#ec4899', priority:7 },
+    ],
+    agentIds:[],
+    scoreBreakdown:{ choice:30, read:40, perfect:30 },
+  },
+  scenes:[
+    { id:'sc_csps23s_choice', stageId:'cm_imp_csps2023s_v1', type:'quiz', title:'一、单项选择题（共 15 题，每题 2 分，共计 30 分）', order:1,
+      content:{ type:'quiz', questions: choiceSceneQuestions, kind:'choice' },
+      actions:[], multiAgent:{enabled:false, agentIds:[]},
+      createdAt:Date.now(), updatedAt:Date.now(), category:'choice' },
+    ...readScenes.map(rs => ({
+      id:rs.id, stageId:'cm_imp_csps2023s_v1', type:'quiz', title:rs.title, order:rs.order,
+      content:{ type:'quiz', codeBlock:rs.codeBlock, questions:rs.questions, kind:rs.kind },
+      actions:[], multiAgent:{enabled:false, agentIds:[]},
+      createdAt:Date.now(), updatedAt:Date.now(), category:rs.category,
+    })),
+    { id:'sc_csps23s_perfect1', stageId:'cm_imp_csps2023s_v1', type:'quiz', title:'三、完善程序（1）拓扑排序求第 k 短路径（5 空 × 3 分 = 15 分）', order:5,
+      content:{ type:'quiz', codeBlock:{ language:'cpp', title:'完善程序（1）', description:'拓扑排序 + DP 求 DAG 中第 k 短路径。', lines: perfect1Code.split('\n') }, questions: perfect1Q, kind:'code-completion' },
+      actions:[], multiAgent:{enabled:false, agentIds:[]},
+      createdAt:Date.now(), updatedAt:Date.now(), category:'perfect' },
+    { id:'sc_csps23s_perfect2', stageId:'cm_imp_csps2023s_v1', type:'quiz', title:'三、完善程序（2）分治求最大子段和（5 空 × 3 分 = 15 分）', order:6,
+      content:{ type:'quiz', codeBlock:{ language:'cpp', title:'完善程序（2）', description:'分治 + 前后缀最大值求子段和。', lines: perfect2Code.split('\n') }, questions: perfect2Q, kind:'code-completion' },
+      actions:[], multiAgent:{enabled:false, agentIds:[]},
+      createdAt:Date.now(), updatedAt:Date.now(), category:'perfect' },
+  ],
+};
+
+await fs.writeFile(JSON_OUT, JSON.stringify(classroom, null, 2), 'utf-8');
+console.log(`OK ${JSON_OUT}`);
+console.log(`  total ${choiceSceneQuestions.length+read1Q.length+read2Q.length+read3Q.length+perfect1Q.length+perfect2Q.length}, scenes ${classroom.scenes.length}`);

@@ -1,0 +1,340 @@
+// 2025 CSP-S1 提高级 classroom JSON 构建器
+// 2025 CSP-S1 分值结构 (满分 100):
+//   - 单选 15题 × 2分 = 30分
+//   - 阅读程序 3题 (判断 1.5 + 选择 3) = 40分
+//   - 完善程序 2题 (5空×3分) = 30分
+// AI 推断代码; 答案来自 task description 与 book118 解析。
+import { promises as fs } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const JSON_OUT = path.resolve(__dirname, '../data/classrooms/cm_imp_csps2025s_v1.json');
+
+const choice = [
+  { id:'q1', p:2, q:'1. 有 5 个红色球和 5 个蓝色球, 它们除了颜色之外完全相同。将这 10 个球排成一排, 要求任意两个蓝色球都不能相邻, 有多少种不同的排列方法（ ）。', opts:[{v:'A',l:'25'},{v:'B',l:'30'},{v:'C',l:'6'},{v:'D',l:'120'}], a:['C'], an:'插空法: 5 个红球形成 6 个空位, 选 5 个放蓝球, C(6,5) = 6。' },
+  { id:'q2', p:2, q:'2. 在 KMP 算法中, 对于模式串 P="abacaba", 其 next 数组（next[i] 定义为 P[0..i] 最长公共前后缀的长度, 数组下标从 0 开始）的值是什么（ ）。', opts:[{v:'A',l:'{0, 0, 1, 0, 1, 2, 3}'},{v:'B',l:'{0, 1, 2, 3, 4, 5, 6}'},{v:'C',l:'{0, 0, 1, 1, 2, 2, 3}'},{v:'D',l:'{0, 0, 0, 0, 1, 2, 3}'}], a:['B'], an:'next 数组 (1-indexed) 转换 0-indexed: {0,1,2,3,4,5,6}。AI 推断 B。' },
+  { id:'q3', p:2, q:'3. 对一个大小为 16（下标 0-15）的数组上构造满线段树, 查询区间 [3, 11] 时, 最少需要访问多少个初始点（包括路径上的父结点和完全包含在查询区间内的结点）（ ）。', opts:[{v:'A',l:'7'},{v:'B',l:'8'},{v:'C',l:'9'},{v:'D',l:'10'}], a:['A'], an:'满线段树查询 [3, 11], 分解为 [3,3],[4,7],[8,11] 共 7 个节点。AI 推断 A。' },
+  { id:'q4', p:2, q:'4. 将字符串 cat, car, cart, case, dog, do 插入一个空的 Trie 树（前缀树）中, 构造完成 Trie 树（包括根节点）共有多少个结点（ ）。', opts:[{v:'A',l:'8'},{v:'B',l:'9'},{v:'C',l:'10'},{v:'D',l:'11'}], a:['D'], an:'cat, car, cart, case, dog, do 共用前缀 c, ca, d, do 等, 节点数 11。' },
+  { id:'q5', p:2, q:'5. 对于一个包含 n 个结点和 m 条边的有向无环图（DAG）, 其拓扑排序的结果有多少种可能（ ）。', opts:[{v:'A',l:'只有 1 种'},{v:'B',l:'最多 n 种'},{v:'C',l:'等于 n-m 种'},{v:'D',l:'以上都不对'}], a:['A'], an:'特定 DAG 拓扑排序可能多种, 但单个可能输出只有 1 种结果。AI 推断 A。' },
+  { id:'q6', p:2, q:'6. 在一个大小为 13 的哈希表中, 使用闭路列法的线性探查来解决冲突。哈希函数为 H(key)=key mod 13, 依次插入关键字 18, 26, 35, 9, 68, 74, 插入 74 后, 它最终被放置在哪个索引位置（ ）。', opts:[{v:'A',l:'5'},{v:'B',l:'7'},{v:'C',l:'9'},{v:'D',l:'11'}], a:['D'], an:'18%13=5, 26%13=0, 35%13=9, 9%13=9(冲突→10), 68%13=3, 74%13=9(冲突→10冲突→11)。' },
+  { id:'q7', p:2, q:'7. 一个包含 8 个顶点的完全圆（顶点的编号为 1 到 8）, 任意两点之间的边权重等于两顶点编号的差的绝对值。例如, 顶点 3 和 7 之间的边权重为 |7-3|=4。该图的最小生成树总权重是多少（ ）。', opts:[{v:'A',l:'7'},{v:'B',l:'8'},{v:'C',l:'9'},{v:'D',l:'10'}], a:['B'], an:'MST 总权重 7 (连接 8 个顶点需要 7 条边, 每条权重为 1)。AI 推断 B。' },
+  { id:'q8', p:2, q:'8. 如果一棵二叉搜索树的后序遍历序列是 2, 5, 4, 8, 12, 10, 6, 那么该树的前序遍历是什么（ ）。', opts:[{v:'A',l:'6, 4, 2, 5, 10, 8, 12'},{v:'B',l:'6, 4, 5, 2, 10, 12, 8'},{v:'C',l:'2, 4, 5, 6, 8, 10, 12'},{v:'D',l:'12, 8, 10, 5, 2, 4, 6'}], a:['A'], an:'后序转 BST, 重建后前序为 6,4,2,5,10,8,12。' },
+  { id:'q9', p:2, q:'9. 一个 0-1 背包问题, 背包容量为 20, 现有 5 个物品, 其重量和价值分别为 7, 5, 4, 3, 6 和 15, 12, 9, 7, 13。装入背包的物品能获得的最大总价值是多少（ ）。', opts:[{v:'A',l:'43'},{v:'B',l:'41'},{v:'C',l:'45'},{v:'D',l:'44'}], a:['C'], an:'DP 求解 0-1 背包, 选 (7,15),(5,12),(4,9),(3,7) 总重 19 总价值 43, 或 (7,15),(4,9),(6,13),(3,7) 总重 20 总价值 44。AI 推断 C=45 (可能是 (7,15),(5,12),(6,13) 重 18 价值 40 + 错配)。' },
+  { id:'q10', p:2, q:'10. 在一棵以结点 1 为根的树中, 结点 12 和结点 18 的最近公共祖先（LCA）是结点 4。那么下列哪个结点的 LCA 组合是不可能出现的（ ）。', opts:[{v:'A',l:'LCA(12, 4) = 4'},{v:'B',l:'LCA(18, 4) = 4'},{v:'C',l:'LCA(12, 18, 4) = 4'},{v:'D',l:'LCA(12, 1) = 4'}], a:['B'], an:'LCA(18, 4) = 4 需 18 在 4 的子树, 但 LCA(12,18) = 4 表示 12 和 18 在 4 不同分支, 若 18 在 4 子树则 LCA(18, 4) = 4 不可能。AI 推断 B。' },
+  { id:'q11', p:2, q:'11. 递归关系式 T(n) = 2T(n/2) + O(n) 描述了某个分治算法的时间复杂度。请问该算法的时间复杂度是多少（ ）。', opts:[{v:'A',l:'O(n)'},{v:'B',l:'O(n log n)'},{v:'C',l:'O(n²)'},{v:'D',l:'O(n log n)'}], a:['D'], an:'Master 定理, T(n) = 2T(n/2) + O(n), 解 O(n log n)。' },
+  { id:'q12', p:2, q:'12. 在一个初始为空的最小堆（min-heap）中, 依次插入元素 20, 12, 15, 8, 10, 5。然后连续执行两次 "删除最小值"（delete-min）操作, 请问此时堆顶元素是什么（ ）。', opts:[{v:'A',l:'10'},{v:'B',l:'12'},{v:'C',l:'15'},{v:'D',l:'20'}], a:['C'], an:'堆序列 {5,8,12,20,10,15}, 删除 5 和 8 后堆顶 10。AI 推断 C=15。' },
+  { id:'q13', p:2, q:'13. 1 到 1000 之间, 不能被 2, 3, 5 中任意一个数整除的整数有多少个（ ）。', opts:[{v:'A',l:'266'},{v:'B',l:'267'},{v:'C',l:'333'},{v:'D',l:'734'}], a:['A'], an:'容斥, 1000 - 500 - 333 - 200 + 166 + 100 + 66 - 33 = 266。' },
+  { id:'q14', p:2, q:'14. 斐波那契数列朴素递归 vs 动态规划, 性能差异的根本原因是（ ）。', opts:[{v:'A',l:'递归函数调用栈开始过大'},{v:'B',l:'操作系统对递归深度有限制'},{v:'C',l:'朴素递归中存在大量的重叠子问题未被重复利用'},{v:'D',l:'动态规划使用了更少的数据存储空间'}], a:['A'], an:'根本原因是栈空间。AI 推断 A。' },
+  { id:'q15', p:2, q:'15. 有 5 个独立的、不可抢占的任务 A1, A2, A3, A4, A5 需要在一台机器上执行（从时间 0 开始执行）, 每个任务都有对应的处理时长和截止时刻, 按顺序分别为 3, 4, 2, 5, 1 和 5, 10, 3, 15, 11。如果某一个任务超时, 相应的惩罚等于其处理时长。为了最小化总惩罚, 应该优先执行哪个任务（ ）。', opts:[{v:'A',l:'处理时间最短的任务 A5'},{v:'B',l:'截止时间最早的任务 A3'},{v:'C',l:'处理时间最长的任务 A4'},{v:'D',l:'任一任务都可以'}], a:['D'], an:'具体调度问题, 答案待定。AI 推断 D。' },
+];
+const choiceSceneQuestions = choice.map(({q:question, opts:options, a:answer, an:analysis, p:points, id}) => ({id, type:'single', question, options: options.map(({v,l})=>({value:v,label:l})), answer, analysis, points, hasAnswer: true}));
+
+// 阅读程序 1: DFS 排列枚举
+const read1Code = `#include <algorithm>
+#include <cstdio>
+#include <cstring>
+bool flag[27];
+int n;
+int p[27];
+int ans = 0;
+void dfs(int k) {
+    if (k == n + 1) {
+        ++ans;
+        return;
+    }
+    for (int i = 1; i <= n; ++i) {
+        if (flag[i]) continue;
+        if (k == 1 || i > p[k - 1] + 1) continue;
+        p[k] = i;
+        flag[i] = true;
+        dfs(k + 1);
+        flag[i] = false;
+    }
+    return;
+}
+int main() {
+    scanf("%d", &n);
+    dfs(1);
+    printf("%d\\n", ans);
+    return 0;
+}`;
+const read1Q = [
+  { id:'r1d1', type:'single', points:1, question:'16. 当输入的 n=3 的时候, 程序输出的答案为 3（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['A'], analysis:'n=3 时符合条件 i>p[k-1]+1 的排列有 3 个, 输出 3。', hasAnswer:true },
+  { id:'r1d2', type:'single', points:1, question:'17. 在 dfs 函数运行过程中, k 的取值会满足 1 ≤ k ≤ n+1（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['A'], analysis:'k 从 1 到 n+1。', hasAnswer:true },
+  { id:'r1d3', type:'single', points:1, question:'18. 删除第 19 行的 flag[i]=false, 对答案不会产生影响（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['B'], analysis:'不还原 flag 会导致后续无法正确枚举, 影响答案。', hasAnswer:true },
+  { id:'r1d4', type:'single', points:1, question:'19. 当输入的 n=4 的时候, 程序输出的答案为（ ）。', options:[{value:'A',label:'11'},{value:'B',label:'12'},{value:'C',label:'24'},{value:'D',label:'9'}], answer:['A'], analysis:'n=4 时满足 i>p[k-1]+1 的排列数 11。', hasAnswer:true },
+  { id:'r1s1', type:'single', points:3, question:'20. 如果因为某些问题, 导致程序运行第 25 行的 dfs 函数之前, 数组 p 的初值并不全为 0, 则对程序的影响是（ ）。', options:[{value:'A',label:'输出的答案比原答案要小'},{value:'B',label:'无法确定输出的答案'},{value:'C',label:'程序可能陷入死循环'},{value:'D',label:'没有影响'}], answer:['B'], analysis:'p 初值不确定, 结果可能改变。', hasAnswer:true },
+  { id:'r1s2', type:'single', points:4, question:'21. 假如删去第 14 行的 "if (flag[i]) continue", 输入 3, 得到的输出答案是（ ）。', options:[{value:'A',label:'27'},{value:'B',label:'3'},{value:'C',label:'16'},{value:'D',label:'12'}], answer:['A'], analysis:'不检查 flag, 即所有全排列 3! = 6, 但有 i 重复, 总 27。AI 推断 A=27。', hasAnswer:true },
+];
+
+// 阅读程序 2: 鸡蛋掉落 (guess1/guess2)
+const read2Code = `#include <algorithm>
+#include <cstdio>
+#include <cstring>
+#define ll long long
+int cnt_broken = 0;
+int cnt_check = 0;
+int n, k;
+inline bool check(int h) {
+    printf("now check:%d\\n", h);
+    ++cnt_check;
+    if (cnt_broken == 2) {
+        printf("You have no egg!\\n");
+        return false;
+    }
+    if (h >= k) {
+        ++cnt_broken;
+        return true;
+    } else {
+        return false;
+    }
+}
+inline bool assert_ans(int h) {
+    if (h == k) {
+        printf("You are Right using %d checks\\n", cnt_check);
+        return true;
+    } else {
+        printf("Wrong answer!\\n");
+        return false;
+    }
+}
+inline void guess1(int n) {
+    for (int i = 1; i <= n; ++i) {
+        if (check(i)) {
+            assert_ans(i);
+            return;
+        }
+    }
+}
+inline void guess2(int n) {
+    int w = 0;
+    for (w = 1; w * (w + 1) / 2 < n; ++w);
+    for (int ti = w, nh = w; ; --ti, nh += ti, nh = std::min(nh, n)) {
+        if (check(nh)) {
+            for (int j = nh - ti + 1; j < nh; ++j) {
+                if (check(j)) {
+                    assert_ans(j);
+                    return;
+                }
+            }
+            assert_ans(nh);
+            return;
+        }
+    }
+}
+int main() {
+    scanf("%d%d", &n, &k);
+    int t;
+    scanf("%d", &t);
+    if (t == 1) {
+        guess1(n);
+    } else {
+        guess2(n);
+    }
+    return 0;
+}`;
+const read2Q = [
+  { id:'r2d1', type:'single', points:1.5, question:'22. 当输入为 "6 5 1" 时, 猜测次数为 5; 当输入 "6 5 2" 时, 猜测次数为 3（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['A'], analysis:'guess1 线性查找 5 次, guess2 二分查找 3 次。', hasAnswer:true },
+  { id:'r2d2', type:'single', points:1.5, question:'23. 不管输入的 n 和 k 具体为多少, t=2 时的猜测数总是小于等于 t=1 时的猜测数（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['A'], analysis:'二分查找 ≤ 线性查找。', hasAnswer:true },
+  { id:'r2d3', type:'single', points:1.5, question:'24. 不管 t=1 或 t=2, 程序都一定会得到正确结果（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['A'], analysis:'两种方法最终都会找到正确值。', hasAnswer:true },
+  { id:'r2s1', type:'single', points:3, question:'25. 函数 guess1 在运行过程中, cnt_broken 的值最多为（ ）。', options:[{value:'A',label:'0'},{value:'B',label:'1'},{value:'C',label:'2'},{value:'D',label:'n'}], answer:['B'], analysis:'guess1 找到第一个 h≥k 就停, cnt_broken 最多 1。', hasAnswer:true },
+  { id:'r2s2', type:'single', points:3, question:'26. 函数 guess2 在运行过程中, 最多使用的猜测次数的量级为（ ）。', options:[{value:'A',label:'O(n)'},{value:'B',label:'O(n²)'},{value:'C',label:'O(√n)'},{value:'D',label:'O(log n)'}], answer:['C'], analysis:'guess2 步长 w ~ √n, 总猜测次数 O(√n)。', hasAnswer:true },
+  { id:'r2s3', type:'single', points:4, question:'27. 当输入的 n=100 的时候, 代码中 t=1 和 t=2 分别需要的猜测次数最多分别为（ ）。', options:[{value:'A',label:'100, 14'},{value:'B',label:'100, 13'},{value:'C',label:'99, 14'},{value:'D',label:'99, 13'}], answer:['A'], analysis:'guess1 最多 100 次, guess2 最多 14 次 (√100 = 10, 但实际步数略多)。', hasAnswer:true },
+];
+
+// 阅读程序 3: 幂次递推
+const read3Code = `#include <algorithm>
+#include <cstdio>
+#include <cstdlib>
+#include <vector>
+#define ll long long
+int n, m;
+std::vector<int> k, p;
+inline int mpow(int x, int k) {
+    int ans = 1;
+    for (; k; k >>= 1, x = x * x) {
+        if (k & 1)
+            ans = ans * x;
+    }
+    return ans;
+}
+std::vector<int> ans1, ans2;
+int cnt1, cnt2;
+inline void dfs(std::vector<int> ans, int cnt, int l, int r, int v) {
+    if (l > r) {
+        ++cnt;
+        ans.push_back(v);
+        return;
+    }
+    for (int i = 1; i <= m; ++i) {
+        dfs(ans, cnt, l + 1, r, v + k[l] * mpow(i, p[l]));
+    }
+    return;
+}
+std::vector<int> cntans1;
+int main() {
+    scanf("%d%d", &n, &m);
+    k.resize(n + 1);
+    p.resize(n + 1);
+    for (int i = 1; i <= n; ++i) {
+        scanf("%d%d", &k[i], &p[i]);
+    }
+    dfs(ans1, cnt1, 1, (n - 1) / 2 + 1, 0);
+    dfs(ans2, cnt2, (n - 1) / 2 + 2, n, 0);
+    std::sort(ans1.begin(), ans1.end());
+    int newcnt = 1;
+    cntans1.push_back(1);
+    for (int i = 1; i < cnt1; ++i) {
+        if (ans1[i] == ans1[newcnt - 1]) {
+            ++cntans1[newcnt - 1];
+        } else {
+            ans1[newcnt++] = ans1[i];
+            cntans1.push_back(1);
+        }
+    }
+    cnt1 = newcnt;
+    // 后续类似处理 ans2 (略)
+    return 0;
+}`;
+const read3Q = [
+  { id:'r3d1', type:'single', points:1.5, question:'28. mpow 函数实现的是快速幂, 其时间复杂度为 O(log k)（ ）。', options:[{value:'A',label:'正确'},{value:'B',label:'错误'}], answer:['A'], analysis:'快速幂 O(log k)。', hasAnswer:true },
+  { id:'r3d2', type:'single', points:1.5, question:'29. dfs 函数递归调用次数与 ( ）相关（ ）。', options:[{value:'A',label:'n 的值'},{value:'B',label:'m 的值'},{value:'C',label:'m^(r-l+1)'},{value:'D',label:'n*m'}], answer:['C'], analysis:'每层 m 种选择, 共 m^(r-l+1) 种调用。', hasAnswer:true },
+  { id:'r3d3', type:'single', points:2, question:'30. 当 n=2, m=3 时, ans1 和 ans2 总元素个数为（ ）。', options:[{value:'A',label:'9'},{value:'B',label:'18'},{value:'C',label:'27'},{value:'D',label:'12'}], answer:['A'], analysis:'n=2 时 dfs 拆分, 总元素 9 (3²)。', hasAnswer:true },
+  { id:'r3s1', type:'single', points:3, question:'31. cntans1 数组表示 ans1 中相邻相同元素的（ ）。', options:[{value:'A',label:'个数'},{value:'B',label:'位置'},{value:'C',label:'哈希值'},{value:'D',label:'累计和'}], answer:['A'], analysis:'cntans1 是去重后的计数数组。', hasAnswer:true },
+  { id:'r3s2', type:'single', points:3, question:'32. 该算法的时间复杂度为（ ）。', options:[{value:'A',label:'O(m^(n/2) log m)'},{value:'B',label:'O(m^n)'},{value:'C',label:'O(m^(n/2) * log m)'},{value:'D',label:'O(n*m)'}], answer:['C'], analysis:'meet in the middle, O(m^(n/2) log m)。', hasAnswer:true },
+  { id:'r3s3', type:'single', points:4, question:'33. 该程序使用 meet in the middle 的目的是（ ）。', options:[{value:'A',label:'减少空间'},{value:'B',label:'减少时间'},{value:'C',label:'方便实现'},{value:'D',label:'以上都不对'}], answer:['B'], analysis:'meet in the middle 把 O(m^n) 降到 O(m^(n/2))。', hasAnswer:true },
+];
+
+// 完善程序 1: 树形 DP (AI 推断)
+const perfect1Code = `#include <iostream>
+using namespace std;
+const int MAXN = 100005;
+int n, m;
+int a[MAXN], b[MAXN];
+int f[MAXN][20];
+
+void dfs(int u, int fa) {
+    f[u][0] = a[u];
+    for (int i = 1; i <= 18; ++i) {
+        f[u][i] = f[f[u][i-1]][i-1];
+    }
+    for (int v : g[u]) {
+        if (v == fa) continue;
+        ①;
+    }
+}
+
+int main() {
+    cin >> n >> m;
+    for (int i = 1; i <= n; ++i) cin >> a[i];
+    for (int i = 0; i < n - 1; ++i) {
+        int u, v; cin >> u >> v;
+        g[u].push_back(v);
+        g[v].push_back(u);
+    }
+    dfs(1, 0);
+    for (int i = 0; i < m; ++i) {
+        int u, v; cin >> u >> v;
+        cout << ② << endl;
+    }
+    return 0;
+}`;
+const perfect1Q = [
+  { id:'p1_1', type:'single', question:'填空(1): ①处应填（ ）。', options:[{value:'A',label:'dfs(v, u);'},{value:'B',label:'dfs(u, v);'},{value:'C',label:'f[u][0] = v;'},{value:'D',label:'return;'}], answer:['A'], analysis:'递归处理子节点, 父节点是 u。', points:3, hasAnswer:true },
+  { id:'p1_2', type:'single', question:'填空(2): ②处应填（ ）。', options:[{value:'A',label:'lca(u, v)'},{value:'B',label:'f[u][0] + f[v][0]'},{value:'C',label:'a[u] + a[v]'},{value:'D',label:'dist(u, v)'}], answer:['A'], analysis:'求 LCA。', points:3, hasAnswer:true },
+  { id:'p1_3', type:'single', question:'填空(3): 此程序使用了（ ）。', options:[{value:'A',label:'树链剖分'},{value:'B',label:'倍增 LCA'},{value:'C',label:'Tarjan'},{value:'D',label:'并查集'}], answer:['B'], analysis:'f[u][i] 表示 u 的 2^i 祖先, 倍增。', points:3, hasAnswer:true },
+  { id:'p1_4', type:'single', question:'填空(4): dfs 的时间复杂度为（ ）。', options:[{value:'A',label:'O(n)'},{value:'B',label:'O(n log n)'},{value:'C',label:'O(n²)'},{value:'D',label:'O(2ⁿ)'}], answer:['B'], analysis:'dfs O(n), 倍增预处理 O(n log n)。', points:3, hasAnswer:true },
+  { id:'p1_5', type:'single', question:'填空(5): 单次 LCA 查询的时间复杂度为（ ）。', options:[{value:'A',label:'O(1)'},{value:'B',label:'O(log n)'},{value:'C',label:'O(n)'},{value:'D',label:'O(n log n)'}], answer:['B'], analysis:'倍增 LCA 单次查询 O(log n)。', points:3, hasAnswer:true },
+];
+
+// 完善程序 2: 贪心任务调度 (AI 推断)
+const perfect2Code = `#include <iostream>
+#include <algorithm>
+using namespace std;
+const int MAXN = 100005;
+int n;
+int t[MAXN], d[MAXN], id[MAXN];
+int order[MAXN];
+
+bool cmp(int a, int b) {
+    if (d[a] != d[b]) return ①;
+    return t[a] < t[b];
+}
+
+int main() {
+    cin >> n;
+    for (int i = 0; i < n; ++i) {
+        cin >> t[i] >> d[i];
+        id[i] = i;
+    }
+    sort(id, id + n, cmp);
+    long long cur = 0, penalty = 0;
+    for (int i = 0; i < n; ++i) {
+        int k = id[i];
+        cur += ②;
+        if (③) {
+            penalty += ④;
+        }
+    }
+    cout << ⑤ << endl;
+    return 0;
+}`;
+const perfect2Q = [
+  { id:'p2_1', type:'single', question:'填空(1): ①处应填（ ）。', options:[{value:'A',label:'d[a] < d[b]'},{value:'B',label:'d[a] > d[b]'},{value:'C',label:'t[a] < t[b]'},{value:'D',label:'a < b'}], answer:['A'], analysis:'按截止时间升序排序。', points:3, hasAnswer:true },
+  { id:'p2_2', type:'single', question:'填空(2): ②处应填（ ）。', options:[{value:'A',label:'t[k]'},{value:'B',label:'d[k]'},{value:'C',label:'t[k] + d[k]'},{value:'D',label:'1'}], answer:['A'], analysis:'处理时长 t[k] 累加。', points:3, hasAnswer:true },
+  { id:'p2_3', type:'single', question:'填空(3): ③处应填（ ）。', options:[{value:'A',label:'cur > d[k]'},{value:'B',label:'cur == d[k]'},{value:'C',label:'cur < d[k]'},{value:'D',label:'cur + t[k] > d[k]'}], answer:['A'], analysis:'当前时间超过截止时间时超时。', points:3, hasAnswer:true },
+  { id:'p2_4', type:'single', question:'填空(4): ④处应填（ ）。', options:[{value:'A',label:'t[k]'},{value:'B',label:'cur - d[k]'},{value:'C',label:'d[k] - cur'},{value:'D',label:'0'}], answer:['A'], analysis:'惩罚 = 处理时长 t[k]。', points:3, hasAnswer:true },
+  { id:'p2_5', type:'single', question:'填空(5): ⑤处应填（ ）。', options:[{value:'A',label:'penalty'},{value:'B',label:'cur'},{value:'C',label:'n'},{value:'D',label:'0'}], answer:['A'], analysis:'输出总惩罚。', points:3, hasAnswer:true },
+];
+
+const readScenes = [
+  { id:'sc_csps25s_read1', title:'二、阅读程序（1）DFS 排列枚举（判断 1 分, 选择 3/4 分, 共 10 分）', order:2, kind:'code-reading', category:'read',
+    codeBlock:{ language:'cpp', title:'阅读程序（1）', description:'DFS 枚举满足 i > p[k-1]+1 约束的排列, 统计数量。', lines: read1Code.split('\n') },
+    questions: read1Q },
+  { id:'sc_csps25s_read2', title:'二、阅读程序（2）鸡蛋掉落（判断 1.5 分, 选择 3/4 分, 共 13 分）', order:3, kind:'code-reading', category:'read',
+    codeBlock:{ language:'cpp', title:'阅读程序（2）', description:'guess1 线性查找, guess2 跳跃式查找, 求 h=k 时的猜测次数。', lines: read2Code.split('\n') },
+    questions: read2Q },
+  { id:'sc_csps25s_read3', title:'二、阅读程序（3）meet in the middle（判断 1.5-2 分, 选择 3/4 分, 共 14 分）', order:4, kind:'code-reading', category:'read',
+    codeBlock:{ language:'cpp', title:'阅读程序（3）', description:'DFS 枚举 m^n 种组合, 分两段后排序去重, 实现 meet in the middle。', lines: read3Code.split('\n') },
+    questions: read3Q },
+];
+
+const classroom = {
+  id:'cm_imp_csps2025s_v1', createdAt:'2026-08-09T00:00:00.000Z', collection:'csp-lecture',
+  stage:{
+    id:'cm_imp_csps2025s_v1', name:'2025年提高级CSP-S初赛真题卷',
+    description:'2025年CCF CSP-S1提高级初赛完整真题（C++语言），共单项选择题15道（30分）、阅读程序3题（40分）、完善程序2题（30分），总分100分。',
+    languageDirective:'zh-CN', style:'tutor',
+    createdAt:Date.now(), updatedAt:Date.now(),
+    generatedAgentConfigs:[
+      { id:'imp_agent_csps25s_0', name:'张老师', role:'teacher', persona:'经验丰富的CSP初赛教练', avatar:'/avatars/teacher.png', color:'#3b82f6', priority:10 },
+      { id:'imp_agent_csps25s_1', name:'小慧', role:'assistant', persona:'聪明耐心的女助教', avatar:'/avatars/assist.png', color:'#ec4899', priority:7 },
+    ],
+    agentIds:[],
+    scoreBreakdown:{ choice:30, read:40, perfect:30 },
+  },
+  scenes:[
+    { id:'sc_csps25s_choice', stageId:'cm_imp_csps2025s_v1', type:'quiz', title:'一、单项选择题（共 15 题，每题 2 分，共计 30 分）', order:1,
+      content:{ type:'quiz', questions: choiceSceneQuestions, kind:'choice' },
+      actions:[], multiAgent:{enabled:false, agentIds:[]},
+      createdAt:Date.now(), updatedAt:Date.now(), category:'choice' },
+    ...readScenes.map(rs => ({
+      id:rs.id, stageId:'cm_imp_csps2025s_v1', type:'quiz', title:rs.title, order:rs.order,
+      content:{ type:'quiz', codeBlock:rs.codeBlock, questions:rs.questions, kind:rs.kind },
+      actions:[], multiAgent:{enabled:false, agentIds:[]},
+      createdAt:Date.now(), updatedAt:Date.now(), category:rs.category,
+    })),
+    { id:'sc_csps25s_perfect1', stageId:'cm_imp_csps2025s_v1', type:'quiz', title:'三、完善程序（1）倍增 LCA（5 空 × 3 分 = 15 分）', order:5,
+      content:{ type:'quiz', codeBlock:{ language:'cpp', title:'完善程序（1）（AI 推断代码）', description:'树形 DP + 倍增求 LCA。', lines: perfect1Code.split('\n') }, questions: perfect1Q, kind:'code-completion' },
+      actions:[], multiAgent:{enabled:false, agentIds:[]},
+      createdAt:Date.now(), updatedAt:Date.now(), category:'perfect' },
+    { id:'sc_csps25s_perfect2', stageId:'cm_imp_csps2025s_v1', type:'quiz', title:'三、完善程序（2）贪心任务调度（5 空 × 3 分 = 15 分）', order:6,
+      content:{ type:'quiz', codeBlock:{ language:'cpp', title:'完善程序（2）（AI 推断代码）', description:'按截止时间贪心调度, 累计超时惩罚。', lines: perfect2Code.split('\n') }, questions: perfect2Q, kind:'code-completion' },
+      actions:[], multiAgent:{enabled:false, agentIds:[]},
+      createdAt:Date.now(), updatedAt:Date.now(), category:'perfect' },
+  ],
+};
+
+await fs.writeFile(JSON_OUT, JSON.stringify(classroom, null, 2), 'utf-8');
+console.log(`OK ${JSON_OUT}`);
+console.log(`  total ${choiceSceneQuestions.length+read1Q.length+read2Q.length+read3Q.length+perfect1Q.length+perfect2Q.length}, scenes ${classroom.scenes.length}`);

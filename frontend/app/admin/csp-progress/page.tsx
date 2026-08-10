@@ -9,6 +9,10 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import {
+  formatDateTimeBeijing,
+  formatDateBeijing,
+} from '@/lib/utils/date';
 
 type Student = {
   id: string;
@@ -41,34 +45,6 @@ type SortKey =
   | 'startedClassrooms'
   | 'completedClassrooms'
   | 'watchSeconds';
-
-function formatDate(iso: string | null): string {
-  if (!iso) return '—';
-  try {
-    return new Date(iso).toLocaleString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return iso;
-  }
-}
-
-function formatJoined(iso: string | null): string {
-  if (!iso) return '—';
-  try {
-    return new Date(iso).toLocaleDateString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    });
-  } catch {
-    return iso;
-  }
-}
 
 function formatWatchTime(seconds: number): string {
   if (!seconds || seconds < 1) return '0 分钟';
@@ -308,13 +284,13 @@ export default function AdminCspProgressPage() {
                             {s.email}
                           </td>
                           <td className="py-3 px-4 text-gray-500 text-sm">
-                            {formatJoined(s.joinedAt)}
+                            {formatDateBeijing(s.joinedAt)}
                           </td>
                           <td className="py-3 px-4 text-sm">
                             {s.lastActiveAt ? (
                               <div className="flex flex-col">
                                 <span className="text-gray-700">
-                                  {formatDate(s.lastActiveAt)}
+                                  {formatDateTimeBeijing(s.lastActiveAt)}
                                 </span>
                                 {s.lastClassroomTitle && (
                                   <span className="text-xs text-gray-500 truncate max-w-[14rem]">

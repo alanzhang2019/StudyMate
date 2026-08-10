@@ -1,0 +1,1742 @@
+﻿commit 86d585bdd4c1dcfe864cb9f685cd327f7dbc4233
+Author: Bot <bot@example.com>
+Date:   Sat Aug 8 16:10:36 2026 +0800
+
+    feat(csp-lecture): 两个分组默认折叠, 点标题展开/收起
+    
+    之前的版本在 /csp-lecture 页面里把 'CSP要点精讲' 和
+    '历年真题' 两块都默认展开, 16 个精讲章节 + 2 套真题卡
+    直接顶满首屏, hero 区域和 OI 题库横幅都得往下拖
+    才能看见, 整个页面看起来很乱。
+    
+    改造:
+    - 把 LectureGroup 提取为 client component
+      components/csp-lecture/lecture-group.tsx
+      (useState + motion AnimatePresence 控制折叠动画)
+    - 整个 header 变成可点击 button, 键盘可达 (aria-expanded)
+    - 右侧加 ChevronDown 图标, 展开时旋转 180°
+    - 折叠状态显示'点击展开 ↓' (紫色), 展开状态显示
+      '点击收起 ↑' (灰色)
+    - 标题旁加数量 chip ('1 个课件' / '2 套真题'),
+      让学生不必点开就知道里头有多少
+    - defaultOpen=false, 首次访问两个分类都是折叠的
+    - 折叠动画 220ms easeInOut, 不会显得突兀
+    
+    服务端组件 page.tsx 里删掉了原内联 LectureGroup 函数
+    (改用同名 import 指向新 client 组件)。
+
+diff --git a/frontend/app/csp-lecture/page.tsx b/frontend/app/csp-lecture/page.tsx
+index 6ba87f4..4a4ed5f 100644
+--- a/frontend/app/csp-lecture/page.tsx
++++ b/frontend/app/csp-lecture/page.tsx
+@@ -434,6 +434,8 @@ export default async function CspLecturePage() {
+                     subtitle="按顺序学完 16 个核心概念章节，建立 CSP 初赛知识框架。"
+                     accentClass="from-indigo-500/15 to-blue-500/5 border-indigo-200/60"
+                     badgeClass="bg-indigo-100 text-indigo-700"
++                    count={primerLectures.length}
++                    countLabel="个课件"
+                   >
+                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                       {primerLectures.map((l) => (
+@@ -452,6 +454,8 @@ export default async function CspLecturePage() {
+                     subtitle="按年份做完整模拟卷，单选 / 阅读 / 完善程序 100 分制严格评分。"
+                     accentClass="from-rose-500/15 to-amber-500/5 border-rose-200/60"
+                     badgeClass="bg-rose-100 text-rose-700"
++                    count={paperLectures.length}
++                    countLabel="套真题"
+                   >
+                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                       {paperLectures.map((l) => (
+@@ -554,46 +558,14 @@ function LectureCard({ lecture }: { lecture: Lecture }) {
+  *
+  * The `accentClass` controls the gradient strip + border colour
+  * so each group has a distinct visual identity at a glance.
++ *
++ * The actual implementation is a client component at
++ * components/csp-lecture/lecture-group.tsx so the collapse
++ * animation + `useState` can run in the browser. We import
++ * the same name above; this JSDoc lives on the page only
++ * to document the props the call sites use.
+  */
+-function LectureGroup({
+-  title,
+-  subtitle,
+-  accentClass,
+-  badgeClass,
+-  children,
+-}: {
+-  title: string;
+-  subtitle: string;
+-  /** Tailwind classes for the gradient strip + outer border. */
+-  accentClass: string;
+-  /** Tailwind classes for the small title chip. */
+-  badgeClass: string;
+-  children: React.ReactNode;
+-}) {
+-  return (
+-    <section
+-      className={`relative rounded-2xl border bg-white/40 backdrop-blur p-5 sm:p-6 ${accentClass}`}
+-    >
+-      {/* Decorative gradient strip at the very top — gives the
+-          group a clear "this is its own thing" visual. */}
+-      <div
+-        className={`absolute inset-x-0 top-0 h-1 rounded-t-2xl bg-gradient-to-r ${accentClass}`}
+-        aria-hidden="true"
+-      />
+-      <header className="mb-5">
+-        <div className="flex items-center gap-2 flex-wrap">
+-          <span
+-            className={`inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full ${badgeClass}`}
+-          >
+-            {title}
+-          </span>
+-        </div>
+-        <p className="mt-2 text-sm text-slate-600">{subtitle}</p>
+-      </header>
+-      {children}
+-    </section>
+-  );
+-}
++
+ 
+ /**
+  * 真题卡：复用 LectureCard 的章节展开 + 从头学习按钮,
+
+commit 53e3787dd5f3546d10cca37d581002db9dadef77
+Author: Bot <bot@example.com>
+Date:   Sat Aug 8 15:14:35 2026 +0800
+
+    feat(mistake-book): CSP 错题本 — 自动按课件分类 + 复习入口
+    
+    数据层
+    - frontend/lib/db.ts: cspQuizSubmission.findAllByUser(userId) 新增 SQL,
+      索引走 userId, 单次取回该用户所有 classroom 的提交。
+    
+    聚合层
+    - frontend/lib/server/csp-mistake-book.ts: loadCspMistakeBook(userId)
+      - 读 csp_quiz_submissions 全部记录
+      - 解析每条 answersJson, 保留 correct=false 的 entry
+      - classroom JSON 按需缓存(每本课件最多读 1 次)
+      - key = classroomId::sceneId::questionId 去重, mistakeCount 累加
+      - 按课件分组返回 groups: [{classroomId, classroomTitle, mistakes[]}]
+      - 课件被删时静默跳过(不让单条损坏行搞挂整个错题本)
+    
+    API
+    - frontend/app/api/mistake-book/csp/route.ts: GET 端点
+      调 loadCspMistakeBook, 401 / 200 JSON
+    
+    页面
+    - frontend/app/student/csp-mistakes/page.tsx (RSC)
+      - 鉴权 (student role) + loadCspMistakeBook
+      - Hero + SummaryCard 错题总数/覆盖课件/最近答错
+      - 错题=0 时显示空态 + 「去课件库」按钮
+      - 错题>0 时把 groups 传给 client 组件渲染
+    
+    - frontend/components/mistake-book/mistake-book-view.tsx (Client)
+      - 按课件分组的可折叠卡片列表, 默认全部展开
+      - 「全部展开 / 全部折叠」快捷按钮
+      - 每道错题: 题干 / 选项(你的红+正确绿) / 你的答案 / 正确答案 / 解析 / 答错次数
+      - 「去课件复习这道题」跳到 classroomId+scene 深链
+    
+    入口
+    - frontend/app/csp-lecture/page.tsx 顶部 nav (student role 时)
+      加红色「📖 我的错题本」按钮
+    - frontend/app/student/home/page.tsx SummaryCard 下方
+      加玫红错题本横幅(错题>0 时显示)
+      - 含错题数 + 覆盖课件数 + 「打开错题本 →」
+    
+    注意: 已存在的 /student/mistake-book 手动收藏+复盘系统不变,
+    新功能是「自动收集 csp_quiz_submissions 答错题」, 两者并存。
+
+diff --git a/frontend/app/csp-lecture/page.tsx b/frontend/app/csp-lecture/page.tsx
+index b2451f6..6ba87f4 100644
+--- a/frontend/app/csp-lecture/page.tsx
++++ b/frontend/app/csp-lecture/page.tsx
+@@ -29,7 +29,7 @@ import Image from 'next/image';
+ import { redirect } from 'next/navigation';
+ import { promises as fs } from 'fs';
+ import path from 'path';
+-import { Printer, Trophy, ExternalLink, ArrowRight } from 'lucide-react';
++import { Printer, Trophy, ExternalLink, ArrowRight, BookOpen } from 'lucide-react';
+ import { Card, CardContent } from '@/components/ui/card';
+ import { Button } from '@/components/ui/button';
+ import { CLASSROOMS_DIR } from '@/lib/server/classroom-storage';
+@@ -228,6 +228,19 @@ export default async function CspLecturePage() {
+               <Link href="/student/home">我的学习</Link>
+             </Button>
+           )}
++          {userRole === 'student' && (
++            <a
++              href="/student/csp-mistakes"
++              className="inline-flex items-center gap-1.5 text-sm font-semibold
++                         text-rose-700 bg-rose-50 hover:bg-rose-100
++                         border border-rose-200 rounded-lg px-3 py-1.5
++                         transition-colors"
++              aria-label="打开我的 CSP 错题本"
++            >
++              <BookOpen className="w-3.5 h-3.5" aria-hidden="true" />
++              我的错题本
++            </a>
++          )}
+           <a
+             href="https://oi.aijiangti.cn"
+             target="_blank"
+
+commit 0213d59dc1adb91b778d1e2d42476b516bfe2c48
+Author: Bot <bot@example.com>
+Date:   Sat Aug 8 15:08:22 2026 +0800
+
+    feat(ui): 首页移除管理入口；课件页加 OI 题库醒目入口
+    
+    首页 app/page.tsx:
+    - 顶部 nav 删除「管理员入口」链接
+    - footer 删除「管理后台」链接
+    
+    课件页 app/csp-lecture/page.tsx:
+    - 顶部 nav 加紫色渐变 OI 题库按钮（指向 oi.aijiangti.cn）
+    - 地图下方加全宽紫色渐变 OI 横幅：
+      - 奖杯图标 + 「CSP 配套题库 · oi.aijiangti.cn」+ 限时免费角标
+      - 「立即打开」CTA 按钮
+      - 鼠标悬停整体上浮 + 光晕增强
+      - new tab 打开
+
+diff --git a/frontend/app/csp-lecture/page.tsx b/frontend/app/csp-lecture/page.tsx
+index 0491781..b2451f6 100644
+--- a/frontend/app/csp-lecture/page.tsx
++++ b/frontend/app/csp-lecture/page.tsx
+@@ -29,7 +29,7 @@ import Image from 'next/image';
+ import { redirect } from 'next/navigation';
+ import { promises as fs } from 'fs';
+ import path from 'path';
+-import { Printer } from 'lucide-react';
++import { Printer, Trophy, ExternalLink, ArrowRight } from 'lucide-react';
+ import { Card, CardContent } from '@/components/ui/card';
+ import { Button } from '@/components/ui/button';
+ import { CLASSROOMS_DIR } from '@/lib/server/classroom-storage';
+@@ -228,6 +228,23 @@ export default async function CspLecturePage() {
+               <Link href="/student/home">我的学习</Link>
+             </Button>
+           )}
++          <a
++            href="https://oi.aijiangti.cn"
++            target="_blank"
++            rel="noopener noreferrer"
++            className="inline-flex items-center gap-1.5 text-sm font-semibold
++                       text-white bg-gradient-to-r from-fuchsia-500 via-purple-500
++                       to-indigo-500 hover:from-fuchsia-600 hover:via-purple-600
++                       hover:to-indigo-600 rounded-lg px-3 py-1.5
++                       shadow-md hover:shadow-lg
++                       ring-1 ring-purple-300/60
++                       transition-all"
++            aria-label="打开 OI 题库（新窗口）"
++          >
++            <Trophy className="w-3.5 h-3.5" aria-hidden="true" />
++            OI 题库
++            <ExternalLink className="w-3 h-3 opacity-80" aria-hidden="true" />
++          </a>
+           <span className="text-xs text-slate-500 hidden sm:inline">
+             {userName}
+           </span>
+@@ -243,6 +260,69 @@ export default async function CspLecturePage() {
+         </div>
+       </nav>
+ 
++      {/*
++       * OI 题库横幅 — 醒目紫色渐变条, 放在页面第二屏
++       * （地图下方、hero 上方）告诉学生"想要刷题来 oi.aijiangti.cn"。
++       * 选用 gradient + trophy 图标 + "限时免费"角标, 在视觉权重上
++       * 高于其他普通链接, 是本页面次级 CTA。
++       */}
++      <section className="max-w-6xl mx-auto px-6 pt-4">
++        <a
++          href="https://oi.aijiangti.cn"
++          target="_blank"
++          rel="noopener noreferrer"
++          className="group block relative overflow-hidden rounded-2xl
++                     bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600
++                     px-6 py-5 sm:px-8 sm:py-6
++                     shadow-lg hover:shadow-2xl
++                     ring-1 ring-white/20
++                     transition-all hover:-translate-y-0.5"
++        >
++          {/* 装饰光晕 — 右上角斜向光斑, 让横幅不显得呆板 */}
++          <div
++            className="pointer-events-none absolute -top-12 -right-10 w-64 h-64
++                       rounded-full bg-white/15 blur-2xl
++                       group-hover:bg-white/25 transition-colors"
++            aria-hidden="true"
++          />
++          <div className="relative flex items-center gap-4 flex-wrap">
++            <div
++              className="shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl
++                         bg-white/15 backdrop-blur flex items-center justify-center
++                         ring-1 ring-white/30"
++            >
++              <Trophy className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-200" aria-hidden="true" />
++            </div>
++            <div className="flex-1 min-w-0">
++              <div className="flex items-center gap-2 flex-wrap">
++                <h2 className="text-lg sm:text-xl font-bold text-white">
++                  CSP 配套题库 · oi.aijiangti.cn
++                </h2>
++                <span
++                  className="text-[10px] font-bold uppercase tracking-wider
++                             bg-yellow-300 text-purple-900 rounded-full
++                             px-2 py-0.5"
++                >
++                  限时免费
++                </span>
++              </div>
++              <p className="mt-1 text-sm text-white/85 leading-relaxed">
++                历年 OI 真题 + 按知识点分组的练习题，做完精讲和真题后直接去刷题巩固。
++              </p>
++            </div>
++            <div
++              className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold
++                         text-purple-700 bg-white hover:bg-yellow-50
++                         rounded-lg px-4 py-2 shadow-sm
++                         group-hover:translate-x-0.5 transition-transform"
++            >
++              立即打开
++              <ArrowRight className="w-4 h-4" aria-hidden="true" />
++            </div>
++          </div>
++        </a>
++      </section>
++
+       {/*
+        * CSP 晋级难度地图 — 放在页面最开头, 让新学生先看到自己所在省份
+        * 的晋级难度, 带着"为什么要学 CSP"的动机再开始看下面的课件.
+
+commit 316285a38ae1e5d621a901eae06728a4a678593c
+Author: Bot <bot@example.com>
+Date:   Sat Aug 8 15:05:55 2026 +0800
+
+    feat(csp-lecture): 课件按类别分组，0-15 精讲 + 真题两个区，真题卡新增打印 PDF 按钮
+    
+    - listCspLectures 改为只显示 collection=csp-lecture 的 classroom，
+      移除 legacy fallback（个人错题讲解 ~200 张此前会混入页面）
+    - 按 stage.name 去重，避免相同课件多次上传产生重复卡片
+    - 页面布局拆为两个 LectureGroup：
+      1. CSP要点精讲（primerLectures，含 a39914d3 的 16 章节）
+      2. 历年真题（paperLectures，2024/2025 各一张）
+    - PaperLectureCard 底部新增「打印 PDF 真题卷」按钮，
+      链接到 /public/csp-j-2024-original.pdf / csp-j-2025-original.pdf
+    - public/ 复制 2024CSP-J初赛试题.pdf → csp-j-2024-original.pdf
+    - public/ 复制 2025年CSP-J真题(4).pdf → csp-j-2025-original.pdf
+    - hero 文案改为「1 个精讲 + 2 套真题 + 16 章节」
+    
+    部署地址：https://aijiangti.cn/csp-lecture
+
+diff --git a/frontend/app/csp-lecture/page.tsx b/frontend/app/csp-lecture/page.tsx
+index cf5cb87..0491781 100644
+--- a/frontend/app/csp-lecture/page.tsx
++++ b/frontend/app/csp-lecture/page.tsx
+@@ -29,6 +29,7 @@ import Image from 'next/image';
+ import { redirect } from 'next/navigation';
+ import { promises as fs } from 'fs';
+ import path from 'path';
++import { Printer } from 'lucide-react';
+ import { Card, CardContent } from '@/components/ui/card';
+ import { Button } from '@/components/ui/button';
+ import { CLASSROOMS_DIR } from '@/lib/server/classroom-storage';
+@@ -37,6 +38,7 @@ import { auth } from '@/auth';
+ import { ExpandChapterList } from './ExpandChapterList';
+ import { Leaderboard } from '@/components/leaderboard';
+ import { PlacementBanner } from '@/components/csp-lecture/PlacementBanner';
++import { formatDateBeijing } from '@/lib/utils/date';
+ 
+ export const dynamic = 'force-dynamic';
+ export const revalidate = 0;
+@@ -66,6 +68,13 @@ async function listCspLectures(): Promise<Lecture[]> {
+     throw err;
+   }
+   const items: Lecture[] = [];
++  // Dedupe by stage name. The admin uploader has historically
++  // produced duplicate CSP要点精讲 classrooms (same content,
++  // different IDs — once as `cm_imp_a39914d3af5c64d6` tagged
++  // `csp-lecture`, once as `cm_imp_b10718503e3a9777` left
++  // untagged). Showing both as separate cards looked broken,
++  // so we keep the first one encountered per stage.name.
++  const seenNames = new Set<string>();
+   for (const name of entries) {
+     if (!name.endsWith('.json')) continue;
+     const id = name.slice(0, -'.json'.length);
+@@ -81,16 +90,15 @@ async function listCspLectures(): Promise<Lecture[]> {
+         createdAt: string;
+         collection?: string;
+       };
+-      // Show this classroom on the public CSP page if either:
+-      //   (a) it's tagged with the csp-lecture collection (new
+-      //       uploads via /admin/csp-lecture), OR
+-      //   (b) it has no collection tag at all (legacy uploads that
+-      //       predate the collection feature — still valid CSP
+-      //       content we don't want to hide).
+-      // Classrooms with an explicit *other* collection key are
+-      // skipped, so unrelated modules' content doesn't leak into
+-      // the CSP module page.
+-      if (data.collection && data.collection !== 'csp-lecture') continue;
++      // Only show classrooms explicitly tagged as csp-lecture.
++      // The legacy "no collection ⇒ show it" fallback used to
++      // pull in every per-student "错题讲解" classroom (~200
++      // cards) and made the page look chaotic. Student-generated
++      // error-review decks now live on /student/home, not here.
++      if (data.collection !== 'csp-lecture') continue;
++      const stageName = data.stage?.name ?? '未命名课件';
++      if (seenNames.has(stageName)) continue;
++      seenNames.add(stageName);
+ 
+       // Build the chapter list. We always sort by `order` even though
+       // most importers write scenes in order — defence in depth for
+@@ -164,18 +172,6 @@ async function listCspLectures(): Promise<Lecture[]> {
+   return items;
+ }
+ 
+-function formatDate(iso: string): string {
+-  try {
+-    return new Date(iso).toLocaleDateString('zh-CN', {
+-      year: 'numeric',
+-      month: '2-digit',
+-      day: '2-digit',
+-    });
+-  } catch {
+-    return iso;
+-  }
+-}
+-
+ export default async function CspLecturePage() {
+   // Auth guard. /csp-lecture now requires a signed-in user so
+   // we can attribute view progress to a real userId. The
+@@ -192,6 +188,28 @@ export default async function CspLecturePage() {
+   const lectures = await listCspLectures();
+   const totalScenes = lectures.reduce((s, l) => s + l.sceneCount, 0);
+ 
++  // Group lectures into two buckets the page can render
++  // separately. A previous version laid all classrooms (课件
++  // 精讲 + 真题 + per-student 错题讲解 ~200 张) in one flat
++  // grid, which looked chaotic. The two-bucket layout mirrors
++  // the actual curriculum structure: 精讲 = conceptual
++  // building blocks, 真题 = timed practice.
++  //
++  // Bucket assignment is ID-driven rather than title-driven so
++  // renames don't break the grouping.
++  type Bucket = 'primer' | 'paper';
++  const bucketOf = (id: string): Bucket =>
++    id.startsWith('cm_imp_cspj') ? 'paper' : 'primer';
++  const primerLectures = lectures.filter((l) => bucketOf(l.id) === 'primer');
++  const paperLectures = lectures.filter((l) => bucketOf(l.id) === 'paper');
++
++  // PDF 真题卷打印链接。打包到 public/ 后, 浏览器打开即可
++  // 用 Ctrl+P 打印。文件名不带中文路径, 避免部分环境编码问题。
++  const paperPdfHref: Record<string, string> = {
++    cm_imp_cspj2024j_v1: '/csp-j-2024-original.pdf',
++    cm_imp_cspj2025j_v1: '/csp-j-2025-original.pdf',
++  };
++
+   return (
+     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+       {/* Top nav */}
+@@ -261,7 +279,7 @@ export default async function CspLecturePage() {
+         <p className="mt-5 text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
+           {lectures.length === 0
+             ? '暂无课件，敬请期待。'
+-            : `共 ${lectures.length} 个课件 · ${totalScenes} 个讲解场景。点击任意课件展开章节，按顺序学习。`}
++            : `${primerLectures.length} 个精讲课件 · ${paperLectures.length} 套历年真题 · 共 ${totalScenes} 个章节。先精讲后真题，按顺序学完最有效。`}
+         </p>
+       </section>
+ 
+@@ -312,10 +330,47 @@ export default async function CspLecturePage() {
+                 </CardContent>
+               </Card>
+             ) : (
+-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+-                {lectures.map((l) => (
+-                  <LectureCard key={l.id} lecture={l} />
+-                ))}
++              <div className="space-y-10">
++                {/* 类别 1: CSP要点精讲。 单卡片横跨整列, 让学生
++                    集中在一个核心课件上; 章节目录仍可通过
++                    ExpandChapterList 展开, 不会一上来就被 16 个
++                    章节卡挤满屏幕。 */}
++                {primerLectures.length > 0 && (
++                  <LectureGroup
++                    title="CSP要点精讲"
++                    subtitle="按顺序学完 16 个核心概念章节，建立 CSP 初赛知识框架。"
++                    accentClass="from-indigo-500/15 to-blue-500/5 border-indigo-200/60"
++                    badgeClass="bg-indigo-100 text-indigo-700"
++                  >
++                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
++                      {primerLectures.map((l) => (
++                        <LectureCard key={l.id} lecture={l} />
++                      ))}
++                    </div>
++                  </LectureGroup>
++                )}
++
++                {/* 类别 2: 历年真题。 2024/2025 各自一张大卡,
++                    卡片下方提供"打印 PDF 真题卷"按钮, 让学生
++                    想要做纸质卷时一键拿到原始 PDF。 */}
++                {paperLectures.length > 0 && (
++                  <LectureGroup
++                    title="历年真题"
++                    subtitle="按年份做完整模拟卷，单选 / 阅读 / 完善程序 100 分制严格评分。"
++                    accentClass="from-rose-500/15 to-amber-500/5 border-rose-200/60"
++                    badgeClass="bg-rose-100 text-rose-700"
++                  >
++                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
++                      {paperLectures.map((l) => (
++                        <PaperLectureCard
++                          key={l.id}
++                          lecture={l}
++                          pdfHref={paperPdfHref[l.id]}
++                        />
++                      ))}
++                    </div>
++                  </LectureGroup>
++                )}
+               </div>
+             )}
+           </div>
+@@ -380,7 +435,7 @@ function LectureCard({ lecture }: { lecture: Lecture }) {
+           <span className="text-[10px] uppercase tracking-wider text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded">
+             CSP初赛
+           </span>
+-          <span className="text-xs text-slate-400">{formatDate(lecture.createdAt)}</span>
++          <span className="text-xs text-slate-400">{formatDateBeijing(lecture.createdAt)}</span>
+         </div>
+         <h3 className="text-lg font-semibold text-slate-900 mb-2 line-clamp-2">
+           {lecture.title}
+@@ -397,3 +452,109 @@ function LectureCard({ lecture }: { lecture: Lecture }) {
+     </Card>
+   );
+ }
++
++/**
++ * Section banner that wraps a group of related lecture cards
++ * ("CSP要点精讲" or "历年真题"). The title + one-line subtitle
++ * sits above the grid so the page reads as a curriculum outline
++ * instead of a single undifferentiated mass of 200+ cards.
++ *
++ * The `accentClass` controls the gradient strip + border colour
++ * so each group has a distinct visual identity at a glance.
++ */
++function LectureGroup({
++  title,
++  subtitle,
++  accentClass,
++  badgeClass,
++  children,
++}: {
++  title: string;
++  subtitle: string;
++  /** Tailwind classes for the gradient strip + outer border. */
++  accentClass: string;
++  /** Tailwind classes for the small title chip. */
++  badgeClass: string;
++  children: React.ReactNode;
++}) {
++  return (
++    <section
++      className={`relative rounded-2xl border bg-white/40 backdrop-blur p-5 sm:p-6 ${accentClass}`}
++    >
++      {/* Decorative gradient strip at the very top — gives the
++          group a clear "this is its own thing" visual. */}
++      <div
++        className={`absolute inset-x-0 top-0 h-1 rounded-t-2xl bg-gradient-to-r ${accentClass}`}
++        aria-hidden="true"
++      />
++      <header className="mb-5">
++        <div className="flex items-center gap-2 flex-wrap">
++          <span
++            className={`inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full ${badgeClass}`}
++          >
++            {title}
++          </span>
++        </div>
++        <p className="mt-2 text-sm text-slate-600">{subtitle}</p>
++      </header>
++      {children}
++    </section>
++  );
++}
++
++/**
++ * 真题卡：复用 LectureCard 的章节展开 + 从头学习按钮,
++ * 额外在卡片底部追加"打印 PDF 真题卷"按钮。按钮 href
++ * 指向 /public 下的原始 PDF, 浏览器会调用内置 PDF 阅读器,
++ * 学生再按 Ctrl+P 即可打印（不需要服务器端转换）。
++ */
++function PaperLectureCard({
++  lecture,
++  pdfHref,
++}: {
++  lecture: Lecture;
++  pdfHref?: string;
++}) {
++  return (
++    <Card className="h-full bg-white/85 backdrop-blur border-rose-200/60 hover:shadow-md hover:-translate-y-0.5 transition-all">
++      <CardContent className="pt-6 flex flex-col h-full">
++        <div className="flex items-center gap-2 mb-3">
++          <span className="text-[10px] uppercase tracking-wider text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded">
++            历年真题
++          </span>
++          <span className="text-xs text-slate-400">{formatDateBeijing(lecture.createdAt)}</span>
++        </div>
++        <h3 className="text-lg font-semibold text-slate-900 mb-2 line-clamp-2">
++          {lecture.title}
++        </h3>
++        {lecture.description && (
++          <p className="text-sm text-slate-600 line-clamp-3 mb-4">
++            {lecture.description}
++          </p>
++        )}
++        <div className="mt-auto space-y-3">
++          <ExpandChapterList lectureId={lecture.id} chapters={lecture.chapters} />
++          {pdfHref && (
++            <a
++              href={pdfHref}
++              target="_blank"
++              rel="noopener noreferrer"
++              className="inline-flex items-center justify-center gap-1.5 w-full text-sm
++                         font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100
++                         border border-rose-200 rounded-lg px-3 py-2
++                         transition-colors
++                         focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
++              aria-label={`打印 ${lecture.title} 原始 PDF 真题卷`}
++            >
++              <Printer className="w-4 h-4" aria-hidden="true" />
++              打印 PDF 真题卷
++              <span className="text-[10px] font-normal text-rose-500/80 ml-1">
++                (新窗口打开后按 Ctrl+P)
++              </span>
++            </a>
++          )}
++        </div>
++      </CardContent>
++    </Card>
++  );
++}
+
+commit 079102a1df77eb22e32f4692e14a4a5f5f288c61
+Author: Bot <bot@example.com>
+Date:   Fri Aug 7 20:22:41 2026 +0800
+
+    feat(csp-lecture): 顶部展示 CSP-J/S 2025 晋级难度地图
+    
+    源文件 docs/CSP初赛难度地图.png 复制到 public/csp-difficulty-map.png
+    (807KB), 在 /csp-lecture nav 之后、Hero 之前用 next/image 渲染,
+    max-w-4xl 居中 (桌面 896px 宽, 移动端按比例缩), 配 figcaption 注
+    明数据来源. priority 让浏览器 LCP 优先加载.
+    
+    目的: 让新学生一进 CSP 模块就看到自己所在省份的晋级难度,
+    带着 为什么要学 CSP 的动机再去看下面的课件目录.
+
+diff --git a/frontend/app/csp-lecture/page.tsx b/frontend/app/csp-lecture/page.tsx
+index 33fcff7..cf5cb87 100644
+--- a/frontend/app/csp-lecture/page.tsx
++++ b/frontend/app/csp-lecture/page.tsx
+@@ -25,6 +25,7 @@
+ // with a friendly "coming soon" placeholder.
+ 
+ import Link from 'next/link';
++import Image from 'next/image';
+ import { redirect } from 'next/navigation';
+ import { promises as fs } from 'fs';
+ import path from 'path';
+@@ -224,6 +225,31 @@ export default async function CspLecturePage() {
+         </div>
+       </nav>
+ 
++      {/*
++       * CSP 晋级难度地图 — 放在页面最开头, 让新学生先看到自己所在省份
++       * 的晋级难度, 带着"为什么要学 CSP"的动机再开始看下面的课件.
++       *
++       * 源文件: docs/CSP初赛难度地图.png, 静态复制到 public/csp-difficulty-map.png
++       * (用 next/image 走默认 loader, 不需要 next.config 配置 remotePatterns).
++       * 原图 1080x768, 用 object-contain + 居中, 移动端会按比例缩.
++       */}
++      <section className="max-w-4xl mx-auto px-6 pt-8 pb-6">
++        <figure className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white/80 shadow-sm backdrop-blur">
++          <Image
++            src="/csp-difficulty-map.png"
++            alt="CSP-J/S 2025 各省初赛晋级难度地图，颜色越深晋级率越低"
++            width={1080}
++            height={768}
++            className="block h-auto w-full"
++            priority
++            sizes="(max-width: 896px) 100vw, 896px"
++          />
++          <figcaption className="border-t border-slate-200/60 bg-slate-50/70 px-4 py-2 text-xs text-slate-600">
++            CSP-J/S 2025 各省初赛晋级难度地图 · 颜色越深表示晋级率越低（数据来源：边界数据来源·高德DataV·图易数据·noi.cn）
++          </figcaption>
++        </figure>
++      </section>
++
+       {/* Hero */}
+       <section className="max-w-6xl mx-auto px-6 pt-6 pb-12 sm:pt-10 sm:pb-16 text-center">
+         <span className="inline-block text-xs font-semibold tracking-widest text-indigo-700 bg-indigo-100 rounded-full px-3 py-1 mb-5">
+
+commit 4e75e2d4b07d80842ab53439dd3d03f210b4ac8d
+Author: Bot <bot@example.com>
+Date:   Thu Jul 30 01:18:58 2026 +0800
+
+    fix(brand): footer 联系电话改为 0755-86993610
+    
+    - app/page.tsx: tel 链接与显示文字同步
+    - app/csp-lecture/page.tsx: 修回正确的 tel 链接（之前被 IDE 截断为 tel:13610）
+
+diff --git a/frontend/app/csp-lecture/page.tsx b/frontend/app/csp-lecture/page.tsx
+index 0b59259..33fcff7 100644
+--- a/frontend/app/csp-lecture/page.tsx
++++ b/frontend/app/csp-lecture/page.tsx
+@@ -323,8 +323,8 @@ export default async function CspLecturePage() {
+               <span>办公地址：深圳市龙岗区南湾街道樟富北路8号3-6</span>
+               <span>
+                 联系电话：
+-                <a href="tel:13502813610" className="hover:text-slate-900">
+-                  13502813610
++                <a href="tel:0755-86993610" className="hover:text-slate-900">
++                  0755-86993610
+                 </a>
+               </span>
+             </div>
+
+commit 916c26edf1a7a504b52b375c6c2659debf6d64e1
+Author: Bot <bot@example.com>
+Date:   Thu Jul 30 00:59:26 2026 +0800
+
+    chore(brand): 品牌从 AI 错题本 改为 爱讲题 + footer 加备案信息
+    
+    - layout metadata / 首页 / 学生课件 / 学生首页 统一改为「爱讲题」
+    - 首页 hero / 3 步 / 功能卡片 改写为「创建个人学习课件，用于教学或者学习记录」
+    - 首页 footer 新增办公地址、联系电话（tel:）、工信部备案号（链 beian.miit.gov.cn）
+    - public/{favicon,logo,logo-horizontal}.svg 改 aria-label / 主名 / 副标题为「爱讲题」
+    - i18n zh-CN home.slogan 同步
+
+diff --git a/frontend/app/csp-lecture/page.tsx b/frontend/app/csp-lecture/page.tsx
+index 4b36fc7..0b59259 100644
+--- a/frontend/app/csp-lecture/page.tsx
++++ b/frontend/app/csp-lecture/page.tsx
+@@ -303,18 +303,42 @@ export default async function CspLecturePage() {
+ 
+       {/* Footer */}
+       <footer className="border-t border-slate-200/60 bg-white/40 backdrop-blur">
+-        <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-slate-500">
+-          <div>© {new Date().getFullYear()} AI 错题本 · CSP初赛要点精讲</div>
+-          <div className="flex items-center gap-5">
+-            <Link href="/" className="hover:text-slate-900">
+-              首页
+-            </Link>
+-            <Link href="/mistake-book" className="hover:text-slate-900">
+-              错题本
+-            </Link>
+-            <Link href="/admin/csp-lecture" className="hover:text-slate-900">
+-              管理入口
+-            </Link>
++        <div className="max-w-6xl mx-auto px-6 py-8 space-y-5 text-sm text-slate-500">
++          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
++            <div>© {new Date().getFullYear()} 爱讲题 · 用户可创建个人学习课件，用于教学或者学习记录</div>
++            <div className="flex items-center gap-5">
++              <Link href="/" className="hover:text-slate-900">
++                首页
++              </Link>
++              <Link href="/mistake-book" className="hover:text-slate-900">
++                错题本
++              </Link>
++              <Link href="/admin/csp-lecture" className="hover:text-slate-900">
++                管理入口
++              </Link>
++            </div>
++          </div>
++          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-3 border-t border-slate-200/70 text-xs text-slate-500">
++            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-5 gap-y-1">
++              <span>办公地址：深圳市龙岗区南湾街道樟富北路8号3-6</span>
++              <span>
++                联系电话：
++                <a href="tel:13502813610" className="hover:text-slate-900">
++                  13502813610
++                </a>
++              </span>
++            </div>
++            <div className="flex items-center gap-1.5">
++              <span aria-hidden="true">🛡</span>
++              <a
++                href="https://beian.miit.gov.cn/"
++                target="_blank"
++                rel="noopener noreferrer"
++                className="hover:text-slate-900"
++              >
++                粤ICP备2023157905号
++              </a>
++            </div>
+           </div>
+         </div>
+       </footer>
+
+commit d55e6144bd0b195c49786deb384f36e582effd5b
+Author: Bot <bot@example.com>
+Date:   Tue Jul 28 00:32:20 2026 +0800
+
+    fix(csp-lecture): show legacy classrooms without collection tag
+    
+    Public /csp-lecture page previously filtered strictly to classrooms tagged with collection === 'csp-lecture'. Classrooms uploaded before the collection tag existed were silently hidden, even though they're legitimate CSP content the admin uploaded.
+    
+    Loosen the filter: show classrooms that are tagged csp-lecture OR have no collection tag at all. Classrooms with an explicit other collection key are still excluded so unrelated modules' content doesn't leak into the CSP module page.
+
+diff --git a/frontend/app/csp-lecture/page.tsx b/frontend/app/csp-lecture/page.tsx
+index 547abe7..4b36fc7 100644
+--- a/frontend/app/csp-lecture/page.tsx
++++ b/frontend/app/csp-lecture/page.tsx
+@@ -1,8 +1,18 @@
+ // Public landing page for the "CSP初赛要点精讲" module.
+ //
+-// Lists every classroom tagged with `collection: "csp-lecture"`
+-// (those that the admin uploaded through /admin/csp-lecture) so
+-// students can browse and play the lectures without logging in.
++// Lists classrooms that should appear on the public CSP module page:
++//   1. Classrooms tagged with `collection: "csp-lecture"` (the
++//      authoritative "this is CSP courseware" signal — uploaded
++//      through /admin/csp-lecture).
++//   2. Legacy classrooms with no `collection` field at all. The
++//      collection tag was added partway through the CSP rollout, so
++//      older uploads (which are still legitimate CSP content) are
++//      untagged. Hiding them here would be a regression — we want
++//      every CSP classroom the admin uploaded to be visible to
++//      students. Classrooms with an explicit *other* collection
++//      (e.g. tagged for some other module) are still excluded so
++//      the CSP page doesn't accidentally leak content from
++//      unrelated modules.
+ //
+ // Each card can be expanded to show its chapter list (one row per
+ // scene, in `scene.order` order). Clicking a chapter deep-links into
+@@ -70,7 +80,16 @@ async function listCspLectures(): Promise<Lecture[]> {
+         createdAt: string;
+         collection?: string;
+       };
+-      if (data.collection !== 'csp-lecture') continue;
++      // Show this classroom on the public CSP page if either:
++      //   (a) it's tagged with the csp-lecture collection (new
++      //       uploads via /admin/csp-lecture), OR
++      //   (b) it has no collection tag at all (legacy uploads that
++      //       predate the collection feature — still valid CSP
++      //       content we don't want to hide).
++      // Classrooms with an explicit *other* collection key are
++      // skipped, so unrelated modules' content doesn't leak into
++      // the CSP module page.
++      if (data.collection && data.collection !== 'csp-lecture') continue;
+ 
+       // Build the chapter list. We always sort by `order` even though
+       // most importers write scenes in order — defence in depth for
+
+commit 0967cac4ca19cd9a0c219b5b381540c0d1249011
+Author: Bot <bot@example.com>
+Date:   Mon Jul 27 10:56:47 2026 +0800
+
+    feat(csp-lecture): integrate PlacementBanner into /csp-lecture
+
+diff --git a/frontend/app/csp-lecture/page.tsx b/frontend/app/csp-lecture/page.tsx
+index e149861..547abe7 100644
+--- a/frontend/app/csp-lecture/page.tsx
++++ b/frontend/app/csp-lecture/page.tsx
+@@ -25,6 +25,7 @@ import type { Scene, Stage } from '@/lib/types/stage';
+ import { auth } from '@/auth';
+ import { ExpandChapterList } from './ExpandChapterList';
+ import { Leaderboard } from '@/components/leaderboard';
++import { PlacementBanner } from '@/components/csp-lecture/PlacementBanner';
+ 
+ export const dynamic = 'force-dynamic';
+ export const revalidate = 0;
+@@ -219,6 +220,12 @@ export default async function CspLecturePage() {
+         </p>
+       </section>
+ 
++      {/* Placement banner (摸底入口). Renders above the catalog so
++          the survey CTA is the first thing a new student sees. The
++          banner is a client component that owns its own loading/
++          submitted/empty state. */}
++      <PlacementBanner />
++
+       {/*
+        * Lecture grid + leaderboard in a 2-col layout (lg+).
+        *
+
+commit 3baae366f1a35d3ebac77d426afe7aaa1c83cae3
+Author: Bot <bot@example.com>
+Date:   Sun Jul 26 01:24:48 2026 +0800
+
+    fix: address 5 issues (stage x5 guard, leaderboard layout, A->B nav, completion score)
+    
+    - stage.tsx: skip requestFullscreen on WeChat/X5 WebView to prevent flash-to-chat crash
+    
+    - csp-lecture/page.tsx: log [csp-lecture] sorted order; move Leaderboard to right sticky rail
+    
+    - ExpandChapterList + student/home: replace next/link with raw <a> to avoid prefetch stale store
+    
+    - stage store: clear in-memory stage when classroomId changes (fix A->B 'Classroom not found')
+    
+    - csp-completion: keep highest quiz score; invalidate leaderboard cache on completion
+    
+    - leaderboard: mask CJK name as 姓+拼音首字母 via pinyin-pro (欧阳锋 -> 欧阳f)
+    
+    - layout: mount DebugConsole for ?debug=1 eruda load
+    
+    - package.json: add pinyin-pro@3.26.0
+    
+    - components/DebugConsole.tsx: eruda loader
+
+diff --git a/frontend/app/csp-lecture/page.tsx b/frontend/app/csp-lecture/page.tsx
+index 4c3ab17..e149861 100644
+--- a/frontend/app/csp-lecture/page.tsx
++++ b/frontend/app/csp-lecture/page.tsx
+@@ -124,6 +124,22 @@ async function listCspLectures(): Promise<Lecture[]> {
+     if (ao !== bo) return ao - bo;
+     return (a.title ?? '').localeCompare(b.title ?? '', 'zh-CN');
+   });
++  // DEBUG: log the resolved order so we can verify the sort is
++  // actually firing on the deployed image. The user has reported
++  // repeated "still not in order" complaints; this log is the
++  // single source of truth for what the server thinks the
++  // ordering is. Remove once the sort is confirmed.
++  if (typeof console !== 'undefined') {
++    // eslint-disable-next-line no-console
++    console.log(
++      '[csp-lecture] sorted order:',
++      items.map((it) => ({
++        id: it.id.slice(0, 20),
++        title: it.title,
++        order: titleOrder(it.title ?? ''),
++      })),
++    );
++  }
+   return items;
+ }
+ 
+@@ -203,46 +219,60 @@ export default async function CspLecturePage() {
+         </p>
+       </section>
+ 
+-      {/* Lecture grid */}
+-      <section className="max-w-6xl mx-auto px-6 pb-12">
+-        {lectures.length === 0 ? (
+-          <Card className="bg-white/70 backdrop-blur border-slate-200/60">
+-            <CardContent className="py-16 text-center">
+-              <div className="text-5xl mb-4">📭</div>
+-              <h2 className="text-lg font-semibold text-slate-900 mb-1">
+-                还没有课件
+-              </h2>
+-              <p className="text-slate-600 text-sm">
+-                管理员会陆续在后台添加 CSP 初赛相关课件，先去别处转转？
+-              </p>
+-              <div className="mt-6">
+-                <Button asChild variant="outline">
+-                  <Link href="/">回到首页</Link>
+-                </Button>
+-              </div>
+-            </CardContent>
+-          </Card>
+-        ) : (
+-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+-            {lectures.map((l) => (
+-              <LectureCard key={l.id} lecture={l} />
+-            ))}
+-          </div>
+-        )}
+-      </section>
+-
+       {/*
+-       * Public leaderboard. Renders below the lecture grid so
+-       * first-time visitors see "what is here" before "who is
+-       * using it" — the social proof lands after the value
+-       * prop, not before. Always shown (even with zero
++       * Lecture grid + leaderboard in a 2-col layout (lg+).
++       *
++       * Why 3-col lecture grid + 1-col leaderboard on desktop:
++       * the page should read as a "course catalog" first, with
++       * the social-proof leaderboard pinned on the right rail.
++       * On mobile (sm-) the leaderboard stacks below the
++       * catalog because side-rail would be unreadable.
++       *
++       * Each side is independently scrollable: the
++       * `lg:sticky lg:top-4` keeps the leaderboard visible
++       * while the student scrolls through the lecture cards,
++       * which is the whole point of putting it on the right.
++       *
++       * Public leaderboard. Always shown (even with zero
+        * entries) so the page doesn't have an empty gap; the
+        * component renders its own friendly "be the first"
+        * empty state. No auth required: the server masks
+        * names before responding.
+        */}
+-      <section className="max-w-6xl mx-auto px-6 pb-20">
+-        <Leaderboard />
++      <section className="max-w-6xl mx-auto px-6 pb-12">
++        <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
++          <div className="lg:col-span-3">
++            {lectures.length === 0 ? (
++              <Card className="bg-white/70 backdrop-blur border-slate-200/60">
++                <CardContent className="py-16 text-center">
++                  <div className="text-5xl mb-4">📭</div>
++                  <h2 className="text-lg font-semibold text-slate-900 mb-1">
++                    还没有课件
++                  </h2>
++                  <p className="text-slate-600 text-sm">
++                    管理员会陆续在后台添加 CSP 初赛相关课件，先去别处转转？
++                  </p>
++                  <div className="mt-6">
++                    <Button asChild variant="outline">
++                      <Link href="/">回到首页</Link>
++                    </Button>
++                  </div>
++                </CardContent>
++              </Card>
++            ) : (
++              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
++                {lectures.map((l) => (
++                  <LectureCard key={l.id} lecture={l} />
++                ))}
++              </div>
++            )}
++          </div>
++          <div className="lg:col-span-1">
++            <div className="lg:sticky lg:top-4">
++              <Leaderboard />
++            </div>
++          </div>
++        </div>
+       </section>
+ 
+       {/* Footer */}
+
+commit b502145a513a7c77c2d3e5f0a9c19cb1c246a9e4
+Author: Bot <bot@example.com>
+Date:   Sat Jul 25 02:23:17 2026 +0800
+
+    fix(csp-lecture): prefer leading 'N、' prefix in title sort
+
+diff --git a/frontend/app/csp-lecture/page.tsx b/frontend/app/csp-lecture/page.tsx
+index 9a35953..4c3ab17 100644
+--- a/frontend/app/csp-lecture/page.tsx
++++ b/frontend/app/csp-lecture/page.tsx
+@@ -96,23 +96,32 @@ async function listCspLectures(): Promise<Lecture[]> {
+       // skip corrupted file
+     }
+   }
+-  // Sort by the numeric tag in "精讲N：..." titles, with non-matching
+-  // titles (eg. "CSP-J/S初赛题型一览") pushed to the end. localeCompare
+-  // with `numeric: true` was unreliable here — the Chinese characters
+-  // mixed with full-width colons and section names made the comparison
+-  // fall through to the suffix in unpredictable ways (e.g. 精讲3 ending
+-  // up before 精讲2 because "网络" collated before "基础2"). Extracting
+-  // the integer is the only way to get the "1, 2, 3, ..." order the
+-  // curriculum author clearly intended.
++  // Sort by the lecture's display order. We try three patterns in
++  // priority order:
++  //   1. Leading "N、" or "N," at the start of the title (the author
++  //      has been hand-numbering the CSP-J/S curriculum with these
++  //      prefixes — most authoritative).
++  //   2. "精讲N" embedded in the middle of the title (fallback for
++  //      titles that haven't been re-numbered yet).
++  //   3. Anything else (e.g. "CSP-J/S初赛题型一览") goes to the end
++  //      with a stable secondary sort by title so the layout doesn't
++  //      reshuffle on every render.
++  //
++  // Earlier we used `localeCompare(..., { numeric: true })` which
++  // collated "网络" before "基础2" in zh-CN, putting 精讲3 ahead
++  // of 精讲2 — explicitly extracting the integer is the only way
++  // to get the curriculum author's intended 1, 2, 3, ... order.
+   const titleOrder = (title: string): number => {
+-    const m = title.match(/精讲(\d+)/);
+-    return m ? parseInt(m[1], 10) : Number.POSITIVE_INFINITY;
++    const leading = title.match(/^\s*(\d+)\s*[,、.]\s*/);
++    if (leading) return parseInt(leading[1], 10);
++    const inline = title.match(/精讲\s*(\d+)/);
++    if (inline) return parseInt(inline[1], 10);
++    return Number.POSITIVE_INFINITY;
+   };
+   items.sort((a, b) => {
+     const ao = titleOrder(a.title ?? '');
+     const bo = titleOrder(b.title ?? '');
+     if (ao !== bo) return ao - bo;
+-    // Tiebreaker: alphabetical for non-精讲 titles (eg. CSP-J/S).
+     return (a.title ?? '').localeCompare(b.title ?? '', 'zh-CN');
+   });
+   return items;
+
+commit 108d32fdc711be9ddd3c6cfd30609b75a5d98a96
+Author: Bot <bot@example.com>
+Date:   Sat Jul 25 02:19:58 2026 +0800
+
+    fix(csp-lecture): sort by 精讲N integer; debug: log leaderboard evaluate
+
+diff --git a/frontend/app/csp-lecture/page.tsx b/frontend/app/csp-lecture/page.tsx
+index 37e4951..9a35953 100644
+--- a/frontend/app/csp-lecture/page.tsx
++++ b/frontend/app/csp-lecture/page.tsx
+@@ -96,18 +96,25 @@ async function listCspLectures(): Promise<Lecture[]> {
+       // skip corrupted file
+     }
+   }
+-  // Natural sort by title so the courseware displays in human
+-  // expected order (1, 2, 3 rather than 1, 10, 2), with the
+-  // CSP-J/S module — whose title doesn't contain a 精讲<num>
+-  // prefix — pushed to the end. The Chinese-aware collation
+-  // (zh-CN + numeric) keeps the "初赛要点精讲N：..." runs
+-  // together while still ordering N numerically.
+-  items.sort((a, b) =>
+-    (a.title ?? '').localeCompare(b.title ?? '', 'zh-CN', {
+-      numeric: true,
+-      sensitivity: 'base',
+-    }),
+-  );
++  // Sort by the numeric tag in "精讲N：..." titles, with non-matching
++  // titles (eg. "CSP-J/S初赛题型一览") pushed to the end. localeCompare
++  // with `numeric: true` was unreliable here — the Chinese characters
++  // mixed with full-width colons and section names made the comparison
++  // fall through to the suffix in unpredictable ways (e.g. 精讲3 ending
++  // up before 精讲2 because "网络" collated before "基础2"). Extracting
++  // the integer is the only way to get the "1, 2, 3, ..." order the
++  // curriculum author clearly intended.
++  const titleOrder = (title: string): number => {
++    const m = title.match(/精讲(\d+)/);
++    return m ? parseInt(m[1], 10) : Number.POSITIVE_INFINITY;
++  };
++  items.sort((a, b) => {
++    const ao = titleOrder(a.title ?? '');
++    const bo = titleOrder(b.title ?? '');
++    if (ao !== bo) return ao - bo;
++    // Tiebreaker: alphabetical for non-精讲 titles (eg. CSP-J/S).
++    return (a.title ?? '').localeCompare(b.title ?? '', 'zh-CN');
++  });
+   return items;
+ }
+ 
+
+commit 2a386ea7f980654490769ece4eeef895a73e4cda
+Author: Bot <bot@example.com>
+Date:   Sat Jul 25 01:59:54 2026 +0800
+
+    fix(csp-lecture): sort courseware by title (natural, zh-CN)
+
+diff --git a/frontend/app/csp-lecture/page.tsx b/frontend/app/csp-lecture/page.tsx
+index e82c6d6..37e4951 100644
+--- a/frontend/app/csp-lecture/page.tsx
++++ b/frontend/app/csp-lecture/page.tsx
+@@ -96,9 +96,18 @@ async function listCspLectures(): Promise<Lecture[]> {
+       // skip corrupted file
+     }
+   }
+-  // Newest first — the public list isn't order-aware (the admin
+-  // doesn't have a "set order" UI yet); the latest upload bubbles up.
+-  items.sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
++  // Natural sort by title so the courseware displays in human
++  // expected order (1, 2, 3 rather than 1, 10, 2), with the
++  // CSP-J/S module — whose title doesn't contain a 精讲<num>
++  // prefix — pushed to the end. The Chinese-aware collation
++  // (zh-CN + numeric) keeps the "初赛要点精讲N：..." runs
++  // together while still ordering N numerically.
++  items.sort((a, b) =>
++    (a.title ?? '').localeCompare(b.title ?? '', 'zh-CN', {
++      numeric: true,
++      sensitivity: 'base',
++    }),
++  );
+   return items;
+ }
+ 
+
+commit 104461619ee031bf54b753e03c440bdd02310962
+Author: Bot <bot@example.com>
+Date:   Fri Jul 24 16:12:21 2026 +0800
+
+    feat(csp-lecture): public leaderboard Top10 by activity+complete
+    
+    score = activeDays * 10 + completedClassrooms * 30
+    
+    with 8h/day watchSeconds cap as anti-cheat and 5min in-proc cache
+
+diff --git a/frontend/app/csp-lecture/page.tsx b/frontend/app/csp-lecture/page.tsx
+index 84b8ba7..e82c6d6 100644
+--- a/frontend/app/csp-lecture/page.tsx
++++ b/frontend/app/csp-lecture/page.tsx
+@@ -24,6 +24,7 @@ import { CLASSROOMS_DIR } from '@/lib/server/classroom-storage';
+ import type { Scene, Stage } from '@/lib/types/stage';
+ import { auth } from '@/auth';
+ import { ExpandChapterList } from './ExpandChapterList';
++import { Leaderboard } from '@/components/leaderboard';
+ 
+ export const dynamic = 'force-dynamic';
+ export const revalidate = 0;
+@@ -178,7 +179,7 @@ export default async function CspLecturePage() {
+       </section>
+ 
+       {/* Lecture grid */}
+-      <section className="max-w-6xl mx-auto px-6 pb-20">
++      <section className="max-w-6xl mx-auto px-6 pb-12">
+         {lectures.length === 0 ? (
+           <Card className="bg-white/70 backdrop-blur border-slate-200/60">
+             <CardContent className="py-16 text-center">
+@@ -205,6 +206,20 @@ export default async function CspLecturePage() {
+         )}
+       </section>
+ 
++      {/*
++       * Public leaderboard. Renders below the lecture grid so
++       * first-time visitors see "what is here" before "who is
++       * using it" — the social proof lands after the value
++       * prop, not before. Always shown (even with zero
++       * entries) so the page doesn't have an empty gap; the
++       * component renders its own friendly "be the first"
++       * empty state. No auth required: the server masks
++       * names before responding.
++       */}
++      <section className="max-w-6xl mx-auto px-6 pb-20">
++        <Leaderboard />
++      </section>
++
+       {/* Footer */}
+       <footer className="border-t border-slate-200/60 bg-white/40 backdrop-blur">
+         <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-slate-500">
+
+commit 24889ff8a9b73b30383554593d052a2bb7182a2e
+Author: Bot <bot@example.com>
+Date:   Fri Jul 24 04:22:43 2026 +0800
+
+    feat(csp-lecture): student progress tracking + auth + heartbeat reporting
+    
+    Wires the /csp-lecture flow end-to-end so that signed-in students have
+    their viewing progress, watch time, and quiz answers attributed to their
+    account on the server, and so the public chapter list is gated behind
+    sign-in.
+    
+    - auth: NextAuth Credentials provider + register endpoint accept
+      role=student for one-step signup from /csp-lecture; session callback
+      exposes id/name/role.
+    - csp-progress: scene-complete / heartbeat / overview / me APIs with
+      csp_progress + csp_quiz_submissions tables in lib/db.ts.
+    - csp-quiz: submit / me APIs for per-student per-scene quiz answers.
+    - csp-lecture page: auth guard, role-aware nav, deep-link ?scene=<order>
+      to the classroom player.
+    - student/home: dashboard reading csp_progress for the current user.
+    - use-csp-progress hook: 30s heartbeat (paused on hidden tab) +
+      reportSceneComplete / reportQuizSubmit imperative methods.
+    - stage.tsx: onSceneChange credits the previous scene, onComplete
+      credits the last scene.
+    - quiz-view.tsx: on entering the reviewing phase, fire reportQuizSubmit
+      + reportSceneComplete exactly once per quiz.
+    - scripts/migrate-imported-classrooms.mjs: idempotent re-normalizer for
+      legacy cm_imp_*.json files.
+
+diff --git a/frontend/app/csp-lecture/page.tsx b/frontend/app/csp-lecture/page.tsx
+index aff401f..84b8ba7 100644
+--- a/frontend/app/csp-lecture/page.tsx
++++ b/frontend/app/csp-lecture/page.tsx
+@@ -15,12 +15,14 @@
+ // with a friendly "coming soon" placeholder.
+ 
+ import Link from 'next/link';
++import { redirect } from 'next/navigation';
+ import { promises as fs } from 'fs';
+ import path from 'path';
+ import { Card, CardContent } from '@/components/ui/card';
+ import { Button } from '@/components/ui/button';
+ import { CLASSROOMS_DIR } from '@/lib/server/classroom-storage';
+ import type { Scene, Stage } from '@/lib/types/stage';
++import { auth } from '@/auth';
+ import { ExpandChapterList } from './ExpandChapterList';
+ 
+ export const dynamic = 'force-dynamic';
+@@ -112,6 +114,18 @@ function formatDate(iso: string): string {
+ }
+ 
+ export default async function CspLecturePage() {
++  // Auth guard. /csp-lecture now requires a signed-in user so
++  // we can attribute view progress to a real userId. The
++  // student journey is: visit any classroom → if not signed
++  // in, redirected here with `?redirect=/csp-lecture&as=student`
++  // so the login page knows to set up a student account.
++  const session = await auth();
++  if (!session?.user) {
++    redirect('/auth/login?redirect=/csp-lecture&as=student');
++  }
++  const userName = (session.user as any).name ?? session.user.email ?? '同学';
++  const userRole = (session.user as any).role ?? 'student';
++
+   const lectures = await listCspLectures();
+   const totalScenes = lectures.reduce((s, l) => s + l.sceneCount, 0);
+ 
+@@ -128,6 +142,14 @@ export default async function CspLecturePage() {
+           </Link>
+         </div>
+         <div className="flex items-center gap-3">
++          {userRole === 'student' && (
++            <Button asChild size="sm" variant="ghost">
++              <Link href="/student/home">我的学习</Link>
++            </Button>
++          )}
++          <span className="text-xs text-slate-500 hidden sm:inline">
++            {userName}
++          </span>
+           <Link
+             href="/"
+             className="text-sm text-slate-600 hover:text-slate-900 hidden sm:inline"
+
+commit 33f23bd40f4ac6a62455ac0aceb0c705f029a79d
+Author: Bot <bot@example.com>
+Date:   Thu Jul 23 01:16:13 2026 +0800
+
+    feat(classroom): inline title edit + chapter deep-link
+    
+    Admin: clicking the title in the list opens an inline editor
+    (PATCH /api/admin/classroom/[id]) so admins can rename
+    imported classrooms without re-uploading. Empty input is
+    treated as cancel; saving optimistically updates the row
+    and refreshes RSC caches so the public page picks up the
+    new title immediately.
+    
+    Public: /csp-lecture cards now expose a collapsible
+    chapter list (one row per scene, sorted by order) with
+    type icons. Each chapter deep-links into the player via
+    ?scene=<order>; the classroom page honours that param on
+    mount so users can jump straight to a specific section.
+
+diff --git a/frontend/app/csp-lecture/page.tsx b/frontend/app/csp-lecture/page.tsx
+index 1a32e8b..aff401f 100644
+--- a/frontend/app/csp-lecture/page.tsx
++++ b/frontend/app/csp-lecture/page.tsx
+@@ -4,6 +4,11 @@
+ // (those that the admin uploaded through /admin/csp-lecture) so
+ // students can browse and play the lectures without logging in.
+ //
++// Each card can be expanded to show its chapter list (one row per
++// scene, in `scene.order` order). Clicking a chapter deep-links into
++// the player at that scene via the `?scene=<order>` URL parameter
++// that the classroom page honours.
++//
+ // Reads directly from the filesystem instead of going through the
+ // admin API to avoid pulling admin-only auth middleware into the
+ // public surface. If the directory is empty, the page still renders
+@@ -15,17 +20,26 @@ import path from 'path';
+ import { Card, CardContent } from '@/components/ui/card';
+ import { Button } from '@/components/ui/button';
+ import { CLASSROOMS_DIR } from '@/lib/server/classroom-storage';
+-import type { Stage } from '@/lib/types/stage';
++import type { Scene, Stage } from '@/lib/types/stage';
++import { ExpandChapterList } from './ExpandChapterList';
+ 
+ export const dynamic = 'force-dynamic';
+ export const revalidate = 0;
+ 
++type Chapter = {
++  id: string;
++  order: number;
++  title: string;
++  type: Scene['type'];
++};
++
+ type Lecture = {
+   id: string;
+   title: string;
+   description?: string;
+   sceneCount: number;
+   createdAt: string;
++  chapters: Chapter[];
+ };
+ 
+ async function listCspLectures(): Promise<Lecture[]> {
+@@ -38,32 +52,49 @@ async function listCspLectures(): Promise<Lecture[]> {
+   }
+   const items: Lecture[] = [];
+   for (const name of entries) {
+-      if (!name.endsWith('.json')) continue;
+-      const id = name.slice(0, -'.json'.length);
+-      const filePath = path.join(CLASSROOMS_DIR, name);
+-      try {
+-        // Strip UTF-8 BOM if present — PowerShell's `ConvertTo-Json`
+-        // emits a BOM, and `JSON.parse` rejects it as a syntax error.
+-        const raw = (await fs.readFile(filePath, 'utf-8')).replace(/^\ufeff/, '');
+-        const data = JSON.parse(raw) as {
+-          id: string;
+-          stage: Stage;
+-          scenes: unknown[];
+-          createdAt: string;
+-          collection?: string;
+-        };
+-        if (data.collection !== 'csp-lecture') continue;
+-        items.push({
+-          id: data.id || id,
+-          title: data.stage?.name ?? '未命名课件',
+-          description: data.stage?.description,
+-          sceneCount: Array.isArray(data.scenes) ? data.scenes.length : 0,
+-          createdAt: data.createdAt,
+-        });
+-      } catch {
+-        // skip corrupted file
+-      }
++    if (!name.endsWith('.json')) continue;
++    const id = name.slice(0, -'.json'.length);
++    const filePath = path.join(CLASSROOMS_DIR, name);
++    try {
++      // Strip UTF-8 BOM if present — PowerShell's `ConvertTo-Json`
++      // emits a BOM, and `JSON.parse` rejects it as a syntax error.
++      const raw = (await fs.readFile(filePath, 'utf-8')).replace(/^\ufeff/, '');
++      const data = JSON.parse(raw) as {
++        id: string;
++        stage: Stage;
++        scenes: Scene[];
++        createdAt: string;
++        collection?: string;
++      };
++      if (data.collection !== 'csp-lecture') continue;
++
++      // Build the chapter list. We always sort by `order` even though
++      // most importers write scenes in order — defence in depth for
++      // legacy / hand-edited JSONs.
++      const chapters: Chapter[] = (Array.isArray(data.scenes) ? data.scenes : [])
++        .slice()
++        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
++        .map((s) => ({
++          id: s.id,
++          order: s.order ?? 0,
++          title: s.title || `第 ${s.order ?? '?'} 节`,
++          type: s.type,
++        }));
++
++      items.push({
++        id: data.id || id,
++        title: data.stage?.name ?? '未命名课件',
++        description: data.stage?.description,
++        sceneCount: chapters.length,
++        createdAt: data.createdAt,
++        chapters,
++      });
++    } catch {
++      // skip corrupted file
+     }
++  }
++  // Newest first — the public list isn't order-aware (the admin
++  // doesn't have a "set order" UI yet); the latest upload bubbles up.
+   items.sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
+   return items;
+ }
+@@ -120,7 +151,7 @@ export default async function CspLecturePage() {
+         <p className="mt-5 text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
+           {lectures.length === 0
+             ? '暂无课件，敬请期待。'
+-            : `共 ${lectures.length} 个课件 · ${totalScenes} 个讲解场景。点击任意卡片开始学习。`}
++            : `共 ${lectures.length} 个课件 · ${totalScenes} 个讲解场景。点击任意课件展开章节，按顺序学习。`}
+         </p>
+       </section>
+ 
+@@ -146,40 +177,7 @@ export default async function CspLecturePage() {
+         ) : (
+           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+             {lectures.map((l) => (
+-              <Link
+-                key={l.id}
+-                href={`/classroom/${l.id}`}
+-                className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-2xl"
+-              >
+-                <Card className="h-full bg-white/80 backdrop-blur border-slate-200/60 hover:shadow-md hover:-translate-y-0.5 transition-all">
+-                  <CardContent className="pt-6 flex flex-col h-full">
+-                    <div className="flex items-center gap-2 mb-3">
+-                      <span className="text-[10px] uppercase tracking-wider text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded">
+-                        CSP初赛
+-                      </span>
+-                      <span className="text-xs text-slate-400">
+-                        {formatDate(l.createdAt)}
+-                      </span>
+-                    </div>
+-                    <h3 className="text-lg font-semibold text-slate-900 mb-2 group-hover:text-blue-600 line-clamp-2">
+-                      {l.title}
+-                    </h3>
+-                    {l.description && (
+-                      <p className="text-sm text-slate-600 line-clamp-3 mb-4 flex-1">
+-                        {l.description}
+-                      </p>
+-                    )}
+-                    <div className="mt-auto flex items-center justify-between text-sm">
+-                      <span className="text-slate-500">
+-                        {l.sceneCount} 个场景
+-                      </span>
+-                      <span className="text-blue-600 group-hover:underline">
+-                        开始学习 →
+-                      </span>
+-                    </div>
+-                  </CardContent>
+-                </Card>
+-              </Link>
++              <LectureCard key={l.id} lecture={l} />
+             ))}
+           </div>
+         )}
+@@ -205,3 +203,29 @@ export default async function CspLecturePage() {
+     </main>
+   );
+ }
++
++function LectureCard({ lecture }: { lecture: Lecture }) {
++  return (
++    <Card className="h-full bg-white/80 backdrop-blur border-slate-200/60 hover:shadow-md hover:-translate-y-0.5 transition-all">
++      <CardContent className="pt-6 flex flex-col h-full">
++        <div className="flex items-center gap-2 mb-3">
++          <span className="text-[10px] uppercase tracking-wider text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded">
++            CSP初赛
++          </span>
++          <span className="text-xs text-slate-400">{formatDate(lecture.createdAt)}</span>
++        </div>
++        <h3 className="text-lg font-semibold text-slate-900 mb-2 line-clamp-2">
++          {lecture.title}
++        </h3>
++        {lecture.description && (
++          <p className="text-sm text-slate-600 line-clamp-3 mb-4">
++            {lecture.description}
++          </p>
++        )}
++        <div className="mt-auto">
++          <ExpandChapterList lectureId={lecture.id} chapters={lecture.chapters} />
++        </div>
++      </CardContent>
++    </Card>
++  );
++}
+
+commit a836119423999b06d081d7acf931b429c9b1bffc
+Author: Bot <bot@example.com>
+Date:   Wed Jul 22 22:26:47 2026 +0800
+
+    feat: CSP初赛要点精讲 module + classroom collection / import
+    
+    Adds the "CSP初赛要点精讲" (CSP preliminary contest key-point
+    lectures) module and the supporting classroom import / collection
+    plumbing.
+    
+    Highlights:
+    
+    - New /csp-lecture and /admin/csp-lecture pages
+    - Classroom "collection" field on PersistedClassroomData — lets a
+      classroom belong to a logical group (e.g. "csp-lecture") for
+      listing / filtering on the me page
+    - Admin classroom import endpoint + zip parsing (NEW error codes:
+      EMPTY_FILE / FILE_TOO_LARGE / INVALID_FILE / EMPTY_ZIP /
+      ZIP_TOO_LARGE / INVALID_ZIP / NO_MANIFEST / INVALID_MANIFEST /
+      UNSUPPORTED_VERSION / NO_SCENES / ID_COLLISION / INVALID_ID)
+    - Slide-renderer editor hook + viewport-size fixes
+    - Tailwind v4 shim / PostCSS / globals tweaks
+    - Slide-content system prompt micro-adjustments
+    - track.ts minor usage-event additions
+    
+    Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+diff --git a/frontend/app/csp-lecture/page.tsx b/frontend/app/csp-lecture/page.tsx
+new file mode 100644
+index 0000000..1a32e8b
+--- /dev/null
++++ b/frontend/app/csp-lecture/page.tsx
+@@ -0,0 +1,207 @@
++// Public landing page for the "CSP初赛要点精讲" module.
++//
++// Lists every classroom tagged with `collection: "csp-lecture"`
++// (those that the admin uploaded through /admin/csp-lecture) so
++// students can browse and play the lectures without logging in.
++//
++// Reads directly from the filesystem instead of going through the
++// admin API to avoid pulling admin-only auth middleware into the
++// public surface. If the directory is empty, the page still renders
++// with a friendly "coming soon" placeholder.
++
++import Link from 'next/link';
++import { promises as fs } from 'fs';
++import path from 'path';
++import { Card, CardContent } from '@/components/ui/card';
++import { Button } from '@/components/ui/button';
++import { CLASSROOMS_DIR } from '@/lib/server/classroom-storage';
++import type { Stage } from '@/lib/types/stage';
++
++export const dynamic = 'force-dynamic';
++export const revalidate = 0;
++
++type Lecture = {
++  id: string;
++  title: string;
++  description?: string;
++  sceneCount: number;
++  createdAt: string;
++};
++
++async function listCspLectures(): Promise<Lecture[]> {
++  let entries: string[] = [];
++  try {
++    entries = await fs.readdir(CLASSROOMS_DIR);
++  } catch (err) {
++    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return [];
++    throw err;
++  }
++  const items: Lecture[] = [];
++  for (const name of entries) {
++      if (!name.endsWith('.json')) continue;
++      const id = name.slice(0, -'.json'.length);
++      const filePath = path.join(CLASSROOMS_DIR, name);
++      try {
++        // Strip UTF-8 BOM if present — PowerShell's `ConvertTo-Json`
++        // emits a BOM, and `JSON.parse` rejects it as a syntax error.
++        const raw = (await fs.readFile(filePath, 'utf-8')).replace(/^\ufeff/, '');
++        const data = JSON.parse(raw) as {
++          id: string;
++          stage: Stage;
++          scenes: unknown[];
++          createdAt: string;
++          collection?: string;
++        };
++        if (data.collection !== 'csp-lecture') continue;
++        items.push({
++          id: data.id || id,
++          title: data.stage?.name ?? '未命名课件',
++          description: data.stage?.description,
++          sceneCount: Array.isArray(data.scenes) ? data.scenes.length : 0,
++          createdAt: data.createdAt,
++        });
++      } catch {
++        // skip corrupted file
++      }
++    }
++  items.sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
++  return items;
++}
++
++function formatDate(iso: string): string {
++  try {
++    return new Date(iso).toLocaleDateString('zh-CN', {
++      year: 'numeric',
++      month: '2-digit',
++      day: '2-digit',
++    });
++  } catch {
++    return iso;
++  }
++}
++
++export default async function CspLecturePage() {
++  const lectures = await listCspLectures();
++  const totalScenes = lectures.reduce((s, l) => s + l.sceneCount, 0);
++
++  return (
++    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
++      {/* Top nav */}
++      <nav className="max-w-6xl mx-auto flex items-center justify-between px-6 py-5">
++        <div className="flex items-center gap-2">
++          <Link href="/" className="flex items-center gap-2">
++            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold">
++              题
++            </div>
++            <span className="text-lg font-bold text-slate-800">AI 错题本</span>
++          </Link>
++        </div>
++        <div className="flex items-center gap-3">
++          <Link
++            href="/"
++            className="text-sm text-slate-600 hover:text-slate-900 hidden sm:inline"
++          >
++            首页
++          </Link>
++          <Button asChild size="sm" variant="outline">
++            <Link href="/mistake">立即开始</Link>
++          </Button>
++        </div>
++      </nav>
++
++      {/* Hero */}
++      <section className="max-w-6xl mx-auto px-6 pt-6 pb-12 sm:pt-10 sm:pb-16 text-center">
++        <span className="inline-block text-xs font-semibold tracking-widest text-indigo-700 bg-indigo-100 rounded-full px-3 py-1 mb-5">
++          CSP 初赛 · 要点精讲
++        </span>
++        <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 leading-tight tracking-tight">
++          CSP初赛要点精讲
++        </h1>
++        <p className="mt-5 text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
++          {lectures.length === 0
++            ? '暂无课件，敬请期待。'
++            : `共 ${lectures.length} 个课件 · ${totalScenes} 个讲解场景。点击任意卡片开始学习。`}
++        </p>
++      </section>
++
++      {/* Lecture grid */}
++      <section className="max-w-6xl mx-auto px-6 pb-20">
++        {lectures.length === 0 ? (
++          <Card className="bg-white/70 backdrop-blur border-slate-200/60">
++            <CardContent className="py-16 text-center">
++              <div className="text-5xl mb-4">📭</div>
++              <h2 className="text-lg font-semibold text-slate-900 mb-1">
++                还没有课件
++              </h2>
++              <p className="text-slate-600 text-sm">
++                管理员会陆续在后台添加 CSP 初赛相关课件，先去别处转转？
++              </p>
++              <div className="mt-6">
++                <Button asChild variant="outline">
++                  <Link href="/">回到首页</Link>
++                </Button>
++              </div>
++            </CardContent>
++          </Card>
++        ) : (
++          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
++            {lectures.map((l) => (
++              <Link
++                key={l.id}
++                href={`/classroom/${l.id}`}
++                className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-2xl"
++              >
++                <Card className="h-full bg-white/80 backdrop-blur border-slate-200/60 hover:shadow-md hover:-translate-y-0.5 transition-all">
++                  <CardContent className="pt-6 flex flex-col h-full">
++                    <div className="flex items-center gap-2 mb-3">
++                      <span className="text-[10px] uppercase tracking-wider text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded">
++                        CSP初赛
++                      </span>
++                      <span className="text-xs text-slate-400">
++                        {formatDate(l.createdAt)}
++                      </span>
++                    </div>
++                    <h3 className="text-lg font-semibold text-slate-900 mb-2 group-hover:text-blue-600 line-clamp-2">
++                      {l.title}
++                    </h3>
++                    {l.description && (
++                      <p className="text-sm text-slate-600 line-clamp-3 mb-4 flex-1">
++                        {l.description}
++                      </p>
++                    )}
++                    <div className="mt-auto flex items-center justify-between text-sm">
++                      <span className="text-slate-500">
++                        {l.sceneCount} 个场景
++                      </span>
++                      <span className="text-blue-600 group-hover:underline">
++                        开始学习 →
++                      </span>
++                    </div>
++                  </CardContent>
++                </Card>
++              </Link>
++            ))}
++          </div>
++        )}
++      </section>
++
++      {/* Footer */}
++      <footer className="border-t border-slate-200/60 bg-white/40 backdrop-blur">
++        <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-slate-500">
++          <div>© {new Date().getFullYear()} AI 错题本 · CSP初赛要点精讲</div>
++          <div className="flex items-center gap-5">
++            <Link href="/" className="hover:text-slate-900">
++              首页
++            </Link>
++            <Link href="/mistake-book" className="hover:text-slate-900">
++              错题本
++            </Link>
++            <Link href="/admin/csp-lecture" className="hover:text-slate-900">
++              管理入口
++            </Link>
++          </div>
++        </div>
++      </footer>
++    </main>
++  );
++}

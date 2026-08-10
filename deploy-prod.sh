@@ -6,8 +6,13 @@
 #   2. Pulls the latest master
 #   3. Syncs frontend/.env.local from the env-var template (callers can
 #      pre-create it; the script refuses to overwrite blindly)
-#   4. Rebuilds the frontend container and restarts the stack
-#   5. Runs a health check against the new /api/integrations/health
+#   4. Rebuilds the frontend image
+#   5. Restarts the frontend container
+#   6. Fixes ownership of the host-side bind mount for classroom
+#      uploads (chown frontend/data/classrooms → 1001:1001 and verify
+#      with an in-container touch test). Safe to re-run; runs the
+#      script at frontend/scripts/fix-bind-mount-perms.sh.
+#   7. Runs a health check against the new /api/integrations/health
 #
 # Usage:
 #   ./deploy-prod.sh                      # pull master, rebuild, restart
@@ -38,7 +43,7 @@ for arg in "$@"; do
     --no-pull)            PULL=0 ;;
     --skip-healthcheck)   RUN_HEALTHCHECK=0 ;;
     -h|--help)
-      sed -n '2,25p' "$0"
+      sed -n '2,32p' "$0"
       exit 0
       ;;
     *) echo "Unknown arg: $arg" >&2; exit 1 ;;
@@ -47,7 +52,7 @@ done
 
 cd "$REPO_DIR"
 
-echo "== 1/6 Sanity checks =="
+echo "== 1/7 Sanity checks =="
 git rev-parse --is-inside-work-tree >/dev/null
 current_branch="$(git rev-parse --abbrev-ref HEAD)"
 if [[ "$current_branch" != "master" ]]; then
@@ -65,7 +70,7 @@ if [[ -z "${DEPLOY_DOMAIN:-}" ]]; then
   exit 2
 fi
 
-echo "== 2/6 Pull latest master =="
+echo "== 2/7 Pull latest master =="
 if [[ "$PULL" -eq 1 ]]; then
   git pull --ff-only origin master
 else
@@ -73,7 +78,7 @@ else
 fi
 echo "  HEAD: $(git rev-parse --short HEAD)"
 
-echo "== 3/6 Sync frontend/.env.local =="
+echo "== 3/7 Sync frontend/.env.local =="
 ENV_FILE="frontend/.env.local"
 TMP_ENV="$(mktemp)"
 trap 'rm -f "$TMP_ENV"' EXIT
@@ -101,13 +106,46 @@ done
 install -m 600 "$TMP_ENV" "$ENV_FILE"
 echo "  wrote $ENV_FILE ($(wc -c < "$ENV_FILE") bytes, mode 600)"
 
-echo "== 4/6 Rebuild frontend image =="
+echo "== 4/7 Rebuild frontend image =="
 docker compose build --pull frontend
 
-echo "== 5/6 Restart stack =="
+echo "== 5/7 Restart stack =="
 docker compose up -d --no-deps --force-recreate frontend
 
-echo "== 6/6 Health check =="
+echo "== 6/7 Fix bind-mount permissions =="
+# The host-side bind mount that the frontend container writes
+# classrooms into (`./frontend/data/classrooms`) is created by
+# humans (root, ubuntu) whose uid does not match the container's
+# `nextjs` user (uid 1001). After a fresh `git pull` the directory
+# is often owned by the deploying user, so the first upload
+# returns 500 EACCES and the admin UI shows "上传失败：import
+# failed". Normalize ownership here, right after the container
+# comes back up, and verify with a one-shot touch inside the
+# container. See frontend/scripts/fix-bind-mount-perms.sh for
+# the full implementation and SKIP_VERIFY / CHOWN_DRY_RUN knobs.
+PERM_SCRIPT="$REPO_DIR/frontend/scripts/fix-bind-mount-perms.sh"
+if [[ ! -f "$PERM_SCRIPT" ]]; then
+  echo "  ERROR: $PERM_SCRIPT not found" >&2
+  echo "         (was the new file committed and pushed?)" >&2
+elif [[ ! -x "$PERM_SCRIPT" ]]; then
+  # Fresh `git pull` from a Windows-side commit often lands without
+  # the +x bit. Normalize here so the next deploy doesn't have to.
+  echo "  → chmod +x $PERM_SCRIPT (was not executable)"
+  chmod +x "$PERM_SCRIPT" || true
+fi
+if [[ -x "$PERM_SCRIPT" ]]; then
+  "$PERM_SCRIPT" || {
+    rc=$?
+    echo "  WARN: fix-bind-mount-perms.sh exited $rc" >&2
+    echo "        uploads may fail with EACCES until ownership is fixed" >&2
+    echo "        run manually: sudo $PERM_SCRIPT" >&2
+  }
+else
+  echo "  WARN: $PERM_SCRIPT is not executable even after chmod" >&2
+  echo "        run: sudo chmod +x $PERM_SCRIPT && sudo $PERM_SCRIPT" >&2
+fi
+
+echo "== 7/7 Health check =="
 if [[ "$RUN_HEALTHCHECK" -eq 1 ]]; then
   HEALTH_URL="${DEPLOY_DOMAIN%/}/api/integrations/health"
   for i in 1 2 3 4 5 6 7 8 9 10; do

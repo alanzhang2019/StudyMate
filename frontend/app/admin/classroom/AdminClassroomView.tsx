@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { createLogger } from '@/lib/logger';
+import { formatDateBeijing, parseStoredTimestamp } from '@/lib/utils/date';
 
 const log = createLogger('AdminClassroomView');
 
@@ -586,7 +587,8 @@ export default function AdminClassroomView({
 
 function formatDate(iso: string): string {
   try {
-    const d = new Date(iso);
+    const d = parseStoredTimestamp(iso);
+    if (!d) return iso;
     const now = new Date();
     const diffMs = now.getTime() - d.getTime();
     const diffMin = Math.floor(diffMs / 60_000);
@@ -596,7 +598,7 @@ function formatDate(iso: string): string {
     if (diffHour < 24) return `${diffHour} 小时前`;
     const diffDay = Math.floor(diffHour / 24);
     if (diffDay < 30) return `${diffDay} 天前`;
-    return d.toLocaleDateString('zh-CN');
+    return formatDateBeijing(iso);
   } catch {
     return iso;
   }

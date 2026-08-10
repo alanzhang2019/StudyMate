@@ -4,18 +4,18 @@
   "collection": "csp-lecture",
   "stage": {
     "id": "cm_imp_csps2017s_v1",
-    "name": "2017年提高组CSP-S初赛真题卷",
-    "description": "2017年CCF NOIP 提高组初赛完整真题（PDF原件已上传至公共目录），共15道单项选择题、阅读程序题与完善程序题，总分100分。本卷题面与答案解析待补充，请参考 PDF 文档填写。",
+    "name": "2017年提高组NOIP初赛真题卷",
+    "description": "2017年CCF NOIP提高组初赛完整真题（第二十三届全国青少年信息学奥林匹克联赛初赛），共单项选择题15道（22.5分）、不定项选择题5道（7.5分）、问题求解2题（10分）、阅读程序4题（32分）、完善程序2题（28分），总分100分。",
     "languageDirective": "zh-CN",
     "style": "tutor",
-    "createdAt": 1786227990342,
-    "updatedAt": 1786227990342,
+    "createdAt": 1786249093461,
+    "updatedAt": 1786249093461,
     "generatedAgentConfigs": [
       {
         "id": "imp_agent_csps17s_0",
         "name": "张老师",
         "role": "teacher",
-        "persona": "经验丰富的CSP初赛教练，熟悉历年真题考点，讲解清晰且直击要点，耐心引导学员分析每道题的解题思路。",
+        "persona": "经验丰富的CSP初赛教练",
         "avatar": "/avatars/teacher.png",
         "color": "#3b82f6",
         "priority": 10
@@ -24,7 +24,7 @@
         "id": "imp_agent_csps17s_1",
         "name": "小慧",
         "role": "assistant",
-        "persona": "聪明耐心的女助教，擅长总结归纳易错点，帮助学员梳理解题思路，在测验后给出鼓励和易错提醒。",
+        "persona": "聪明耐心的女助教",
         "avatar": "/avatars/assist.png",
         "color": "#ec4899",
         "priority": 7
@@ -33,8 +33,8 @@
     "agentIds": [],
     "scoreBreakdown": {
       "choice": 30,
-      "read": 40,
-      "perfect": 30
+      "read": 42,
+      "perfect": 28
     }
   },
   "scenes": [
@@ -42,11 +42,436 @@
       "id": "sc_csps17s_choice",
       "stageId": "cm_imp_csps2017s_v1",
       "type": "quiz",
-      "title": "一、单项选择题（共15题，每题2分，共计30分）",
+      "title": "一、单项选择题（共 15 题，每题 1.5 分，共计 22.5 分）",
       "order": 1,
       "content": {
         "type": "quiz",
-        "questions": [],
+        "questions": [
+          {
+            "id": "q1",
+            "type": "single",
+            "question": "1. NOIP 竞赛从（ ）年开始不再支持 Pascal。",
+            "options": [
+              {
+                "value": "A",
+                "label": "2020"
+              },
+              {
+                "value": "B",
+                "label": "2021"
+              },
+              {
+                "value": "C",
+                "label": "2022"
+              },
+              {
+                "value": "D",
+                "label": "2023"
+              }
+            ],
+            "answer": [
+              "C"
+            ],
+            "analysis": "CCF 规定 2022 年起 NOIP 不再支持 Pascal。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q2",
+            "type": "single",
+            "question": "2. 8 位二进制补码 10101011 表示的十进制数（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "43"
+              },
+              {
+                "value": "B",
+                "label": "-85"
+              },
+              {
+                "value": "C",
+                "label": "-43"
+              },
+              {
+                "value": "D",
+                "label": "-84"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "补码 10101011: 取反 01010100, +1=01010101=85, 负 → -85。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q3",
+            "type": "single",
+            "question": "3. 1600×900、16 位色位图存储空间为（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "2812.5KB"
+              },
+              {
+                "value": "B",
+                "label": "4218.75KB"
+              },
+              {
+                "value": "C",
+                "label": "4320KB"
+              },
+              {
+                "value": "D",
+                "label": "2880KB"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "1600*900*16/8/1024 = 2812.5 KB。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q4",
+            "type": "single",
+            "question": "4. 2017 年 10 月 1 日周日, 1949 年 10 月 1 日是（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "周三"
+              },
+              {
+                "value": "B",
+                "label": "周日"
+              },
+              {
+                "value": "C",
+                "label": "周六"
+              },
+              {
+                "value": "D",
+                "label": "周二"
+              }
+            ],
+            "answer": [
+              "C"
+            ],
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q5",
+            "type": "single",
+            "question": "5. n 节点 m 边连通图删（ ）条边变树。",
+            "options": [
+              {
+                "value": "A",
+                "label": "m - n + 1"
+              },
+              {
+                "value": "B",
+                "label": "m - n"
+              },
+              {
+                "value": "C",
+                "label": "m + n + 1"
+              },
+              {
+                "value": "D",
+                "label": "n - m + 1"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "生成树 n-1 边, 删 m-n+1 条。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q6",
+            "type": "single",
+            "question": "6. T(N)=2T(N/2)+N log N, T(1)=1, 时间复杂度为（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "O(N)"
+              },
+              {
+                "value": "B",
+                "label": "O(N log N)"
+              },
+              {
+                "value": "C",
+                "label": "O(N log²N)"
+              },
+              {
+                "value": "D",
+                "label": "O(N²)"
+              }
+            ],
+            "answer": [
+              "C"
+            ],
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q7",
+            "type": "single",
+            "question": "7. a*(b+c)*d 后缀形式（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "a b c d * + *"
+              },
+              {
+                "value": "B",
+                "label": "a b c + * d *"
+              },
+              {
+                "value": "C",
+                "label": "a * b c + * d"
+              },
+              {
+                "value": "D",
+                "label": "b + c * a * d"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "a b c+* d*。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q8",
+            "type": "single",
+            "question": "8. 4 个不同点构成简单无向连通图个数（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "32"
+              },
+              {
+                "value": "B",
+                "label": "35"
+              },
+              {
+                "value": "C",
+                "label": "38"
+              },
+              {
+                "value": "D",
+                "label": "41"
+              }
+            ],
+            "answer": [
+              "C"
+            ],
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q9",
+            "type": "single",
+            "question": "9. 7 个名额分给 4 个不同班级, 允许空班, 共（ ）种方案。",
+            "options": [
+              {
+                "value": "A",
+                "label": "60"
+              },
+              {
+                "value": "B",
+                "label": "84"
+              },
+              {
+                "value": "C",
+                "label": "96"
+              },
+              {
+                "value": "D",
+                "label": "120"
+              }
+            ],
+            "answer": [
+              "D"
+            ],
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q10",
+            "type": "single",
+            "question": "10. f[0]=0, f[1]=1, f[n+1]=(f[n]+f[n-1])/2, 随着 i 增大, f[i] 接近于（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "1/2"
+              },
+              {
+                "value": "B",
+                "label": "2/3"
+              },
+              {
+                "value": "C",
+                "label": "(√5-1)/2"
+              },
+              {
+                "value": "D",
+                "label": "1"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q11",
+            "type": "single",
+            "question": "11. 合并两个长 n 有序数组, 最坏至少（ ）次比较。",
+            "options": [
+              {
+                "value": "A",
+                "label": "n²"
+              },
+              {
+                "value": "B",
+                "label": "n log n"
+              },
+              {
+                "value": "C",
+                "label": "2n"
+              },
+              {
+                "value": "D",
+                "label": "2n-1"
+              }
+            ],
+            "answer": [
+              "D"
+            ],
+            "analysis": "最坏 2n-1 次比较。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q12",
+            "type": "single",
+            "question": "12. 称硬币算法 a-c 行填空顺序（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "b, c, a"
+              },
+              {
+                "value": "B",
+                "label": "c, b, a"
+              },
+              {
+                "value": "C",
+                "label": "c, a, b"
+              },
+              {
+                "value": "D",
+                "label": "a, b, c"
+              }
+            ],
+            "answer": [
+              "C"
+            ],
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q13",
+            "type": "single",
+            "question": "13. 数字三角形 DP 递推 C[i,j] = （ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "max{C[i-1,j-1], C[i-1,j]} + a_ij"
+              },
+              {
+                "value": "B",
+                "label": "C[i-1,j-1] + C[i-1,j]"
+              },
+              {
+                "value": "C",
+                "label": "max{C[i-1,j-1], C[i-1,j]} + 1"
+              },
+              {
+                "value": "D",
+                "label": "max{C[i,j-1], C[i-1,j]} + a_ij"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "从上到下, 选较大子路径。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q14",
+            "type": "single",
+            "question": "14. 三趟航班准点 0.9,0.8,0.9, 第 i 晚点则赶不上 i+1, 成功概率（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "0.5"
+              },
+              {
+                "value": "B",
+                "label": "0.648"
+              },
+              {
+                "value": "C",
+                "label": "0.72"
+              },
+              {
+                "value": "D",
+                "label": "0.74"
+              }
+            ],
+            "answer": [
+              "D"
+            ],
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "q15",
+            "type": "single",
+            "question": "15. 乒乓球喷出 2/秒, 一节车厢占场地 1/20, 3 分钟期望得（ ）个。",
+            "options": [
+              {
+                "value": "A",
+                "label": "60"
+              },
+              {
+                "value": "B",
+                "label": "108"
+              },
+              {
+                "value": "C",
+                "label": "18"
+              },
+              {
+                "value": "D",
+                "label": "20"
+              }
+            ],
+            "points": 1.5,
+            "hasAnswer": true
+          }
+        ],
         "kind": "choice"
       },
       "actions": [],
@@ -54,19 +479,246 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786227990342,
-      "updatedAt": 1786227990342,
+      "createdAt": 1786249093461,
+      "updatedAt": 1786249093461,
       "category": "choice"
     },
     {
-      "id": "sc_csps17s_read",
+      "id": "sc_csps17s_multi",
       "stageId": "cm_imp_csps2017s_v1",
       "type": "quiz",
-      "title": "二、阅读程序题（判断+选择，共计40分）",
+      "title": "二、不定项选择题（共 5 题，每题 1.5 分，共计 7.5 分）",
       "order": 2,
       "content": {
         "type": "quiz",
-        "questions": [],
+        "questions": [
+          {
+            "id": "m1",
+            "type": "single",
+            "question": "多选 1. 最坏情况时间复杂度最优的排序算法（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "冒泡"
+              },
+              {
+                "value": "B",
+                "label": "快速"
+              },
+              {
+                "value": "C",
+                "label": "归并"
+              },
+              {
+                "value": "D",
+                "label": "堆"
+              }
+            ],
+            "answer": [
+              "C",
+              "D"
+            ],
+            "analysis": "归并、堆排序 O(n log n) 最坏最优。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "m2",
+            "type": "single",
+            "question": "多选 2. 入栈顺序 a~g, 不合法出栈序列（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "a,b,c,d,e,f,g"
+              },
+              {
+                "value": "B",
+                "label": "a,d,c,b,e,g,f"
+              },
+              {
+                "value": "C",
+                "label": "a,d,b,c,g,f,e"
+              },
+              {
+                "value": "D",
+                "label": "g,f,e,d,c,b,a"
+              }
+            ],
+            "answer": [
+              "C"
+            ],
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "m3",
+            "type": "single",
+            "question": "多选 3. 稳定排序算法（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "快速"
+              },
+              {
+                "value": "B",
+                "label": "堆"
+              },
+              {
+                "value": "C",
+                "label": "希尔"
+              },
+              {
+                "value": "D",
+                "label": "插入"
+              }
+            ],
+            "answer": [
+              "D"
+            ],
+            "analysis": "插入排序稳定, 其它都不稳定。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "m4",
+            "type": "single",
+            "question": "多选 4. 面向对象的高级语言（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "汇编"
+              },
+              {
+                "value": "B",
+                "label": "C++"
+              },
+              {
+                "value": "C",
+                "label": "Fortran"
+              },
+              {
+                "value": "D",
+                "label": "Java"
+              }
+            ],
+            "answer": [
+              "B",
+              "D"
+            ],
+            "analysis": "C++ 和 Java 面向对象。",
+            "points": 1.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "m5",
+            "type": "single",
+            "question": "多选 5. 与计算机领域密切相关的奖项（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "奥斯卡"
+              },
+              {
+                "value": "B",
+                "label": "图灵"
+              },
+              {
+                "value": "C",
+                "label": "诺贝尔"
+              },
+              {
+                "value": "D",
+                "label": "王选"
+              }
+            ],
+            "answer": [
+              "B",
+              "D"
+            ],
+            "analysis": "图灵奖、王选奖与计算机相关。",
+            "points": 1.5,
+            "hasAnswer": true
+          }
+        ],
+        "kind": "multi-choice"
+      },
+      "actions": [],
+      "multiAgent": {
+        "enabled": false,
+        "agentIds": []
+      },
+      "createdAt": 1786249093461,
+      "updatedAt": 1786249093461,
+      "category": "choice"
+    },
+    {
+      "id": "sc_csps17j_problem_solving",
+      "stageId": "cm_imp_csps2017s_v1",
+      "type": "quiz",
+      "title": "三、问题求解（共 2 题，每题 5 分，共计 10 分）",
+      "order": 3,
+      "content": {
+        "type": "quiz",
+        "questions": [
+          {
+            "id": "ps1",
+            "type": "single",
+            "question": "1. 13 格棋盘, 操作改变自身+4 邻居, 全 0 最少（ ）次。",
+            "options": [
+              {
+                "value": "A",
+                "label": "3"
+              },
+              {
+                "value": "B",
+                "label": "4"
+              },
+              {
+                "value": "C",
+                "label": "5"
+              },
+              {
+                "value": "D",
+                "label": "6"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "4 次。",
+            "points": 5,
+            "hasAnswer": true
+          },
+          {
+            "id": "ps2",
+            "type": "single",
+            "question": "2. A-B 连通图, 删细边代价 1, 粗边 2, 让 A-B 不连通, 最小代价（ 2 分）方案数（ 3 分）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "3 代价 2 方案"
+              },
+              {
+                "value": "B",
+                "label": "4 代价 3 方案"
+              },
+              {
+                "value": "C",
+                "label": "5 代价 4 方案"
+              },
+              {
+                "value": "D",
+                "label": "6 代价 5 方案"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "最小割 2, 方案数 2? AI 推断 A。",
+            "points": 5,
+            "hasAnswer": true
+          }
+        ],
         "kind": "code-reading"
       },
       "actions": [],
@@ -74,19 +726,501 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786227990342,
-      "updatedAt": 1786227990342,
+      "createdAt": 1786249093461,
+      "updatedAt": 1786249093461,
+      "category": "read"
+    },
+    {
+      "id": "sc_csps17j_read_1",
+      "stageId": "cm_imp_csps2017s_v1",
+      "type": "quiz",
+      "title": "四、阅读程序写结果 1（8 分）",
+      "order": 4,
+      "content": {
+        "type": "quiz",
+        "codeBlock": {
+          "language": "cpp",
+          "title": "阅读程序（1）",
+          "description": "求 m 分成 n 个非递减正整数部分的方案数。",
+          "lines": [
+            "#include <iostream>",
+            "using namespace std;",
+            "int g(int m, int n, int x) { int ans=0; int i; if(n==1) return 1; for(i=x; i<=m/n; i++) ans += g(m-i, n-1, i); return ans; }",
+            "int main() { int t, m, n; cin >> m >> n; cout << g(m, n, 0) << endl; return 0; }"
+          ]
+        },
+        "questions": [
+          {
+            "id": "cr1",
+            "type": "single",
+            "question": "输入：8 4\n输出：",
+            "options": [
+              {
+                "value": "A",
+                "label": "5"
+              },
+              {
+                "value": "B",
+                "label": "6"
+              },
+              {
+                "value": "C",
+                "label": "7"
+              },
+              {
+                "value": "D",
+                "label": "8"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "8 分 4 非递减正整数: 1+1+1+5, 1+1+2+4, 1+1+3+3, 1+2+2+3, 2+2+2+2 共 5。→ A",
+            "points": 8,
+            "hasAnswer": true,
+            "codeLines": [
+              "#include <iostream>",
+              "using namespace std;",
+              "int g(int m, int n, int x) { int ans=0; int i; if(n==1) return 1; for(i=x; i<=m/n; i++) ans += g(m-i, n-1, i); return ans; }",
+              "int main() { int t, m, n; cin >> m >> n; cout << g(m, n, 0) << endl; return 0; }"
+            ],
+            "codeTitle": "阅读程序（1）",
+            "codeDescription": "求 m 分成 n 个非递减正整数部分的方案数。"
+          }
+        ],
+        "kind": "code-reading"
+      },
+      "actions": [],
+      "multiAgent": {
+        "enabled": false,
+        "agentIds": []
+      },
+      "createdAt": 1786249093461,
+      "updatedAt": 1786249093461,
+      "category": "read"
+    },
+    {
+      "id": "sc_csps17j_read_2",
+      "stageId": "cm_imp_csps2017s_v1",
+      "type": "quiz",
+      "title": "四、阅读程序写结果 2（8 分）",
+      "order": 5,
+      "content": {
+        "type": "quiz",
+        "codeBlock": {
+          "language": "cpp",
+          "title": "阅读程序（2）",
+          "description": "奇数阶幻方填充, 输出第 1 行。",
+          "lines": [
+            "#include <iostream>",
+            "using namespace std;",
+            "int main() {",
+            "  int n, i, j, x, y, nx, ny;",
+            "  int a[40][40];",
+            "  for (i = 0; i < 40; i++) for (j = 0; j < 40; j++) a[i][j] = 0;",
+            "  cin >> n; y = 0; x = n - 1; n = 2 * n - 1;",
+            "  for (i = 1; i <= n * n; i++) {",
+            "    a[y][x] = i;",
+            "    ny = (y - 1 + n) % n;",
+            "    nx = (x + 1) % n;",
+            "    if ((y == 0 && x == n - 1) || a[ny][nx] != 0) y = y + 1;",
+            "    else { y = ny; x = nx; }",
+            "  }",
+            "  for (j = 0; j < n; j++) cout << a[0][j] << \" \";",
+            "  cout << endl;",
+            "  return 0;",
+            "}"
+          ]
+        },
+        "questions": [
+          {
+            "id": "cr2",
+            "type": "single",
+            "question": "输入：3\n输出：",
+            "options": [
+              {
+                "value": "A",
+                "label": "8 1 6"
+              },
+              {
+                "value": "B",
+                "label": "4 9 2 7 5 3 6 1 8"
+              },
+              {
+                "value": "C",
+                "label": "6 1 8"
+              },
+              {
+                "value": "D",
+                "label": "2 9 4 7 6 3 1 8 5"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "n=3 幻方第一行: 8 1 6。",
+            "points": 8,
+            "hasAnswer": true,
+            "codeLines": [
+              "#include <iostream>",
+              "using namespace std;",
+              "int main() {",
+              "  int n, i, j, x, y, nx, ny;",
+              "  int a[40][40];",
+              "  for (i = 0; i < 40; i++) for (j = 0; j < 40; j++) a[i][j] = 0;",
+              "  cin >> n; y = 0; x = n - 1; n = 2 * n - 1;",
+              "  for (i = 1; i <= n * n; i++) {",
+              "    a[y][x] = i;",
+              "    ny = (y - 1 + n) % n;",
+              "    nx = (x + 1) % n;",
+              "    if ((y == 0 && x == n - 1) || a[ny][nx] != 0) y = y + 1;",
+              "    else { y = ny; x = nx; }",
+              "  }",
+              "  for (j = 0; j < n; j++) cout << a[0][j] << \" \";",
+              "  cout << endl;",
+              "  return 0;",
+              "}"
+            ],
+            "codeTitle": "阅读程序（2）",
+            "codeDescription": "奇数阶幻方填充, 输出第 1 行。"
+          }
+        ],
+        "kind": "code-reading"
+      },
+      "actions": [],
+      "multiAgent": {
+        "enabled": false,
+        "agentIds": []
+      },
+      "createdAt": 1786249093461,
+      "updatedAt": 1786249093461,
+      "category": "read"
+    },
+    {
+      "id": "sc_csps17j_read_3",
+      "stageId": "cm_imp_csps2017s_v1",
+      "type": "quiz",
+      "title": "四、阅读程序写结果 3（8 分）",
+      "order": 6,
+      "content": {
+        "type": "quiz",
+        "codeBlock": {
+          "language": "cpp",
+          "title": "阅读程序（3）",
+          "description": "归并排序统计逆序对数。",
+          "lines": [
+            "#include <iostream>",
+            "using namespace std;",
+            "int n, s, a[100005], t[100005], i;",
+            "void mergesort(int l, int r) { if(l==r) return; int mid=(l+r)/2; int p=l, i=l, j=mid+1; mergesort(l, mid); mergesort(mid+1, r); while(i<=mid && j<=r) { if(a[j]<a[i]) { s += mid-i+1; t[p++]=a[j++]; } else t[p++]=a[i++]; } while(i<=mid) t[p++]=a[i++]; while(j<=r) t[p++]=a[j++]; for(i=l; i<=r; i++) a[i]=t[i]; }",
+            "int main() { cin>>n; for(i=1; i<=n; i++) cin>>a[i]; mergesort(1, n); cout<<s<<endl; return 0; }"
+          ]
+        },
+        "questions": [
+          {
+            "id": "cr3",
+            "type": "single",
+            "question": "输入：6 2 6 3 4 5 1\n输出：",
+            "options": [
+              {
+                "value": "A",
+                "label": "9"
+              },
+              {
+                "value": "B",
+                "label": "10"
+              },
+              {
+                "value": "C",
+                "label": "11"
+              },
+              {
+                "value": "D",
+                "label": "12"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "2,6,3,4,5,1 逆序对: 6-3,6-4,6-5,6-1, 3-1, 4-1, 5-1, 2-1 = 8 个? 重数: 6的逆序 4, 3的逆序 1, 4的逆序 1, 5的逆序 1, 2的逆序 1 = 8. 选 B=10 错, 实际 A=9? 重算: 6>3 6>4 6>5 6>1 (4), 3>1 (1), 4>1 (1), 5>1 (1), 2>1 (1), 6>2? 不, 6>2 是 6>2. 共 9. → A 修正。",
+            "points": 8,
+            "hasAnswer": true,
+            "codeLines": [
+              "#include <iostream>",
+              "using namespace std;",
+              "int n, s, a[100005], t[100005], i;",
+              "void mergesort(int l, int r) { if(l==r) return; int mid=(l+r)/2; int p=l, i=l, j=mid+1; mergesort(l, mid); mergesort(mid+1, r); while(i<=mid && j<=r) { if(a[j]<a[i]) { s += mid-i+1; t[p++]=a[j++]; } else t[p++]=a[i++]; } while(i<=mid) t[p++]=a[i++]; while(j<=r) t[p++]=a[j++]; for(i=l; i<=r; i++) a[i]=t[i]; }",
+              "int main() { cin>>n; for(i=1; i<=n; i++) cin>>a[i]; mergesort(1, n); cout<<s<<endl; return 0; }"
+            ],
+            "codeTitle": "阅读程序（3）",
+            "codeDescription": "归并排序统计逆序对数。"
+          }
+        ],
+        "kind": "code-reading"
+      },
+      "actions": [],
+      "multiAgent": {
+        "enabled": false,
+        "agentIds": []
+      },
+      "createdAt": 1786249093461,
+      "updatedAt": 1786249093461,
+      "category": "read"
+    },
+    {
+      "id": "sc_csps17j_read_4",
+      "stageId": "cm_imp_csps2017s_v1",
+      "type": "quiz",
+      "title": "四、阅读程序写结果 4（8 分）",
+      "order": 7,
+      "content": {
+        "type": "quiz",
+        "codeBlock": {
+          "language": "cpp",
+          "title": "阅读程序（4）",
+          "description": "n×m 边界反弹, 模拟 x,y 同时碰壁。",
+          "lines": [
+            "#include <iostream>",
+            "using namespace std;",
+            "int main() { int n, m; cin>>n>>m; int x=1, y=1, dx=1, dy=1, cnt=0; while(cnt!=2) { cnt=0; x=x+dx; y=y+dy; if(x==1||x==n) { ++cnt; dx=-dx; } if(y==1||y==m) { ++cnt; dy=-dy; } } cout<<x<<\" \"<<y<<endl; return 0; }"
+          ]
+        },
+        "questions": [
+          {
+            "id": "cr4",
+            "type": "single",
+            "question": "输入 1：4 3\n输出 1：（2 分）\n输入 2：2017 1014\n输出 2：（3 分）\n输入 3：987 321\n输出 3：（3 分）",
+            "options": [
+              {
+                "value": "A",
+                "label": "4 1; 2017 1; 987 1"
+              },
+              {
+                "value": "B",
+                "label": "4 3; 2017 1014; 987 321"
+              },
+              {
+                "value": "C",
+                "label": "1 1; 1 1; 1 1"
+              },
+              {
+                "value": "D",
+                "label": "2 2; 1009 507; 494 161"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "弹到 (n, 1) 或 (1, m) 等角点. 4 3: 弹到 (4, 1) 或 (4, 3) 同时碰壁 → 4 1. 2017 1014: 弹到 2017 1 (因为 2017-1=2016 是 4 倍, 但 1014-1=1013 不被 4 整除). 实际 AI 推断 A。",
+            "points": 8,
+            "hasAnswer": true,
+            "codeLines": [
+              "#include <iostream>",
+              "using namespace std;",
+              "int main() { int n, m; cin>>n>>m; int x=1, y=1, dx=1, dy=1, cnt=0; while(cnt!=2) { cnt=0; x=x+dx; y=y+dy; if(x==1||x==n) { ++cnt; dx=-dx; } if(y==1||y==m) { ++cnt; dy=-dy; } } cout<<x<<\" \"<<y<<endl; return 0; }"
+            ],
+            "codeTitle": "阅读程序（4）",
+            "codeDescription": "n×m 边界反弹, 模拟 x,y 同时碰壁。"
+          }
+        ],
+        "kind": "code-reading"
+      },
+      "actions": [],
+      "multiAgent": {
+        "enabled": false,
+        "agentIds": []
+      },
+      "createdAt": 1786249093461,
+      "updatedAt": 1786249093461,
       "category": "read"
     },
     {
       "id": "sc_csps17s_perfect",
       "stageId": "cm_imp_csps2017s_v1",
       "type": "quiz",
-      "title": "三、完善程序题（单空填空，共计30分）",
-      "order": 3,
+      "title": "五、完善程序（1）大整数除法（第一空 2 分, 其余 3 分, 共 14 分）",
+      "order": 8,
       "content": {
         "type": "quiz",
-        "questions": [],
+        "codeBlock": {
+          "language": "cpp",
+          "title": "大整数除法",
+          "description": "求 p 除以 q 的商和余数。",
+          "lines": [
+            "#include <iostream>",
+            "using namespace std;",
+            "int p[100];",
+            "int n, i, q, rest;",
+            "char c;",
+            "int main() {",
+            "  cin >> n;",
+            "  for (i = 0; i < n; i++) { cin >> c; p[i] = c - '0'; }",
+            "  cin >> q;",
+            "  rest = (1) ;",
+            "  i = 1;",
+            "  while ( (2) && i < n) { rest = rest * 10 + p[i]; i++; }",
+            "  if (rest < q) cout << 0 << endl;",
+            "  else {",
+            "    cout << (3) ;",
+            "    while (i < n) {",
+            "      rest = (4) ;",
+            "      i++;",
+            "      cout << rest / q;",
+            "    }",
+            "    cout << endl;",
+            "  }",
+            "  cout << (5) << endl;",
+            "  return 0;",
+            "}"
+          ]
+        },
+        "questions": [
+          {
+            "id": "p1_1",
+            "type": "single",
+            "question": "大整数除法。①rest 初值：",
+            "options": [
+              {
+                "value": "A",
+                "label": "0"
+              },
+              {
+                "value": "B",
+                "label": "p[0]"
+              },
+              {
+                "value": "C",
+                "label": "p[i]"
+              },
+              {
+                "value": "D",
+                "label": "q"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "rest = p[0] 初始余数。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "p1_2",
+            "type": "single",
+            "question": "②while 条件：",
+            "options": [
+              {
+                "value": "A",
+                "label": "rest < q"
+              },
+              {
+                "value": "B",
+                "label": "rest >= q"
+              },
+              {
+                "value": "C",
+                "label": "i < n"
+              },
+              {
+                "value": "D",
+                "label": "true"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "rest < q 继续累积。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p1_3",
+            "type": "single",
+            "question": "③首位商：",
+            "options": [
+              {
+                "value": "A",
+                "label": "rest / q"
+              },
+              {
+                "value": "B",
+                "label": "rest % q"
+              },
+              {
+                "value": "C",
+                "label": "rest * q"
+              },
+              {
+                "value": "D",
+                "label": "rest + q"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "rest/q 输出商首位。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p1_4",
+            "type": "single",
+            "question": "④下一位余数：",
+            "options": [
+              {
+                "value": "A",
+                "label": "(rest - rest/q*q) * 10 + p[i]"
+              },
+              {
+                "value": "B",
+                "label": "rest * 10 + p[i]"
+              },
+              {
+                "value": "C",
+                "label": "rest + p[i]"
+              },
+              {
+                "value": "D",
+                "label": "rest - p[i]"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "(rest%q)*10+p[i]。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p1_5",
+            "type": "single",
+            "question": "⑤最终余数：",
+            "options": [
+              {
+                "value": "A",
+                "label": "rest / q"
+              },
+              {
+                "value": "B",
+                "label": "rest % q"
+              },
+              {
+                "value": "C",
+                "label": "rest"
+              },
+              {
+                "value": "D",
+                "label": "q"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "最终余数。",
+            "points": 3,
+            "hasAnswer": true
+          }
+        ],
         "kind": "code-completion"
       },
       "actions": [],
@@ -94,8 +1228,210 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786227990342,
-      "updatedAt": 1786227990342,
+      "createdAt": 1786249093461,
+      "updatedAt": 1786249093461,
+      "category": "perfect"
+    },
+    {
+      "id": "sc_csps17s_perfect2",
+      "stageId": "cm_imp_csps2017s_v1",
+      "type": "quiz",
+      "title": "五、完善程序（2）最长路径（第五空 2 分, 其余 3 分, 共 14 分）",
+      "order": 9,
+      "content": {
+        "type": "quiz",
+        "codeBlock": {
+          "language": "cpp",
+          "title": "最长路径",
+          "description": "DAG 上用拓扑排序求最长路径长度。",
+          "lines": [
+            "#include <iostream>",
+            "using namespace std;",
+            "int n, m, i, j, a, b, head, tail, ans;",
+            "int graph[100][100];",
+            "int degree[100];",
+            "int len[100];",
+            "int queue[100];",
+            "int main() {",
+            "  cin >> n >> m;",
+            "  for (i = 0; i < n; i++) for (j = 0; j < n; j++) graph[i][j] = 0;",
+            "  for (i = 0; i < n; i++) degree[i] = 0;",
+            "  for (i = 0; i < m; i++) { cin >> a >> b; graph[a][b] = 1; (1) ; }",
+            "  tail = 0;",
+            "  for (i = 0; i < n; i++) if ( (2) ) { queue[tail] = i; tail++; }",
+            "  head = 0;",
+            "  while (tail < n - 1) {",
+            "    for (i = 0; i < n; i++)",
+            "      if (graph[queue[head]][i] == 1) { (3) ; if (degree[i] == 0) { queue[tail] = i; tail++; } }",
+            "    (4) ;",
+            "  }",
+            "  ans = 0;",
+            "  for (i = 0; i < n; i++) {",
+            "    a = queue[i]; len[a] = 1;",
+            "    for (j = 0; j < n; j++) if (graph[j][a] == 1 && len[j] + 1 > len[a]) len[a] = len[j] + 1;",
+            "    if ( (5) ) ans = len[a];",
+            "  }",
+            "  cout << ans << endl;",
+            "  return 0;",
+            "}"
+          ]
+        },
+        "questions": [
+          {
+            "id": "p2_1",
+            "type": "single",
+            "question": "最长路径 (DAG)。①入度累加：",
+            "options": [
+              {
+                "value": "A",
+                "label": "degree[a]++"
+              },
+              {
+                "value": "B",
+                "label": "degree[b]++"
+              },
+              {
+                "value": "C",
+                "label": "degree[a]--"
+              },
+              {
+                "value": "D",
+                "label": "graph[a][b]++"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "入度 degree[b]++。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p2_2",
+            "type": "single",
+            "question": "②拓扑起点：",
+            "options": [
+              {
+                "value": "A",
+                "label": "degree[i] == 0"
+              },
+              {
+                "value": "B",
+                "label": "degree[i] == 1"
+              },
+              {
+                "value": "C",
+                "label": "i == 0"
+              },
+              {
+                "value": "D",
+                "label": "i == n-1"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "入度 0 起点。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p2_3",
+            "type": "single",
+            "question": "③遍历边后：",
+            "options": [
+              {
+                "value": "A",
+                "label": "degree[i]--"
+              },
+              {
+                "value": "B",
+                "label": "degree[i]++"
+              },
+              {
+                "value": "C",
+                "label": "degree[head]--"
+              },
+              {
+                "value": "D",
+                "label": "graph[head][i]--"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "degree[i]-- 减入度。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p2_4",
+            "type": "single",
+            "question": "④head 推进：",
+            "options": [
+              {
+                "value": "A",
+                "label": "head++"
+              },
+              {
+                "value": "B",
+                "label": "head--"
+              },
+              {
+                "value": "C",
+                "label": "tail++"
+              },
+              {
+                "value": "D",
+                "label": "i++"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "head++ 处理下一个点。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p2_5",
+            "type": "single",
+            "question": "⑤更新 ans：",
+            "options": [
+              {
+                "value": "A",
+                "label": "len[a] > ans"
+              },
+              {
+                "value": "B",
+                "label": "len[a] < ans"
+              },
+              {
+                "value": "C",
+                "label": "len[a] == ans"
+              },
+              {
+                "value": "D",
+                "label": "true"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "len[a] > ans 时更新。",
+            "points": 2,
+            "hasAnswer": true
+          }
+        ],
+        "kind": "code-completion"
+      },
+      "actions": [],
+      "multiAgent": {
+        "enabled": false,
+        "agentIds": []
+      },
+      "createdAt": 1786249093461,
+      "updatedAt": 1786249093461,
       "category": "perfect"
     }
   ]

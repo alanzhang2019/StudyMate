@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
+import { formatDateTimeBeijing } from '@/lib/utils/date';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,21 +55,6 @@ interface MistakeBookListProps {
 }
 
 type LoadState = 'loading' | 'ready' | 'error';
-
-function formatDate(iso: string): string {
-  try {
-    const d = new Date(iso);
-    return d.toLocaleString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return iso;
-  }
-}
 
 export function MistakeBookList({ initial }: MistakeBookListProps) {
   const [state, setState] = useState<LoadState>(initial ? 'ready' : 'loading');
@@ -409,8 +395,8 @@ function MistakeBookCard({
           </p>
 
           <p className="text-xs text-muted-foreground/80">
-            收藏于 {formatDate(item.createdAt)}
-            {item.resolvedAt ? ` · 掌握于 ${formatDate(item.resolvedAt)}` : ''}
+            收藏于 {formatDateTimeBeijing(item.createdAt)}
+            {item.resolvedAt ? ` · 掌握于 ${formatDateTimeBeijing(item.resolvedAt)}` : ''}
           </p>
         </div>
 

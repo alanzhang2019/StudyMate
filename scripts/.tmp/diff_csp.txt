@@ -1,0 +1,79 @@
+﻿commit 53e3787dd5f3546d10cca37d581002db9dadef77
+Author: Bot <bot@example.com>
+Date:   Sat Aug 8 15:14:35 2026 +0800
+
+    feat(mistake-book): CSP 错题本 — 自动按课件分类 + 复习入口
+    
+    数据层
+    - frontend/lib/db.ts: cspQuizSubmission.findAllByUser(userId) 新增 SQL,
+      索引走 userId, 单次取回该用户所有 classroom 的提交。
+    
+    聚合层
+    - frontend/lib/server/csp-mistake-book.ts: loadCspMistakeBook(userId)
+      - 读 csp_quiz_submissions 全部记录
+      - 解析每条 answersJson, 保留 correct=false 的 entry
+      - classroom JSON 按需缓存(每本课件最多读 1 次)
+      - key = classroomId::sceneId::questionId 去重, mistakeCount 累加
+      - 按课件分组返回 groups: [{classroomId, classroomTitle, mistakes[]}]
+      - 课件被删时静默跳过(不让单条损坏行搞挂整个错题本)
+    
+    API
+    - frontend/app/api/mistake-book/csp/route.ts: GET 端点
+      调 loadCspMistakeBook, 401 / 200 JSON
+    
+    页面
+    - frontend/app/student/csp-mistakes/page.tsx (RSC)
+      - 鉴权 (student role) + loadCspMistakeBook
+      - Hero + SummaryCard 错题总数/覆盖课件/最近答错
+      - 错题=0 时显示空态 + 「去课件库」按钮
+      - 错题>0 时把 groups 传给 client 组件渲染
+    
+    - frontend/components/mistake-book/mistake-book-view.tsx (Client)
+      - 按课件分组的可折叠卡片列表, 默认全部展开
+      - 「全部展开 / 全部折叠」快捷按钮
+      - 每道错题: 题干 / 选项(你的红+正确绿) / 你的答案 / 正确答案 / 解析 / 答错次数
+      - 「去课件复习这道题」跳到 classroomId+scene 深链
+    
+    入口
+    - frontend/app/csp-lecture/page.tsx 顶部 nav (student role 时)
+      加红色「📖 我的错题本」按钮
+    - frontend/app/student/home/page.tsx SummaryCard 下方
+      加玫红错题本横幅(错题>0 时显示)
+      - 含错题数 + 覆盖课件数 + 「打开错题本 →」
+    
+    注意: 已存在的 /student/mistake-book 手动收藏+复盘系统不变,
+    新功能是「自动收集 csp_quiz_submissions 答错题」, 两者并存。
+
+diff --git a/frontend/app/csp-lecture/page.tsx b/frontend/app/csp-lecture/page.tsx
+index b2451f6..6ba87f4 100644
+--- a/frontend/app/csp-lecture/page.tsx
++++ b/frontend/app/csp-lecture/page.tsx
+@@ -29,7 +29,7 @@ import Image from 'next/image';
+ import { redirect } from 'next/navigation';
+ import { promises as fs } from 'fs';
+ import path from 'path';
+-import { Printer, Trophy, ExternalLink, ArrowRight } from 'lucide-react';
++import { Printer, Trophy, ExternalLink, ArrowRight, BookOpen } from 'lucide-react';
+ import { Card, CardContent } from '@/components/ui/card';
+ import { Button } from '@/components/ui/button';
+ import { CLASSROOMS_DIR } from '@/lib/server/classroom-storage';
+@@ -228,6 +228,19 @@ export default async function CspLecturePage() {
+               <Link href="/student/home">我的学习</Link>
+             </Button>
+           )}
++          {userRole === 'student' && (
++            <a
++              href="/student/csp-mistakes"
++              className="inline-flex items-center gap-1.5 text-sm font-semibold
++                         text-rose-700 bg-rose-50 hover:bg-rose-100
++                         border border-rose-200 rounded-lg px-3 py-1.5
++                         transition-colors"
++              aria-label="打开我的 CSP 错题本"
++            >
++              <BookOpen className="w-3.5 h-3.5" aria-hidden="true" />
++              我的错题本
++            </a>
++          )}
+           <a
+             href="https://oi.aijiangti.cn"
+             target="_blank"

@@ -1,0 +1,8 @@
+﻿53e3787 feat(mistake-book): CSP 错题本 — 自动按课件分类 + 复习入口
+916c26e chore(brand): 品牌从 AI 错题本 改为 爱讲题 + footer 加备案信息
+ec778a1 fix(student): replace signout Link with SignOutLink component
+3baae36 fix: address 5 issues (stage x5 guard, leaderboard layout, A->B nav, completion score)
+c2839ad fix(ui): quiz 显示为题目, 统一简体
+539c39d feat(csp): 防快速翻页 (activeWatch 阈值 + 限流 + 异常检测)
+b3c781d feat(csp): 完成打卡需 80% 进度 + 每节 quiz 满分 (latch-aware)
+24889ff feat(csp-lecture): student progress tracking + auth + heartbeat reporting

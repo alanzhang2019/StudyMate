@@ -1,0 +1,52 @@
+﻿commit 675b951a38eb63717479198a214cc6b21edee906
+Author: Bot <bot@example.com>
+Date:   Sat Aug 8 15:22:28 2026 +0800
+
+    fix(admin): /admin/users 报 Application error + bind mount classrooms 目录
+    
+    /api/admin/users: 把 select._count.select.profiles 改成
+    select._count.select.studentProfiles。
+    原因: lib/db.ts PrismaCompatClient.user.findMany 只识别
+    studentProfiles, 用 profiles 会让 _count 变 undefined,
+    UI 访问 u._count.profiles 抛 TypeError 把整页客户端树炸掉。
+    现在 db.ts 看到 studentProfiles 后, 改写为
+    { _count: { profiles: <n> } } 暴露给调用方。
+    
+    app/admin/error.tsx (新增): Next.js 错误边界。
+    任何 /admin/* 子页面 throw 时, 不再让整页 'Application
+    error', 而是渲染一个带错误消息 + '重试/返回 Dashboard'
+    按钮的卡片, 侧栏 nav 仍可用, 学生/老师可以继续操作。
+    
+    docker-compose.yml: frontend.volumes 加 bind mount
+      ./frontend/data/classrooms:/app/data/classrooms
+    named volume 仍保留, 装 SQLite db + 其他持久化数据。
+    新增/改名课件 JSON 后只需
+      git pull && docker compose restart frontend
+    不再需要 'docker cp' 手动同步。
+
+diff --git a/frontend/app/api/admin/users/route.ts b/frontend/app/api/admin/users/route.ts
+index f23891e..0326171 100644
+--- a/frontend/app/api/admin/users/route.ts
++++ b/frontend/app/api/admin/users/route.ts
+@@ -9,12 +9,17 @@ export async function GET() {
+         id: true,
+         email: true,
+         createdAt: true,
++        // 必须传 `studentProfiles`，因为 lib/db.ts PrismaCompatClient
++        // 的 user.findMany 只识别 `_count.select.studentProfiles`，
++        // 然后把结果改写为 `{ _count: { profiles: <n> } }` 暴露
++        // 给调用方。用 `profiles` 会让 _count 变 undefined，
++        // 触发 `u._count.profiles` 的 TypeError 把整页崩掉。
+         _count: {
+-          select: { profiles: true }
+-        }
+-      }
++          select: { studentProfiles: true },
++        },
++      },
+     });
+-    
++
+     return NextResponse.json(users);
+   } catch (error) {
+     console.error('Failed to fetch users:', error);

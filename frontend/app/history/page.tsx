@@ -8,6 +8,7 @@ import { groupHomeworkHistory, type HomeworkHistoryItem } from '@/lib/mistake/ui
 import { translate } from '@/lib/i18n';
 import { MISTAKE_SESSIONS_DIR } from '@/lib/mistake/session/store';
 import type { MistakeSession } from '@/lib/mistake/session/types';
+import { formatDateBeijing } from '@/lib/utils/date';
 
 async function loadHistoryItems(): Promise<HomeworkHistoryItem[]> {
   try {
@@ -90,7 +91,7 @@ export default async function HomeworkHistoryPage() {
                         <div className="flex-1">
                           <p className="text-slate-700 leading-relaxed">{item.problemPreview}</p>
                           <p className="text-xs text-slate-400 mt-2">
-                            Updated {new Date(item.updatedAt).toLocaleDateString('zh-CN')}
+                            Updated {formatDateBeijing(item.updatedAt)}
                           </p>
                         </div>
                       </div>
@@ -125,7 +126,7 @@ export default async function HomeworkHistoryPage() {
                         <div className="flex-1">
                           <p className="text-slate-700 leading-relaxed">{item.problemPreview}</p>
                           <p className="text-xs text-slate-400 mt-2">
-                            Completed {new Date(item.updatedAt).toLocaleDateString('zh-CN')}
+                            Completed {formatDateBeijing(item.updatedAt)}
                           </p>
                         </div>
                         <div className="w-3 h-3 bg-green-400 rounded-full flex-shrink-0 mt-1" />

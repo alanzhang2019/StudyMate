@@ -1,0 +1,17 @@
+﻿86d585b feat(csp-lecture): 两个分组默认折叠, 点标题展开/收起
+53e3787 feat(mistake-book): CSP 错题本 — 自动按课件分类 + 复习入口
+0213d59 feat(ui): 首页移除管理入口；课件页加 OI 题库醒目入口
+316285a feat(csp-lecture): 课件按类别分组，0-15 精讲 + 真题两个区，真题卡新增打印 PDF 按钮
+079102a feat(csp-lecture): 顶部展示 CSP-J/S 2025 晋级难度地图
+4e75e2d fix(brand): footer 联系电话改为 0755-86993610
+916c26e chore(brand): 品牌从 AI 错题本 改为 爱讲题 + footer 加备案信息
+d55e614 fix(csp-lecture): show legacy classrooms without collection tag
+0967cac feat(csp-lecture): integrate PlacementBanner into /csp-lecture
+3baae36 fix: address 5 issues (stage x5 guard, leaderboard layout, A->B nav, completion score)
+b502145 fix(csp-lecture): prefer leading 'N、' prefix in title sort
+108d32f fix(csp-lecture): sort by 精讲N integer; debug: log leaderboard evaluate
+2a386ea fix(csp-lecture): sort courseware by title (natural, zh-CN)
+1044616 feat(csp-lecture): public leaderboard Top10 by activity+complete
+24889ff feat(csp-lecture): student progress tracking + auth + heartbeat reporting
+33f23bd feat(classroom): inline title edit + chapter deep-link
+a836119 feat: CSP初赛要点精讲 module + classroom collection / import

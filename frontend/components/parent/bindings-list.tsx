@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { formatDateBeijing } from '@/lib/utils/date';
 
 interface StudentBinding {
   id: string;
@@ -96,7 +97,7 @@ export function BindingsList({ role, title, emptyText }: Props) {
             role === 'student'
               ? (b as StudentBinding).parentVisitorId.slice(0, 6)
               : (b as ParentBinding).label ?? '孩子';
-          const date = new Date(b.createdAt).toLocaleDateString('zh-CN');
+          const date = formatDateBeijing(b.createdAt);
           return (
             <li
               key={b.id}

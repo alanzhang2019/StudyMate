@@ -1,0 +1,20 @@
+﻿86d585b feat(csp-lecture): 两个分组默认折叠, 点标题展开/收起
+1279f46 fix(build): 添加 lib/utils/date.ts + index re-export
+0d48706 feat(csp-quiz): 得分历史（首次/订正）— V4 方案 A
+675b951 fix(admin): /admin/users 报 Application error + bind mount classrooms 目录
+53e3787 feat(mistake-book): CSP 错题本 — 自动按课件分类 + 复习入口
+0213d59 feat(ui): 首页移除管理入口；课件页加 OI 题库醒目入口
+316285a feat(csp-lecture): 课件按类别分组，0-15 精讲 + 真题两个区，真题卡新增打印 PDF 按钮
+07d6049 fix(csp-paper): 2025 CSP-J 分值调成严格 100 分
+7533f11 feat(csp-paper): 2025 普及组 CSP-J 初赛真题卷上线
+a10a673 fix(db): run applyMigrations outside _dbInit gate so existing DBs get new columns
+1b583a9 chore: remove unused @prisma/client dependency
+079102a feat(csp-lecture): 顶部展示 CSP-J/S 2025 晋级难度地图
+c372210 feat(mistake-book): 三段复盘 (错因 → AI正解 → 同类变式) + 标记掌握守卫
+80f78bf feat(leaderboard): add 日榜/总榜 toggle and show all ranked participants
+d183bc2 fix(classroom): adapt 随堂练习 page to dark mode (page bg, code block, result, modal, toasts)
+1774d76 fix(quiz): drop 本场景 prefix and stop truncating per-scene titles
+299edce fix(quiz): do not block finalize on current-scene local results
+31e433e fix(csp-finalize): expose scene title/order, use category label whenever present
+4e75e2d fix(brand): footer 联系电话改为 0755-86993610
+916c26e chore(brand): 品牌从 AI 错题本 改为 爱讲题 + footer 加备案信息
