@@ -43,7 +43,9 @@ const COLUMN_LABEL: Record<ScoreLineKey, string> = {
   third: '全国三等',
 };
 
-const CURRENT_YEAR = 2025; // 考试年份；与 2025-2026 学年的"今年"对齐。
+const CURRENT_YEAR = 2025; // 数据截止年份（不再作为"今年"高亮，保留常量
+                            // 避免误删后续可能用到的判断逻辑；用户已要求
+                            // 删除"今年"徽标）。
 
 export function ScoreLineTable({ className }: { className?: string }) {
   const [group, setGroup] = useState<CspGroup>('J');
@@ -115,24 +117,15 @@ export function ScoreLineTable({ className }: { className?: string }) {
             </thead>
             <tbody>
               {rows.map((r) => {
-                const isCurrent = r.year === CURRENT_YEAR;
                 return (
                   <tr
                     key={r.year}
-                    className={
-                      'border-t border-slate-100 ' +
-                      (isCurrent ? 'bg-rose-50/60' : '')
-                    }
+                    className="border-t border-slate-100"
                   >
                     <td className="py-2 pr-3 tabular-nums">
-                      <span className={isCurrent ? 'font-semibold text-rose-700' : 'text-slate-700'}>
+                      <span className="text-slate-700 font-medium">
                         {r.year}
                       </span>
-                      {isCurrent && (
-                        <span className="ml-1.5 text-[10px] font-semibold text-rose-600 bg-rose-100 rounded-full px-1.5 py-0.5">
-                          今年
-                        </span>
-                      )}
                     </td>
                     {COLUMN_ORDER.map((k) => (
                       <td

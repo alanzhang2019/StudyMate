@@ -17,7 +17,7 @@
 // 已有缓存 (meta.cached=true) 时右上角显示一个小徽章，避免学生
 // 误以为每次都是新算的。
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Sparkles,
   Loader2,
@@ -31,6 +31,10 @@ import {
   Clock,
   AlertCircle,
   Trophy,
+  MessageCircle,
+  Send,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import {
   Dialog,
@@ -40,6 +44,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import {
   classifyAward,
   getScoreLine,
@@ -120,6 +125,18 @@ interface Report {
     score: number;
     generatedAt: string;
     cached: boolean;
+    wrongQuestions: Array<{
+      id: string;
+      sceneId: string;
+      sceneTitle: string;
+      sceneCategory: 'choice' | 'read' | 'perfect' | null;
+      text: string;
+      options: Array<{ label: string; value: string; text: string }>;
+      correctAnswer: string | string[];
+      userAnswer: string | string[];
+      analysis: string;
+      points: number;
+    }>;
   };
 }
 
@@ -460,6 +477,25 @@ export function PaperAnalysisReport({ open, onOpenChange, classroomId }: Props) 
                 </Section>
               )}
 
+              {/* 板块 5：错题逐题详解 & AI 答疑 (per-question Q&A)。
+                  数据来自 report.meta.wrongQuestions, 整体报告接口
+                  一次性返回。Q&A 调用 /api/csp-quiz/qa, 同一题 + 同
+                  一提问 5 分钟内复用。 */}
+              {report.meta.wrongQuestions.length > 0 && (
+                <Section
+                  icon={<MessageCircle className="w-4 h-4" />}
+                  title="错题逐题详解 & AI 答疑"
+                  accent="from-sky-500/15 to-cyan-500/5 border-sky-200/60"
+                  badgeClass="bg-sky-100 text-sky-700"
+                  badge={`${report.meta.wrongQuestions.length} 题`}
+                >
+                  <WrongQuestionList
+                    questions={report.meta.wrongQuestions}
+                    classroomId={report.meta.classroomId}
+                  />
+                </Section>
+              )}
+
               {/* 报告为空时的兜底：所有板块都为空 */}
               {report.weakKnowledgePoints.length === 0 &&
                 report.rootCauses.length === 0 &&
@@ -568,6 +604,355 @@ function formatTime(iso: string): string {
   } catch {
     return '';
   }
+}
+
+// ── 错题逐题列表 + AI 答疑 ───────────────────────────────────────
+
+type WrongQuestion = Report['meta']['wrongQuestions'][number];
+
+const CATEGORY_LABEL: Record<
+  NonNullable<WrongQuestion['sceneCategory']>,
+  string
+> = {
+  choice: '单项选择',
+  read: '阅读程序',
+  perfect: '完善程序',
+};
+
+function WrongQuestionList({
+  questions,
+  classroomId,
+}: {
+  questions: WrongQuestion[];
+  classroomId: string;
+}) {
+  return (
+    <div className="space-y-3">
+      {questions.map((q, i) => (
+        <WrongQuestionCard
+          key={q.id}
+          index={i + 1}
+          question={q}
+          classroomId={classroomId}
+        />
+      ))}
+    </div>
+  );
+}
+
+function WrongQuestionCard({
+  index,
+  question,
+  classroomId,
+}: {
+  index: number;
+  question: WrongQuestion;
+  classroomId: string;
+}) {
+  const [showQa, setShowQa] = useState(false);
+  const cat = question.sceneCategory;
+  const isChoice = cat === 'choice';
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white">
+      {/* 题目区：题干 + 选项 + 答案对比 */}
+      <div className="px-4 py-3.5">
+        <div className="flex items-center gap-2 flex-wrap mb-2">
+          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-sky-100 text-sky-700 text-xs font-bold">
+            {index}
+          </span>
+          <span className="text-[10px] uppercase tracking-wider text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+            {cat ? CATEGORY_LABEL[cat] : '其他'}
+          </span>
+          <span className="text-[10px] text-slate-400">
+            {question.sceneTitle} · {question.points} 分
+          </span>
+        </div>
+
+        <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-line">
+          {question.text}
+        </p>
+
+        {isChoice && question.options.length > 0 && (
+          <ul className="mt-3 space-y-1.5">
+            {question.options.map((o) => {
+              const isCorrect = Array.isArray(question.correctAnswer)
+                ? question.correctAnswer.includes(o.value)
+                : question.correctAnswer === o.value;
+              const isUser =
+                (Array.isArray(question.userAnswer)
+                  ? question.userAnswer.includes(o.value)
+                  : question.userAnswer === o.value) && !isCorrect;
+              return (
+                <li
+                  key={o.value || o.label}
+                  className={
+                    'flex items-start gap-2 rounded-lg border px-2.5 py-1.5 text-xs ' +
+                    (isCorrect
+                      ? 'border-emerald-200 bg-emerald-50/70 text-emerald-800'
+                      : isUser
+                        ? 'border-rose-200 bg-rose-50/70 text-rose-700 line-through decoration-rose-300'
+                        : 'border-slate-200 bg-slate-50/40 text-slate-700')
+                  }
+                >
+                  <span className="font-mono font-semibold shrink-0 w-4">
+                    {o.label}
+                  </span>
+                  <span className="flex-1">{o.text}</span>
+                  {isCorrect && (
+                    <span className="text-[10px] font-semibold text-emerald-600 shrink-0">
+                      ✓ 正解
+                    </span>
+                  )}
+                  {isUser && (
+                    <span className="text-[10px] font-semibold text-rose-500 shrink-0">
+                      你的选择
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 px-2.5 py-1.5">
+            <div className="text-[10px] font-semibold text-emerald-700 mb-0.5">
+              正确答案
+            </div>
+            <div className="text-emerald-800 font-mono">
+              {Array.isArray(question.correctAnswer)
+                ? question.correctAnswer.join(', ')
+                : question.correctAnswer || '—'}
+            </div>
+          </div>
+          <div className="rounded-lg border border-rose-100 bg-rose-50/40 px-2.5 py-1.5">
+            <div className="text-[10px] font-semibold text-rose-700 mb-0.5">
+              你的答案
+            </div>
+            <div className="text-rose-700 font-mono">
+              {Array.isArray(question.userAnswer)
+                ? question.userAnswer.join(', ')
+                : question.userAnswer || '未作答'}
+            </div>
+          </div>
+        </div>
+
+        {question.analysis && (
+          <div className="mt-2.5 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-600 leading-relaxed">
+            <span className="font-semibold text-slate-700">原题解析：</span>
+            {question.analysis}
+          </div>
+        )}
+
+        <div className="mt-3 flex items-center gap-2">
+          <Button
+            size="sm"
+            variant={showQa ? 'default' : 'outline'}
+            className={
+              showQa
+                ? 'bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600'
+                : ''
+            }
+            onClick={() => setShowQa((v) => !v)}
+          >
+            <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
+            问 AI
+            {showQa ? (
+              <ChevronUp className="w-3.5 h-3.5 ml-1" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5 ml-1" />
+            )}
+          </Button>
+          <span className="text-[10px] text-slate-400">
+            针对这一题, 自由提问, AI 围绕本题作答
+          </span>
+        </div>
+      </div>
+
+      {/* AI 答疑区：展开后内联渲染聊天 */}
+      {showQa && (
+        <div className="border-t border-slate-100 bg-slate-50/40 px-4 py-3">
+          <QaChat classroomId={classroomId} question={question} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 单题 AI 答疑：内联 chat, history 跟当前题目绑定, 关闭后保留但
+// 不会跨题目共享。每次 send 调 /api/csp-quiz/qa, 把之前的对话历史
+// 一起发给后端, 让 LLM 看到完整上下文。
+type QaMessage = {
+  role: 'user' | 'assistant';
+  content: string;
+  error?: boolean;
+};
+
+const SUGGESTED_QUESTIONS = [
+  '为什么这个选项不对?',
+  '正确答案的关键思路是什么?',
+  '这道题考的知识点是?',
+  '我错在哪个步骤?',
+];
+
+function QaChat({
+  classroomId,
+  question,
+}: {
+  classroomId: string;
+  question: WrongQuestion;
+}) {
+  const [messages, setMessages] = useState<QaMessage[]>([]);
+  const [input, setInput] = useState('');
+  const [sending, setSending] = useState(false);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, sending]);
+
+  const send = async (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || sending) return;
+    if (trimmed.length > 600) {
+      setMessages((m) => [
+        ...m,
+        { role: 'user', content: trimmed },
+        {
+          role: 'assistant',
+          content: '问题太长, 请控制在 600 字符以内再提问。',
+          error: true,
+        },
+      ]);
+      setInput('');
+      return;
+    }
+    const userMsg: QaMessage = { role: 'user', content: trimmed };
+    const nextHistory = [...messages, userMsg];
+    setMessages(nextHistory);
+    setInput('');
+    setSending(true);
+    try {
+      const res = await fetch('/api/csp-quiz/qa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          classroomId,
+          questionId: question.id,
+          userQuestion: trimmed,
+          // 发送前序对话, 让 LLM 看到上下文 (后端会再截断到 8 轮)
+          history: nextHistory
+            .filter((m) => m.role === 'user' || m.role === 'assistant')
+            .map((m) => ({ role: m.role, content: m.content })),
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json?.success) {
+        throw new Error(json?.error || `HTTP ${res.status}`);
+      }
+      setMessages((m) => [
+        ...m,
+        { role: 'assistant', content: json.answer as string },
+      ]);
+    } catch (e: any) {
+      setMessages((m) => [
+        ...m,
+        {
+          role: 'assistant',
+          content: e?.message ?? 'AI 答疑失败, 请稍后再试',
+          error: true,
+        },
+      ]);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div>
+      {/* 对话历史 */}
+      <div
+        ref={scrollRef}
+        className="max-h-72 overflow-y-auto pr-1 space-y-2 mb-3"
+      >
+        {messages.length === 0 && (
+          <div className="text-xs text-slate-500 space-y-2">
+            <p>💡 你可以这样问 AI:</p>
+            <div className="flex flex-wrap gap-1.5">
+              {SUGGESTED_QUESTIONS.map((q) => (
+                <button
+                  key={q}
+                  onClick={() => send(q)}
+                  className="px-2.5 py-1 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-sky-50 hover:border-sky-200 hover:text-sky-700 transition-colors text-[11px]"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {messages.map((m, i) => (
+          <div
+            key={i}
+            className={
+              'flex ' + (m.role === 'user' ? 'justify-end' : 'justify-start')
+            }
+          >
+            <div
+              className={
+                'max-w-[88%] rounded-2xl px-3 py-2 text-sm leading-relaxed whitespace-pre-line ' +
+                (m.role === 'user'
+                  ? 'bg-sky-500 text-white rounded-br-sm'
+                  : m.error
+                    ? 'bg-rose-50 text-rose-700 border border-rose-200 rounded-bl-sm'
+                    : 'bg-white text-slate-800 border border-slate-200 rounded-bl-sm')
+              }
+            >
+              {m.content}
+            </div>
+          </div>
+        ))}
+        {sending && (
+          <div className="flex justify-start">
+            <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-sm px-3 py-2 text-sm text-slate-500 flex items-center gap-2">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              AI 正在思考…
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 输入框 */}
+      <div className="flex items-end gap-2">
+        <Textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+              e.preventDefault();
+              void send(input);
+            }
+          }}
+          placeholder="针对这一题提问, ⌘/Ctrl+Enter 发送"
+          rows={2}
+          maxLength={600}
+          disabled={sending}
+          className="flex-1 resize-none text-sm"
+        />
+        <Button
+          size="sm"
+          onClick={() => send(input)}
+          disabled={sending || input.trim().length === 0}
+          className="bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 h-auto px-3 py-2"
+        >
+          <Send className="w-3.5 h-3.5" />
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 // 静默抑制未使用的导入 (X 在某些代码路径下会用到)

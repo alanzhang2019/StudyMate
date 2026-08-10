@@ -453,7 +453,7 @@ export default async function CspLecturePage() {
           CSP 初赛 · 要点精讲
         </span>
         <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 leading-tight tracking-tight">
-          CSP初赛要点精讲
+          CSP初赛通关宝典
         </h1>
         <p className="mt-5 text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
           {lectures.length === 0

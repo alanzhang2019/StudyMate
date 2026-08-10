@@ -86,6 +86,25 @@ export interface PaperAnalysisReport {
     score: number;
     generatedAt: string;  // ISO
     cached: boolean;
+    /**
+     * 错题逐题上下文 (题干/选项/正确答案/学生答案/解析)。
+     * 前端 /csp-quiz/qa 模态对话框渲染"逐题详解 + 问 AI"用。
+     * 整体分析不需要这层 (LLM 看 prompt 就够), 但前端做
+     * "针对这一题再问 AI" 时需要把题目上下文展示出来 + 喂给
+     * 单题答疑接口, 所以挂在 meta 里一起返回。
+     */
+    wrongQuestions: Array<{
+      id: string;
+      sceneId: string;
+      sceneTitle: string;
+      sceneCategory: 'choice' | 'read' | 'perfect' | null;
+      text: string;
+      options: Array<{ label: string; value: string; text: string }>;
+      correctAnswer: string | string[];
+      userAnswer: string | string[];
+      analysis: string;
+      points: number;
+    }>;
   };
 }
 
@@ -210,7 +229,23 @@ type QuestionContext = {
   topicHint?: string; // AI 答题分析里偶尔会带的 topic 字段
 };
 
-async function buildWrongQuestionContexts(
+/**
+ * 公开：把某卷子 (user, classroom) 下的所有错题聚合出来。
+ *
+ * 行为：
+ *   - 读 classroom JSON，提取每个 scene 的题目元数据；
+ *   - 读 cspQuizSubmission，按 sceneId 取最新一次提交 (latest-wins)；
+ *   - 遍历每条 answer，与 classroom 中的题面拼成 QuestionContext；
+ *   - 返回错题列表 (含完整题干 / 选项 / 正确答案 / 解析 / 学生答案 /
+ *     scene 信息) 供 AI 分析 / 逐题答疑使用。
+ *
+ * 抛 PaperAnalysisError：
+ *   - NOT_FOUND  classroomId 读不到或非历年真题卷
+ *
+ * 该函数供 lib/server/csp-paper-analysis.ts (整体报告) 与
+ * lib/server/csp-paper-qa.ts (单题答疑) 共用。
+ */
+export async function loadWrongQuestionContexts(
   userId: string,
   classroomId: string,
 ): Promise<{
@@ -542,6 +577,7 @@ function tryParseReport(raw: string, knownIds: Set<string>): PaperAnalysisReport
       score: 0,
       generatedAt: new Date().toISOString(),
       cached: false,
+      wrongQuestions: [],
     },
   };
 }
@@ -555,7 +591,7 @@ export async function generatePaperAnalysis(
   options: { forceRefresh?: boolean } = {},
 ): Promise<PaperAnalysisReport> {
   const { questions, totalCount, score, title, group, year } =
-    await buildWrongQuestionContexts(userId, classroomId);
+    await loadWrongQuestionContexts(userId, classroomId);
 
   if (questions.length === 0) {
     throw new PaperAnalysisError(
@@ -630,6 +666,20 @@ export async function generatePaperAnalysis(
     throw new PaperAnalysisError('AI 返回为空', 'AI_PARSE_FAILED');
   }
   const parsed = tryParseReport(raw, knownIds);
+  // 把错题逐题上下文 (供前端 /csp-quiz/qa 模态用) 一起挂到 meta。
+  // 整体分析已经完成, 这层是"原始数据"——前端拿去做"针对这一题再问 AI"。
+  const wrongQuestionsPayload = questions.map((q) => ({
+    id: q.id,
+    sceneId: q.sceneId,
+    sceneTitle: q.sceneTitle,
+    sceneCategory: q.sceneCategory,
+    text: q.text,
+    options: q.options,
+    correctAnswer: q.correctAnswer,
+    userAnswer: q.userAnswer,
+    analysis: q.analysis,
+    points: q.points,
+  }));
   const report: PaperAnalysisReport = {
     ...parsed,
     meta: {
@@ -642,6 +692,7 @@ export async function generatePaperAnalysis(
       score,
       generatedAt: new Date().toISOString(),
       cached: false,
+      wrongQuestions: wrongQuestionsPayload,
     },
   };
   cachePut(cacheKey, report);
