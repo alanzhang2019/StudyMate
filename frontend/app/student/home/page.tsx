@@ -95,7 +95,14 @@ export default async function StudentHomePage() {
   if (role !== 'student') {
     redirect('/select-profile');
   }
+  // next-auth 的 Session.user.id 在类型上是 `string | undefined`，
+  // 但走到这一步必然已登录 (上面 redirect 已拦住未登录场景)。
+  // 这里加一道运行时守卫, 避免把 undefined 传进 db / 聚合函数抛异常
+  // (这条路径会被 React 错误边界捕获, 表现为 "我的学习页面报错" 白屏)。
   const userId = session.user.id;
+  if (!userId) {
+    redirect('/auth/login?redirect=/student/home&as=student');
+  }
   const userName =
     (session.user as any).name ??
     session.user.email?.split('@')[0] ??

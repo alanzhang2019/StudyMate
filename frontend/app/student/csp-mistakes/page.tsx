@@ -37,7 +37,12 @@ export default async function CspMistakesPage() {
   if (role !== 'student') {
     redirect('/select-profile');
   }
+  // next-auth Session.user.id 在类型上是 `string | undefined`,
+  // 走 here 必然已登录, 加运行时守卫防止 undefined 流入聚合函数。
   const userId = session.user.id;
+  if (!userId) {
+    redirect('/auth/login?redirect=/student/csp-mistakes&as=student');
+  }
   const userName =
     (session.user as any).name ??
     session.user.email?.split('@')[0] ??

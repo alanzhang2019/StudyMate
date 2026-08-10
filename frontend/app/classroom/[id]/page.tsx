@@ -87,15 +87,30 @@ export default function ClassroomDetailPage() {
   const { data: session } = useSession();
   const userRole = (session?.user as { role?: string } | undefined)?.role ?? null;
   const isStudent = userRole === 'student';
-  // Read `?scene=<order>` from the URL so the public /csp-lecture
-  // chapter list can deep-link into a specific scene. The actual
-  // jump happens after scenes are loaded — see the useEffect below.
+  // Read `?scene=<...>` from the URL so the public /csp-lecture
+  // chapter list AND the student-side deep links (错题本 / 我的
+  // 学习 / 分析报告) can all jump to a specific scene.
+  //
+  // 两种形态都接受:
+  //   - `?scene=3`            → scene.order === 3       (/csp-lecture 章节列表)
+  //   - `?scene=scene_abc123` → scene.id   === '...'.   (错题本 / 我的学习)
+  //
+  // 旧的实现只接受数字 order, 字符串 sceneId 走 parseInt 拿到 NaN
+  // 后被丢掉, 导致学生点 "去课件复习这道题" 后页面停在第一题 (就是
+  // 用户最近一次反馈的 "点击后返回的并不是这道题的")。
   const searchParams = useSearchParams();
-  const deepLinkSceneOrder = (() => {
+  const deepLinkScene = (() => {
     const raw = searchParams?.get('scene');
-    if (raw === null || raw === undefined) return null;
-    const n = Number.parseInt(raw, 10);
-    return Number.isInteger(n) && n > 0 ? n : null;
+    if (raw === null || raw === undefined || raw === '') return null;
+    // 1) 优先尝试按 scene.order (数字) 解析 — 兼容 /csp-lecture
+    //    ExpandChapterList 的 `?scene=${c.order}` 链接。
+    const asInt = Number.parseInt(raw, 10);
+    if (Number.isInteger(asInt) && asInt > 0) {
+      return { kind: 'order' as const, value: asInt, raw };
+    }
+    // 2) 否则按 sceneId (字符串) 处理 — 错题本 / 我的学习的
+    //    "去课件复习" / "继续学习" 走这条路径。
+    return { kind: 'id' as const, value: raw, raw };
   })();
 
   const { loadFromStorage } = useStageStore();
@@ -542,29 +557,35 @@ export default function ClassroomDetailPage() {
     return () => abortController.abort();
   }, [loading, error]);
 
-  // Honour `?scene=<order>` deep links from the public /csp-lecture
-  // chapter list. We run AFTER scenes are loaded (loading === false
-  // and the store has the matching stage id) and short-circuit on
-  // no-op so re-renders don't bounce the player. The Stage component
-  // is mounted with `autoPlay={true}` so the normal scene-change
-  // effect will kick off playback on the targeted scene.
+  // Honour `?scene=<...>` deep links from the public /csp-lecture
+  // chapter list AND from student-side deep links (错题本 / 我的
+  // 学习 / 分析报告). We run AFTER scenes are loaded (loading ===
+  // false and the store has the matching stage id) and short-circuit
+  // on no-op so re-renders don't bounce the player. The Stage
+  // component is mounted with `autoPlay={true}` so the normal
+  // scene-change effect will kick off playback on the targeted scene.
   useEffect(() => {
     if (loading || error) return;
-    if (deepLinkSceneOrder === null) return;
+    if (deepLinkScene === null) return;
     const state = useStageStore.getState();
     if (!state.stage || state.stage.id !== classroomId) return;
     if (state.scenes.length === 0) return;
-    const target = state.scenes.find((s) => s.order === deepLinkSceneOrder);
+    const target =
+      deepLinkScene.kind === 'order'
+        ? state.scenes.find((s) => s.order === deepLinkScene.value)
+        : state.scenes.find((s) => s.id === deepLinkScene.value);
     if (!target) {
-      log.warn(`[Classroom] ?scene=${deepLinkSceneOrder} not found in this classroom`);
+      log.warn(
+        `[Classroom] ?scene=${deepLinkScene.raw} (${deepLinkScene.kind}) not found in this classroom`,
+      );
       return;
     }
     if (state.currentSceneId === target.id) return;
     log.info(
-      `[Classroom] Deep-link jump: order=${deepLinkSceneOrder} → sceneId=${target.id}`,
+      `[Classroom] Deep-link jump: ${deepLinkScene.kind}=${deepLinkScene.value} → sceneId=${target.id}`,
     );
     state.setCurrentSceneId(target.id);
-  }, [classroomId, deepLinkSceneOrder, error, loading]);
+  }, [classroomId, deepLinkScene, error, loading]);
 
   // Auto-resume generation for pending outlines
   useEffect(() => {
