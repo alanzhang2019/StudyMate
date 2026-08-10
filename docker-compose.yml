@@ -73,6 +73,13 @@ services:
       - DEFAULT_MODEL=kimi:deepseek/deepseek-v4-flash-20260731
       - MISTAKE_OCR_MODEL=kimi:moonshot-v1-8k
       - MISTAKE_CLASSROOM_MODEL=kimi:moonshot-v1-8k
+      # Force KIMI_API_KEY at runtime so a stale/expired key in
+      # frontend/.env (e.g. an API Key that has been disabled or
+      # deleted on the 七牛云 console) does not silently break every
+      # server-side LLM call. Keep this in sync with `frontend/.env`'s
+      # KIMI_API_KEY line — change in BOTH places whenever rotating
+      # the key.
+      - KIMI_API_KEY=sk-5f7573b1fd8f82d0bdf808169153a690c33a8d92c62997fafe466828e8fa1ba7
     # Persist /app/data (classroom JSONs, mistake-sessions, generated audio
     # recordings, SQLite database, etc.) on a named volume. Without this,
     # every `docker compose up -d --force-recreate` destroys the writable
