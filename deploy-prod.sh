@@ -70,7 +70,27 @@ if [[ -z "${DEPLOY_DOMAIN:-}" ]]; then
   exit 2
 fi
 
-echo "== 2/7 Pull latest master =="
+echo "== 2/8 Chown host bind-mount for git =="
+# The host-side bind mount `./frontend/data/classrooms` ends up
+# owned by the container's `nextjs` user (UID 1001) after the
+# container writes to it. `git pull` runs as the deploy user
+# (typically `ubuntu`) and cannot unlink those files, so the
+# pull aborts with "Permission denied" on every classroom JSON.
+# Normalize ownership back to the deploy user here, before
+# pulling. fix-bind-mount-perms.sh (Step 6/8) re-chowns to
+# 1001:1001 once the container is back up, so classroom uploads
+# still work.
+HOST_DATA_DIR="$REPO_DIR/frontend/data"
+if [[ -d "$HOST_DATA_DIR" ]]; then
+  deploy_uid="$(id -u)"
+  deploy_gid="$(id -g)"
+  echo "  chown -R $deploy_uid:$deploy_gid $HOST_DATA_DIR"
+  chown -R "$deploy_uid:$deploy_gid" "$HOST_DATA_DIR"
+else
+  echo "  (no $HOST_DATA_DIR yet, skipping)"
+fi
+
+echo "== 3/8 Pull latest master =="
 if [[ "$PULL" -eq 1 ]]; then
   git pull --ff-only origin master
 else
@@ -78,7 +98,7 @@ else
 fi
 echo "  HEAD: $(git rev-parse --short HEAD)"
 
-echo "== 3/7 Sync frontend/.env.local =="
+echo "== 4/8 Sync frontend/.env.local =="
 ENV_FILE="frontend/.env.local"
 TMP_ENV="$(mktemp)"
 trap 'rm -f "$TMP_ENV"' EXIT
@@ -106,13 +126,13 @@ done
 install -m 600 "$TMP_ENV" "$ENV_FILE"
 echo "  wrote $ENV_FILE ($(wc -c < "$ENV_FILE") bytes, mode 600)"
 
-echo "== 4/7 Rebuild frontend image =="
+echo "== 5/8 Rebuild frontend image =="
 docker compose build --pull frontend
 
-echo "== 5/7 Restart stack =="
+echo "== 6/8 Restart stack =="
 docker compose up -d --no-deps --force-recreate frontend
 
-echo "== 6/7 Fix bind-mount permissions =="
+echo "== 7/8 Fix bind-mount permissions =="
 # The host-side bind mount that the frontend container writes
 # classrooms into (`./frontend/data/classrooms`) is created by
 # humans (root, ubuntu) whose uid does not match the container's
@@ -145,7 +165,7 @@ else
   echo "        run: sudo chmod +x $PERM_SCRIPT && sudo $PERM_SCRIPT" >&2
 fi
 
-echo "== 7/7 Health check =="
+echo "== 8/8 Health check =="
 if [[ "$RUN_HEALTHCHECK" -eq 1 ]]; then
   HEALTH_URL="${DEPLOY_DOMAIN%/}/api/integrations/health"
   for i in 1 2 3 4 5 6 7 8 9 10; do
