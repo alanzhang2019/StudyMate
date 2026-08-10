@@ -34,6 +34,18 @@ services:
         # the `environment` block below AND with `frontend/.env`.
         DEFAULT_MODEL: ${DEFAULT_MODEL:-kimi:deepseek/deepseek-v4-flash-20260731}
         MISTAKE_OCR_MODEL: ${MISTAKE_OCR_MODEL:-kimi:moonshot-v1-8k}
+        # Disable thinking mode. The deepseek-v4-flash model on 七牛云
+        # ships with reasoning enabled by default and dumps its
+        # "thinking" into a separate `reasoning_content` field. When
+        # `maxOutputTokens` is 2500 (analyze-paper), all the budget
+        # gets eaten by reasoning and the actual `content` comes
+        # back empty → frontend gets "AI 返回为空". Verified by curl:
+        # the model returns content correctly for short prompts but
+        # burns the output budget on reasoning_content for long
+        # JSON-schema prompts. Setting LLM_THINKING_DISABLED=true
+        # forces the model to skip reasoning and write straight to
+        # `content`.
+        LLM_THINKING_DISABLED: ${LLM_THINKING_DISABLED:-true}
     container_name: studymate-frontend
     # Listen on 0.0.0.0 so the oi.aijiangti.cn reverse proxy (Singapore)
     # can reach us during the ICP filing window. Restrict via Tencent Cloud
@@ -80,6 +92,15 @@ services:
       # KIMI_API_KEY line — change in BOTH places whenever rotating
       # the key.
       - KIMI_API_KEY=sk-5f7573b1fd8f82d0bdf808169153a690c33a8d92c62997fafe466828e8fa1ba7
+      # Force thinking mode OFF at runtime. The deepseek-v4-flash
+      # model on 七牛云 returns an empty `content` field when
+      # thinking is enabled (it dumps its reasoning into a separate
+      # `reasoning_content` field and exhausts the 2500-token output
+      # budget). This is set as a build arg above for webpack
+      # inlining, but we ALSO set it at runtime in case the env_file
+      # (.env) re-enables it. See comment on the LLM_THINKING_DISABLED
+      # build arg for the full story.
+      - LLM_THINKING_DISABLED=true
     # Persist /app/data (classroom JSONs, mistake-sessions, generated audio
     # recordings, SQLite database, etc.) on a named volume. Without this,
     # every `docker compose up -d --force-recreate` destroys the writable
