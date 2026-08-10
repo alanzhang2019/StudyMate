@@ -39,6 +39,7 @@ import { ExpandChapterList } from './ExpandChapterList';
 import { Leaderboard } from '@/components/leaderboard';
 import { PlacementBanner } from '@/components/csp-lecture/PlacementBanner';
 import { LectureGroup } from '@/components/csp-lecture/lecture-group';
+import { PaperScoreTrendChart } from '@/components/csp-lecture/paper-score-trend';
 import { formatDateBeijing } from '@/lib/utils/date';
 
 export const dynamic = 'force-dynamic';
@@ -519,6 +520,14 @@ export default async function CspLecturePage() {
                     count={paperLectures.length}
                     countLabel="套真题"
                   >
+                    {/*
+                     * 历年真题成绩趋势图 — 放在 24 张试卷卡片的上方。
+                     * 这里只对"已登录学生"显示（csp-lecture 页面
+                     * 在 auth() 处已经保证 session 存在，所以这里
+                     * 不再二次判定）。新用户 / 还没做题的用户会看
+                     * 到空状态文案 + "去做一套"提示。
+                     */}
+                    <PaperScoreTrendChart className="mb-2" />
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
                       {paperLectures.map((l) => (
                         <PaperLectureCard

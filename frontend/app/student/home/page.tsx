@@ -21,6 +21,7 @@ import { listClassroomSummaries } from '@/lib/server/classroom-storage';
 import { evaluateCompletion, type CompletionResult } from '@/lib/server/csp-completion';
 import { loadCspMistakeBook } from '@/lib/server/csp-mistake-book';
 import { SignOutLink } from '@/components/SignOutLink';
+import { PaperScoreTrendChart } from '@/components/csp-lecture/paper-score-trend';
 import { formatDateBeijing, parseStoredTimestamp } from '@/lib/utils/date';
 
 type AuditFlag = {
@@ -263,6 +264,17 @@ export default async function StudentHomePage() {
           </Link>
         </section>
       )}
+
+      {/*
+       * 历年真题成绩趋势 — K线图(4 折线) 展示学生在 24 套真题
+       * 上的成绩走势,J/S 两组并排。组件内自带加载 / 空状态 /
+       * 渲染三态,无数据时显示"还没完成任何历年真题"。
+       * 这里 hideFooterLink=true 因为学生已经在 /student/home
+       * 没必要重复 "查看历年真题" 链接。
+       */}
+      <section className="max-w-6xl mx-auto px-6 pb-6">
+        <PaperScoreTrendChart hideFooterLink />
+      </section>
 
       {/* In progress */}
       <Section title="进行中" empty="还没有开始任何课件。去课件库挑一个感兴趣的开始吧。">
