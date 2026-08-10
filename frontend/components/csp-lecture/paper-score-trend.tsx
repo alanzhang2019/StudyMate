@@ -62,7 +62,6 @@ import {
   SCORE_LINE_META,
   SCORE_LINE_KEYS,
   type CspGroup,
-  type ScoreLineKey,
 } from '@/lib/csp-score-lines';
 
 type CategoryKey = 'choice' | 'read' | 'perfect';
@@ -318,47 +317,42 @@ function SubChart({
     });
 
     // 构造 markLine 数据 —— 把"广东晋级 / 全国一等 / 二等 / 三等"4 条
-    // 参考线在每一年画成一段横向虚线段 (yAxis = 该年分数线)，
+    // 参考线在每一年画成一段横向虚线 (yAxis = 该年分数线),
     // 让学生看到自己的总分点距离哪条线最近。
     //
-    // 实现：使用 { xAxis: <year>, yAxis: <scoreLine> } 数据点形式，
-    // ECharts 会在两点之间画一条线段。我们用 [yearStr, yearStr] 配
-    // 同一 yAxis (分数线) 让"线段"在 X 轴方向退化为一条短虚线，
-    // 但 markLine 接受单个点 { yAxis } 自动跨整个 X 轴。
+    // ECharts 的 markLine.data 必须是 `Array<{ yAxis }>` 或
+    // `Array<[x, y]>`, 不能再嵌套完整的 markLine 配置对象 (早期
+    // 版本 buildMarkLine 返回了带 silent/lineStyle/label 的子对象,
+    // 被 ECharts 当成单个 data item, 内部访问 .coord 时抛
+    // "Cannot read properties of undefined (reading 'coord')")。
     //
-    // 为了避免 4 条线 7 年 * 4 = 28 个 label 互相重叠, 每条线只在
-    // 该年第一个有数据的年份显示一次 label, 但整条线 (跨全图) 用
-    // 浅色虚线绘制。
-    const buildMarkLine = (key: ScoreLineKey) => {
-      const meta = SCORE_LINE_META[key];
-      return {
-        silent: true,
-        symbol: 'none',
-        animation: false,
-        lineStyle: {
-          color: meta.color,
-          width: 1.2,
-          type: 'dashed',
-          opacity: 0.55,
-        },
-        label: {
-          show: true,
-          position: 'insideStartTop',
-          formatter: () => meta.short,
-          color: meta.color,
-          fontSize: 10,
-          fontWeight: 600,
-          backgroundColor: 'rgba(255,255,255,0.85)',
-          padding: [1, 4],
-          borderRadius: 3,
-        },
-        data: years.map((y) => {
-          const line = getScoreLine(y, group);
-          if (!line) return { yAxis: 0 }; // 占位, 但会被 symbol:none 隐
-          return { yAxis: line[key] };
-        }),
-      };
-    };
+    // 因此把 4 条线 (promotion/first/second/third) 各自的样式
+    // 直接 inline 到每个 data item 上, 一年 4 条参考线。每个 data
+    // item 是一条跨整个 X 轴的水平虚线, 颜色与 key 对应。
+    //
+    // 不显示 label (4 keys * N years = 4N 个 label 会重叠), 改为
+    // 在 tooltip 弹层里展示该年的完整对照 (见下方 formatter)。
+    const scoreLineData: any[] = [];
+    for (const y of years) {
+      const line = getScoreLine(y, group);
+      if (!line) continue; // 该年无对照分数线, 跳过
+      for (const key of SCORE_LINE_KEYS) {
+        const meta = SCORE_LINE_META[key];
+        scoreLineData.push({
+          yAxis: line[key],
+          silent: true,
+          symbol: 'none',
+          animation: false,
+          lineStyle: {
+            color: meta.color,
+            width: 1.2,
+            type: 'dashed',
+            opacity: 0.55,
+          },
+          label: { show: false },
+        });
+      }
+    }
 
     inst.current.setOption(
       {
@@ -501,7 +495,7 @@ function SubChart({
               symbol: 'none',
               silent: true,
               animation: false,
-              data: SCORE_LINE_KEYS.map((k) => buildMarkLine(k)),
+              data: scoreLineData,
             },
             z: 10,
           },
