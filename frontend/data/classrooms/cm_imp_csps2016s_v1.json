@@ -757,6 +757,10 @@
                 "label": "4,3,2,1,5,6,"
               }
             ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "while 循环每次交换 pi 和 pj 位置的元素后 pi++ pj--，相当于数组反转。原始数组 {1,2,3,4,5,6} 反转后为 {6,5,4,3,2,1}，输出 '6,5,4,3,2,1,'。",
             "codeLines": [
               "#include <iostream>",
               "using namespace std;",
@@ -1230,7 +1234,7 @@
           {
             "id": "p1_4",
             "type": "single",
-            "question": "④比较？",
+            "question": "④比较 shorter 与 higher？",
             "options": [
               {
                 "value": "A",

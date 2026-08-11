@@ -1,0 +1,247 @@
+{
+  "_comment": "24 套 CSP 真题卷的 batch manifest. 当前只有 2021 J q14 一条已识别图, 其余 23 套 entries 留空, batch 跑时会按 no entries 跳过. 后续补 entries: 用看图工具量坐标后填进去即可.",
+  "papers": [
+    {
+      "name": "2014 J",
+      "classroomId": "cm_imp_cspj2014j_v1",
+      "pageDir": "public/figures/csp-j-2014",
+      "prefix": "cspj2014",
+      "publicUrlBase": "/figures/csp-j-2014",
+      "pdf": "public/csp-j-2014-original.pdf",
+      "entries": []
+    },
+    {
+      "name": "2015 J",
+      "classroomId": "cm_imp_cspj2015j_v1",
+      "pageDir": "public/figures/csp-j-2015",
+      "prefix": "cspj2015",
+      "publicUrlBase": "/figures/csp-j-2015",
+      "pdf": "public/csp-j-2015-original.pdf",
+      "entries": []
+    },
+    {
+      "name": "2016 J",
+      "classroomId": "cm_imp_cspj2016j_v1",
+      "pageDir": "public/figures/csp-j-2016",
+      "prefix": "cspj2016",
+      "publicUrlBase": "/figures/csp-j-2016",
+      "pdf": "public/csp-j-2016-original.pdf",
+      "entries": []
+    },
+    {
+      "name": "2017 J",
+      "classroomId": "cm_imp_cspj2017j_v1",
+      "pageDir": "public/figures/csp-j-2017",
+      "prefix": "cspj2017",
+      "publicUrlBase": "/figures/csp-j-2017",
+      "pdf": "public/csp-j-2017-original.pdf",
+      "entries": [
+        {
+          "page": 3,
+          "left": 815,
+          "top": 565,
+          "right": 1025,
+          "bottom": 790,
+          "pad": 15,
+          "figureName": "cspj2017-ps2-figure.png",
+          "sceneId": "sc_cspj17j_problem_solving",
+          "questionId": "ps2",
+          "imageCaption": "图: 13 格十字棋盘 (中心格 1, 周围含 0/1)"
+        }
+      ]
+    },
+    {
+      "name": "2018 J",
+      "classroomId": "cm_imp_cspj2018j_v1",
+      "pageDir": "public/figures/csp-j-2018",
+      "prefix": "cspj2018",
+      "publicUrlBase": "/figures/csp-j-2018",
+      "pdf": "public/csp-j-2018-original.pdf",
+      "entries": []
+    },
+    {
+      "name": "2019 J",
+      "classroomId": "cm_imp_cspj2019j_v1",
+      "pageDir": "public/figures/csp-j-2019",
+      "prefix": "cspj2019",
+      "publicUrlBase": "/figures/csp-j-2019",
+      "pdf": "public/csp-j-2019-original.pdf",
+      "entries": []
+    },
+    {
+      "name": "2020 J",
+      "classroomId": "cm_imp_cspj2020j_v1",
+      "pageDir": "public/figures/csp-j-2020",
+      "prefix": "cspj2020",
+      "publicUrlBase": "/figures/csp-j-2020",
+      "pdf": "public/csp-j-2020-original.pdf",
+      "entries": []
+    },
+    {
+      "name": "2021 J",
+      "classroomId": "cm_imp_cspj2021j_v1",
+      "pageDir": "public/figures/csp-j-2021",
+      "prefix": "cspj2021",
+      "publicUrlBase": "/figures/csp-j-2021",
+      "pdf": "public/csp-j-2021-original.pdf",
+      "entries": [
+        {
+          "page": 4,
+          "left": 620,
+          "top": 510,
+          "right": 920,
+          "bottom": 870,
+          "pad": 15,
+          "figureName": "cspj2021-q14-figure.png",
+          "sceneId": "sc_cspj21j_choice",
+          "questionId": "q14",
+          "imageCaption": "图: 5 个点的无向图 (a, b, c, d, e)"
+        }
+      ]
+    },
+    {
+      "name": "2022 J",
+      "classroomId": "cm_imp_cspj2022j_v1",
+      "pageDir": "public/figures/csp-j-2022",
+      "prefix": "cspj2022",
+      "publicUrlBase": "/figures/csp-j-2022",
+      "pdf": "public/csp-j-2022-original.pdf",
+      "entries": []
+    },
+    {
+      "name": "2023 J",
+      "classroomId": "cm_imp_cspj2023j_v1",
+      "pageDir": "public/figures/csp-j-2023",
+      "prefix": "cspj2023",
+      "publicUrlBase": "/figures/csp-j-2023",
+      "pdf": "public/csp-j-2023-original.pdf",
+      "entries": []
+    },
+    {
+      "name": "2024 J",
+      "classroomId": "cm_imp_cspj2024j_v1",
+      "pageDir": "public/figures/csp-j-2024",
+      "prefix": "cspj2024",
+      "publicUrlBase": "/figures/csp-j-2024",
+      "pdf": "public/csp-j-2024-original.pdf",
+      "entries": []
+    },
+    {
+      "name": "2025 J",
+      "classroomId": "cm_imp_cspj2025j_v1",
+      "pageDir": "public/figures/csp-j-2025",
+      "prefix": "cspj2025",
+      "publicUrlBase": "/figures/csp-j-2025",
+      "pdf": "public/csp-j-2025-original.pdf",
+      "entries": []
+    },
+    {
+      "name": "2014 S",
+      "classroomId": "cm_imp_csps2014s_v1",
+      "pageDir": "public/figures/csp-s-2014",
+      "prefix": "csps2014",
+      "publicUrlBase": "/figures/csp-s-2014",
+      "pdf": "public/csp-s-2014-original.pdf",
+      "entries": []
+    },
+    {
+      "name": "2015 S",
+      "classroomId": "cm_imp_csps2015s_v1",
+      "pageDir": "public/figures/csp-s-2015",
+      "prefix": "csps2015",
+      "publicUrlBase": "/figures/csp-s-2015",
+      "pdf": "public/csp-s-2015-original.pdf",
+      "entries": []
+    },
+    {
+      "name": "2016 S",
+      "classroomId": "cm_imp_csps2016s_v1",
+      "pageDir": "public/figures/csp-s-2016",
+      "prefix": "csps2016",
+      "publicUrlBase": "/figures/csp-s-2016",
+      "pdf": "public/csp-s-2016-original.pdf",
+      "entries": []
+    },
+    {
+      "name": "2017 S",
+      "classroomId": "cm_imp_csps2017s_v1",
+      "pageDir": "public/figures/csp-s-2017",
+      "prefix": "csps2017",
+      "publicUrlBase": "/figures/csp-s-2017",
+      "pdf": "public/csp-s-2017-original.pdf",
+      "entries": []
+    },
+    {
+      "name": "2018 S",
+      "classroomId": "cm_imp_csps2018s_v1",
+      "pageDir": "public/figures/csp-s-2018",
+      "prefix": "csps2018",
+      "publicUrlBase": "/figures/csp-s-2018",
+      "pdf": "public/csp-s-2018-original.pdf",
+      "entries": []
+    },
+    {
+      "name": "2019 S",
+      "classroomId": "cm_imp_csps2019s_v1",
+      "pageDir": "public/figures/csp-s-2019",
+      "prefix": "csps2019",
+      "publicUrlBase": "/figures/csp-s-2019",
+      "pdf": "public/csp-s-2019-original.pdf",
+      "entries": []
+    },
+    {
+      "name": "2020 S",
+      "classroomId": "cm_imp_csps2020s_v1",
+      "pageDir": "public/figures/csp-s-2020",
+      "prefix": "csps2020",
+      "publicUrlBase": "/figures/csp-s-2020",
+      "pdf": "public/csp-s-2020-original.pdf",
+      "entries": []
+    },
+    {
+      "name": "2021 S",
+      "classroomId": "cm_imp_csps2021s_v1",
+      "pageDir": "public/figures/csp-s-2021",
+      "prefix": "csps2021",
+      "publicUrlBase": "/figures/csp-s-2021",
+      "pdf": "public/csp-s-2021-original.pdf",
+      "entries": []
+    },
+    {
+      "name": "2022 S",
+      "classroomId": "cm_imp_csps2022s_v1",
+      "pageDir": "public/figures/csp-s-2022",
+      "prefix": "csps2022",
+      "publicUrlBase": "/figures/csp-s-2022",
+      "pdf": "public/csp-s-2022-original.pdf",
+      "entries": []
+    },
+    {
+      "name": "2023 S",
+      "classroomId": "cm_imp_csps2023s_v1",
+      "pageDir": "public/figures/csp-s-2023",
+      "prefix": "csps2023",
+      "publicUrlBase": "/figures/csp-s-2023",
+      "pdf": "public/csp-s-2023-original.pdf",
+      "entries": []
+    },
+    {
+      "name": "2024 S",
+      "classroomId": "cm_imp_csps2024s_v1",
+      "pageDir": "public/figures/csp-s-2024",
+      "prefix": "csps2024",
+      "publicUrlBase": "/figures/csp-s-2024",
+      "pdf": "public/csp-s-2024-original.pdf",
+      "entries": []
+    },
+    {
+      "name": "2025 S",
+      "classroomId": "cm_imp_csps2025s_v1",
+      "pageDir": "public/figures/csp-s-2025",
+      "prefix": "csps2025",
+      "publicUrlBase": "/figures/csp-s-2025",
+      "pdf": "public/csp-s-2025-original.pdf",
+      "entries": []
+    }
+  ]
+}

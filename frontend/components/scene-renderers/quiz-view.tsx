@@ -728,6 +728,42 @@ function QuestionCard({
         )}
       </div>
 
+      {/* Question figure (optional). Some CSP questions
+          reference "如下图所示" / "如表 1 所示" — without the
+          actual image the student has no way to solve them.
+          We render the picture as a paper-style block: white
+          background, soft border, light shadow, centered, with
+          a small caption underneath if `imageCaption` is set.
+          The image itself is constrained to the card width
+          (max-w-full) so it never overflows on narrow
+          viewports, and `select-none` keeps the student from
+          accidentally dragging it. The path is expected to be
+          a public URL (e.g. `/figures/csp-j-2021/q14.png`).
+          `next.config.js` already sets `Cache-Control:
+          no-cache, must-revalidate` on the /figures path so
+          the cropped images are always re-fetched during
+          development. */}
+      {question.image && (
+        <figure className="my-3 flex flex-col items-center">
+          <div className="w-full max-w-xl rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-3 shadow-sm">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={question.image}
+              alt={question.imageCaption || '题目配图'}
+              loading="lazy"
+              decoding="async"
+              draggable={false}
+              className="block max-w-full max-h-[60vh] mx-auto select-none"
+            />
+          </div>
+          {question.imageCaption && (
+            <figcaption className="mt-1.5 text-[11px] text-gray-500 dark:text-gray-400 text-center">
+              {question.imageCaption}
+            </figcaption>
+          )}
+        </figure>
+      )}
+
       {/* Body */}
       {children}
 

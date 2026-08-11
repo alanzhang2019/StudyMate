@@ -271,6 +271,10 @@
                 "label": "32"
               }
             ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "完全二叉树：前 h-1 层满, 第 h 层从左填起。高度 5 (5 层) 时, 第 5 层节点数可为 1,2,...,16 共 16 种, 每种对应唯一形态。→ A",
             "points": 2,
             "hasAnswer": true
           },
@@ -422,6 +426,8 @@
             "id": "q14",
             "type": "single",
             "question": "14. 图 b,c,d,e 四个点中, 以 a 为起点 DFS, 最后一个遍历到的点个数（ ）。",
+            "image": "/figures/csp-j-2021/cspj2021-q14-figure.png",
+            "imageCaption": "图: 5 个点的无向图 (a, b, c, d, e)",
             "options": [
               {
                 "value": "A",
@@ -1130,7 +1136,7 @@
           {
             "id": "p1_4",
             "type": "single",
-            "question": "④移位：",
+            "question": "④未报数时 i 移位：",
             "options": [
               {
                 "value": "A",

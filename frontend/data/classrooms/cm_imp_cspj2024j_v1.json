@@ -513,7 +513,7 @@
           "lines": [
             "#include <iostream>",
             "using namespace std;",
-            "bool isPrime(int n) {",
+            "bool isprime(int n) {",
             "    if (n <= 1) return false;",
             "    for (int i = 2; i * i <= n; i++) {",
             "        if (n % i == 0) return false;",
@@ -523,14 +523,14 @@
             "int countPrimes(int n) {",
             "    int count = 0;",
             "    for (int i = 2; i <= n; i++) {",
-            "        if (isPrime(i)) count++;",
+            "        if (isprime(i)) count++;",
             "    }",
             "    return count;",
             "}",
             "int sumPrimes(int n) {",
             "    int sum = 0;",
             "    for (int i = 2; i <= n; i++) {",
-            "        if (isPrime(i)) sum += i;",
+            "        if (isprime(i)) sum += i;",
             "    }",
             "    return sum;",
             "}",
@@ -602,7 +602,7 @@
             "answer": [
               "A"
             ],
-            "analysis": "sumPrimes 函数遍历 2 到 n，把所有 isPrime(i) 为 true 的 i 累加，含义是从 2 到 n 的素数之和。",
+            "analysis": "sumPrimes 函数遍历 2 到 n，把所有 isprime(i) 为 true 的 i 累加，含义是从 2 到 n 的素数之和。",
             "points": 1.5,
             "hasAnswer": true
           },

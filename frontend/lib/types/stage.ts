@@ -187,6 +187,23 @@ export interface QuizQuestion {
   commentPrompt?: string; // Grading guidance for text questions
   hasAnswer?: boolean; // Whether auto-grading is possible
   points?: number; // Points per question (default 1)
+  /**
+   * Public URL of a figure/diagram that belongs to this
+   * question. The quiz renderer draws it directly under the
+   * question text (before the options) so questions that
+   * reference "如图所示" / "下表" / "下图中的无向图" can
+   * actually show the picture. Path is resolved by the
+   * browser the same way as other static assets, so it
+   * should start with `/` (e.g. `/figures/csp-j-2021/...`).
+   * Optional — questions without a figure simply omit this
+   * field and render as before.
+   */
+  image?: string;
+  /**
+   * Optional caption shown below the image, e.g. "图 1" or
+   * "参考程序结构". Pure cosmetic; never affects grading.
+   */
+  imageCaption?: string;
 }
 
 /**

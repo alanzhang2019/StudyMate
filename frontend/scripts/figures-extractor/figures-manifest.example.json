@@ -1,0 +1,12 @@
+{
+  "_comment": "示例 manifest: 批量把单题图路径注入对应 question. 字段名参考 inject-figures.mjs --help.",
+  "entries": [
+    {
+      "classroomId": "cm_imp_cspj2021j_v1",
+      "sceneId": "sc_cspj21j_choice",
+      "questionId": "q14",
+      "image": "/figures/csp-j-2021/cspj2021-q14-figure.png",
+      "imageCaption": "图: 5 个点的无向图 (a, b, c, d, e)"
+    }
+  ]
+}

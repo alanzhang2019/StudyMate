@@ -684,25 +684,25 @@
             "options": [
               {
                 "value": "A",
-                "label": "12"
+                "label": "11"
               },
               {
                 "value": "B",
-                "label": "14"
+                "label": "12"
               },
               {
                 "value": "C",
-                "label": "16"
+                "label": "14"
               },
               {
                 "value": "D",
-                "label": "18"
+                "label": "16"
               }
             ],
             "answer": [
-              "B"
+              "A"
             ],
-            "analysis": "Dijkstra 最短路径题，标准答案为 14 (需参照 PDF 中的图结构)。",
+            "analysis": "Dijkstra 最短路径题。顶点：A-B=3, A-F=5, A-G=4；B-C=1, B-D=7；C-F=1, C-G=3；F-D=2, F-E=6；D-E=4。最短路径 A→B→C→F→D→E = 3+1+1+2+4 = 11。",
             "points": 5,
             "hasAnswer": true
           }

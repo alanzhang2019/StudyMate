@@ -1375,7 +1375,7 @@
           {
             "id": "p2_5",
             "type": "single",
-            "question": "⑤入队：",
+            "question": "⑤新点 p 入队：",
             "options": [
               {
                 "value": "A",

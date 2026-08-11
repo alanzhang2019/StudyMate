@@ -911,10 +911,10 @@
               { "value": "A", "label": "query(candidate, i) == false" },
               { "value": "B", "label": "query(i, candidate) == true" },
               { "value": "C", "label": "query(candidate, i) == false && query(i, candidate) == false" },
-              { "value": "D", "label": "query(candidate, i) == false && query(i, candidate) == false" }
+              { "value": "D", "label": "query(i, candidate) == false" }
             ],
-            "answer": ["D"],
-            "analysis": "当候选者与 i 互相判断对方为糊涂（即两人都认为对方是糊涂人）时，说明候选者可能是糊涂人，应抵消一票。注意选项 C/D 文本相同但 D 实际为「双向均判断对方为 false」的语义（即意见相左 → 候选者被认定为糊涂人，需扣分）。",
+            "answer": ["A"],
+            "analysis": "当候选者认为 i 是糊涂人（query(candidate, i) == false）时，说明候选者与 i 意见相左，需要抵消候选者一票（count−1）。Moore 投票只需检查候选者对 i 的单向判断即可。",
             "points": 3,
             "hasAnswer": true
           },
