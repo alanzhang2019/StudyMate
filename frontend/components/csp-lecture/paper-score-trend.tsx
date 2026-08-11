@@ -5,12 +5,17 @@
 // 历年真题成绩趋势图。
 //
 // 数据来源：/api/csp-quiz/paper-trend (返回当前用户答过的所有
-// 24 套历年真题 J/S 的 per-category 得分)。图表分两张子图（J 组
-// 和 S 组）左右并排，每张子图 4 条折线：
-//   - 单项选择题（蓝）
-//   - 阅读程序题（绿）
-//   - 完善程序题（橙）
-//   - 总分（深紫，加粗）
+// 24 套历年真题 J/S 的总分)。图表分两张子图（J 组 / S 组）左右
+// 并排，每张子图只画 1 条折线：
+//   - 总分（深紫，加粗实线）
+// 并叠加 1 条参考线：
+//   - 广东晋级线（红色虚线，用所有年份的中位数作 yAxis）
+//
+// 简化原因 (commit on 2026-08-11)：用户反馈 K 线图只需要"总分
+// 走势 + 晋级线"两个信息, 单项选择 / 阅读程序 / 完善程序 3 条分
+// 类线 + 全国一二三等参考线让学生看不懂、抓不到重点, 反倒把真正
+// 关心的"我离晋级还差几分"信号淹没。精简后图面清爽, 趋势一眼能
+// 看出, 历年精确分项得分保留在 tooltip 弹层里, 想看能下钻。
 //
 // 使用 ECharts (SVG renderer) 渲染：
 //   - 与 slide-renderer/ChartElement 同一套 import 方式
@@ -26,10 +31,11 @@
 //     一套试试看"
 //   - rendered: ECharts 实例
 //
-// 4 条线均为左 Y 轴 0-100 分；右 Y 轴不启用。Tooltip 默认 trigger:
-// 'axis'，鼠标 hover 任何一年会同时显示 4 条线该年的得分（点
-// 击穿透到对应卷子的链接行为不在此实现，避免图表成为跳转器干扰
-// 阅读趋势——学生要看具体某年分数直接下拉到下方 24 张卡片）。
+// 1 条折线 (总分) 为左 Y 轴 0-100 分；右 Y 轴不启用。Tooltip
+// trigger: 'axis'，鼠标 hover 任何一年会同时显示总分走势 +
+// 该年具体分项得分 + 该年广东晋级 / 全国一/二/三等线 (细节下钻)。
+// 点击穿透到对应卷子的链接行为不在此实现, 避免图表成为跳转器
+// 干扰阅读趋势 —— 学生要看具体某年分数直接下拉到下方 24 张卡片。
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -85,19 +91,7 @@ type ApiResponse = {
   labels: Record<CategoryKey, string>;
 };
 
-const CATEGORY_COLORS: Record<CategoryKey, string> = {
-  choice: '#3b82f6',   // blue-500
-  read: '#10b981',     // emerald-500
-  perfect: '#f59e0b',  // amber-500
-};
-
 const TOTAL_COLOR = '#7c3aed'; // violet-600
-
-const CATEGORY_LINE_WIDTH: Record<CategoryKey, number> = {
-  choice: 2,
-  read: 2,
-  perfect: 2,
-};
 const TOTAL_LINE_WIDTH = 3;
 
 interface Props {
@@ -187,9 +181,9 @@ export function PaperScoreTrendChart({ className, hideFooterLink }: Props) {
               我的历年真题成绩趋势
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              共完成 {totalAttempted} 套真题 · 折线显示单项选择 / 阅读程序 /
-              完善程序 / 总分 4 个维度的得分随年份变化 · 横向参考线为
-              对应年份的广东晋级线与全国一/二/三等线
+              共完成 {totalAttempted} 套真题 · 折线展示历年总分走势，
+              红色虚线为该组历年广东晋级线 (取中位数) ·
+              点击某一年可在 tooltip 看到分项得分与一/二/三等对照
             </p>
           </div>
         </div>
@@ -279,54 +273,33 @@ function SubChart({
       return;
     }
     // X 轴 = 用户答过的所有年份，按升序排
+    // Y 轴 0-100 分 (右 Y 轴不启用)。Tooltip 弹层里给出该年具体
+    // 分项得分 + 该年广东晋级 / 全国一/二/三等线 (下钻信息)。
+    //
+    // 简化后 (commit on 2026-08-11) 不再画分项折线 (单项选择 / 阅读
+    // 程序 / 完善程序) —— 4 条线叠在一起看不清走势, 学生真正关心的
+    // 是"总分 vs 晋级线", 精简后图面只剩 1 条总分实线 + 1 条晋级虚线。
+    // 分项细节 + 一/二/三等参考线挪到 tooltip 弹层里, 想看能下钻。
     const years = Array.from(new Set(papers.map((p) => p.year))).sort(
       (a, b) => a - b,
     );
 
-    // Y 轴的最大值：根据 paper-standard 满分决定 —— J 组标准满分
-    // 100、S 组标准满分 100，4 条折线都是 0-100 分量纲，所以 Y 轴
-    // 统一 0-100。Tooltips 会显示具体分数。
-    const buildSeries = (
-      key: CategoryKey,
-      color: string,
-      lineWidth: number,
-      isTotal: boolean,
-    ) => ({
-      name: isTotal ? '总分' : labels[key],
-      type: 'line' as const,
-      smooth: false,
-      symbol: 'circle',
-      symbolSize: isTotal ? 8 : 6,
-      showSymbol: true,
-      lineStyle: { color, width: lineWidth, type: isTotal ? 'solid' : 'dashed' },
-      itemStyle: { color, borderColor: '#fff', borderWidth: 1.5 },
-      // total 直接用 paperHistory 给的 score；其他 3 个用
-      // 0-100 折算（避免满分不等于 100 的卷子被压扁）。当 max=0
-      // （早期卷子没 category）显示 null，会自动断开折线。
-      data: years.map((y) => {
-        const p = papers.find((it) => it.year === y);
-        if (!p) return null;
-        if (isTotal) {
-          // total 已经是百分制（score = earned / max * 100）
-          return p.total.max > 0 ? p.total.score : null;
-        }
-        if (p[key].max <= 0) return null;
-        return Math.round((p[key].earned / p[key].max) * 10000) / 100;
-      }),
-      z: isTotal ? 10 : 1,
+    // 总分折线的数据：直接用 backend 给的 0-100 分 (score =
+    // earned / max * 100)。max=0 (异常数据) 时返回 null, 自动断开。
+    const totalData = years.map((y) => {
+      const p = papers.find((it) => it.year === y);
+      if (!p) return null;
+      if (p.total.max <= 0) return null;
+      return p.total.score;
     });
 
-    // 构造 markLine 数据 —— 把"广东晋级 / 全国一等 / 二等 / 三等"4 条
-    // 参考线画成 4 条水平虚线 (per key), yAxis 取该 key 在所有数据年
-    // 的中位数, 让学生看到"自己的总分大致在哪个等级附近"。
+    // 构造 markLine 数据 —— 旧版"每年画 4 条线" (commit 23bfe81) 错
+    // 误地把 4 keys * N years = 4N 条线段叠在一起, 折线被参考线完全
+    // 淹没, 改用中位数 (commit 1134d4f / 98d738e) 只画 4 条。
     //
-    // 早期版本 (commit 23bfe81) 错误地"每年画 4 条线跨整个 X 轴",
-    // 4 keys * N years = 4N 条线段叠在一起, 折线被参考线完全淹没,
-    // 学生根本看不清自己的得分走势。这里改为只画 4 条线, 用中位数
-    // 作为代表性 yAxis, 视觉效果清爽。
-    //
-    // 具体年份的精确对照仍然在 tooltip 弹层里给出 (下方 formatter),
-    // 包括"该年实际分数线 + 与本年总分的差距"。
+    // 进一步简化 (2026-08-11): 用户反馈 K 线图只需要"总分 + 晋级线",
+    // 全国一二三等线不再画在主图里, 改在 tooltip 弹层里给出 (学生 hover
+    // 某年时能看到完整对照)。这样主图只剩 1 条晋级虚线, 视觉清爽。
     const yAxisByKey = new Map<string, number>();
     {
       const arrByKey = new Map<string, number[]>();
@@ -346,20 +319,20 @@ function SubChart({
       }
     }
     const scoreLineData: any[] = [];
-    for (const key of SCORE_LINE_KEYS) {
-      const y = yAxisByKey.get(key);
-      if (y === undefined) continue;
-      const meta = SCORE_LINE_META[key];
+    // 只画"晋级"这一条参考线；一/二/三等挪到 tooltip 弹层。
+    const promotionY = yAxisByKey.get('promotion');
+    if (promotionY !== undefined) {
+      const meta = SCORE_LINE_META.promotion;
       scoreLineData.push({
-        yAxis: y,
+        yAxis: promotionY,
         silent: true,
         symbol: 'none',
         animation: false,
         lineStyle: {
           color: meta.color,
-          width: 1.2,
+          width: 1.4,
           type: 'dashed',
-          opacity: 0.55,
+          opacity: 0.7,
         },
         label: {
           show: true,
@@ -378,15 +351,9 @@ function SubChart({
     inst.current.setOption(
       {
         animation: false,
-        grid: { left: 36, right: 16, top: 36, bottom: 28 },
+        grid: { left: 36, right: 16, top: 28, bottom: 28 },
         legend: {
-          show: papers.length > 0,
-          top: 0,
-          left: 0,
-          textStyle: { color: '#475569', fontSize: 11 },
-          itemWidth: 14,
-          itemHeight: 8,
-          itemGap: 10,
+          show: false, // 只剩 1 条线 + 1 条参考线, 图例没必要
         },
         tooltip: {
           trigger: 'axis',
@@ -409,6 +376,8 @@ function SubChart({
             ];
             const fmtPct = (earned: number, max: number) =>
               max > 0 ? `${earned} / ${max} (${Math.round((earned / max) * 100)}%)` : '—';
+            // 分项得分：单项选择 / 阅读程序 / 完善程序 (下钻信息,
+            // 不在主图里画线了, 全部塞进 tooltip)。
             lines.push(
               `<div style="display:flex;justify-content:space-between;gap:12px"><span>${labels.choice}</span><span>${fmtPct(
                 paper.choice.earned,
@@ -434,7 +403,9 @@ function SubChart({
                   : '—'
               }</span></div>`,
             );
-            // 补一段"该年分数线对照"，让 tooltip 同时给出广东晋级 / 全国奖项参考。
+            // 该年分数线对照：广东晋级 + 全国一/二/三等。
+            // 主图只画晋级线, 其它三条挪到 tooltip, 这样图面不会
+            // 被 4 条参考线压成"麻绳", 学生 hover 时还能看到完整对照。
             const scoreLine = getScoreLine(paper.year, group);
             if (scoreLine) {
               const gap = (current: number) =>
@@ -492,12 +463,10 @@ function SubChart({
           },
         },
         series: [
-          buildSeries('choice', CATEGORY_COLORS.choice, CATEGORY_LINE_WIDTH.choice, false),
-          buildSeries('read', CATEGORY_COLORS.read, CATEGORY_LINE_WIDTH.read, false),
-          buildSeries('perfect', CATEGORY_COLORS.perfect, CATEGORY_LINE_WIDTH.perfect, false),
           {
-            // 单独画一条"总分"折线, 把 markLine 都挂在它上面,
-            // 这样 4 条参考线和总分线共享同坐标系, tooltip 联动。
+            // 单条"总分"折线 —— 简化后不再画分项 (单项选择 / 阅读
+            // 程序 / 完善程序) 和多档参考线 (一/二/三等), 只剩
+            // "总分走势 + 晋级线", 一眼能看出差距。
             name: '总分',
             type: 'line',
             smooth: false,
@@ -506,12 +475,7 @@ function SubChart({
             showSymbol: true,
             lineStyle: { color: TOTAL_COLOR, width: TOTAL_LINE_WIDTH, type: 'solid' },
             itemStyle: { color: TOTAL_COLOR, borderColor: '#fff', borderWidth: 1.5 },
-            data: years.map((y) => {
-              const p = papers.find((it) => it.year === y);
-              if (!p) return null;
-              if (p.total.max <= 0) return null;
-              return p.total.score;
-            }),
+            data: totalData,
             markLine: {
               symbol: 'none',
               silent: true,
@@ -545,24 +509,17 @@ function SubChart({
       <div className="text-xs font-semibold text-slate-700 px-2 mb-1">{title}</div>
       <div ref={ref} style={{ width: '100%', height: 240 }} />
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-2 mt-1 text-[10px] text-slate-500">
-        <span>Y 轴 0–100 分 · 实线 = 总分，虚线 = 各题型</span>
+        <span>Y 轴 0–100 分 · 实线 = 总分</span>
         <span className="text-slate-300">|</span>
         <span className="inline-flex items-center gap-1">
-          <span className="inline-block w-3 h-0.5" style={{ background: SCORE_LINE_META.promotion.color, opacity: 0.7 }} />
-          晋级
+          <span
+            className="inline-block w-3 h-0.5"
+            style={{ background: SCORE_LINE_META.promotion.color, opacity: 0.7 }}
+          />
+          晋级线 (取历年广东晋级线中位数)
         </span>
-        <span className="inline-flex items-center gap-1">
-          <span className="inline-block w-3 h-0.5" style={{ background: SCORE_LINE_META.first.color, opacity: 0.7 }} />
-          一等
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <span className="inline-block w-3 h-0.5" style={{ background: SCORE_LINE_META.second.color, opacity: 0.7 }} />
-          二等
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <span className="inline-block w-3 h-0.5" style={{ background: SCORE_LINE_META.third.color, opacity: 0.7 }} />
-          三等
-        </span>
+        <span className="text-slate-300">·</span>
+        <span>hover 任一年查看分项 + 一/二/三等</span>
       </div>
     </div>
   );

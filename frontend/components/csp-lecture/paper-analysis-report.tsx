@@ -2,20 +2,31 @@
 
 // /components/csp-lecture/paper-analysis-report.tsx
 //
-// 单套历年真题 AI 分析报告 — 模态对话框。
+// 单套历年真题 AI 分析报告 — 弹出卡片。
 //
-// 使用：在 FinalSummary 渲染完成后挂一个 "查看 AI 分析报告" 按钮，
+// 使用：在 FinalSummary 渲染完成后挂一个 "AI 智能分析" 按钮，
 // 按钮 onClick 切换 open 状态。open=true 时本组件 fetch
-// /api/csp-quiz/analyze-paper 并按 4 个板块渲染：
+// /api/csp-quiz/analyze-paper 并按 5 个板块渲染：
 //
 //   1. 总体诊断 (overallDiagnosis) — 顶部一句话
 //   2. 薄弱知识点 (weakKnowledgePoints) — 进度条列表
 //   3. 根因分析 (rootCauses) — 带 type 标签的卡片列表
 //   4. 下一步建议 (nextSteps) — 优先级排序的行动列表
+//   5. 错题逐题详解 & AI 答疑 (meta.wrongQuestions) — TTS 朗读
 //
 // 三态：idle / loading (skeleton) / error (重试按钮) / rendered。
 // 已有缓存 (meta.cached=true) 时右上角显示一个小徽章，避免学生
 // 误以为每次都是新算的。
+//
+// 2026-08-11 改用纯 React state + 手工 modal (fixed 全屏遮罩 +
+// 居中卡片), 不再用 Radix UI Dialog 包装。原因是 Radix Dialog
+// 在 FinalScorePage 这个 React tree 里 portal 挂载异常, 导致
+// (a) Dialog 元素没渲染到 body 末尾, 而是 inline 在 FinalScorePage
+//     主文档流里;
+// (b) 触发它的 "AI 智能分析" 按钮 onClick 在某种状态下没被挂上,
+//     pointer-events 变 none, 学生点不动。
+// 自管 state 后这两个问题都消失: open 走 useState, 遮罩 + 居中
+// 卡片 + ESC 关闭 + 背景点击关闭 全部手工实现, 不依赖 portal。
 
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -41,13 +52,6 @@ import {
   Play,
   Lightbulb,
 } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -209,30 +213,57 @@ export function PaperAnalysisReport({ open, onOpenChange, classroomId }: Props) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, classroomId]);
 
+  // ESC 关闭 —— 原来 Radix Dialog 自带, 手工 modal 要自己监听
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onOpenChange(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onOpenChange]);
+
+  // open=false 时整段不渲染, 避免 fetch / 状态污染 FinalScorePage
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        showCloseButton
-        className="max-w-3xl max-h-[88vh] overflow-y-auto p-0 sm:p-0"
-      >
+    <div
+      // 全屏遮罩 + flex 居中 — 替代 Radix Dialog 的 Portal + Overlay + Content
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 backdrop-blur-sm p-2 sm:p-4"
+      onClick={(e) => {
+        // 点背景关闭, 点卡片不关闭
+        if (e.target === e.currentTarget) onOpenChange(false);
+      }}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div className="relative w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
+        {/* 关闭按钮 — 替代 Radix Dialog 自带的 close button */}
+        <button
+          type="button"
+          aria-label="关闭"
+          onClick={() => onOpenChange(false)}
+          className="absolute top-3 right-3 z-10 inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white/20 hover:bg-white/35 text-white/90 hover:text-white ring-1 ring-white/30 transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
         {/* 顶部 hero 渐变区 */}
-        <div className="relative bg-gradient-to-br from-violet-600 via-fuchsia-600 to-indigo-600 text-white px-6 py-5 sm:px-8 sm:py-7">
-          <DialogHeader>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white/15 backdrop-blur ring-1 ring-white/30">
-                <Sparkles className="w-5 h-5" />
-              </span>
-              <span className="text-xs font-semibold uppercase tracking-widest text-white/85">
-                AI 学习诊断报告
-              </span>
-            </div>
-            <DialogTitle className="text-xl sm:text-2xl font-bold text-white leading-snug">
-              {report ? `${report.meta.year} 年 ${report.meta.group} 组 · ${report.meta.title}` : 'AI 正在分析你的真题表现'}
-            </DialogTitle>
-            <DialogDescription className="text-white/80 text-sm mt-1">
-              基于你本次答错的题目，AI 全方位分析知识漏洞与根因，并给出下一步学习建议。
-            </DialogDescription>
-          </DialogHeader>
+        <div className="relative bg-gradient-to-br from-violet-600 via-fuchsia-600 to-indigo-600 text-white px-6 py-5 sm:px-8 sm:py-7 rounded-t-2xl">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white/15 backdrop-blur ring-1 ring-white/30">
+              <Sparkles className="w-5 h-5" />
+            </span>
+            <span className="text-xs font-semibold uppercase tracking-widest text-white/85">
+              AI 学习诊断报告
+            </span>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold text-white leading-snug">
+            {report ? `${report.meta.year} 年 ${report.meta.group} 组 · ${report.meta.title}` : 'AI 正在分析你的真题表现'}
+          </h2>
+          <p className="text-white/80 text-sm mt-1">
+            基于你本次答错的题目，AI 全方位分析知识漏洞与根因，并给出下一步学习建议。
+          </p>
           {report && (
             <div className="mt-4 grid grid-cols-3 gap-3 text-center">
               <Stat label="本次得分" value={`${report.meta.score}`} unit="分" />
@@ -250,7 +281,7 @@ export function PaperAnalysisReport({ open, onOpenChange, classroomId }: Props) 
             </div>
           )}
           {report?.meta.cached && (
-            <span className="absolute top-3 right-12 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-white/85 bg-white/15 border border-white/20 rounded-full px-2 py-0.5">
+            <span className="absolute top-3 right-14 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-white/85 bg-white/15 border border-white/20 rounded-full px-2 py-0.5">
               <Clock className="w-3 h-3" /> 缓存
             </span>
           )}
@@ -550,8 +581,8 @@ export function PaperAnalysisReport({ open, onOpenChange, classroomId }: Props) 
             </>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }
 
