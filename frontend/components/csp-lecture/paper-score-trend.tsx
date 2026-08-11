@@ -6,16 +6,18 @@
 //
 // 数据来源：/api/csp-quiz/paper-trend (返回当前用户答过的所有
 // 24 套历年真题 J/S 的总分)。图表分两张子图（J 组 / S 组）左右
-// 并排，每张子图只画 1 条折线：
+// 并排，每张子图画 2 条折线：
 //   - 总分（深紫，加粗实线）
-// 并叠加 1 条参考线：
-//   - 广东晋级线（红色虚线，用所有年份的中位数作 yAxis）
+//   - 广东晋级线（红色虚线，按年份真实取值的多段折线 —— 不再
+//     用"历年中位数"那种抹掉波动的画法）
 //
-// 简化原因 (commit on 2026-08-11)：用户反馈 K 线图只需要"总分
-// 走势 + 晋级线"两个信息, 单项选择 / 阅读程序 / 完善程序 3 条分
-// 类线 + 全国一二三等参考线让学生看不懂、抓不到重点, 反倒把真正
-// 关心的"我离晋级还差几分"信号淹没。精简后图面清爽, 趋势一眼能
-// 看出, 历年精确分项得分保留在 tooltip 弹层里, 想看能下钻。
+// 简化历史 (commit 23bfe81 / 1134d4f / 98d738e / 672734e / 本次)：
+//   - 23bfe81 画 4 keys * N years = 4N 条线段, 折线被参考线淹没
+//   - 1134d4f / 98d738e 改用中位数, 4 条水平参考线
+//   - 672734e 再砍到只剩"总分 + 晋级线"两条, 一/二/三等挪到 tooltip
+//   - 本次  修正晋级线: 不再是中位数水平线, 而是按年份真实取值的
+//           多段折线。学生能直观看到"2024 晋级线 83.5 突然拉高"
+//           这种异常, 不会被一条中位数水平线骗到。
 //
 // 使用 ECharts (SVG renderer) 渲染：
 //   - 与 slide-renderer/ChartElement 同一套 import 方式
@@ -31,9 +33,9 @@
 //     一套试试看"
 //   - rendered: ECharts 实例
 //
-// 1 条折线 (总分) 为左 Y 轴 0-100 分；右 Y 轴不启用。Tooltip
-// trigger: 'axis'，鼠标 hover 任何一年会同时显示总分走势 +
-// 该年具体分项得分 + 该年广东晋级 / 全国一/二/三等线 (细节下钻)。
+// 1 条折线 (总分) + 1 条参考线 (晋级线) 为左 Y 轴 0-100 分；右 Y 轴
+// 不启用。Tooltip trigger: 'axis'，鼠标 hover 任何一年会同时显示
+// 总分走势 + 该年具体分项得分 + 该年广东晋级 / 全国一/二/三等线。
 // 点击穿透到对应卷子的链接行为不在此实现, 避免图表成为跳转器
 // 干扰阅读趋势 —— 学生要看具体某年分数直接下拉到下方 24 张卡片。
 
@@ -66,7 +68,6 @@ echarts.use([
 import {
   getScoreLine,
   SCORE_LINE_META,
-  SCORE_LINE_KEYS,
   type CspGroup,
 } from '@/lib/csp-score-lines';
 
@@ -297,55 +298,42 @@ function SubChart({
     // 误地把 4 keys * N years = 4N 条线段叠在一起, 折线被参考线完全
     // 淹没, 改用中位数 (commit 1134d4f / 98d738e) 只画 4 条。
     //
-    // 进一步简化 (2026-08-11): 用户反馈 K 线图只需要"总分 + 晋级线",
-    // 全国一二三等线不再画在主图里, 改在 tooltip 弹层里给出 (学生 hover
-    // 某年时能看到完整对照)。这样主图只剩 1 条晋级虚线, 视觉清爽。
-    const yAxisByKey = new Map<string, number>();
-    {
-      const arrByKey = new Map<string, number[]>();
-      for (const key of SCORE_LINE_KEYS) arrByKey.set(key, []);
-      for (const y of years) {
-        const line = getScoreLine(y, group);
-        if (!line) continue;
-        for (const key of SCORE_LINE_KEYS) {
-          arrByKey.get(key)!.push(line[key]);
-        }
-      }
-      for (const key of SCORE_LINE_KEYS) {
-        const arr = arrByKey.get(key)!;
-        if (arr.length === 0) continue;
-        arr.sort((a, b) => a - b);
-        yAxisByKey.set(key, arr[Math.floor(arr.length / 2)]);
-      }
+    // 进一步修正 (2026-08-11 晚上): 用户反馈"晋级线每年都不一样,
+    // 中位数水平线不准"。晋级线本质就是按年份浮动的分数线, 正确画
+    // 法是和总分折线一样 —— 每年一个数据点, 串成一条多段折线, 让
+    // 学生直观看到"今年晋级线比去年高/低"。中位数那种"一条水平线"
+    // 的画法抹掉了每年波动, 等于假信息。
+    //
+    // 主图仍然只画 1 条参考线（晋级线），一/二/三等挪到 tooltip 弹层。
+    // 晋级线用 ECharts 的多段 markLine 语法: data 数组里塞一个 2 维
+    // 数组, 表示一条由 (xAxis, yAxis) 点串成的折线。
+    const promotionPoints: Array<{ xAxis: string | number; yAxis: number }> = [];
+    for (const y of years) {
+      const line = getScoreLine(y, group);
+      if (!line) continue;
+      promotionPoints.push({ xAxis: String(y), yAxis: line.promotion });
     }
     const scoreLineData: any[] = [];
-    // 只画"晋级"这一条参考线；一/二/三等挪到 tooltip 弹层。
-    const promotionY = yAxisByKey.get('promotion');
-    if (promotionY !== undefined) {
+    if (promotionPoints.length >= 2) {
+      // 多段折线 —— 晋级线每年浮动, 用真实数据点连接
       const meta = SCORE_LINE_META.promotion;
-      scoreLineData.push({
-        yAxis: promotionY,
-        silent: true,
-        symbol: 'none',
-        animation: false,
-        lineStyle: {
-          color: meta.color,
-          width: 1.4,
-          type: 'dashed',
-          opacity: 0.7,
+      scoreLineData.push([
+        ...promotionPoints,
+        {
+          // 末端小标签: 只在最后一个点显示"晋级"二字
+          label: {
+            show: true,
+            position: 'insideEndTop',
+            formatter: () => meta.short,
+            color: meta.color,
+            fontSize: 10,
+            fontWeight: 600,
+            backgroundColor: 'rgba(255,255,255,0.85)',
+            padding: [1, 4],
+            borderRadius: 3,
+          },
         },
-        label: {
-          show: true,
-          position: 'insideEndTop',
-          formatter: () => meta.short,
-          color: meta.color,
-          fontSize: 10,
-          fontWeight: 600,
-          backgroundColor: 'rgba(255,255,255,0.85)',
-          padding: [1, 4],
-          borderRadius: 3,
-        },
-      });
+      ]);
     }
 
     inst.current.setOption(
@@ -481,6 +469,13 @@ function SubChart({
               silent: true,
               animation: false,
               data: scoreLineData,
+              // 多段折线 (晋级线每年浮动) 的统一样式
+              lineStyle: {
+                color: SCORE_LINE_META.promotion.color,
+                width: 1.4,
+                type: 'dashed',
+                opacity: 0.7,
+              },
             },
             z: 10,
           },
@@ -516,7 +511,7 @@ function SubChart({
             className="inline-block w-3 h-0.5"
             style={{ background: SCORE_LINE_META.promotion.color, opacity: 0.7 }}
           />
-          晋级线 (取历年广东晋级线中位数)
+          晋级线 (该组历年广东晋级线, 每年浮动)
         </span>
         <span className="text-slate-300">·</span>
         <span>hover 任一年查看分项 + 一/二/三等</span>
