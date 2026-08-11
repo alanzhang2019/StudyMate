@@ -599,6 +599,24 @@ export const PROVIDERS: Record<ProviderId, ProviderConfig> = {
     requiresApiKey: true,
     icon: '/logos/kimi.png',
     models: [
+      // 七牛云 OpenAI 兼容接口上挂的 deepseek 模型。`kimi` 只是个
+      // 命名空间（决定读 KIMI_API_KEY / KIMI_BASE_URL），实际请求
+      // 都走七牛云 gateway，model id 写 deepseek/* 是上游支持的。
+      // 教学场景默认走 flash 性价比最高；想升级到 pro 改 .env 即可。
+      {
+        id: 'deepseek/deepseek-v4-flash-20260731',
+        name: 'DeepSeek V4 Flash (七牛云)',
+        contextWindow: 1048576,
+        outputWindow: 131072,
+        capabilities: { streaming: true, tools: true, vision: false },
+      },
+      {
+        id: 'deepseek/deepseek-v4-pro-20260731',
+        name: 'DeepSeek V4 Pro (七牛云)',
+        contextWindow: 1048576,
+        outputWindow: 131072,
+        capabilities: { streaming: true, tools: true, vision: false },
+      },
       {
         id: 'kimi-k2.6',
         name: 'Kimi K2.6',

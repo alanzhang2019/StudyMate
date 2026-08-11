@@ -297,6 +297,19 @@ const THINKING_CAPABILITIES: Record<string, ThinkingCapability> = {
   [getModelMetadataKey('deepseek', 'deepseek-v4-pro')]: deepseekEffort,
   [getModelMetadataKey('deepseek', 'deepseek-v4-flash')]: deepseekEffort,
 
+  // 七牛云 OpenAI 兼容接口上把 deepseek-v4-flash 挂在 kimi provider 下
+  // （DEFAULT_MODEL=kimi:deepseek/deepseek-v4-flash-20260731）。若不注册
+  // capability，`getCatalogThinkingCapability` 返回 undefined → fetch
+  // 包装器不会注入 `thinking: { type: 'disabled' }` body 参数 → 七牛云
+  // deepseek-v4-flash 默认启用 reasoning，2500 token 输出预算全部被
+  // reasoning_content 消耗，`content` 返回空字符串 → 前端报"AI 返回为空"。
+  // 注册到 deepseekEffort 后，LLM_THINKING_DISABLED=true 走 deepseek
+  // adapter 的 disabled 分支正确注入禁用 thinking 的 body 参数。
+  [getModelMetadataKey('kimi', 'deepseek/deepseek-v4-flash-20260731')]:
+    deepseekEffort,
+  [getModelMetadataKey('kimi', 'deepseek/deepseek-v4-pro-20260731')]:
+    deepseekEffort,
+
   [getModelMetadataKey('kimi', 'kimi-k2.6')]: toggleCapability('kimi'),
   [getModelMetadataKey('kimi', 'kimi-k2.5')]: toggleCapability('kimi'),
   [getModelMetadataKey('kimi', 'kimi-k2-thinking')]: toggleCapability('kimi'),
@@ -350,6 +363,17 @@ export function getCatalogThinkingCapability(
 
   if (providerId === 'lemonade') {
     return lemonadeToggleBudget;
+  }
+
+  // 七牛云 OpenAI 兼容接口允许用任意 provider 前缀调用任意模型（所有
+  // 请求都走同一 baseURL + 同一鉴权头）。DEFAULT_MODEL 把 deepseek-v4
+  // 挂在 kimi provider 下；以后改日期后缀 / 切到 deepseek-v5 等新模型时
+  // 不可能逐个加映射。这里做一次宽口径 fallback：只要模型 ID 包含
+  // `deepseek` 就套 deepseekEffort，确保 LLM_THINKING_DISABLED=true 能
+  // 正常把 `thinking: { type: 'disabled' }` 注入请求体，避免 reasoning
+  // 把 maxOutputTokens 烧光导致 content 返回空字符串。
+  if (modelId.toLowerCase().includes('deepseek')) {
+    return deepseekEffort;
   }
 
   return undefined;
