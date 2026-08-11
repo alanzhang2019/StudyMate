@@ -20,7 +20,7 @@ import {
 } from '@/lib/mistake/ui/classroom-load-state';
 import { useStageStore } from '@/lib/store';
 import { loadImageMapping } from '@/lib/utils/image-storage';
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { generateAndStoreTTS, useSceneGenerator } from '@/lib/hooks/use-scene-generator';
@@ -99,19 +99,24 @@ export default function ClassroomDetailPage() {
   // 后被丢掉, 导致学生点 "去课件复习这道题" 后页面停在第一题 (就是
   // 用户最近一次反馈的 "点击后返回的并不是这道题的")。
   const searchParams = useSearchParams();
-  const deepLinkScene = (() => {
-    const raw = searchParams?.get('scene');
-    if (raw === null || raw === undefined || raw === '') return null;
+  // `sceneParam` 是原始字符串,引用稳定; 之后 deepLinkScene 用
+  // useMemo 依赖它,保证整个对象引用在 URL 不变时也稳定。如果
+  // 把它直接包成对象 ({kind, value, raw}) 放进 useEffect 的依赖
+  // 数组,每次渲染都会拿到新的对象引用,导致 deep-link 跳转 effect
+  // 在学生点 "上一题/下一题" 后重跑,被强制弹回原场景 —— 翻页无效。
+  const sceneParam = searchParams?.get('scene') ?? null;
+  const deepLinkScene = useMemo(() => {
+    if (sceneParam === null || sceneParam === '') return null;
     // 1) 优先尝试按 scene.order (数字) 解析 — 兼容 /csp-lecture
     //    ExpandChapterList 的 `?scene=${c.order}` 链接。
-    const asInt = Number.parseInt(raw, 10);
+    const asInt = Number.parseInt(sceneParam, 10);
     if (Number.isInteger(asInt) && asInt > 0) {
-      return { kind: 'order' as const, value: asInt, raw };
+      return { kind: 'order' as const, value: asInt, raw: sceneParam };
     }
     // 2) 否则按 sceneId (字符串) 处理 — 错题本 / 我的学习的
     //    "去课件复习" / "继续学习" 走这条路径。
-    return { kind: 'id' as const, value: raw, raw };
-  })();
+    return { kind: 'id' as const, value: sceneParam, raw: sceneParam };
+  }, [sceneParam]);
 
   const { loadFromStorage } = useStageStore();
 
