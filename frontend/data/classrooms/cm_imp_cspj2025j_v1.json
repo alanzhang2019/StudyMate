@@ -55,12 +55,26 @@
             "type": "single",
             "question": "1. 一个 32 位无符号整数可以表示的最大值，最接近下列哪个选项？（ ）",
             "options": [
-              { "value": "A", "label": "4×10⁹" },
-              { "value": "B", "label": "3×10¹⁰" },
-              { "value": "C", "label": "2×10⁹" },
-              { "value": "D", "label": "2×10¹⁰" }
+              {
+                "value": "A",
+                "label": "4×10⁹"
+              },
+              {
+                "value": "B",
+                "label": "3×10¹⁰"
+              },
+              {
+                "value": "C",
+                "label": "2×10⁹"
+              },
+              {
+                "value": "D",
+                "label": "2×10¹⁰"
+              }
             ],
-            "answer": ["A"],
+            "answer": [
+              "A"
+            ],
             "analysis": "32 位无符号整数的取值范围是 0~2³²−1，最大值 2³²−1 = 4294967295，约为 4.29×10⁹，最接近 4×10⁹。",
             "points": 2,
             "hasAnswer": true
@@ -70,12 +84,26 @@
             "type": "single",
             "question": "2. 在 C++ 中，执行 `int x = 255; cout << (x & (x - 1));` 后，输出的结果是（ ）。",
             "options": [
-              { "value": "A", "label": "255" },
-              { "value": "B", "label": "254" },
-              { "value": "C", "label": "128" },
-              { "value": "D", "label": "0" }
+              {
+                "value": "A",
+                "label": "255"
+              },
+              {
+                "value": "B",
+                "label": "254"
+              },
+              {
+                "value": "C",
+                "label": "128"
+              },
+              {
+                "value": "D",
+                "label": "0"
+              }
             ],
-            "answer": ["B"],
+            "answer": [
+              "B"
+            ],
             "analysis": "x & (x−1) 用来消除 x 的二进制最右边那个 1。255 的二进制为 11111111，消除最低位 1 后变为 11111110 = 254。",
             "points": 2,
             "hasAnswer": true
@@ -85,12 +113,26 @@
             "type": "single",
             "question": "3. 函数 `calc(n)` 定义如下，则 `calc(5)` 的返回值是多少？（ ）\n\n```\nint calc(int n){\n    if (n <= 1) return 1;\n    if (n % 2 == 0) return calc(n / 2) + 1;\n    else return calc(n - 1) + calc(n - 2);\n}\n```",
             "options": [
-              { "value": "A", "label": "5" },
-              { "value": "B", "label": "6" },
-              { "value": "C", "label": "7" },
-              { "value": "D", "label": "8" }
+              {
+                "value": "A",
+                "label": "5"
+              },
+              {
+                "value": "B",
+                "label": "6"
+              },
+              {
+                "value": "C",
+                "label": "7"
+              },
+              {
+                "value": "D",
+                "label": "8"
+              }
             ],
-            "answer": ["B"],
+            "answer": [
+              "B"
+            ],
             "analysis": "递归展开：calc(0)=1, calc(1)=1, calc(2)=calc(1)+1=2, calc(3)=calc(2)+calc(1)=3, calc(4)=calc(2)+1=3, calc(5)=calc(4)+calc(3)=3+3=6。",
             "points": 2,
             "hasAnswer": true
@@ -100,12 +142,26 @@
             "type": "single",
             "question": "4. 用 5 个权值 10、12、15、20、25 构造哈夫曼树，该树的带权路径长度是多少？（ ）",
             "options": [
-              { "value": "A", "label": "176" },
-              { "value": "B", "label": "186" },
-              { "value": "C", "label": "196" },
-              { "value": "D", "label": "206" }
+              {
+                "value": "A",
+                "label": "176"
+              },
+              {
+                "value": "B",
+                "label": "186"
+              },
+              {
+                "value": "C",
+                "label": "196"
+              },
+              {
+                "value": "D",
+                "label": "206"
+              }
             ],
-            "answer": ["B"],
+            "answer": [
+              "B"
+            ],
             "analysis": "哈夫曼树构造过程：合并 10+12=22，合并 15+20=35，合并 22+25=47，合并 35+47=82。WPL = (10+12)×3 + (15+20+25)×2 = 66+100 = 186。",
             "points": 2,
             "hasAnswer": true
@@ -115,12 +171,26 @@
             "type": "single",
             "question": "5. 在一个有向图中，所有顶点的入度之和等于所有顶点的出度之和，这个总和等于（ ）。",
             "options": [
-              { "value": "A", "label": "顶点数" },
-              { "value": "B", "label": "边数" },
-              { "value": "C", "label": "顶点数 + 边数" },
-              { "value": "D", "label": "顶点数 × 2" }
+              {
+                "value": "A",
+                "label": "顶点数"
+              },
+              {
+                "value": "B",
+                "label": "边数"
+              },
+              {
+                "value": "C",
+                "label": "顶点数 + 边数"
+              },
+              {
+                "value": "D",
+                "label": "顶点数 × 2"
+              }
             ],
-            "answer": ["B"],
+            "answer": [
+              "B"
+            ],
             "analysis": "在有向图中每条边对应一个起点出度和一个终点入度，因此所有顶点的入度之和 = 所有顶点的出度之和 = 边数。",
             "points": 2,
             "hasAnswer": true
@@ -130,12 +200,26 @@
             "type": "single",
             "question": "6. 从 5 位男生和 4 位女生中选出 4 人组成一个学习小组，要求学习小组中男生和女生都有。有多少种不同的选法？（ ）",
             "options": [
-              { "value": "A", "label": "126" },
-              { "value": "B", "label": "121" },
-              { "value": "C", "label": "120" },
-              { "value": "D", "label": "100" }
+              {
+                "value": "A",
+                "label": "126"
+              },
+              {
+                "value": "B",
+                "label": "121"
+              },
+              {
+                "value": "C",
+                "label": "120"
+              },
+              {
+                "value": "D",
+                "label": "100"
+              }
             ],
-            "answer": ["C"],
+            "answer": [
+              "C"
+            ],
             "analysis": "全部选法 C(9,4)=126，减去全男 C(5,4)=5 和全女 C(4,4)=1，符合条件的选法为 126−5−1=120。",
             "points": 2,
             "hasAnswer": true
@@ -145,12 +229,26 @@
             "type": "single",
             "question": "7. 假设 a、b、c 都是布尔变量，逻辑表达式 `(a && b) || (!c && a)` 的值与下列哪个表达式不始终相等？（ ）",
             "options": [
-              { "value": "A", "label": "a && (b || !c)" },
-              { "value": "B", "label": "(a || !c) && (b || !c) && (a || a)" },
-              { "value": "C", "label": "a && (!b || c)" },
-              { "value": "D", "label": "!(!a || !b) || (a && !c)" }
+              {
+                "value": "A",
+                "label": "a && (b || !c)"
+              },
+              {
+                "value": "B",
+                "label": "(a || !c) && (b || !c) && (a || a)"
+              },
+              {
+                "value": "C",
+                "label": "a && (!b || c)"
+              },
+              {
+                "value": "D",
+                "label": "!(!a || !b) || (a && !c)"
+              }
             ],
-            "answer": ["C"],
+            "answer": [
+              "C"
+            ],
             "analysis": "原式提取公因子 a，化简为 a && (b || !c)。当 a=true, b=true, c=false 时原式为 true，而 C 选项 a && (!b || c) = 1 && (0 || 0) = 0，不相等。",
             "points": 2,
             "hasAnswer": true
@@ -160,12 +258,26 @@
             "type": "single",
             "question": "8. 已知 f[0]=1, f[1]=1，并且对于所有 n≥2 有 f[n] = (f[n−1] + f[n−2]) % 7，那么 f[2025] 的值是多少？（ ）",
             "options": [
-              { "value": "A", "label": "2" },
-              { "value": "B", "label": "4" },
-              { "value": "C", "label": "5" },
-              { "value": "D", "label": "6" }
+              {
+                "value": "A",
+                "label": "2"
+              },
+              {
+                "value": "B",
+                "label": "4"
+              },
+              {
+                "value": "C",
+                "label": "5"
+              },
+              {
+                "value": "D",
+                "label": "6"
+              }
             ],
-            "answer": ["D"],
+            "answer": [
+              "D"
+            ],
             "analysis": "模 7 的斐波那契序列周期为 16：1,1,2,3,5,1,6,0,6,6,5,4,2,6,1,0,1,1,... 2025 mod 16 = 9，所以 f[2025] = f[9] = 6。",
             "points": 2,
             "hasAnswer": true
@@ -175,12 +287,26 @@
             "type": "single",
             "question": "9. 下列关于 C++ string 类的说法，正确的是（ ）。",
             "options": [
-              { "value": "A", "label": "string 对象的长度在创建后不能改变" },
-              { "value": "B", "label": "可以使用 + 运算符直接连接一个 string 对象和一个 char 类型的字符" },
-              { "value": "C", "label": "string 的 length() 和 size() 方法返回的值可能不同" },
-              { "value": "D", "label": "string 对象必须以 \\0 结尾，且这个结尾符计入 length()" }
+              {
+                "value": "A",
+                "label": "string 对象的长度在创建后不能改变"
+              },
+              {
+                "value": "B",
+                "label": "可以使用 + 运算符直接连接一个 string 对象和一个 char 类型的字符"
+              },
+              {
+                "value": "C",
+                "label": "string 的 length() 和 size() 方法返回的值可能不同"
+              },
+              {
+                "value": "D",
+                "label": "string 对象必须以 \\0 结尾，且这个结尾符计入 length()"
+              }
             ],
-            "answer": ["B"],
+            "answer": [
+              "B"
+            ],
             "analysis": "A 错误：string 是动态字符串，长度可通过 append、+= 等方法修改；B 正确：C++ string 重载了 + 运算，可直接拼接 char；C 错误：length() 与 size() 返回相同结果；D 错误：string 内部无需手动添加 \\0，且 \\0 不计入长度。",
             "points": 2,
             "hasAnswer": true
@@ -190,12 +316,26 @@
             "type": "single",
             "question": "10. 考虑以下 C++ 函数：\n\n```\nvoid solve(int &a, int b){\n    a = a + b;\n    b = a - b;\n    a = a - b;\n}\nint main(){\n    int x = 5, y = 10;\n    solve(x, y);\n}\n```\n\n在 main 函数调用 solve 后，x 和 y 的值分别是（ ）。",
             "options": [
-              { "value": "A", "label": "5, 10" },
-              { "value": "B", "label": "10, 5" },
-              { "value": "C", "label": "10, 10" },
-              { "value": "D", "label": "5, 5" }
+              {
+                "value": "A",
+                "label": "5, 10"
+              },
+              {
+                "value": "B",
+                "label": "10, 5"
+              },
+              {
+                "value": "C",
+                "label": "10, 10"
+              },
+              {
+                "value": "D",
+                "label": "5, 5"
+              }
             ],
-            "answer": ["C"],
+            "answer": [
+              "C"
+            ],
             "analysis": "int &a 是引用传递（关联实参 x），int b 是值传递。调用时 a=5, b=10：a=a+b=15, b=a−b=5, a=a−b=10。最终 x=10, y=10。",
             "points": 2,
             "hasAnswer": true
@@ -205,12 +345,26 @@
             "type": "single",
             "question": "11. 一个 8×8 的棋盘，左上角坐标为 (1,1)，右下角为 (8,8)。一个机器人从 (1,1) 出发，每次只能向右或向下走一格。要到达 (4,5)，有多少种不同的路径？（ ）",
             "options": [
-              { "value": "A", "label": "20" },
-              { "value": "B", "label": "35" },
-              { "value": "C", "label": "56" },
-              { "value": "D", "label": "70" }
+              {
+                "value": "A",
+                "label": "20"
+              },
+              {
+                "value": "B",
+                "label": "35"
+              },
+              {
+                "value": "C",
+                "label": "56"
+              },
+              {
+                "value": "D",
+                "label": "70"
+              }
             ],
-            "answer": ["B"],
+            "answer": [
+              "B"
+            ],
             "analysis": "从 (1,1) 到 (4,5) 需要向右 3 步、向下 4 步，共 7 步。路径数 = C(7,3) = 35。",
             "points": 2,
             "hasAnswer": true
@@ -220,12 +374,26 @@
             "type": "single",
             "question": "12. 某同学用冒泡排序对数组 [6,1,5,2,4] 进行升序排序，请问需要进行多少次元素交换？（ ）",
             "options": [
-              { "value": "A", "label": "5" },
-              { "value": "B", "label": "6" },
-              { "value": "C", "label": "7" },
-              { "value": "D", "label": "8" }
+              {
+                "value": "A",
+                "label": "5"
+              },
+              {
+                "value": "B",
+                "label": "6"
+              },
+              {
+                "value": "C",
+                "label": "7"
+              },
+              {
+                "value": "D",
+                "label": "8"
+              }
             ],
-            "answer": ["B"],
+            "answer": [
+              "B"
+            ],
             "analysis": "冒泡排序的交换次数等于数组中的逆序对数量。数组的逆序对为 (6,1)(6,5)(6,2)(6,4)(5,2)(5,4)，共 6 个。",
             "points": 2,
             "hasAnswer": true
@@ -235,12 +403,26 @@
             "type": "single",
             "question": "13. 十进制数 720₁₀ 和八进制数 270₈ 的和用十六进制表示是多少？（ ）",
             "options": [
-              { "value": "A", "label": "388₁₆" },
-              { "value": "B", "label": "3DE₁₆" },
-              { "value": "C", "label": "288₁₆" },
-              { "value": "D", "label": "990₁₆" }
+              {
+                "value": "A",
+                "label": "388₁₆"
+              },
+              {
+                "value": "B",
+                "label": "3DE₁₆"
+              },
+              {
+                "value": "C",
+                "label": "288₁₆"
+              },
+              {
+                "value": "D",
+                "label": "990₁₆"
+              }
             ],
-            "answer": ["A"],
+            "answer": [
+              "A"
+            ],
             "analysis": "270₈ = 2×64 + 7×8 + 0 = 184。720 + 184 = 904。904 转十六进制：904÷16=56 余 8，56÷16=3 余 8，3÷16=0 余 3，结果为 388₁₆。",
             "points": 2,
             "hasAnswer": true
@@ -250,12 +432,26 @@
             "type": "single",
             "question": "14. 一棵包含 1000 个结点的完全二叉树，其叶子结点的数量是多少？（ ）",
             "options": [
-              { "value": "A", "label": "499" },
-              { "value": "B", "label": "512" },
-              { "value": "C", "label": "500" },
-              { "value": "D", "label": "501" }
+              {
+                "value": "A",
+                "label": "499"
+              },
+              {
+                "value": "B",
+                "label": "512"
+              },
+              {
+                "value": "C",
+                "label": "500"
+              },
+              {
+                "value": "D",
+                "label": "501"
+              }
             ],
-            "answer": ["C"],
+            "answer": [
+              "C"
+            ],
             "analysis": "完全二叉树的叶子结点数 = ⌈n/2⌉。1000 个结点的完全二叉树叶子数为 500。",
             "points": 2,
             "hasAnswer": true
@@ -265,12 +461,26 @@
             "type": "single",
             "question": "15. 给定一个初始为空的整数栈 S 和一个空的队列 P。按顺序处理输入序列 A：7、5、8、3、1、4、2。对于 A 中的每一个数，如果该数是奇数则压入栈 S；如果是偶数且 S 非空则弹出栈顶元素并加入 P 末尾；如果是偶数且 S 为空则不做任何操作。当 A 处理完毕后，P 的内容是（ ）。",
             "options": [
-              { "value": "A", "label": "5, 1, 3" },
-              { "value": "B", "label": "7, 5, 3" },
-              { "value": "C", "label": "3, 1, 5" },
-              { "value": "D", "label": "5, 1, 3, 7" }
+              {
+                "value": "A",
+                "label": "5, 1, 3"
+              },
+              {
+                "value": "B",
+                "label": "7, 5, 3"
+              },
+              {
+                "value": "C",
+                "label": "3, 1, 5"
+              },
+              {
+                "value": "D",
+                "label": "5, 1, 3, 7"
+              }
             ],
-            "answer": ["A"],
+            "answer": [
+              "A"
+            ],
             "analysis": "模拟：7入栈→[7]；5入栈→[5,7]；8偶数弹5入P→[7], P=[5]；3入栈→[3,7]；1入栈→[1,3,7]；4偶数弹1入P→[3,7], P=[5,1]；2偶数弹3入P→[7], P=[5,1,3]。",
             "points": 2,
             "hasAnswer": true
@@ -306,25 +516,25 @@
             "#include <cstring>",
             "using namespace std;",
             "inline int gcd(int a, int b) {",
-            "    if (b == 0) return a;",
-            "    return gcd(b, a % b);",
+            "  if (b == 0)",
+            "    return a;",
+            "  return gcd(b, a % b);",
             "}",
             "int main() {",
-            "    int n;",
-            "    scanf(\"%d\", &n);",
-            "    int ans = 0;",
-            "    for (int i = 1; i <= n; ++i) {",
-            "        for (int j = i + 1; j <= n; ++j) {",
-            "            for (int k = j + 1; k <= n; ++k) {",
-            "                if (gcd(i, j) == 1 && gcd(j, k) == 1",
-            "                    && gcd(i, k) == 1) {",
-            "                    ++ans;",
-            "                }",
-            "            }",
+            "  int n;",
+            "  scanf(\"%d\", &n);",
+            "  int ans = 0;",
+            "  for (int i = 1; i <= n; ++i) {",
+            "    for (int j = i + 1; j <= n; ++j) {",
+            "      for (int k = j + 1; k <= n; ++k) {",
+            "        if (gcd(i, j) == 1 && gcd(j, k) == 1\n                    && gcd(i, k) == 1) {",
+            "          ++ans;",
             "        }",
+            "      }",
             "    }",
-            "    printf(\"%d\\n\", ans);",
-            "    return 0;",
+            "  }",
+            "  printf(\"%d\\n\", ans);",
+            "  return 0;",
             "}"
           ]
         },
@@ -334,10 +544,18 @@
             "type": "single",
             "question": "16. 当输入为 2 时，程序并不会执行第 16 行的判断语句。（  ）",
             "options": [
-              { "value": "A", "label": "正确（√）" },
-              { "value": "B", "label": "错误（×）" }
+              {
+                "value": "A",
+                "label": "正确（√）"
+              },
+              {
+                "value": "B",
+                "label": "错误（×）"
+              }
             ],
-            "answer": ["A"],
+            "answer": [
+              "A"
+            ],
             "analysis": "当 n=2 时，最内层循环 k 从 j+1=3 开始，不满足 k≤2，循环不进，因此第 16 行的 if 判断不会执行。",
             "points": 1,
             "hasAnswer": true
@@ -347,10 +565,18 @@
             "type": "single",
             "question": "17. 将第 16 行中的 `&& gcd(i, k) == 1` 删去不会影响程序运行结果。（  ）",
             "options": [
-              { "value": "A", "label": "正确（√）" },
-              { "value": "B", "label": "错误（×）" }
+              {
+                "value": "A",
+                "label": "正确（√）"
+              },
+              {
+                "value": "B",
+                "label": "错误（×）"
+              }
             ],
-            "answer": ["B"],
+            "answer": [
+              "B"
+            ],
             "analysis": "判断三个数两两互质需要同时检查 (i,j)、(j,k)、(i,k) 三对。仅由 i⊥j 且 j⊥k 不能推出 i⊥k，例如 i=2, j=3, k=4。",
             "points": 1.5,
             "hasAnswer": true
@@ -360,10 +586,18 @@
             "type": "single",
             "question": "18. 当输入的 n ≤ 3 时，程序总是输出一个正整数。（  ）",
             "options": [
-              { "value": "A", "label": "正确（√）" },
-              { "value": "B", "label": "错误（×）" }
+              {
+                "value": "A",
+                "label": "正确（√）"
+              },
+              {
+                "value": "B",
+                "label": "错误（×）"
+              }
             ],
-            "answer": ["A"],
+            "answer": [
+              "A"
+            ],
             "analysis": "当 n=3 时，唯一的三元组 (1,2,3) 满足两两互质，输出为 1。当 n<3 时三元组不存在输出 0，但 0 不是正整数——实际 n≤3 包含 n=1,2 的情况。严格来说应为 n=3 时才保证正整数。",
             "points": 1.5,
             "hasAnswer": true
@@ -373,12 +607,26 @@
             "type": "single",
             "question": "19. 将第 7 行的 `gcd(b, a % b)` 改为 `gcd(a, a % b)` 后，程序可能出现的问题是（ ）。",
             "options": [
-              { "value": "A", "label": "输出的答案大于原答案" },
-              { "value": "B", "label": "输出的答案小于原答案" },
-              { "value": "C", "label": "程序有可能陷入死循环" },
-              { "value": "D", "label": "可能发生整型溢出问题" }
+              {
+                "value": "A",
+                "label": "输出的答案大于原答案"
+              },
+              {
+                "value": "B",
+                "label": "输出的答案小于原答案"
+              },
+              {
+                "value": "C",
+                "label": "程序有可能陷入死循环"
+              },
+              {
+                "value": "D",
+                "label": "可能发生整型溢出问题"
+              }
             ],
-            "answer": ["B"],
+            "answer": [
+              "B"
+            ],
             "analysis": "改为 gcd(a, a%b) 后第一参数始终为 a 不变，例如 gcd(6,4)→gcd(6,2)→gcd(6,0)→返回 6，导致原本互质的对被判为不互质，输出答案会变小。",
             "points": 3,
             "hasAnswer": true
@@ -388,12 +636,26 @@
             "type": "single",
             "question": "20. 当输入 8 的时候，输出为（ ）。",
             "options": [
-              { "value": "A", "label": "37" },
-              { "value": "B", "label": "42" },
-              { "value": "C", "label": "35" },
-              { "value": "D", "label": "25" }
+              {
+                "value": "A",
+                "label": "37"
+              },
+              {
+                "value": "B",
+                "label": "42"
+              },
+              {
+                "value": "C",
+                "label": "35"
+              },
+              {
+                "value": "D",
+                "label": "25"
+              }
             ],
-            "answer": ["D"],
+            "answer": [
+              "D"
+            ],
             "analysis": "枚举 n=8 时所有满足 1≤i<j<k≤8 且两两互质的三元组共有 25 个。",
             "points": 3,
             "hasAnswer": true
@@ -403,12 +665,26 @@
             "type": "single",
             "question": "21. 调用 `gcd(36, 42)` 会返回（ ）。",
             "options": [
-              { "value": "A", "label": "6" },
-              { "value": "B", "label": "4" },
-              { "value": "C", "label": "2" },
-              { "value": "D", "label": "12" }
+              {
+                "value": "A",
+                "label": "6"
+              },
+              {
+                "value": "B",
+                "label": "4"
+              },
+              {
+                "value": "C",
+                "label": "2"
+              },
+              {
+                "value": "D",
+                "label": "12"
+              }
             ],
-            "answer": ["A"],
+            "answer": [
+              "A"
+            ],
             "analysis": "gcd(36, 42) = gcd(42, 36) = gcd(36, 6) = gcd(6, 0) = 6。",
             "points": 4,
             "hasAnswer": true
@@ -448,18 +724,18 @@
             "int a[200007];",
             "int ans[200007];",
             "int main() {",
-            "    scanf(\"%d%d\", &n, &k);",
-            "    for (int i = 1; i <= n; ++i) {",
-            "        scanf(\"%d\", &a[i]);",
-            "    }",
-            "    std::sort(a + 1, a + n + 1);",
-            "    n = std::unique(a + 1, a + n + 1) - a - 1;",
-            "    for (int i = 1, j = 0; i <= n; ++i) {",
-            "        for (; j < i && a[i] - a[j + 1] > k; ++j);",
-            "        ans[i] = ans[j] + 1;",
-            "    }",
-            "    printf(\"%d\\n\", ans[n]);",
-            "    return 0;",
+            "  scanf(\"%d%d\", &n, &k);",
+            "  for (int i = 1; i <= n; ++i) {",
+            "    scanf(\"%d\", &a[i]);",
+            "  }",
+            "  std::sort(a + 1, a + n + 1);",
+            "  n = std::unique(a + 1, a + n + 1) - a - 1;",
+            "  for (int i = 1, j = 0; i <= n; ++i) {",
+            "    for (; j < i && a[i] - a[j + 1] > k; ++j);",
+            "    ans[i] = ans[j] + 1;",
+            "  }",
+            "  printf(\"%d\\n\", ans[n]);",
+            "  return 0;",
             "}"
           ]
         },
@@ -469,10 +745,18 @@
             "type": "single",
             "question": "22. 当输入 `3 1 3 2 1` 时，输出结果为 2。（  ）",
             "options": [
-              { "value": "A", "label": "正确（√）" },
-              { "value": "B", "label": "错误（×）" }
+              {
+                "value": "A",
+                "label": "正确（√）"
+              },
+              {
+                "value": "B",
+                "label": "错误（×）"
+              }
             ],
-            "answer": ["A"],
+            "answer": [
+              "A"
+            ],
             "analysis": "排序去重后序列为 1 2 3，满足极差 ≤1 的最少分组数为 2（{1,2} 一组，{3} 单独一组）。",
             "points": 1,
             "hasAnswer": true
@@ -482,10 +766,18 @@
             "type": "single",
             "question": "23. 假设输入的 n 为正整数，输出的答案一定小于等于 n，大于等于 1。（  ）",
             "options": [
-              { "value": "A", "label": "正确（√）" },
-              { "value": "B", "label": "错误（×）" }
+              {
+                "value": "A",
+                "label": "正确（√）"
+              },
+              {
+                "value": "B",
+                "label": "错误（×）"
+              }
             ],
-            "answer": ["A"],
+            "answer": [
+              "A"
+            ],
             "analysis": "每次循环 ans[i] = ans[j]+1 都至少为 1，最多把每个元素单独成组时为 n。",
             "points": 1.5,
             "hasAnswer": true
@@ -495,10 +787,18 @@
             "type": "single",
             "question": "24. 将第 14 行的 `n = std::unique(a+1, a+n+1) - a - 1;` 删去后，有可能出现与原本代码不同的输出结果。（  ）",
             "options": [
-              { "value": "A", "label": "正确（√）" },
-              { "value": "B", "label": "错误（×）" }
+              {
+                "value": "A",
+                "label": "正确（√）"
+              },
+              {
+                "value": "B",
+                "label": "错误（×）"
+              }
             ],
-            "answer": ["B"],
+            "answer": [
+              "B"
+            ],
             "analysis": "由于已经进行了排序，重复元素相邻且极差为 0，会被分到同一组，删去 unique 不影响最终分组数。",
             "points": 1.5,
             "hasAnswer": true
@@ -508,12 +808,26 @@
             "type": "single",
             "question": "25. 假如输入的 a 数组和 k 均为正整数，执行第 18 行代码时，一定满足的条件不包括（ ）。",
             "options": [
-              { "value": "A", "label": "j ≤ i" },
-              { "value": "B", "label": "a[i] − a[j] > k" },
-              { "value": "C", "label": "j ≤ n" },
-              { "value": "D", "label": "a[j] < a[i]" }
+              {
+                "value": "A",
+                "label": "j ≤ i"
+              },
+              {
+                "value": "B",
+                "label": "a[i] − a[j] > k"
+              },
+              {
+                "value": "C",
+                "label": "j ≤ n"
+              },
+              {
+                "value": "D",
+                "label": "a[j] < a[i]"
+              }
             ],
-            "answer": ["B"],
+            "answer": [
+              "B"
+            ],
             "analysis": "循环退出条件为 j≥i 或 a[i]−a[j+1]≤k。j 始终 ≤ i（数组下标合法），j ≤ n 显然成立，a[j] < a[i] 由排序保证。但 a[i]−a[j] > k 不一定成立（循环刚退出时 a[i]−a[j+1] ≤ k）。",
             "points": 3,
             "hasAnswer": true
@@ -523,12 +837,26 @@
             "type": "single",
             "question": "26. 当输入 n=100、k=2、a={1,2,...,100} 时，输出为（ ）。",
             "options": [
-              { "value": "A", "label": "34" },
-              { "value": "B", "label": "100" },
-              { "value": "C", "label": "50" },
-              { "value": "D", "label": "33" }
+              {
+                "value": "A",
+                "label": "34"
+              },
+              {
+                "value": "B",
+                "label": "100"
+              },
+              {
+                "value": "C",
+                "label": "50"
+              },
+              {
+                "value": "D",
+                "label": "33"
+              }
             ],
-            "answer": ["A"],
+            "answer": [
+              "A"
+            ],
             "analysis": "极差 ≤ 2 时每 3 个连续整数分一组，100 个数需要 ⌈100/3⌉ = 34 组。",
             "points": 3,
             "hasAnswer": true
@@ -538,12 +866,26 @@
             "type": "single",
             "question": "27. 假如输入的 a 数组和 k 均为正整数，但 a 数组不一定有序。若误删去第 13 行 `std::sort(a+1, a+n+1);`，程序有可能出现的问题有（ ）。",
             "options": [
-              { "value": "A", "label": "输出的答案比原本答案大" },
-              { "value": "B", "label": "输出的答案比原本答案小" },
-              { "value": "C", "label": "出现死循环行为" },
-              { "value": "D", "label": "以上均可能发生" }
+              {
+                "value": "A",
+                "label": "输出的答案比原本答案大"
+              },
+              {
+                "value": "B",
+                "label": "输出的答案比原本答案小"
+              },
+              {
+                "value": "C",
+                "label": "出现死循环行为"
+              },
+              {
+                "value": "D",
+                "label": "以上均可能发生"
+              }
             ],
-            "answer": ["B"],
+            "answer": [
+              "B"
+            ],
             "analysis": "乱序时 j 可能不发生移动或移动距离变小，导致分组数偏大或偏小（实际偏小——因为 j 不前进时 ans 跳到当前元素）。由于 j 有上界 i，不会死循环。",
             "points": 3,
             "hasAnswer": true
@@ -583,23 +925,23 @@
             "int a[5007], b[5007];",
             "int n;",
             "int main() {",
-            "    scanf(\"%d\", &n);",
-            "    for (int i = 1; i <= n; ++i) {",
-            "        scanf(\"%d\", &a[i]);",
+            "  scanf(\"%d\", &n);",
+            "  for (int i = 1; i <= n; ++i) {",
+            "    scanf(\"%d\", &a[i]);",
+            "  }",
+            "  for (int i = 1; i <= n; ++i) {",
+            "    scanf(\"%d\", &b[i]);",
+            "  }",
+            "  for (int i = 1; i <= n; ++i) {",
+            "    for (int j = 1; j <= n; ++j) {",
+            "      f[i][j] = std::max(f[i][j], std::max(f[i-1][j], f[i][j-1]));",
+            "      if (a[i] == b[j]) {",
+            "        f[i][j] = std::max(f[i][j], f[i-1][j-1] + 1);",
+            "      }",
             "    }",
-            "    for (int i = 1; i <= n; ++i) {",
-            "        scanf(\"%d\", &b[i]);",
-            "    }",
-            "    for (int i = 1; i <= n; ++i) {",
-            "        for (int j = 1; j <= n; ++j) {",
-            "            f[i][j] = std::max(f[i][j], std::max(f[i-1][j], f[i][j-1]));",
-            "            if (a[i] == b[j]) {",
-            "                f[i][j] = std::max(f[i][j], f[i-1][j-1] + 1);",
-            "            }",
-            "        }",
-            "    }",
-            "    printf(\"%d\\n\", f[n][n]);",
-            "    return 0;",
+            "  }",
+            "  printf(\"%d\\n\", f[n][n]);",
+            "  return 0;",
             "}"
           ]
         },
@@ -609,10 +951,18 @@
             "type": "single",
             "question": "28. 当输入 `4 1 2 3 4 1 3 2 2` 时，输出为 2。（  ）",
             "options": [
-              { "value": "A", "label": "正确（√）" },
-              { "value": "B", "label": "错误（×）" }
+              {
+                "value": "A",
+                "label": "正确（√）"
+              },
+              {
+                "value": "B",
+                "label": "错误（×）"
+              }
             ],
-            "answer": ["A"],
+            "answer": [
+              "A"
+            ],
             "analysis": "序列 a=[1,2,3,4] 与序列 b=[1,3,2,2] 的最长公共子序列为 (1,2) 或 (1,3)，长度为 2。",
             "points": 1,
             "hasAnswer": true
@@ -622,10 +972,18 @@
             "type": "single",
             "question": "29. 当程序运行完毕后，对于所有的 1≤i,j≤n，都一定有 f[i][j] ≤ f[n][n]。（  ）",
             "options": [
-              { "value": "A", "label": "正确（√）" },
-              { "value": "B", "label": "错误（×）" }
+              {
+                "value": "A",
+                "label": "正确（√）"
+              },
+              {
+                "value": "B",
+                "label": "错误（×）"
+              }
             ],
-            "answer": ["A"],
+            "answer": [
+              "A"
+            ],
             "analysis": "f[i][j] 是 a 的前 i 个元素与 b 的前 j 个元素的 LCS 长度，而 f[n][n] 是完整序列的 LCS 长度，前者必然不超过后者。",
             "points": 1.5,
             "hasAnswer": true
@@ -635,10 +993,18 @@
             "type": "single",
             "question": "30. 将第 18 行的 `f[i][j] = std::max(f[i][j], std::max(f[i-1][j], f[i][j-1]));` 删去后，并不影响程序运行结果。（  ）",
             "options": [
-              { "value": "A", "label": "正确（√）" },
-              { "value": "B", "label": "错误（×）" }
+              {
+                "value": "A",
+                "label": "正确（√）"
+              },
+              {
+                "value": "B",
+                "label": "错误（×）"
+              }
             ],
-            "answer": ["B"],
+            "answer": [
+              "B"
+            ],
             "analysis": "删去该行后 f[i][j] 不会继承 f[i-1][j] 和 f[i][j-1] 的最优解，LCS 长度会被低估，答案可能变小。",
             "points": 1.5,
             "hasAnswer": true
@@ -648,12 +1014,26 @@
             "type": "single",
             "question": "31. 输出的答案满足的性质有（ ）。",
             "options": [
-              { "value": "A", "label": "小于等于 n" },
-              { "value": "B", "label": "大于等于 0" },
-              { "value": "C", "label": "不一定大于等于 1" },
-              { "value": "D", "label": "以上均是" }
+              {
+                "value": "A",
+                "label": "小于等于 n"
+              },
+              {
+                "value": "B",
+                "label": "大于等于 0"
+              },
+              {
+                "value": "C",
+                "label": "不一定大于等于 1"
+              },
+              {
+                "value": "D",
+                "label": "以上均是"
+              }
             ],
-            "answer": ["D"],
+            "answer": [
+              "D"
+            ],
             "analysis": "f[n][n] 是 LCS 长度，恒有 0 ≤ f[n][n] ≤ n。当两个序列无公共元素时 LCS 长度为 0，故不一定 ≥ 1。",
             "points": 3,
             "hasAnswer": true
@@ -663,12 +1043,26 @@
             "type": "single",
             "question": "32. 如果在第 16 行的循环前加上以下两行：`std::sort(a+1, a+n+1); std::sort(b+1, b+n+1);`，则答案会（ ）。",
             "options": [
-              { "value": "A", "label": "变大或不变" },
-              { "value": "B", "label": "变小或不变" },
-              { "value": "C", "label": "一定变大" },
-              { "value": "D", "label": "不变" }
+              {
+                "value": "A",
+                "label": "变大或不变"
+              },
+              {
+                "value": "B",
+                "label": "变小或不变"
+              },
+              {
+                "value": "C",
+                "label": "一定变大"
+              },
+              {
+                "value": "D",
+                "label": "不变"
+              }
             ],
-            "answer": ["A"],
+            "answer": [
+              "A"
+            ],
             "analysis": "排序后两个序列都有序，LCS 等于它们的公共元素数（交集大小），可能保持原值或增大（因为排序让公共元素更容易按序匹配）。",
             "points": 3,
             "hasAnswer": true
@@ -678,12 +1072,26 @@
             "type": "single",
             "question": "33. 如果输入的 a={1,2,...,n}，而且 b 数组中数字均为 1~n 中的正整数，则上述代码等价于下面哪个问题（ ）。",
             "options": [
-              { "value": "A", "label": "求 b 数组去重后的长度" },
-              { "value": "B", "label": "求 b 数组的最长上升子序列" },
-              { "value": "C", "label": "求 b 数组的长度" },
-              { "value": "D", "label": "求 b 数组的最大值" }
+              {
+                "value": "A",
+                "label": "求 b 数组去重后的长度"
+              },
+              {
+                "value": "B",
+                "label": "求 b 数组的最长上升子序列"
+              },
+              {
+                "value": "C",
+                "label": "求 b 数组的长度"
+              },
+              {
+                "value": "D",
+                "label": "求 b 数组的最大值"
+              }
             ],
-            "answer": ["B"],
+            "answer": [
+              "B"
+            ],
             "analysis": "a 是 1..n 递增序列，与 a 的 LCS 等价于在 b 中找一个长为 k 的递增子序列（LIS），其中元素值递增且都来自 1..n。",
             "points": 3,
             "hasAnswer": true
@@ -719,28 +1127,30 @@
             "#include <string>",
             "using namespace std;",
             "int main() {",
-            "    string z;",
-            "    cin >> z;",
-            "    string s = \"\";",
-            "    for (int i = 0; i < z.length(); ) {",
-            "        char ch = z[i];",
-            "        if ( (1) && isdigit(z[i+1])) {",
-            "            i++;",
-            "            int count = 0;",
-            "            while (i < z.length() && isdigit(z[i])) {",
-            "                count = (2) ;",
-            "                i++;",
-            "            }",
-            "            for (int j = 0; j < (3) ; ++j) {",
-            "                s += ch;",
-            "            }",
-            "        } else {",
-            "            s += (4) ;",
-            "            (5) ;",
-            "        }",
+            "  string z;",
+            "  cin >> z;",
+            "  string s = \"\";",
+            "  for (int i = 0; i < z.length(); ) {",
+            "    char ch = z[i];",
+            "    if ( (1) && isdigit(z[i+1])) {",
+            "      i++;",
+            "      int count = 0;",
+            "      while (i < z.length() && isdigit(z[i])) {",
+            "        count = (2) ;",
+            "        i++;",
+            "      }",
+            "      for (int j = 0; j < (3) ; ++j) {",
+            "        s += ch;",
+            "      }",
             "    }",
-            "    cout << s << endl;",
-            "    return 0;",
+            "    else",
+            "     {",
+            "      s += (4) ;",
+            "      (5) ;",
+            "    }",
+            "  }",
+            "  cout << s << endl;",
+            "  return 0;",
             "}"
           ]
         },
@@ -750,12 +1160,26 @@
             "type": "single",
             "question": "33. ① 处应填（ ）。",
             "options": [
-              { "value": "A", "label": "i < z.length()" },
-              { "value": "B", "label": "i - 1 >= 0" },
-              { "value": "C", "label": "i + 1 < z.length()" },
-              { "value": "D", "label": "isdigit(z[i])" }
+              {
+                "value": "A",
+                "label": "i < z.length()"
+              },
+              {
+                "value": "B",
+                "label": "i - 1 >= 0"
+              },
+              {
+                "value": "C",
+                "label": "i + 1 < z.length()"
+              },
+              {
+                "value": "D",
+                "label": "isdigit(z[i])"
+              }
             ],
-            "answer": ["C"],
+            "answer": [
+              "C"
+            ],
             "analysis": "需检查当前字符后是否还有字符（即是否还有数字），用 i+1 < z.length() 避免越界访问 z[i+1]。",
             "points": 3,
             "hasAnswer": true
@@ -765,12 +1189,26 @@
             "type": "single",
             "question": "34. ② 处应填（ ）。",
             "options": [
-              { "value": "A", "label": "count + (z[i] - '0')" },
-              { "value": "B", "label": "count * 10 + (z[i] - '0')" },
-              { "value": "C", "label": "z[i] - '0'" },
-              { "value": "D", "label": "count + 1" }
+              {
+                "value": "A",
+                "label": "count + (z[i] - '0')"
+              },
+              {
+                "value": "B",
+                "label": "count * 10 + (z[i] - '0')"
+              },
+              {
+                "value": "C",
+                "label": "z[i] - '0'"
+              },
+              {
+                "value": "D",
+                "label": "count + 1"
+              }
             ],
-            "answer": ["B"],
+            "answer": [
+              "B"
+            ],
             "analysis": "数字可能有多位，需要按十进制累计构建整数 count：count = count * 10 + (z[i] - '0')。",
             "points": 3,
             "hasAnswer": true
@@ -780,12 +1218,26 @@
             "type": "single",
             "question": "35. ③ 处应填（ ）。",
             "options": [
-              { "value": "A", "label": "count - 1" },
-              { "value": "B", "label": "count" },
-              { "value": "C", "label": "10" },
-              { "value": "D", "label": "z[i] - '8'" }
+              {
+                "value": "A",
+                "label": "count - 1"
+              },
+              {
+                "value": "B",
+                "label": "count"
+              },
+              {
+                "value": "C",
+                "label": "10"
+              },
+              {
+                "value": "D",
+                "label": "z[i] - '8'"
+              }
             ],
-            "answer": ["B"],
+            "answer": [
+              "B"
+            ],
             "analysis": "解压时需将字符 ch 重复 count 次添加到 s，循环次数为 count（j 从 0 到 count-1）。",
             "points": 3,
             "hasAnswer": true
@@ -795,12 +1247,26 @@
             "type": "single",
             "question": "36. ④ 处应填（ ）。",
             "options": [
-              { "value": "A", "label": "z[i+1]" },
-              { "value": "B", "label": "ch" },
-              { "value": "C", "label": "z.back()" },
-              { "value": "D", "label": "(char)z[i] + 1" }
+              {
+                "value": "A",
+                "label": "z[i+1]"
+              },
+              {
+                "value": "B",
+                "label": "ch"
+              },
+              {
+                "value": "C",
+                "label": "z.back()"
+              },
+              {
+                "value": "D",
+                "label": "(char)z[i] + 1"
+              }
             ],
-            "answer": ["B"],
+            "answer": [
+              "B"
+            ],
             "analysis": "else 分支处理只出现 1 次的字符，直接将当前字符 ch 添加到 s。",
             "points": 3,
             "hasAnswer": true
@@ -810,12 +1276,26 @@
             "type": "single",
             "question": "37. ⑤ 处应填（ ）。",
             "options": [
-              { "value": "A", "label": "i--" },
-              { "value": "B", "label": "i = i + 2" },
-              { "value": "C", "label": "i++" },
-              { "value": "D", "label": "不执行任何操作" }
+              {
+                "value": "A",
+                "label": "i--"
+              },
+              {
+                "value": "B",
+                "label": "i = i + 2"
+              },
+              {
+                "value": "C",
+                "label": "i++"
+              },
+              {
+                "value": "D",
+                "label": "不执行任何操作"
+              }
             ],
-            "answer": ["C"],
+            "answer": [
+              "C"
+            ],
             "analysis": "else 分支处理完单字符后，需要将 i 自增移到下一个字符。i++ 即向右走一步。",
             "points": 3,
             "hasAnswer": true
@@ -852,23 +1332,27 @@
             "int N;",
             "bool query(int i, int j);",
             "int main() {",
-            "    cin >> N;",
-            "    int candidate = 0;",
-            "    int count = (1) ;",
-            "    for (int i = 1; i < N; ++i) {",
-            "        if ( (2) ) {",
-            "            candidate = i;",
-            "            count = 1;",
-            "        } else {",
-            "            if ( (3) ) {",
-            "                (4) ;",
-            "            } else {",
-            "                count++;",
-            "            }",
-            "        }",
+            "  cin >> N;",
+            "  int candidate = 0;",
+            "  int count = (1) ;",
+            "  for (int i = 1; i < N; ++i) {",
+            "    if ( (2) ) {",
+            "      candidate = i;",
+            "      count = 1;",
             "    }",
-            "    cout << (5) << endl;",
-            "    return 0;",
+            "    else",
+            "     {",
+            "      if ( (3) ) {",
+            "        (4) ;",
+            "      }",
+            "      else",
+            "       {",
+            "        count++;",
+            "      }",
+            "    }",
+            "  }",
+            "  cout << (5) << endl;",
+            "  return 0;",
             "}"
           ]
         },
@@ -878,12 +1362,26 @@
             "type": "single",
             "question": "38. ① 处应填（ ）。",
             "options": [
-              { "value": "A", "label": "0" },
-              { "value": "B", "label": "1" },
-              { "value": "C", "label": "N" },
-              { "value": "D", "label": "-1" }
+              {
+                "value": "A",
+                "label": "0"
+              },
+              {
+                "value": "B",
+                "label": "1"
+              },
+              {
+                "value": "C",
+                "label": "N"
+              },
+              {
+                "value": "D",
+                "label": "-1"
+              }
             ],
-            "answer": ["B"],
+            "answer": [
+              "B"
+            ],
             "analysis": "初始化 candidate=0（第一个人），count 表示当前候选者的支持数，应初始化为 1。",
             "points": 3,
             "hasAnswer": true
@@ -893,12 +1391,26 @@
             "type": "single",
             "question": "39. ② 处应填（ ）。",
             "options": [
-              { "value": "A", "label": "count < 0" },
-              { "value": "B", "label": "count == 1" },
-              { "value": "C", "label": "count == 0" },
-              { "value": "D", "label": "query(candidate, i) == false" }
+              {
+                "value": "A",
+                "label": "count < 0"
+              },
+              {
+                "value": "B",
+                "label": "count == 1"
+              },
+              {
+                "value": "C",
+                "label": "count == 0"
+              },
+              {
+                "value": "D",
+                "label": "query(candidate, i) == false"
+              }
             ],
-            "answer": ["C"],
+            "answer": [
+              "C"
+            ],
             "analysis": "当 count 为 0 时表示当前没有候选者，需将当前人 i 设为新候选者并把 count 重置为 1。",
             "points": 3,
             "hasAnswer": true
@@ -908,12 +1420,26 @@
             "type": "single",
             "question": "40. ③ 处应填（ ）。",
             "options": [
-              { "value": "A", "label": "query(candidate, i) == false" },
-              { "value": "B", "label": "query(i, candidate) == true" },
-              { "value": "C", "label": "query(candidate, i) == false && query(i, candidate) == false" },
-              { "value": "D", "label": "query(i, candidate) == false" }
+              {
+                "value": "A",
+                "label": "query(candidate, i) == false"
+              },
+              {
+                "value": "B",
+                "label": "query(i, candidate) == true"
+              },
+              {
+                "value": "C",
+                "label": "query(candidate, i) == false && query(i, candidate) == false"
+              },
+              {
+                "value": "D",
+                "label": "query(i, candidate) == false"
+              }
             ],
-            "answer": ["A"],
+            "answer": [
+              "A"
+            ],
             "analysis": "当候选者认为 i 是糊涂人（query(candidate, i) == false）时，说明候选者与 i 意见相左，需要抵消候选者一票（count−1）。Moore 投票只需检查候选者对 i 的单向判断即可。",
             "points": 3,
             "hasAnswer": true
@@ -923,12 +1449,26 @@
             "type": "single",
             "question": "41. ④ 处应填（ ）。",
             "options": [
-              { "value": "A", "label": "count--" },
-              { "value": "B", "label": "break" },
-              { "value": "C", "label": "count++" },
-              { "value": "D", "label": "candidate = i" }
+              {
+                "value": "A",
+                "label": "count--"
+              },
+              {
+                "value": "B",
+                "label": "break"
+              },
+              {
+                "value": "C",
+                "label": "count++"
+              },
+              {
+                "value": "D",
+                "label": "candidate = i"
+              }
             ],
-            "answer": ["A"],
+            "answer": [
+              "A"
+            ],
             "analysis": "意见相左时需要抵消一票支持数，即 count−1。",
             "points": 3,
             "hasAnswer": true
@@ -938,12 +1478,26 @@
             "type": "single",
             "question": "42. ⑤ 处应填（ ）。",
             "options": [
-              { "value": "A", "label": "N - 1" },
-              { "value": "B", "label": "count" },
-              { "value": "C", "label": "candidate" },
-              { "value": "D", "label": "0" }
+              {
+                "value": "A",
+                "label": "N - 1"
+              },
+              {
+                "value": "B",
+                "label": "count"
+              },
+              {
+                "value": "C",
+                "label": "candidate"
+              },
+              {
+                "value": "D",
+                "label": "0"
+              }
             ],
-            "answer": ["C"],
+            "answer": [
+              "C"
+            ],
             "analysis": "算法结束后，candidate 即为最终找到的精明人，输出 candidate。",
             "points": 3,
             "hasAnswer": true
