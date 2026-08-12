@@ -1,6 +1,6 @@
 {
   "id": "cm_imp_cspj2017j_v1",
-  "createdAt": "2026-08-12T00:00:00.000Z",
+  "createdAt": "2026-08-12T16:03:41.805Z",
   "collection": "csp-lecture",
   "stage": {
     "id": "cm_imp_cspj2017j_v1",
@@ -8,8 +8,8 @@
     "description": "2017年CCF NOIP普及组初赛真题，按CSP-J新题型改编：选择题22题（前20题1.5分，后2题5分，共40分）、阅读程序5题（共32分）、完善程序10题（共28分），总分100分。",
     "languageDirective": "zh-CN",
     "style": "tutor",
-    "createdAt": 1786538941051,
-    "updatedAt": 1786538941051,
+    "createdAt": 1786550621805,
+    "updatedAt": 1786550621805,
     "generatedAgentConfigs": [
       {
         "id": "imp_agent_cspj17j_0",
@@ -35,11 +35,6 @@
       "choice": 40,
       "read": 32,
       "perfect": 28
-    },
-    "attachment": {
-      "type": "pdf",
-      "url": "/csp-j-2017-original.pdf",
-      "label": "下载 2017 真题卷（PDF）"
     }
   },
   "scenes": [
@@ -698,8 +693,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786538941051,
-      "updatedAt": 1786538941051,
+      "createdAt": 1786550621805,
+      "updatedAt": 1786550621805,
       "category": "choice"
     },
     {
@@ -768,8 +763,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786538941051,
-      "updatedAt": 1786538941051,
+      "createdAt": 1786550621805,
+      "updatedAt": 1786550621805,
       "category": "read"
     },
     {
@@ -840,8 +835,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786538941051,
-      "updatedAt": 1786538941051,
+      "createdAt": 1786550621805,
+      "updatedAt": 1786550621805,
       "category": "read"
     },
     {
@@ -920,8 +915,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786538941051,
-      "updatedAt": 1786538941051,
+      "createdAt": 1786550621805,
+      "updatedAt": 1786550621805,
       "category": "read"
     },
     {
@@ -994,8 +989,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786538941051,
-      "updatedAt": 1786538941051,
+      "createdAt": 1786550621805,
+      "updatedAt": 1786550621805,
       "category": "read"
     },
     {
@@ -1052,8 +1047,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786538941051,
-      "updatedAt": 1786538941051,
+      "createdAt": 1786550621805,
+      "updatedAt": 1786550621805,
       "category": "read"
     },
     {
@@ -1238,8 +1233,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786538941051,
-      "updatedAt": 1786538941051,
+      "createdAt": 1786550621805,
+      "updatedAt": 1786550621805,
       "category": "perfect"
     },
     {
@@ -1438,8 +1433,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786538941051,
-      "updatedAt": 1786538941051,
+      "createdAt": 1786550621805,
+      "updatedAt": 1786550621805,
       "category": "perfect"
     }
   ]

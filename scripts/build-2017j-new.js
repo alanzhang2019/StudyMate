@@ -1,7 +1,16 @@
 // Build new 2017 J (adapted to new question format) JSON from OCR-extracted content.
-const fs = require('fs');
+// Uses the shared CSP-J template (cspj-classroom-template.js) so the output
+// matches the canonical 2015 shape: `scenes` at the top level (not nested in
+// `stage`), agents auto-derived, score breakdown validated.
+const {
+  buildChoiceScene,
+  buildReadScene,
+  buildPerfectScene,
+  buildClassroom,
+} = require('./cspj-classroom-template');
 
 const stageId = 'cm_imp_cspj2017j_v1';
+const outPath = 'frontend/data/classrooms/cm_imp_cspj2017j_v1.json';
 
 const choiceQuestions = [
   { id:'q1', points:1.5, q:'1. 在 8 位二进制补码中，10101011 表示的数是十进制下的（ ）。',
@@ -303,6 +312,9 @@ const perfect2 = {
 };
 
 function buildQuestion(q) {
+  // retained for backward compat — cspj-classroom-template.js provides
+  // buildChoiceQuestion / buildReadQuestion / buildPerfectQuestion which
+  // also copy codeBlock/image/imageCaption for choice questions with figures.
   return {
     id: q.id,
     type: 'single',
@@ -315,75 +327,35 @@ function buildQuestion(q) {
   };
 }
 
-function buildScene(id, title, order, content, category, kind) {
-  return {
-    id, stageId, type: 'quiz', title, order,
-    content: { ...content, kind },
-    actions: [],
-    multiAgent: { enabled: false, agentIds: [] },
-    createdAt: Date.now(), updatedAt: Date.now(),
-    category,
-  };
-}
+const choiceScene = buildChoiceScene({
+  id: 'sc_cspj17j_choice',
+  stageId,
+  title: '一、选择题（共 22 题，第 1-20 题每题 1.5 分，第 21-22 题每题 5 分，共计 40 分）',
+  questions: choiceQuestions,
+});
 
-const scene0 = buildScene(
-  'sc_cspj17j_choice',
-  '一、选择题（共 22 题，第 1-20 题每题 1.5 分，第 21-22 题每题 5 分，共计 40 分）',
-  1,
-  { type: 'quiz', questions: choiceQuestions.map(buildQuestion) },
-  'choice',
-  'choice',
+const readScenes = readPrograms.map((rp, i) =>
+  buildReadScene({
+    id: rp.id, stageId, title: rp.title, order: i + 2,
+    code: rp.code, question: rp.q,
+  }),
 );
 
-const readScenes = readPrograms.map((rp, i) => buildScene(
-  rp.id,
-  rp.title,
-  i + 2,
-  {
-    type: 'quiz',
-    codeBlock: { language: 'cpp', title: rp.title, description: '', lines: rp.code },
-    questions: [buildQuestion(rp.q)],
-  },
-  'read',
-  'code-reading',
-));
+const perfectScenes = [perfect1, perfect2].map((p, i) =>
+  buildPerfectScene({
+    id: p.id, stageId, title: p.title,
+    order: i + 2 + readPrograms.length,
+    code: p.code, description: p.description, questions: p.qs,
+  }),
+);
 
-const perfectScenes = [perfect1, perfect2].map((p, i) => buildScene(
-  p.id,
-  p.title,
-  i + 2 + readPrograms.length,
-  {
-    type: 'quiz',
-    codeBlock: { language: 'cpp', title: p.title, description: p.description, lines: p.code },
-    questions: p.qs.map(buildQuestion),
-  },
-  'perfect',
-  'code-completion',
-));
+const scenes = [choiceScene, ...readScenes, ...perfectScenes];
 
-const out = {
-  id: stageId,
-  createdAt: '2026-08-12T00:00:00.000Z',
-  collection: 'csp-lecture',
-  stage: {
-    id: stageId,
-    name: '2017年普及级CSP-J初赛真题卷（已根据新题型改编）',
-    description: '2017年CCF NOIP普及组初赛真题，按CSP-J新题型改编：选择题22题（前20题1.5分，后2题5分，共40分）、阅读程序5题（共32分）、完善程序10题（共28分），总分100分。',
-    languageDirective: 'zh-CN',
-    style: 'tutor',
-    createdAt: Date.now(), updatedAt: Date.now(),
-    generatedAgentConfigs: [
-      { id:'imp_agent_cspj17j_0', name:'张老师', role:'teacher', persona:'经验丰富的CSP初赛教练', avatar:'/avatars/teacher.png', color:'#3b82f6', priority:10 },
-      { id:'imp_agent_cspj17j_1', name:'小慧', role:'assistant', persona:'聪明耐心的女助教', avatar:'/avatars/assist.png', color:'#ec4899', priority:7 },
-    ],
-    agentIds: [],
-    scoreBreakdown: { choice: 40, read: 32, perfect: 28 },
-    attachment: { type: 'pdf', url: '/csp-j-2017-original.pdf', label: '下载 2017 真题卷（PDF）' },
-  },
-  scenes: [scene0, ...readScenes, ...perfectScenes],
-};
-
-fs.writeFileSync('frontend/data/classrooms/cm_imp_cspj2017j_v1.json', JSON.stringify(out, null, 2) + '\n', 'utf8');
-console.log('Written 2017 J (new format) JSON');
-console.log('Total scenes:', out.scenes.length);
-console.log('Score breakdown:', out.stage.scoreBreakdown);
+buildClassroom({
+  stageId,
+  stageName: '2017年普及级CSP-J初赛真题卷（已根据新题型改编）',
+  stageDescription: '2017年CCF NOIP普及组初赛真题，按CSP-J新题型改编：选择题22题（前20题1.5分，后2题5分，共40分）、阅读程序5题（共32分）、完善程序10题（共28分），总分100分。',
+  scoreBreakdown: { choice: 40, read: 32, perfect: 28 },
+  scenes,
+  outPath,
+});

@@ -1,9 +1,20 @@
 // Build 2016 CSP-J (adapted to new question format) JSON from PDF.
 // 36 questions total: 22 single-choice + 4 read-program + 10 perfect-program.
 // Score breakdown: choice 40 (q1-q20 @ 1.5, q21-q22 @ 5) + read 32 (4 x 8) + perfect 28 (5+5) = 100.
-const fs = require('fs');
+//
+// Uses the shared CSP-J template extracted from build-2015j-new.js so
+// all CSP-J years (2015, 2016, 2017, 2018) emit classroom JSONs with
+// the exact same top-level shape (`scenes` at top level, NOT nested
+// under `stage.scenes`).
+const {
+  buildChoiceScene,
+  buildReadScene,
+  buildPerfectScene,
+  buildClassroom,
+} = require('./cspj-classroom-template');
 
 const stageId = 'cm_imp_cspj2016j_v1';
+const outPath = 'frontend/data/classrooms/cm_imp_cspj2016j_v1.json';
 
 // 22 single-choice questions (40 pts).
 // q1-q20 @ 1.5 each = 30, q21-q22 @ 5 each = 10.
@@ -96,18 +107,38 @@ const choiceQuestions = [
     ans:['D'], a:'n=0→1 (1%3≠0 continue); n=1→2 (2%3≠0 continue); n=2→3 (3%3==0 k--→3); 3<3 退出, 输出 3,3。' },
 
   // q14: single-peak array fill-in-the-blank, 3 sub-options labeled a/b/c.
-  // Algorithm:
+  // Algorithm (from PDF):
   //   Search(1, n)
-  //   1. k = [n/2]
+  //   1. k = ⌊n/2⌋
   //   2. if L[k] > L[k-1] and L[k] > L[k+1]   (peak found)
-  //   3.    then c (return L[k])
+  //   3.    then c: return L[k]
   //   4.    else if L[k] > L[k-1] and L[k] < L[k+1]   (rising -> search right)
-  //   5.        then a (Search(k+1, n))
+  //   5.        then a: Search(k+1, n)
   //   6.    else                                (falling -> search left)
-  //   7.        then b (Search(1, k-1))
+  //   7.        then b: Search(1, k-1)
   // So order is c, a, b.
   { id:'q14', points:1.5,
     q:'14. 给定含有 n 个不同数的数组 L=x₁,x₂,…,xₙ。如果 L 中存在 xₖ（1<k<n）,使得 xₖ<xₖ₊₁, xₖ>…>xₖ₋₁, 则称 L 是单峰的,并称 xₖ 是 L 的"峰顶"。现在已知 L 是单峰的,请把 a、b、c 三行代码补全到算法中,使得算法准确找到 L 的峰顶。正确的填空顺序是（ ）。',
+    codeBlock: {
+      language: 'cpp',
+      title: '算法框架 (单峰查找)',
+      description: '把 a、b、c 三行代码填到 ②③④ 三个空里',
+      lines: [
+        'Search(1, n)',
+        '1. k = ⌊n/2⌋',
+        '2. if L[k] > L[k-1] and L[k] > L[k+1]',
+        '3.    then ①',
+        '4.    else if L[k] > L[k-1] and L[k] < L[k+1]',
+        '5.        then ②',
+        '6.    else',
+        '7.        then ③',
+        '',
+        '待填代码:',
+        'a. Search(k+1, n)',
+        'b. Search(1, k-1)',
+        'c. return L[k]',
+      ],
+    },
     opts:[['A','c,a,b'],['B','c,b,a'],['C','a,b,c'],['D','b,a,c']],
     ans:['A'], a:'① c 填 return L[k] (找到峰顶返回); ② a 填 Search(k+1, n) (上升段在右侧, 递归右半); ③ b 填 Search(1, k-1) (下降段在左侧, 递归左半)。顺序 c,a,b。' },
 
@@ -411,101 +442,48 @@ const perfect2 = {
   ],
 };
 
-function buildQuestion(q) {
-  return {
-    id: q.id,
-    type: 'single',
-    question: q.q,
-    options: q.opts.map(([v, l]) => ({ value: v, label: l })),
-    answer: q.ans,
-    analysis: q.a,
-    points: q.points,
-    hasAnswer: true,
-    codeBlock: q.codeBlock,
-    image: q.image,
-    imageCaption: q.imageCaption,
-  };
-}
+// ---- Compose scenes via the shared CSP-J template (matches 2015 shape) ----
 
-function buildScene(id, title, order, content, category, kind) {
-  return {
-    id, stageId, type: 'quiz', title, order,
-    content: { ...content, kind },
-    actions: [],
-    multiAgent: { enabled: false, agentIds: [] },
-    createdAt: Date.now(), updatedAt: Date.now(),
-    category,
-  };
-}
+// Scene 1: 选择题 (22 single-choice, 40 pts)
+const choiceScene = buildChoiceScene({
+  id: 'sc_cspj16j_choice',
+  stageId,
+  title: '一、选择题（共 22 题,第 1-20 题每题 1.5 分,第 21-22 题每题 5 分,共计 40 分）',
+  questions: choiceQuestions,
+});
 
-const stage = {
-  id: stageId,
-  name: '2016年普及级CSP-J初赛真题卷（已根据新题型改编）',
-  description: '2016年CCF NOIP普及组初赛真题,按CSP-J新题型改编: 选择题22题 (前20题1.5分,后2题5分,共40分)、阅读程序4题 (每题8分,共32分)、完善程序2题 (每题5个空,共28分), 总分100分。',
-  languageDirective: 'zh-CN',
-  style: 'tutor',
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
-  generatedAgentConfigs: [
-    { id:'imp_agent_cspj16j_0', name:'张老师', role:'teacher', persona:'经验丰富的CSP初赛教练', avatar:'/avatars/teacher.png', color:'#3b82f6', priority:10 },
-    { id:'imp_agent_cspj16j_1', name:'小慧', role:'assistant', persona:'聪明耐心的女助教', avatar:'/avatars/assist.png', color:'#ec4899', priority:7 },
-  ],
-  agentIds: [],
+// Scenes 2-5: 阅读程序 (4 scenes, 8 pts each = 32 pts)
+const readScenes = readPrograms.map((rp, i) =>
+  buildReadScene({
+    id: rp.id,
+    stageId,
+    title: rp.title,
+    order: i + 2,
+    code: rp.code,
+    question: rp.q,
+  }),
+);
+
+// Scenes 6-7: 完善程序 (2 scenes, 14 pts each = 28 pts)
+const perfectScenes = [perfect1, perfect2].map((p, i) =>
+  buildPerfectScene({
+    id: p.id,
+    stageId,
+    title: p.title,
+    order: i + 2 + readPrograms.length,
+    code: p.code,
+    description: p.description,
+    questions: p.qs,
+  }),
+);
+
+const scenes = [choiceScene, ...readScenes, ...perfectScenes];
+
+buildClassroom({
+  stageId,
+  stageName: '2016年普及级CSP-J初赛真题卷（已根据新题型改编）',
+  stageDescription: '2016年CCF NOIP普及组初赛真题,按CSP-J新题型改编: 选择题22题 (前20题1.5分,后2题5分,共40分)、阅读程序4题 (每题8分,共32分)、完善程序2题 (每题5个空,共28分), 总分100分。',
   scoreBreakdown: { choice: 40, read: 32, perfect: 28 },
-};
-
-const scene0 = buildScene(
-  'sc_cspj16j_choice',
-  '一、选择题（共 22 题,第 1-20 题每题 1.5 分,第 21-22 题每题 5 分,共计 40 分）',
-  1,
-  { type: 'quiz', questions: choiceQuestions.map(buildQuestion) },
-  'choice',
-  'choice',
-);
-
-const readScenes = readPrograms.map((rp, i) => buildScene(
-  rp.id,
-  rp.title,
-  i + 2,
-  {
-    type: 'quiz',
-    codeBlock: { language: 'cpp', title: '', description: '', lines: rp.code },
-    questions: [buildQuestion(rp.q)],
-  },
-  'read',
-  'code-reading',
-));
-
-const perfectScenes = [perfect1, perfect2].map((p, i) => buildScene(
-  p.id,
-  p.title,
-  i + 2 + readPrograms.length,
-  {
-    type: 'quiz',
-    codeBlock: { language: 'cpp', title: '', description: p.description, lines: p.code },
-    questions: p.qs.map(buildQuestion),
-  },
-  'perfect',
-  'code-completion',
-));
-
-const classroom = {
-  id: stageId,
-  createdAt: new Date().toISOString(),
-  collection: 'csp-lecture',
-  stage: { ...stage, scenes: [scene0, ...readScenes, ...perfectScenes] },
-};
-
-fs.writeFileSync(
-  'frontend/data/classrooms/cm_imp_cspj2016j_v1.json',
-  JSON.stringify(classroom, null, 2),
-);
-
-const totalChoice = choiceQuestions.reduce((s, q) => s + q.points, 0);
-const totalRead = readPrograms.reduce((s, rp) => s + rp.q.points, 0);
-const totalPerfect = [...perfect1.qs, ...perfect2.qs].reduce((s, q) => s + q.points, 0);
-console.log('choice:', totalChoice, '(should be 40)');
-console.log('read:', totalRead, '(should be 32)');
-console.log('perfect:', totalPerfect, '(should be 28)');
-console.log('total:', totalChoice + totalRead + totalPerfect, '(should be 100)');
-console.log('questions: 22 + 4 + 10 = 36');
+  scenes,
+  outPath,
+});
