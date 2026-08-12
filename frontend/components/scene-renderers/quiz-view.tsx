@@ -197,7 +197,7 @@ function CodeBlockView({ block }: { block: QuizCodeBlock }) {
   const gutterDigits = Math.max(2, String(maxLineNo).length);
   const pad = (n: number) => String(n).padStart(gutterDigits, '0');
   return (
-    <div className="rounded-lg border-2 border-slate-300 dark:border-slate-600 overflow-hidden bg-white dark:bg-slate-800 shadow-sm flex flex-col">
+    <div className="rounded-lg border-2 border-slate-300 dark:border-slate-600 overflow-hidden bg-white dark:bg-slate-800 shadow-sm max-h-[40vh] flex flex-col">
       {(block.title || block.description) && (
         <div className="px-4 py-2.5 border-b border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/50 shrink-0">
           {block.title && (
@@ -220,8 +220,13 @@ function CodeBlockView({ block }: { block: QuizCodeBlock }) {
           `overflow-y-auto` so blocks longer than the parent's
           `max-h-[40vh]` (set on the outer div above) scroll
           inside the code block instead of pushing the
-          questions below the viewport. */}
-      <div className="font-mono text-[12.5px] leading-[1.95] text-slate-800 dark:text-slate-100 overflow-y-auto">
+          questions below the viewport. We add `min-h-0` so
+          flexbox's default min-content auto doesn't let this
+          child grow past the outer `max-h-[40vh]` cap — without
+          it the long 52-line perfect-program blocks (2016
+          完善程序 (2)) push the questions below the fold and
+          the page becomes unscrollable. */}
+      <div className="font-mono text-[12.5px] leading-[1.95] text-slate-800 dark:text-slate-100 overflow-y-auto flex-1 min-h-0">
         {block.lines.map((line, i) => (
           <div
             key={`row-${i}`}
@@ -250,7 +255,7 @@ function CodeBlockView({ block }: { block: QuizCodeBlock }) {
         ))}
       </div>
       {/* Footer — language tag so the block looks like a labelled listing */}
-      <div className="px-3 py-1.5 border-t border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/50 text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+      <div className="px-3 py-1.5 border-t border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/50 text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5 shrink-0">
         <span className="inline-block w-1.5 h-1.5 rounded-full bg-slate-400" />
         {block.language}
       </div>
