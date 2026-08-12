@@ -8,8 +8,8 @@
     "description": "2017年CCF NOIP普及组初赛真题，按CSP-J新题型改编：选择题22题（前20题1.5分，后2题5分，共40分）、阅读程序5题（共32分）、完善程序10题（共28分），总分100分。",
     "languageDirective": "zh-CN",
     "style": "tutor",
-    "createdAt": 1786535629565,
-    "updatedAt": 1786535629565,
+    "createdAt": 1786538941051,
+    "updatedAt": 1786538941051,
     "generatedAgentConfigs": [
       {
         "id": "imp_agent_cspj17j_0",
@@ -698,8 +698,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786535629565,
-      "updatedAt": 1786535629565,
+      "createdAt": 1786538941051,
+      "updatedAt": 1786538941051,
       "category": "choice"
     },
     {
@@ -761,15 +761,15 @@
             "hasAnswer": true
           }
         ],
-        "kind": "read"
+        "kind": "code-reading"
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786535629565,
-      "updatedAt": 1786535629565,
+      "createdAt": 1786538941051,
+      "updatedAt": 1786538941051,
       "category": "read"
     },
     {
@@ -833,15 +833,15 @@
             "hasAnswer": true
           }
         ],
-        "kind": "read"
+        "kind": "code-reading"
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786535629565,
-      "updatedAt": 1786535629565,
+      "createdAt": 1786538941051,
+      "updatedAt": 1786538941051,
       "category": "read"
     },
     {
@@ -913,15 +913,15 @@
             "hasAnswer": true
           }
         ],
-        "kind": "read"
+        "kind": "code-reading"
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786535629565,
-      "updatedAt": 1786535629565,
+      "createdAt": 1786538941051,
+      "updatedAt": 1786538941051,
       "category": "read"
     },
     {
@@ -987,15 +987,15 @@
             "hasAnswer": true
           }
         ],
-        "kind": "read"
+        "kind": "code-reading"
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786535629565,
-      "updatedAt": 1786535629565,
+      "createdAt": 1786538941051,
+      "updatedAt": 1786538941051,
       "category": "read"
     },
     {
@@ -1045,15 +1045,15 @@
             "hasAnswer": true
           }
         ],
-        "kind": "read"
+        "kind": "code-reading"
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786535629565,
-      "updatedAt": 1786535629565,
+      "createdAt": 1786538941051,
+      "updatedAt": 1786538941051,
       "category": "read"
     },
     {
@@ -1231,15 +1231,15 @@
             "hasAnswer": true
           }
         ],
-        "kind": "perfect"
+        "kind": "code-completion"
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786535629565,
-      "updatedAt": 1786535629565,
+      "createdAt": 1786538941051,
+      "updatedAt": 1786538941051,
       "category": "perfect"
     },
     {
@@ -1431,15 +1431,15 @@
             "hasAnswer": true
           }
         ],
-        "kind": "perfect"
+        "kind": "code-completion"
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786535629565,
-      "updatedAt": 1786535629565,
+      "createdAt": 1786538941051,
+      "updatedAt": 1786538941051,
       "category": "perfect"
     }
   ]

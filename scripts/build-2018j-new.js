@@ -295,13 +295,14 @@ function buildQuestion(q) {
   };
 }
 
-function buildScene(id, title, order, content, kind) {
+function buildScene(id, title, order, content, category, kind) {
   return {
     id, stageId, type: 'quiz', title, order,
-    content, actions: [],
+    content: { ...content, kind },
+    actions: [],
     multiAgent: { enabled: false, agentIds: [] },
     createdAt: Date.now(), updatedAt: Date.now(),
-    category: kind,
+    category,
   };
 }
 
@@ -309,7 +310,8 @@ const scene0 = buildScene(
   'sc_cspj18j_choice',
   '一、选择题（共 17 题，第 1-15 题每题 2 分，第 16-17 题每题 5 分，共计 40 分）',
   1,
-  { type: 'quiz', questions: choiceQuestions.map(buildQuestion), kind: 'choice' },
+  { type: 'quiz', questions: choiceQuestions.map(buildQuestion) },
+  'choice',
   'choice',
 );
 
@@ -321,9 +323,9 @@ const readScenes = readPrograms.map((rp, i) => buildScene(
     type: 'quiz',
     codeBlock: { language: 'cpp', title: rp.title, description: '', lines: rp.code },
     questions: [buildQuestion(rp.q)],
-    kind: 'read',
   },
   'read',
+  'code-reading',
 ));
 
 const perfectScenes = [perfect1, perfect2].map((p, i) => buildScene(
@@ -334,9 +336,9 @@ const perfectScenes = [perfect1, perfect2].map((p, i) => buildScene(
     type: 'quiz',
     codeBlock: { language: 'cpp', title: p.title, description: p.description, lines: p.code },
     questions: p.qs.map(buildQuestion),
-    kind: 'perfect',
   },
   'perfect',
+  'code-completion',
 ));
 
 const out = {
