@@ -801,16 +801,16 @@
               }
             ],
             "answer": [
-              "B"
+              "D"
             ],
-            "analysis": "v 是 m+1×n+1 的二维 vector，访问 v[n][m] 在 n+1 ≤ m+1 时合法（即 n ≤ m）。g 中 x.size() == y.size() 时 m = n 不越界；其他输入则越界。也就是非 m=n 时可能越界，结果取决于输入。",
+            "analysis": "在 f(x+x, y) 中 m=2|y|, n=|y| 不等。v 维度为 (2|y|+1)×(|y|+1), v[n][m]=v[|y|][2|y|] 列下标越界,程序可能非正常退出;但当输入为空串时 m=n=0 不越界。故选 D: 可能非正常退出。",
             "points": 3,
             "hasAnswer": true
           },
           {
             "id": "r2q5",
             "type": "single",
-            "question": "25. 当输入为 abc cab 时，输出为（ ）。",
+            "question": "25. 当输入为 csp-j p-jcs 时，输出为（ ）。",
             "options": [
               {
                 "value": "A",
@@ -832,14 +832,14 @@
             "answer": [
               "B"
             ],
-            "analysis": "x = abc, y = cab. x+x = abcabc, f(x+x, y) 的 LCS: cab 是 abcabc 的子序列（位置 4-6）, 但 cab 顺序在 abcabc 中能找到 (a,b,c) 吗? LCS(abcabc, cab) = 2 ('a' 和 'b'), 不等于 3 (y.size()), 所以 g 返回 false, 输出 F。",
+            "analysis": "|csp-j|=|p-jcs|=5, 长度相等。f(csp-jcsp-j, p-jcs) = LCS = 5, 等于 y.size(), g 返回 true。cout<<true 无 boolalpha 输出整数 1。选 B: 1。",
             "points": 3,
             "hasAnswer": true
           },
           {
             "id": "r2q6",
             "type": "single",
-            "question": "26. 当输入为 aaab aabaaab 时，输出为（ ）。",
+            "question": "26. 当输入为 csppsc spsccp 时，输出为（ ）。",
             "options": [
               {
                 "value": "A",
@@ -851,9 +851,9 @@
               }
             ],
             "answer": [
-              "A"
+              "D"
             ],
-            "analysis": "x = aaab (4 字符), y = aabaaab (7 字符). g 函数第一行检查 x.size() != y.size() 直接返回 false. main 中 cout << g(x, y) 没有用 boolalpha, false 被当作整数 0 输出. 故输出 0.",
+            "analysis": "|csppsc|=|spsccp|=6, 长度相等。f(csppsccsppsc, spsccp) = LCS = 6, 等于 y.size(), g 返回 true。cout<<true 无 boolalpha 输出整数 1。选 D: 1。",
             "points": 3,
             "hasAnswer": true
           }

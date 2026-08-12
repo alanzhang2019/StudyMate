@@ -128,7 +128,7 @@
               }
             ],
             "answer": [
-              "D"
+              "C"
             ],
             "analysis": "A/B/C 都含 ∨z 或 ∧z (z=false), 必为 false。D: x∧y=true, z∨x=true, true∨true=true。",
             "points": 2,
@@ -1164,7 +1164,7 @@
               }
             ],
             "answer": [
-              "C"
+              "D"
             ],
             "analysis": "最小质因数从 2 开始枚举。",
             "points": 3,
@@ -1193,7 +1193,7 @@
               }
             ],
             "answer": [
-              "C"
+              "D"
             ],
             "analysis": "枚举 i 到 √n 即可, 条件 i*i ≤ n。",
             "points": 3,
@@ -1222,7 +1222,7 @@
               }
             ],
             "answer": [
-              "C"
+              "D"
             ],
             "analysis": "i 是 n 的因数时, 输出 i 并 n/=i, 需要 while 多次除以同一质因数。",
             "points": 3,
@@ -1280,7 +1280,7 @@
               }
             ],
             "answer": [
-              "C"
+              "D"
             ],
             "analysis": "剩余的 n 本身就是大质因数, 输出 n。",
             "points": 3,
@@ -1371,7 +1371,7 @@
               }
             ],
             "answer": [
-              "B"
+              "C"
             ],
             "analysis": "按左端点升序排序, 不满足 A[j-1].a ≤ A[j].a 时交换, 即 A[j].a < A[j-1].a。",
             "points": 3,
@@ -1400,7 +1400,7 @@
               }
             ],
             "answer": [
-              "D"
+              "C"
             ],
             "analysis": "交换 A[j] 和 A[j-1], 标准三变量交换写法。",
             "points": 3,
@@ -1429,7 +1429,7 @@
               }
             ],
             "answer": [
-              "A"
+              "C"
             ],
             "analysis": "删除 A[i] 被 A[p-1] 完全覆盖的情况, 保留 A[i].b > A[p-1].b 的区间。",
             "points": 3,
@@ -1458,7 +1458,7 @@
               }
             ],
             "answer": [
-              "A"
+              "B"
             ],
             "analysis": "A[q+1] 左端点 ≤ r 时继续 (包含关注点)。",
             "points": 3,

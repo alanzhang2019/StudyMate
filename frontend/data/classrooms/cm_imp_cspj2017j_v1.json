@@ -447,7 +447,7 @@
               }
             ],
             "answer": [
-              "B"
+              "C"
             ],
             "analysis": "长度 9, 子串数 = 9*10/2 = 45。",
             "points": 1.5,
@@ -534,7 +534,10 @@
               }
             ],
             "points": 1.5,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "answer": [
+              "D"
+            ]
           },
           {
             "id": "q18",

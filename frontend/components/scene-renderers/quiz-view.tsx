@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import type { ReactNode } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   PieChart,
@@ -70,6 +71,20 @@ interface QuizViewProps {
   readonly classroomId: string;
   readonly codeBlock?: QuizCodeBlock;
   readonly kind?: QuizKind;
+  /**
+   * 0-based offset added to the per-question local index
+   * when displaying the question number on the QuestionCard.
+   * The SceneRenderer computes this by summing the question
+   * counts of every quiz scene that comes BEFORE this one in
+   * the same stage, so the badge on the card matches the
+   * numbering the original CSP paper uses (e.g. CSP-J 2021:
+   * 1–15 选择题, 16–33 阅读程序, 34–43 完善程序).
+   *
+   * Optional: when omitted (single-scene 随堂练习, the
+   * chapter cover, etc.) the offset is 0 and questions are
+   * displayed 1, 2, 3 ... as before.
+   */
+  readonly questionIndexOffset?: number;
 }
 
 /**
@@ -106,6 +121,72 @@ interface QuizViewProps {
  * the UA level — see `app/layout.tsx` `colorScheme: 'light'`),
  * so we hardcode light-mode colors and skip the `dark:` variants.
  */
+/**
+ * Match the "待填位置" markers used by 完善程序题 ("code-
+ * completion") scenes — i.e. the circled numbers ① through ⑳
+ * that the paper sprinkles into the program listing to mark
+ * the blanks the student has to fill. We capture them in a
+ * single regex so the line renderer below can split each
+ * code line into "normal text" + "highlighted placeholder"
+ * fragments and wrap the placeholders in a styled <span>.
+ *
+ * The set ①–⑳ covers every exam paper in the data today
+ * (CSP-J / CSP-S 2014–2025 use 5 blanks per code-completion
+ * scene, well under 20). If a future paper uses higher
+ * numbers, just extend this regex.
+ */
+const PLACEHOLDER_REGEX = /([①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳])/g;
+
+/**
+ * Split a single code line into React nodes so the circled
+ * placeholders can be rendered as prominent pill-shaped
+ * badges instead of small, easily-missed characters in the
+ * middle of the monospace code. Non-matching text is kept as
+ * a plain text node so the rest of the line preserves its
+ * original whitespace (we use a <pre> ancestor that already
+ * respects `white-space: pre`).
+ */
+function renderCodeLine(line: string, rowKey: string): ReactNode {
+  // Fast path: if there are no circled placeholders in this
+  // line, skip the split work entirely and hand the line back
+  // as a single string. This matters for the code-reading
+  // scenes where every line is plain code (no ① ② ③ ...) and
+  // the regex would otherwise do a no-op scan on every render.
+  if (!PLACEHOLDER_REGEX.test(line)) {
+    PLACEHOLDER_REGEX.lastIndex = 0;
+    return line;
+  }
+  PLACEHOLDER_REGEX.lastIndex = 0;
+  const out: ReactNode[] = [];
+  let cursor = 0;
+  let m: RegExpExecArray | null;
+  let i = 0;
+  while ((m = PLACEHOLDER_REGEX.exec(line)) !== null) {
+    if (m.index > cursor) out.push(line.slice(cursor, m.index));
+    // The visual treatment intentionally diverges from the
+    // surrounding code font: a larger size, bolder weight,
+    // a warm amber/orange gradient background, and a thin
+    // white halo. The result reads at a glance as "you have
+    // to fill THIS in" — the previous plain-① rendering at
+    // 12.5px was easy to skip past, which the user explicitly
+    // flagged as "太小了" (too small) in QA. The gradient also
+    // ties in with the violet/orange palette used by the
+    // chapter cover so the placeholders feel like a designed
+    // callout, not a stray character.
+    out.push(
+      <span
+        key={`${rowKey}-ph-${i++}`}
+        className="inline-flex items-center justify-center align-middle mx-[1px] px-[0.4em] min-w-[1.5em] h-[1.45em] text-[14px] leading-none font-black rounded-md bg-gradient-to-br from-amber-300 to-orange-400 text-white ring-1 ring-amber-500/50 shadow-[0_0_0_2px_rgba(255,255,255,0.9)] dark:shadow-[0_0_0_2px_rgba(15,23,42,0.9)]"
+      >
+        {m[0]}
+      </span>,
+    );
+    cursor = m.index + m[0].length;
+  }
+  if (cursor < line.length) out.push(line.slice(cursor));
+  return out;
+}
+
 function CodeBlockView({ block }: { block: QuizCodeBlock }) {
   const startLine = block.startLine ?? 1;
   // Pad line numbers to 2 digits ("01" instead of "1") for the
@@ -139,7 +220,7 @@ function CodeBlockView({ block }: { block: QuizCodeBlock }) {
           `max-h-[40vh]` (set on the outer div above) scroll
           inside the code block instead of pushing the
           questions below the viewport. */}
-      <div className="font-mono text-[12.5px] leading-[1.7] text-slate-800 dark:text-slate-100 overflow-y-auto">
+      <div className="font-mono text-[12.5px] leading-[1.95] text-slate-800 dark:text-slate-100 overflow-y-auto">
         {block.lines.map((line, i) => (
           <div
             key={`row-${i}`}
@@ -156,9 +237,13 @@ function CodeBlockView({ block }: { block: QuizCodeBlock }) {
             {/* Code cell. overflow-x-auto so a long line is
                 scrollable while the gutter stays pinned. Empty
                 lines render as `&nbsp;` so the row keeps its
-                height. */}
+                height. The line is processed by
+                `renderCodeLine` to upgrade any circled-number
+                placeholder (① ② ③ ...) into a pill-shaped
+                amber badge so the "待填位置" stands out from
+                the surrounding code. */}
             <pre className="m-0 flex-1 px-3 py-1 whitespace-pre overflow-x-auto">
-              {line || '\u00a0'}
+              {line ? renderCodeLine(line, `r${i}`) : '\u00a0'}
             </pre>
           </div>
         ))}
@@ -233,12 +318,18 @@ function QuizCover({
   questionCount,
   totalPoints,
   kind,
+  /** 0-based offset of this scene's first question in the
+   *  full stage exam. Used to render "第 34 – 38 题" above
+   *  the chapter so the student sees the global numbering
+   *  even before pressing "开始答题". */
+  indexOffset = 0,
   onStart,
 }: {
   questionCount: number;
   totalPoints: number;
   /** High-level quiz type; defaults to "choice" if omitted. */
   kind?: QuizKind;
+  indexOffset?: number;
   onStart: () => void;
 }) {
   const { t } = useI18n();
@@ -334,24 +425,39 @@ function QuizCover({
         initial={{ y: 10, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2 }}
-        className="flex gap-5 text-sm z-10"
+        className="flex flex-col items-center gap-2 text-sm z-10"
       >
-        <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-          <div className="w-7 h-7 rounded-lg bg-violet-50 dark:bg-violet-900/30 flex items-center justify-center">
-            <BookOpenText className="w-3.5 h-3.5 text-violet-500" />
+        <div className="flex gap-5 text-sm">
+          <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+            <div className="w-7 h-7 rounded-lg bg-violet-50 dark:bg-violet-900/30 flex items-center justify-center">
+              <BookOpenText className="w-3.5 h-3.5 text-violet-500" />
+            </div>
+            <span>
+              {questionCount} {t('quiz.questionsCount')}
+            </span>
           </div>
-          <span>
-            {questionCount} {t('quiz.questionsCount')}
-          </span>
-        </div>
-        <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-          <div className="w-7 h-7 rounded-lg bg-violet-50 dark:bg-violet-900/30 flex items-center justify-center">
-            <PieChart className="w-3.5 h-3.5 text-violet-500" />
+          <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+            <div className="w-7 h-7 rounded-lg bg-violet-50 dark:bg-violet-900/30 flex items-center justify-center">
+              <PieChart className="w-3.5 h-3.5 text-violet-500" />
+            </div>
+            <span>
+              {t('quiz.totalPrefix')} {totalPoints} {t('quiz.pointsSuffix')}
+            </span>
           </div>
-          <span>
-            {t('quiz.totalPrefix')} {totalPoints} {t('quiz.pointsSuffix')}
-          </span>
         </div>
+        {/* Global question-range chip. For 真题卷 multi-scene
+            stages (e.g. CSP-J 2021: 6 quiz scenes, 43 questions
+            total) the student needs to see at a glance "this
+            scene covers 第 34 – 38 题" so the chapter number
+            they see in the printed paper matches the digital
+            display. We only render the chip when the offset is
+            non-zero (i.e. this is NOT the first quiz scene in
+            the stage) so single-scene 随堂练习 stays quiet. */}
+        {indexOffset > 0 && (
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[11px] font-semibold ring-1 ring-amber-200/60 dark:ring-amber-800/60 tabular-nums">
+            第 {indexOffset + 1} – {indexOffset + questionCount} 题
+          </div>
+        )}
       </motion.div>
 
       <motion.button
@@ -373,6 +479,7 @@ function QuizCover({
 function SingleChoiceQuestion({
   question,
   index,
+  indexOffset = 0,
   value,
   onChange,
   disabled,
@@ -380,6 +487,12 @@ function SingleChoiceQuestion({
 }: {
   question: QuizQuestion;
   index: number;
+  /**
+   * 0-based offset added to `index` when displaying the
+   * question number. Defaults to 0 so existing callers
+   * (随堂练习 / chapter-only views) keep showing 1, 2, 3 ...
+   */
+  indexOffset?: number;
   value?: string;
   onChange: (value: string) => void;
   disabled?: boolean;
@@ -388,7 +501,7 @@ function SingleChoiceQuestion({
   const isReview = !!result;
 
   return (
-    <QuestionCard question={question} index={index} result={result}>
+    <QuestionCard question={question} index={index + indexOffset} result={result}>
       <div className="grid gap-2">
         {question.options?.map((opt) => {
           const selected = value === opt.value;
@@ -466,6 +579,7 @@ function SingleChoiceQuestion({
 function MultipleChoiceQuestion({
   question,
   index,
+  indexOffset = 0,
   value,
   onChange,
   disabled,
@@ -473,6 +587,11 @@ function MultipleChoiceQuestion({
 }: {
   question: QuizQuestion;
   index: number;
+  /**
+   * 0-based offset added to `index` when displaying the
+   * question number. See SingleChoiceQuestion for context.
+   */
+  indexOffset?: number;
   value?: string[];
   onChange: (value: string[]) => void;
   disabled?: boolean;
@@ -493,7 +612,7 @@ function MultipleChoiceQuestion({
   const { t } = useI18n();
 
   return (
-    <QuestionCard question={question} index={index} result={result}>
+    <QuestionCard question={question} index={index + indexOffset} result={result}>
       {!isReview && (
         <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">
           {t('quiz.multipleChoiceHint')}
@@ -569,6 +688,7 @@ function MultipleChoiceQuestion({
 function ShortAnswerQuestion({
   question,
   index,
+  indexOffset = 0,
   value,
   onChange,
   disabled,
@@ -576,6 +696,11 @@ function ShortAnswerQuestion({
 }: {
   question: QuizQuestion;
   index: number;
+  /**
+   * 0-based offset added to `index` when displaying the
+   * question number. See SingleChoiceQuestion for context.
+   */
+  indexOffset?: number;
   value?: string;
   onChange: (value: string) => void;
   disabled?: boolean;
@@ -590,7 +715,7 @@ function ShortAnswerQuestion({
   }, [value]);
 
   return (
-    <QuestionCard question={question} index={index} result={result}>
+    <QuestionCard question={question} index={index + indexOffset} result={result}>
       {!isReview ? (
         <div className="relative">
           <textarea
@@ -655,7 +780,7 @@ function QuestionCard({
   question: QuizQuestion;
   index: number;
   result?: QuestionResult;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const { t } = useI18n();
   const isReview = !!result;
@@ -874,7 +999,14 @@ function ScoreBanner({
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 
-export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: QuizViewProps) {
+export function QuizView({
+  questions,
+  sceneId,
+  classroomId,
+  codeBlock,
+  kind,
+  questionIndexOffset = 0,
+}: QuizViewProps) {
   const { t, locale } = useI18n();
   const cspProgress = useCspProgress();
 
@@ -1526,6 +1658,7 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
               questionCount={questions.length}
               totalPoints={totalPoints}
               kind={kind}
+              indexOffset={questionIndexOffset}
               onStart={() => setPhase('answering')}
             />
           </motion.div>
@@ -1608,6 +1741,7 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
                       key={q.id}
                       question={q}
                       index={i}
+                      indexOffset={questionIndexOffset}
                       value={answers[q.id] as string | undefined}
                       onChange={(v) => handleSetAnswer(q.id, v)}
                     />
@@ -1619,6 +1753,7 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
                       key={q.id}
                       question={q}
                       index={i}
+                      indexOffset={questionIndexOffset}
                       value={answers[q.id] as string[] | undefined}
                       onChange={(v) => handleSetAnswer(q.id, v)}
                     />
@@ -1629,6 +1764,7 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
                     key={q.id}
                     question={q}
                     index={i}
+                    indexOffset={questionIndexOffset}
                     value={answers[q.id] as string | undefined}
                     onChange={(v) => handleSetAnswer(q.id, v)}
                   />
@@ -1713,6 +1849,7 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
                       key={q.id}
                       question={q}
                       index={i}
+                      indexOffset={questionIndexOffset}
                       value={answers[q.id] as string | undefined}
                       onChange={() => {}}
                       disabled
@@ -1726,6 +1863,7 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
                       key={q.id}
                       question={q}
                       index={i}
+                      indexOffset={questionIndexOffset}
                       value={answers[q.id] as string[] | undefined}
                       onChange={() => {}}
                       disabled
@@ -1738,6 +1876,7 @@ export function QuizView({ questions, sceneId, classroomId, codeBlock, kind }: Q
                     key={q.id}
                     question={q}
                     index={i}
+                    indexOffset={questionIndexOffset}
                     value={answers[q.id] as string | undefined}
                     onChange={() => {}}
                     disabled
