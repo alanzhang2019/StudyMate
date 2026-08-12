@@ -476,7 +476,10 @@
               }
             ],
             "points": 2,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "answer": [
+              "B"
+            ]
           }
         ],
         "kind": "choice"

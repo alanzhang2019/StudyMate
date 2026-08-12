@@ -99,7 +99,10 @@
               }
             ],
             "points": 1.5,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "answer": [
+              "A"
+            ]
           },
           {
             "id": "q3",
@@ -152,7 +155,10 @@
               }
             ],
             "points": 1.5,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "answer": [
+              "B"
+            ]
           },
           {
             "id": "q5",
@@ -234,7 +240,10 @@
               }
             ],
             "points": 1.5,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "answer": [
+              "B"
+            ]
           },
           {
             "id": "q8",
@@ -316,7 +325,10 @@
               }
             ],
             "points": 1.5,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "answer": [
+              "D"
+            ]
           },
           {
             "id": "q11",
@@ -341,7 +353,10 @@
               }
             ],
             "points": 1.5,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "answer": [
+              "B"
+            ]
           },
           {
             "id": "q12",
@@ -366,7 +381,10 @@
               }
             ],
             "points": 1.5,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "answer": [
+              "A"
+            ]
           },
           {
             "id": "q13",
@@ -391,7 +409,10 @@
               }
             ],
             "points": 1.5,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "answer": [
+              "C"
+            ]
           },
           {
             "id": "q14",
@@ -416,7 +437,10 @@
               }
             ],
             "points": 1.5,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "answer": [
+              "C"
+            ]
           },
           {
             "id": "q15",
@@ -581,7 +605,10 @@
               }
             ],
             "points": 1.5,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "answer": [
+              "A"
+            ]
           },
           {
             "id": "m5",

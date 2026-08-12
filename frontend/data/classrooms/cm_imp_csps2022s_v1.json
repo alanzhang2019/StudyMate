@@ -243,7 +243,10 @@
               }
             ],
             "points": 2,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "answer": [
+              "C"
+            ]
           },
           {
             "id": "q8",
@@ -355,7 +358,10 @@
               }
             ],
             "points": 2,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "answer": [
+              "C"
+            ]
           },
           {
             "id": "q12",
@@ -380,7 +386,10 @@
               }
             ],
             "points": 2,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "answer": [
+              "D"
+            ]
           },
           {
             "id": "q13",
@@ -405,7 +414,10 @@
               }
             ],
             "points": 2,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "answer": [
+              "B"
+            ]
           },
           {
             "id": "q14",
@@ -459,7 +471,10 @@
               }
             ],
             "points": 2,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "answer": [
+              "B"
+            ]
           }
         ],
         "kind": "choice"

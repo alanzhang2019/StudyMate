@@ -99,7 +99,7 @@
               }
             ],
             "answer": [
-              "B"
+              "A"
             ],
             "analysis": "next 数组 (1-indexed) 转换 0-indexed: {0,1,2,3,4,5,6}。AI 推断 B。",
             "points": 2,
@@ -244,7 +244,7 @@
               }
             ],
             "answer": [
-              "B"
+              "A"
             ],
             "analysis": "MST 总权重 7 (连接 8 个顶点需要 7 条边, 每条权重为 1)。AI 推断 B。",
             "points": 2,
@@ -360,7 +360,7 @@
               }
             ],
             "answer": [
-              "D"
+              "C"
             ],
             "analysis": "Master 定理, T(n) = 2T(n/2) + O(n), 解 O(n log n)。",
             "points": 2,
@@ -447,7 +447,7 @@
               }
             ],
             "answer": [
-              "A"
+              "C"
             ],
             "analysis": "根本原因是栈空间。AI 推断 A。",
             "points": 2,
@@ -476,7 +476,7 @@
               }
             ],
             "answer": [
-              "D"
+              "B"
             ],
             "analysis": "具体调度问题, 答案待定。AI 推断 D。",
             "points": 2,

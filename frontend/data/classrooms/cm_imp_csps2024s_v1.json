@@ -359,7 +359,10 @@
               }
             ],
             "points": 2,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "answer": [
+              "A"
+            ]
           },
           {
             "id": "q12",
@@ -384,7 +387,10 @@
               }
             ],
             "points": 2,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "answer": [
+              "C"
+            ]
           },
           {
             "id": "q13",
@@ -409,7 +415,10 @@
               }
             ],
             "points": 2,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "answer": [
+              "A"
+            ]
           },
           {
             "id": "q14",
@@ -434,7 +443,10 @@
               }
             ],
             "points": 2,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "answer": [
+              "C"
+            ]
           },
           {
             "id": "q15",

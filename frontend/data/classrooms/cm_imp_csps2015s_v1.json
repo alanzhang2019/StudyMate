@@ -128,7 +128,10 @@
               }
             ],
             "points": 1.5,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "answer": [
+              "A"
+            ]
           },
           {
             "id": "q4",
@@ -437,7 +440,10 @@
               }
             ],
             "points": 1.5,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "answer": [
+              "A"
+            ]
           },
           {
             "id": "q15",

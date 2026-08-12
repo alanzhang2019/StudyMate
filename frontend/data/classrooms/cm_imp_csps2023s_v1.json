@@ -244,7 +244,7 @@
               }
             ],
             "answer": [
-              "D"
+              "C"
             ],
             "analysis": "LCS 长度为 7, 例如 ABABAB A。",
             "points": 2,
@@ -389,7 +389,7 @@
               }
             ],
             "answer": [
-              "A"
+              "C"
             ],
             "analysis": "4 个结点的树中, 一条链或星形一定只有一个重心。",
             "points": 2,
@@ -476,7 +476,7 @@
               }
             ],
             "answer": [
-              "C"
+              "A"
             ],
             "analysis": "快速幂 O(log n)。",
             "points": 2,
