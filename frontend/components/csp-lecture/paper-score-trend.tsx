@@ -319,34 +319,38 @@ function SubChart({
       if (!line) continue;
       promotionPoints.push({ xAxis: String(y), yAxis: line.promotion });
     }
+    // ECharts markLine data 格式 (v5/v6): 每个 data 项必须是"裸数
+    // 组",形如 `[{coord:[x,y]}, {coord:[x,y]}]` 才是合法的 2 点线段。
+    // 之前错写为 `{coords:[...], label}` (对象套数组) 时, ECharts 内
+    // 部 readSeries 遍历 data 时把 `{coords,label}` 当成单点处理, 取
+    // `.coord` 拿到 undefined -> `Cannot read properties of undefined
+    // (reading 'coord')`, 整个 /csp-lecture 白屏。修法: 数组直接
+    // push, label 挂到末段终点上, 数组外不再包对象。
     const scoreLineData: any[] = [];
     const meta = SCORE_LINE_META.promotion;
     for (let i = 0; i < promotionPoints.length - 1; i++) {
       const a = promotionPoints[i];
       const b = promotionPoints[i + 1];
       const isLast = i === promotionPoints.length - 2;
-      scoreLineData.push({
-        coords: [
-          { coord: [a.xAxis, a.yAxis] },
-          { coord: [b.xAxis, b.yAxis] },
-        ],
-        // 只在最后一段的末端贴"晋级"标签, 避免每年都贴一个挤成一团
-        ...(isLast
-          ? {
-              label: {
-                show: true,
-                position: 'end',
-                formatter: () => meta.short,
-                color: meta.color,
-                fontSize: 10,
-                fontWeight: 600,
-                backgroundColor: 'rgba(255,255,255,0.85)',
-                padding: [1, 4],
-                borderRadius: 3,
-              },
-            }
-          : { label: { show: false } }),
-      });
+      const endLabel = isLast
+        ? {
+            label: {
+              show: true,
+              position: 'end',
+              formatter: () => meta.short,
+              color: meta.color,
+              fontSize: 10,
+              fontWeight: 600,
+              backgroundColor: 'rgba(255,255,255,0.85)',
+              padding: [1, 4],
+              borderRadius: 3,
+            },
+          }
+        : { label: { show: false } };
+      scoreLineData.push([
+        { coord: [a.xAxis, a.yAxis] },
+        { coord: [b.xAxis, b.yAxis], ...endLabel },
+      ]);
     }
 
     inst.current.setOption(
