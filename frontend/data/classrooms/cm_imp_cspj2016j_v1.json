@@ -1,6 +1,6 @@
 {
   "id": "cm_imp_cspj2016j_v1",
-  "createdAt": "2026-08-12T15:39:07.611Z",
+  "createdAt": "2026-08-12T15:48:49.330Z",
   "collection": "csp-lecture",
   "stage": {
     "id": "cm_imp_cspj2016j_v1",
@@ -8,8 +8,8 @@
     "description": "2016年CCF NOIP普及组初赛真题,按CSP-J新题型改编: 选择题22题 (前20题1.5分,后2题5分,共40分)、阅读程序4题 (每题8分,共32分)、完善程序2题 (每题5个空,共28分), 总分100分。",
     "languageDirective": "zh-CN",
     "style": "tutor",
-    "createdAt": 1786549147610,
-    "updatedAt": 1786549147610,
+    "createdAt": 1786549729330,
+    "updatedAt": 1786549729330,
     "generatedAgentConfigs": [
       {
         "id": "imp_agent_cspj16j_0",
@@ -715,8 +715,8 @@
           "enabled": false,
           "agentIds": []
         },
-        "createdAt": 1786549147611,
-        "updatedAt": 1786549147611,
+        "createdAt": 1786549729330,
+        "updatedAt": 1786549729330,
         "category": "choice"
       },
       {
@@ -794,8 +794,8 @@
           "enabled": false,
           "agentIds": []
         },
-        "createdAt": 1786549147611,
-        "updatedAt": 1786549147611,
+        "createdAt": 1786549729330,
+        "updatedAt": 1786549729330,
         "category": "read"
       },
       {
@@ -863,8 +863,8 @@
           "enabled": false,
           "agentIds": []
         },
-        "createdAt": 1786549147611,
-        "updatedAt": 1786549147611,
+        "createdAt": 1786549729330,
+        "updatedAt": 1786549729330,
         "category": "read"
       },
       {
@@ -938,8 +938,8 @@
           "enabled": false,
           "agentIds": []
         },
-        "createdAt": 1786549147611,
-        "updatedAt": 1786549147611,
+        "createdAt": 1786549729330,
+        "updatedAt": 1786549729330,
         "category": "read"
       },
       {
@@ -1018,22 +1018,22 @@
           "enabled": false,
           "agentIds": []
         },
-        "createdAt": 1786549147611,
-        "updatedAt": 1786549147611,
+        "createdAt": 1786549729330,
+        "updatedAt": 1786549729330,
         "category": "read"
       },
       {
         "id": "sc_cspj16j_perfect1",
         "stageId": "cm_imp_cspj2016j_v1",
         "type": "quiz",
-        "title": "(一)（读入整数）请完善下面的程序,使程序能够读入两个 int 范围内的整数,并将这两个整数分别输出,每行一个。（第 1 小题和第 5 小题 2.5 分,其余每小题 3 分）",
+        "title": "三、完善程序（1）（读入整数）（第 1 小题和第 5 小题 2.5 分,其余每小题 3 分,共 14 分）",
         "order": 6,
         "content": {
           "type": "quiz",
           "codeBlock": {
             "language": "cpp",
             "title": "",
-            "description": "输入: 整数之间和前后只会出现空格或者回车,输入数据要保证合法。例如输入: 123 -789 输出: 123 -789",
+            "description": "请完善下面的程序,使程序能够读入两个 int 范围内的整数,并将这两个整数分行输出,每行一个。\n\n输入格式: 输入的整数之间和前后只会出现空格或者回车,输入数据保证合法。\n\n例如:\n输入:\n123 -789\n输出:\n123\n-789",
             "lines": [
               "#include <iostream>",
               "using namespace std;",
@@ -1219,22 +1219,22 @@
           "enabled": false,
           "agentIds": []
         },
-        "createdAt": 1786549147611,
-        "updatedAt": 1786549147611,
+        "createdAt": 1786549729330,
+        "updatedAt": 1786549729330,
         "category": "perfect"
       },
       {
         "id": "sc_cspj16j_perfect2",
         "stageId": "cm_imp_cspj2016j_v1",
         "type": "quiz",
-        "title": "(二)（郊游活动）有 n 名同学参加学校组织的郊游活动,已知学校给这 n 名同学的郊游总经费为 A 元,与此同时第 i 位同学自己携带了 Mᵢ 元。为了方便郊游,活动地点提供 B（B ≥ n）辆自行车供人租用,租用第 j 辆自行车的价格为 Cⱼ 元。每位同学可以使用自己携带的钱或者学校的郊游经费,为了方便账务管理,每位同学只能为自己租用自行车,且不会借钱给他人,最多有多少位同学能够租用到自行车？（第 4 小题和第 5 小题 2.5 分,其余每小题 3 分）",
+        "title": "三、完善程序（2）（郊游活动）（第 4 小题和第 5 小题 2.5 分,其余每小题 3 分,共 14 分）",
         "order": 7,
         "content": {
           "type": "quiz",
           "codeBlock": {
             "language": "cpp",
             "title": "",
-            "description": "本题采用二分法。对于区间[l, r],我们取区间中点 mid 并判断租用到自行车的人数能否达到 mid。判断的过程是利用贪心算法实现的。试补全程序。",
+            "description": "有 n 名同学参加学校组织的郊游活动,已知学校给这 n 名同学的郊游总经费为 A 元,与此同时第 i 位同学自己携带了 Mᵢ 元。为了方便郊游,活动地点提供 B（B ≥ n）辆自行车供人租用,租用第 j 辆自行车的价格为 Cⱼ 元。每位同学可以使用自己携带的钱或者学校的郊游经费,为了方便账务管理,每位同学只能为自己租用自行车,且不会借钱给他人,最多有多少位同学能够租用到自行车？\n\n算法提示: 本题采用二分法。对于区间[l, r],我们取区间中点 mid 并判断租用到自行车的人数能否达到 mid。判断的过程是利用贪心算法实现的。试补全程序。",
             "lines": [
               "#include <iostream>",
               "using namespace std;",
@@ -1444,8 +1444,8 @@
           "enabled": false,
           "agentIds": []
         },
-        "createdAt": 1786549147611,
-        "updatedAt": 1786549147611,
+        "createdAt": 1786549729330,
+        "updatedAt": 1786549729330,
         "category": "perfect"
       }
     ]
