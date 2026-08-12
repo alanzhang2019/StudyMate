@@ -768,7 +768,7 @@
       },
       "createdAt": 1786517048133,
       "updatedAt": 1786517048133,
-      "category": "code-reading"
+      "category": "read"
     },
     {
       "id": "sc_cspj15j_read2",
@@ -845,7 +845,7 @@
       },
       "createdAt": 1786517048133,
       "updatedAt": 1786517048133,
-      "category": "code-reading"
+      "category": "read"
     },
     {
       "id": "sc_cspj15j_read3",
@@ -918,7 +918,7 @@
       },
       "createdAt": 1786517048133,
       "updatedAt": 1786517048133,
-      "category": "code-reading"
+      "category": "read"
     },
     {
       "id": "sc_cspj15j_read4",
@@ -991,7 +991,7 @@
       },
       "createdAt": 1786517048133,
       "updatedAt": 1786517048133,
-      "category": "code-reading"
+      "category": "read"
     },
     {
       "id": "sc_cspj15j_perfect1",
@@ -1058,7 +1058,8 @@
               "D"
             ],
             "analysis": "2015 年 1 月 1 日是周四，列偏移 offset=4。",
-            "hasAnswer": true
+            "hasAnswer": true,
+            "points": 3
           },
           {
             "id": "p1_2",
@@ -1086,7 +1087,8 @@
               "C"
             ],
             "analysis": "累加前面月份天数再 mod 7，得到 m 月 1 日的列偏移。",
-            "hasAnswer": true
+            "hasAnswer": true,
+            "points": 3
           },
           {
             "id": "p1_3",
@@ -1114,7 +1116,8 @@
               "D"
             ],
             "analysis": "循环到 m 月天数 dayNum[m] 为止。",
-            "hasAnswer": true
+            "hasAnswer": true,
+            "points": 3
           },
           {
             "id": "p1_4",
@@ -1142,7 +1145,8 @@
               "B"
             ],
             "analysis": "循环变量 i 即为要打印的日期。",
-            "hasAnswer": true
+            "hasAnswer": true,
+            "points": 3
           },
           {
             "id": "p1_5",
@@ -1170,7 +1174,8 @@
               "C"
             ],
             "analysis": "列号每行 7 列换行；当前打印的 i 出现在列 (i-1+offset)%7=6 时需换行，等价 (offset+i)%7==0。",
-            "hasAnswer": true
+            "hasAnswer": true,
+            "points": 3
           }
         ],
         "kind": "code-completion"
@@ -1182,7 +1187,7 @@
       },
       "createdAt": 1786517048133,
       "updatedAt": 1786517048133,
-      "category": "code-completion"
+      "category": "perfect"
     },
     {
       "id": "sc_cspj15j_perfect2",
@@ -1251,7 +1256,8 @@
               "B"
             ],
             "analysis": "二分条件 lbound < rbound；不满足时已找到答案。",
-            "hasAnswer": true
+            "hasAnswer": true,
+            "points": 3
           },
           {
             "id": "p2_2",
@@ -1279,7 +1285,8 @@
               "A"
             ],
             "analysis": "每轮二分都要重置 count=0，重新统计 <= mid 的元素个数。",
-            "hasAnswer": true
+            "hasAnswer": true,
+            "points": 3
           },
           {
             "id": "p2_3",
@@ -1307,7 +1314,8 @@
               "D"
             ],
             "analysis": "count 统计的是大于 mid 的元素个数。若 >n/2 个元素都 > mid，说明 mid 偏小，lbound=mid+1 往上搜；否则 rbound=mid 收紧上界。",
-            "hasAnswer": true
+            "hasAnswer": true,
+            "points": 3
           },
           {
             "id": "p2_4",
@@ -1335,7 +1343,8 @@
               "C"
             ],
             "analysis": "满足条件时 count 累加 1。",
-            "hasAnswer": true
+            "hasAnswer": true,
+            "points": 3
           },
           {
             "id": "p2_5",
@@ -1363,7 +1372,8 @@
               "A"
             ],
             "analysis": "count ≤ n/2 时 rbound 收缩到 mid（保留可能答案）。",
-            "hasAnswer": true
+            "hasAnswer": true,
+            "points": 3
           }
         ],
         "kind": "code-completion"
@@ -1375,7 +1385,7 @@
       },
       "createdAt": 1786517048133,
       "updatedAt": 1786517048133,
-      "category": "code-completion"
+      "category": "perfect"
     }
   ]
 }

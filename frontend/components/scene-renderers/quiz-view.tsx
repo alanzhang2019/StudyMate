@@ -42,6 +42,7 @@ import {
   type SubmittedState,
 } from '@/lib/quiz/persistence';
 import { useStageStore } from '@/lib/store';
+import { formatInBeijing } from '@/lib/utils/date';
 
 /**
  * Stringify a user's answer to a single field for the
@@ -2114,13 +2115,17 @@ function FinalScorePage({
                         </div>
                         <div className="text-[11px] text-slate-500 tabular-nums">
                           {h.submittedAt
-                            ? new Date(h.submittedAt).toLocaleString('zh-CN', {
-                                hour12: false,
-                                month: '2-digit',
-                                day: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })
+                            ? formatInBeijing(
+                                h.submittedAt,
+                                {
+                                  hour12: false,
+                                  month: '2-digit',
+                                  day: '2-digit',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                },
+                                '时间未知',
+                              )
                             : '时间未知'}
                         </div>
                       </div>
@@ -2298,13 +2303,17 @@ function FinalScorePage({
                             }`}
                             title={
                               h.submittedAt
-                                ? new Date(h.submittedAt).toLocaleString('zh-CN', {
-                                    hour12: false,
-                                    month: '2-digit',
-                                    day: '2-digit',
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                  })
+                                ? formatInBeijing(
+                                    h.submittedAt,
+                                    {
+                                      hour12: false,
+                                      month: '2-digit',
+                                      day: '2-digit',
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                    },
+                                    '',
+                                  )
                                 : ''
                             }
                           >
