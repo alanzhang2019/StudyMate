@@ -1,6 +1,6 @@
 {
   "id": "cm_imp_cspj2016j_v1",
-  "createdAt": "2026-08-12T15:15:23.763Z",
+  "createdAt": "2026-08-12T15:39:07.611Z",
   "collection": "csp-lecture",
   "stage": {
     "id": "cm_imp_cspj2016j_v1",
@@ -8,8 +8,8 @@
     "description": "2016年CCF NOIP普及组初赛真题,按CSP-J新题型改编: 选择题22题 (前20题1.5分,后2题5分,共40分)、阅读程序4题 (每题8分,共32分)、完善程序2题 (每题5个空,共28分), 总分100分。",
     "languageDirective": "zh-CN",
     "style": "tutor",
-    "createdAt": 1786547723763,
-    "updatedAt": 1786547723763,
+    "createdAt": 1786549147610,
+    "updatedAt": 1786549147610,
     "generatedAgentConfigs": [
       {
         "id": "imp_agent_cspj16j_0",
@@ -715,8 +715,8 @@
           "enabled": false,
           "agentIds": []
         },
-        "createdAt": 1786547723763,
-        "updatedAt": 1786547723763,
+        "createdAt": 1786549147611,
+        "updatedAt": 1786549147611,
         "category": "choice"
       },
       {
@@ -794,8 +794,8 @@
           "enabled": false,
           "agentIds": []
         },
-        "createdAt": 1786547723763,
-        "updatedAt": 1786547723763,
+        "createdAt": 1786549147611,
+        "updatedAt": 1786549147611,
         "category": "read"
       },
       {
@@ -863,8 +863,8 @@
           "enabled": false,
           "agentIds": []
         },
-        "createdAt": 1786547723763,
-        "updatedAt": 1786547723763,
+        "createdAt": 1786549147611,
+        "updatedAt": 1786549147611,
         "category": "read"
       },
       {
@@ -938,8 +938,8 @@
           "enabled": false,
           "agentIds": []
         },
-        "createdAt": 1786547723763,
-        "updatedAt": 1786547723763,
+        "createdAt": 1786549147611,
+        "updatedAt": 1786549147611,
         "category": "read"
       },
       {
@@ -1018,8 +1018,8 @@
           "enabled": false,
           "agentIds": []
         },
-        "createdAt": 1786547723763,
-        "updatedAt": 1786547723763,
+        "createdAt": 1786549147611,
+        "updatedAt": 1786549147611,
         "category": "read"
       },
       {
@@ -1219,8 +1219,8 @@
           "enabled": false,
           "agentIds": []
         },
-        "createdAt": 1786547723763,
-        "updatedAt": 1786547723763,
+        "createdAt": 1786549147611,
+        "updatedAt": 1786549147611,
         "category": "perfect"
       },
       {
@@ -1314,9 +1314,9 @@
                 }
               ],
               "answer": [
-                "A"
+                "C"
               ],
-              "analysis": "从第 1 个学生开始枚举 (i 初值)。",
+              "analysis": "check(nn) 检查 nn 名学生能否租到车, 需配 M 中钱最多的 nn 人 (M 升序, 索引 n-nn+1..n) 与 C 中最便宜的 nn 辆车, 循环恰好 nn 次, 故 i 初始化为 n-nn+1。",
               "points": 2.5,
               "hasAnswer": true
             },
@@ -1444,8 +1444,8 @@
           "enabled": false,
           "agentIds": []
         },
-        "createdAt": 1786547723763,
-        "updatedAt": 1786547723763,
+        "createdAt": 1786549147611,
+        "updatedAt": 1786549147611,
         "category": "perfect"
       }
     ]
