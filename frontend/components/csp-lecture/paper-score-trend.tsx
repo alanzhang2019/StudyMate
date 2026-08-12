@@ -300,13 +300,19 @@ function SubChart({
     //
     // 进一步修正 (2026-08-11 晚上): 用户反馈"晋级线每年都不一样,
     // 中位数水平线不准"。晋级线本质就是按年份浮动的分数线, 正确画
-    // 法是和总分折线一样 —— 每年一个数据点, 串成一条多段折线, 让
-    // 学生直观看到"今年晋级线比去年高/低"。中位数那种"一条水平线"
-    // 的画法抹掉了每年波动, 等于假信息。
+    // 法是和总分折线一样 —— 每年一个数据点, 串成一条多段折线。
     //
-    // 主图仍然只画 1 条参考线（晋级线），一/二/三等挪到 tooltip 弹层。
-    // 晋级线用 ECharts 的多段 markLine 语法: data 数组里塞一个 2 维
-    // 数组, 表示一条由 (xAxis, yAxis) 点串成的折线。
+    // ECharts markLine 的坑: 它不支持"一个 data 项里塞 N 个点串成
+    // 折线"。每个 data 项只能是 {yAxis} / {xAxis, yAxis} (单点水平
+    // / 垂直线) 或 [{coord:...}, {coord:...}] (2 点线段)。如果塞
+    // ≥3 个点, ECharts 只会连首尾两点, 中间点被静默忽略 —— 这就是
+    // 上一版只看到 2021→2022 一段的原因。
+    //
+    // 正确画法: 把"晋级线每年浮动"拆成 N-1 个 2 点线段, 每个线段
+    // 连接相邻两个年份, 整体视觉上就是一条连续的多段折线, 完美
+    // 反映"2024 突然拉到 83.5, 2025 跌回 59.5"这种年度波动。
+    //
+    // 主图仍然只画 1 条参考线 (晋级线), 一/二/三等挪到 tooltip 弹层。
     const promotionPoints: Array<{ xAxis: string | number; yAxis: number }> = [];
     for (const y of years) {
       const line = getScoreLine(y, group);
@@ -314,26 +320,33 @@ function SubChart({
       promotionPoints.push({ xAxis: String(y), yAxis: line.promotion });
     }
     const scoreLineData: any[] = [];
-    if (promotionPoints.length >= 2) {
-      // 多段折线 —— 晋级线每年浮动, 用真实数据点连接
-      const meta = SCORE_LINE_META.promotion;
-      scoreLineData.push([
-        ...promotionPoints,
-        {
-          // 末端小标签: 只在最后一个点显示"晋级"二字
-          label: {
-            show: true,
-            position: 'insideEndTop',
-            formatter: () => meta.short,
-            color: meta.color,
-            fontSize: 10,
-            fontWeight: 600,
-            backgroundColor: 'rgba(255,255,255,0.85)',
-            padding: [1, 4],
-            borderRadius: 3,
-          },
-        },
-      ]);
+    const meta = SCORE_LINE_META.promotion;
+    for (let i = 0; i < promotionPoints.length - 1; i++) {
+      const a = promotionPoints[i];
+      const b = promotionPoints[i + 1];
+      const isLast = i === promotionPoints.length - 2;
+      scoreLineData.push({
+        coords: [
+          { coord: [a.xAxis, a.yAxis] },
+          { coord: [b.xAxis, b.yAxis] },
+        ],
+        // 只在最后一段的末端贴"晋级"标签, 避免每年都贴一个挤成一团
+        ...(isLast
+          ? {
+              label: {
+                show: true,
+                position: 'end',
+                formatter: () => meta.short,
+                color: meta.color,
+                fontSize: 10,
+                fontWeight: 600,
+                backgroundColor: 'rgba(255,255,255,0.85)',
+                padding: [1, 4],
+                borderRadius: 3,
+              },
+            }
+          : { label: { show: false } }),
+      });
     }
 
     inst.current.setOption(
