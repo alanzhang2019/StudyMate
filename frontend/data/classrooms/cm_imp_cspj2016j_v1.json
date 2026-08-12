@@ -1,15 +1,15 @@
 {
   "id": "cm_imp_cspj2016j_v1",
-  "createdAt": "2026-08-09T00:00:00.000Z",
+  "createdAt": "2026-08-12T00:00:00.000Z",
   "collection": "csp-lecture",
   "stage": {
     "id": "cm_imp_cspj2016j_v1",
-    "name": "2016年普及组NOIP初赛真题卷",
-    "description": "2016年CCF NOIP普及组初赛完整真题（第二十二届全国青少年信息学奥林匹克联赛初赛），共单项选择题20道（30分）、问题求解2题（10分）、阅读程序写结果4题（32分）、完善程序2题（28分），总分100分。",
+    "name": "2016年普及级CSP-J初赛真题卷（已根据新题型改编）",
+    "description": "2016年CCF NOIP普及组初赛真题，按CSP-J新题型改编：选择题22题（前20题1.5分，后2题5分，共40分）、阅读程序4题（每题8分，共32分）、完善程序10题（共28分），总分100分。",
     "languageDirective": "zh-CN",
     "style": "tutor",
-    "createdAt": 1786247387836,
-    "updatedAt": 1786247387836,
+    "createdAt": 1786535570851,
+    "updatedAt": 1786535570851,
     "generatedAgentConfigs": [
       {
         "id": "imp_agent_cspj16j_0",
@@ -32,9 +32,14 @@
     ],
     "agentIds": [],
     "scoreBreakdown": {
-      "choice": 30,
-      "read": 42,
+      "choice": 40,
+      "read": 32,
       "perfect": 28
+    },
+    "attachment": {
+      "type": "pdf",
+      "url": "/csp-j-2016-original.pdf",
+      "label": "下载 2016 真题卷（PDF）"
     }
   },
   "scenes": [
@@ -42,7 +47,7 @@
       "id": "sc_cspj16j_choice",
       "stageId": "cm_imp_cspj2016j_v1",
       "type": "quiz",
-      "title": "一、单项选择题（共 20 题，每题 1.5 分，共计 30 分）",
+      "title": "一、选择题（共 22 题，第 1-20 题每题 1.5 分，第 21-22 题每题 5 分，共计 40 分）",
       "order": 1,
       "content": {
         "type": "quiz",
@@ -54,7 +59,7 @@
             "options": [
               {
                 "value": "A",
-                "label": "Powerpoint"
+                "label": "PowerPoint"
               },
               {
                 "value": "B",
@@ -72,14 +77,14 @@
             "answer": [
               "D"
             ],
-            "analysis": "Acrobat Reader 是 Adobe 公司产品。",
+            "analysis": "Acrobat Reader 是 Adobe 公司的产品，其余均为微软出品。",
             "points": 1.5,
             "hasAnswer": true
           },
           {
             "id": "q2",
             "type": "single",
-            "question": "2. 如果 256 种颜色用二进制编码来表示，至少需要（ ）位。",
+            "question": "2. 如果 256 种颜色用二进制码来表示，至少需要（ ）位。",
             "options": [
               {
                 "value": "A",
@@ -101,7 +106,7 @@
             "answer": [
               "C"
             ],
-            "analysis": "2^8=256，至少 8 位。",
+            "analysis": "2^8=256，恰好可用 8 位二进制表示 256 种颜色。",
             "points": 1.5,
             "hasAnswer": true
           },
@@ -116,7 +121,7 @@
               },
               {
                 "value": "B",
-                "label": "WiFi"
+                "label": "Wi-Fi"
               },
               {
                 "value": "C",
@@ -130,14 +135,14 @@
             "answer": [
               "D"
             ],
-            "analysis": "以太网是有线网络。",
+            "analysis": "以太网是使用网线连接的有线局域网技术。",
             "points": 1.5,
             "hasAnswer": true
           },
           {
             "id": "q4",
             "type": "single",
-            "question": "4. 以下不是 CPU 生产厂商的是（ ）。",
+            "question": "4. 以下不是 CPU 生产厂家的是（ ）。",
             "options": [
               {
                 "value": "A",
@@ -188,14 +193,14 @@
             "answer": [
               "D"
             ],
-            "analysis": "鼠标是输入设备。",
+            "analysis": "鼠标是输入设备，不是存储设备。",
             "points": 1.5,
             "hasAnswer": true
           },
           {
             "id": "q6",
             "type": "single",
-            "question": "6. 小老鼠按 CapsLock、A、S、D 循环按键（初始小写），第 81 个输出字符是（ ）。",
+            "question": "6. 如果开始时计算机处于小写输入状态，现在有一只小老鼠反复按照 Caps Lock、字母键 S 和字母键 D 的顺序循环按键，即 Caps Lock、A、S、D、Caps Lock、A、S、D……屏幕上输出的第 81 个字符是字母（ ）。",
             "options": [
               {
                 "value": "A",
@@ -217,7 +222,7 @@
             "answer": [
               "A"
             ],
-            "analysis": "每 4 次按键为 1 轮，81÷4=20 余 1。第 81 个键是新一轮的 CapsLock，切换到大写状态，之后紧跟的 A 即被识别为第 81 个输出字母 A。",
+            "analysis": "每 4 步产生 4 个字符（大小写交替），第 81 个是新一轮开始输出的大写 A。",
             "points": 1.5,
             "hasAnswer": true
           },
@@ -246,7 +251,7 @@
             "answer": [
               "B"
             ],
-            "analysis": "44 + 21 = 65 = 0b01000001。",
+            "analysis": "00101100₂=44, 00010101₂=21, 44+21=65=01000001₂。",
             "points": 1.5,
             "hasAnswer": true
           },
@@ -275,14 +280,14 @@
             "answer": [
               "B"
             ],
-            "analysis": "0.1₂ = 1/2 = 4/8 = 0.4₈。",
+            "analysis": "0.1₂=½=4/8=0.4₈。",
             "points": 1.5,
             "hasAnswer": true
           },
           {
             "id": "q9",
             "type": "single",
-            "question": "9. 以下是 32 位机器和 64 位机器的区别的是（ ）。",
+            "question": "9. 以下属于 32 位机器和 64 位机器的区别的是（ ）。",
             "options": [
               {
                 "value": "A",
@@ -304,14 +309,14 @@
             "answer": [
               "C"
             ],
-            "analysis": "64 位机器寻址空间 2^64，远大于 32 位。",
+            "analysis": "32 位与 64 位机器的主要区别是 CPU 字长与寻址空间。",
             "points": 1.5,
             "hasAnswer": true
           },
           {
             "id": "q10",
             "type": "single",
-            "question": "10. 以下关于字符串的判定语句中正确的是（ ）。",
+            "question": "10. 以下关于字符串的判定语句正确的是（ ）。",
             "options": [
               {
                 "value": "A",
@@ -323,7 +328,7 @@
               },
               {
                 "value": "C",
-                "label": "字符串不可以用数组来表示"
+                "label": "字符中不可以用整数来表示"
               },
               {
                 "value": "D",
@@ -333,14 +338,14 @@
             "answer": [
               "A"
             ],
-            "analysis": "字符串是特殊的线性表（字符序列），长度可为零，可用数组存储，空格串≠空串。",
+            "analysis": "字符串是字符型线性表，B/C/D 均与定义不符。",
             "points": 1.5,
             "hasAnswer": true
           },
           {
             "id": "q11",
             "type": "single",
-            "question": "11. 一棵二叉树用顺序存储，根节点下标 1，结点 i 左孩子 2i、右孩子 2i+1。则图中所有节点最大下标为（ ）。",
+            "question": "11. 一棵二叉树若采用顺序存储结构（根节点下标 1，节点 i 的左孩子在 2i、右孩子在 2i+1），则图中所有节点的最大下标为（ ）。",
             "options": [
               {
                 "value": "A",
@@ -362,43 +367,43 @@
             "answer": [
               "D"
             ],
-            "analysis": "完全二叉树 4 层最多 15 个节点。",
+            "analysis": "5 节点完全二叉树，按顺序存储最大下标为 15。",
             "points": 1.5,
             "hasAnswer": true
           },
           {
             "id": "q12",
             "type": "single",
-            "question": "12. 程序段 s=a; for(b=1;b<=c;b++) s=s+1; 等价的赋值语句是（ ）。",
+            "question": "12. 若有程序段 s=a; for(b=1;b<=c;b++) s=s+1;（c>0），与该段修改 s 值等价的赋值语句是（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "s = a + b"
+                "label": "s=a+b"
               },
               {
                 "value": "B",
-                "label": "s = a + c"
+                "label": "s=a+c"
               },
               {
                 "value": "C",
-                "label": "s = s + c"
+                "label": "s=s+c"
               },
               {
                 "value": "D",
-                "label": "s = b + c"
+                "label": "s=b+c"
               }
             ],
             "answer": [
               "B"
             ],
-            "analysis": "循环 c 次，s 加 c，等价 s = a + c。",
+            "analysis": "循环执行 c 次 s+1，所以 s 累计加了 c。",
             "points": 1.5,
             "hasAnswer": true
           },
           {
             "id": "q13",
             "type": "single",
-            "question": "13. 程序运行后输出（ ）。\nk=4,n=0; while(n<k){n++; if(n%3!=0) continue; k--; } cout << k << \",\" << n;",
+            "question": "13. 下列程序：k=4, n=0; while(n<k){n++; if(n%3!=0) continue; k--;} cout<<k<<\",\"<<n<<endl; 的输出是（ ）。",
             "options": [
               {
                 "value": "A",
@@ -420,43 +425,43 @@
             "answer": [
               "D"
             ],
-            "analysis": "n=1,2 跳过；n=3 整除 3, k=3；n=3<k=3 假, 退出。输出 3,3。",
+            "analysis": "n=0→1, 1%3!=0 continue; n=1→2, 2%3!=0 continue; n=2→3, 3%3==0 k--; n=3 不小于 k=3 退出。输出 3,3。",
             "points": 1.5,
             "hasAnswer": true
           },
           {
             "id": "q14",
             "type": "single",
-            "question": "14. 单峰数组二分查找峰顶。代码填空顺序是（ ）。\na. Search(k+1, n)  b. Search(1, k-1)  c. return L[k]",
+            "question": "14. 给定单峰数组 L（存在 xi 比两侧都大）求峰顶位置的三段代码（c 找到峰顶，b 上升段递归右半，a 下降段递归左半），正确的填空顺序是（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "c, a, b"
+                "label": "c,a,b"
               },
               {
                 "value": "B",
-                "label": "c, b, a"
+                "label": "c,b,a"
               },
               {
                 "value": "C",
-                "label": "a, b, c"
+                "label": "a,b,c"
               },
               {
                 "value": "D",
-                "label": "b, a, c"
+                "label": "b,a,c"
               }
             ],
             "answer": [
-              "A"
+              "B"
             ],
-            "analysis": "峰顶 c；上升中 a；下降中 b。",
+            "analysis": "峰顶→上升段递归右半→下降段递归左半。",
             "points": 1.5,
             "hasAnswer": true
           },
           {
             "id": "q15",
             "type": "single",
-            "question": "15. 简单无向图 G 有 16 条边且每个顶点度数都是 2，则 G 有（ ）个顶点。",
+            "question": "15. 设简单无向图 G 有 16 条边且每个顶点的度数都是 2，则图 G 有（ ）个顶点。",
             "options": [
               {
                 "value": "A",
@@ -478,14 +483,14 @@
             "answer": [
               "D"
             ],
-            "analysis": "顶点数 = 2×边数/2 = 16，每个顶点度 2，构成 16 个孤立环。",
+            "analysis": "边数×2=度数总和=2n, 32=2n, n=16。",
             "points": 1.5,
             "hasAnswer": true
           },
           {
             "id": "q16",
             "type": "single",
-            "question": "16. 7 个一样的苹果，放到 3 个一样的盘子中，一共有（ ）种放法。",
+            "question": "16. 有 7 个一模一样的苹果，放到 3 个一样的盘子中，一共有（ ）种放法。",
             "options": [
               {
                 "value": "A",
@@ -501,78 +506,78 @@
               },
               {
                 "value": "D",
-                "label": "37"
+                "label": "3⁷"
               }
             ],
             "answer": [
               "B"
             ],
-            "analysis": "整数拆分 p(7,3)=8。",
+            "analysis": "7 个相同球放入 3 个相同盘，允许空盘，按整数拆分 7=7,6+1,5+2,5+1+1,4+3,4+2+1,3+3+1,3+2+2 共 8 种。",
             "points": 1.5,
             "hasAnswer": true
           },
           {
             "id": "q17",
             "type": "single",
-            "question": "17. 果园灌溉系统（如图），让果树浇上水的阀门设置是（ ）。",
+            "question": "17. 下图果园灌溉系统，要让果树浇上水，阀门应设置为（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "B 打开"
+                "label": "B 打开，其他都关上"
               },
               {
                 "value": "B",
-                "label": "AB 都打开"
+                "label": "AB 都打开，CD 都关上"
               },
               {
                 "value": "C",
-                "label": "A 打开"
+                "label": "A 打开，其他都关上"
               },
               {
                 "value": "D",
-                "label": "D 打开"
+                "label": "D 打开，其他都关上"
               }
             ],
             "answer": [
               "A"
             ],
-            "analysis": "阀门 B 单独打开即可。",
+            "analysis": "按图示阀门连接，开 B 是唯一让水到果树的方案。",
             "points": 1.5,
             "hasAnswer": true
           },
           {
             "id": "q18",
             "type": "single",
-            "question": "18. Lucia 想分享照片给朋友但不想让 Jacob 看到，可分享给（ ）。",
+            "question": "18. Lucia 已上传照片但不想让 Jacob 看见，那么她可以向（ ）分享该照片。",
             "options": [
               {
                 "value": "A",
-                "label": "Dana, Michael, Eve"
+                "label": "Dana、Michael、Eve"
               },
               {
                 "value": "B",
-                "label": "Dana, Eve, Monica"
+                "label": "Dana、Eve、Monica"
               },
               {
                 "value": "C",
-                "label": "Michael, Eve, Jacob"
+                "label": "Michael、Eve、Jacob"
               },
               {
                 "value": "D",
-                "label": "Michael, Peter, Monica"
+                "label": "Michael、Peter、Monica"
               }
             ],
             "answer": [
               "A"
             ],
-            "analysis": "所选朋友都不能直接或间接连接到 Jacob。",
+            "analysis": "选择与 Jacob 不连通且 Lucia 信任的朋友子集（结合图）。",
             "points": 1.5,
             "hasAnswer": true
           },
           {
             "id": "q19",
             "type": "single",
-            "question": "19. 三道菜每道 30 分钟（洗切炒各 10 分钟），做三道菜最短时间（ ）分钟。",
+            "question": "19. 小明一家三口做三道菜，每道菜需洗 10 分钟、切 10 分钟、炒 10 分钟，不同菜的相同步骤不可同时进行。完成三道菜最短需要（ ）分钟。",
             "options": [
               {
                 "value": "A",
@@ -592,9 +597,9 @@
               }
             ],
             "answer": [
-              "C"
+              "B"
             ],
-            "analysis": "流水线作业 50 分钟。",
+            "analysis": "流水线：1 人做 1 道菜 30 分钟，3 人并行做 3 道菜最短 60 分钟。",
             "points": 1.5,
             "hasAnswer": true
           },
@@ -623,86 +628,65 @@
             "answer": [
               "C"
             ],
-            "analysis": "NOI 禁止带 U 盘等电子设备。",
+            "analysis": "NOI 禁止带 U 盘等电子存储设备。",
             "points": 1.5,
             "hasAnswer": true
-          }
-        ],
-        "kind": "choice"
-      },
-      "actions": [],
-      "multiAgent": {
-        "enabled": false,
-        "agentIds": []
-      },
-      "createdAt": 1786247387836,
-      "updatedAt": 1786247387836,
-      "category": "choice"
-    },
-    {
-      "id": "sc_cspj16j_problem_solving",
-      "stageId": "cm_imp_cspj2016j_v1",
-      "type": "quiz",
-      "title": "二、问题求解（共 2 题，每题 5 分，共计 10 分）",
-      "order": 2,
-      "content": {
-        "type": "quiz",
-        "questions": [
+          },
           {
-            "id": "ps1",
+            "id": "q21",
             "type": "single",
-            "question": "1. 从 4×4 棋盘（不可旋转）选 2 个不在同行也不在同列的方格，共_________种方法。",
+            "question": "21. （5 分）从 4×4 棋盘（不可旋转）中选取不在同一行也不在同一列上的两个方格，共有（ ）种方法。",
             "options": [
               {
                 "value": "A",
-                "label": "12"
+                "label": "76"
               },
               {
                 "value": "B",
-                "label": "24"
+                "label": "88"
               },
               {
                 "value": "C",
-                "label": "30"
+                "label": "64"
               },
               {
                 "value": "D",
-                "label": "36"
+                "label": "72"
               }
             ],
             "answer": [
               "D"
             ],
-            "analysis": "C(4,2) × C(4,2) = 6×6 = 36。",
+            "analysis": "C(16,2)=120，减去同行 C(4,2)*4=24 和同列 24，共 72 种。",
             "points": 5,
             "hasAnswer": true
           },
           {
-            "id": "ps2",
+            "id": "q22",
             "type": "single",
-            "question": "2. 二叉树根节点高度为 1。2016 节点二叉树最少有_________个叶子；最小高度是_________。",
+            "question": "22. （5 分）约定根高度为 1，节点数为 2016 的二叉树最少有（ ）个叶子节点；最小高度值是（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "1 个叶子, 高度 10"
+                "label": "1,13"
               },
               {
                 "value": "B",
-                "label": "1 个叶子, 高度 11"
+                "label": "1,11"
               },
               {
                 "value": "C",
-                "label": "2 个叶子, 高度 10"
+                "label": "1008,13"
               },
               {
                 "value": "D",
-                "label": "2 个叶子, 高度 11"
+                "label": "1008,11"
               }
             ],
             "answer": [
               "B"
             ],
-            "analysis": "链状最少 1 个叶子；满二叉树 2^11-1=2047 ≥ 2016 ≥ 2^10=1024, 最小高度 11。",
+            "analysis": "最少 1 个叶子（右斜链）；最小高度 h 满足 2^(h-1)≤2016<2^h，h=11。",
             "points": 5,
             "hasAnswer": true
           }
@@ -714,22 +698,22 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786247387836,
-      "updatedAt": 1786247387836,
-      "category": "read"
+      "createdAt": 1786535570851,
+      "updatedAt": 1786535570851,
+      "category": "choice"
     },
     {
-      "id": "sc_cspj16j_read_1",
+      "id": "sc_cspj16j_read1",
       "stageId": "cm_imp_cspj2016j_v1",
       "type": "quiz",
-      "title": "三、阅读程序写结果 1（8 分）",
-      "order": 3,
+      "title": "二、阅读程序（1）最大/最小/均值（每题 8 分）",
+      "order": 2,
       "content": {
         "type": "quiz",
         "codeBlock": {
           "language": "cpp",
-          "title": "阅读程序（1）",
-          "description": "读入一串整数（0 结束），输出 max, min, avg。",
+          "title": "二、阅读程序（1）最大/最小/均值（每题 8 分）",
+          "description": "",
           "lines": [
             "#include <iostream>",
             "using namespace std;",
@@ -746,10 +730,8 @@
             "    if (tmp != 0) {",
             "      sum += tmp;",
             "      count++;",
-            "      if (tmp > max)",
-            "        max = tmp;",
-            "      if (tmp < min)",
-            "        min = tmp;",
+            "      if (tmp > max) max = tmp;",
+            "      if (tmp < min) min = tmp;",
             "    }",
             "  }",
             "  cout << max << \",\" << min << \",\" << sum / count << endl;",
@@ -759,10 +741,9 @@
         },
         "questions": [
           {
-            "id": "cr1",
+            "id": "q23",
             "type": "single",
-            "points": 8,
-            "question": "输入：1 2 3 4 5 6 0 7\n输出：",
+            "question": "23. 当程序的输入为 \"1 2 3 4 5 6 0 7\" 时，对应的输出是（ ）。",
             "options": [
               {
                 "value": "A",
@@ -770,71 +751,48 @@
               },
               {
                 "value": "B",
-                "label": "6,1,3.5"
+                "label": "6,1,4"
               },
               {
                 "value": "C",
-                "label": "7,1,3.5"
+                "label": "1,6,3"
               },
               {
                 "value": "D",
-                "label": "6,1,4"
+                "label": "1,6,4"
               }
             ],
             "answer": [
-              "B"
+              "A"
             ],
-            "analysis": "1-6 的 max=6, min=1, sum=21, count=6, avg=3.5。7 在 0 之后被忽略。",
-            "codeLines": [
-              "#include <iostream>",
-              "using namespace std;",
-              "int main() {",
-              "  int max, min, sum, count = 0;",
-              "  int tmp;",
-              "  cin >> tmp;",
-              "  if (tmp == 0) return 0;",
-              "  max = min = sum = tmp;",
-              "  count++;",
-              "  while (tmp != 0) {",
-              "    cin >> tmp;",
-              "    if (tmp != 0) {",
-              "      sum += tmp;",
-              "      count++;",
-              "      if (tmp > max) max = tmp;",
-              "      if (tmp < min) min = tmp;",
-              "    }",
-              "  }",
-              "  cout << max << \",\" << min << \",\" << sum / count << endl;",
-              "  return 0;",
-              "}"
-            ],
-            "codeTitle": "阅读程序（1）",
-            "codeDescription": "读入一串整数（0 结束），输出 max, min, avg。"
+            "analysis": "读到 0 时循环退出，未处理后面的 7；统计 1~6：max=6, min=1, sum=21, count=6, sum/count=3。",
+            "points": 8,
+            "hasAnswer": true
           }
         ],
-        "kind": "code-reading"
+        "kind": "read"
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786247387836,
-      "updatedAt": 1786247387836,
+      "createdAt": 1786535570851,
+      "updatedAt": 1786535570851,
       "category": "read"
     },
     {
-      "id": "sc_cspj16j_read_2",
+      "id": "sc_cspj16j_read2",
       "stageId": "cm_imp_cspj2016j_v1",
       "type": "quiz",
-      "title": "三、阅读程序写结果 2（8 分）",
-      "order": 4,
+      "title": "二、阅读程序（2）数 i%8==1 的个数（每题 8 分）",
+      "order": 3,
       "content": {
         "type": "quiz",
         "codeBlock": {
           "language": "cpp",
-          "title": "阅读程序（2）",
-          "description": "统计 1~99 中 mod 8 == 1 的整数个数。",
+          "title": "二、阅读程序（2）数 i%8==1 的个数（每题 8 分）",
+          "description": "",
           "lines": [
             "#include <iostream>",
             "using namespace std;",
@@ -843,8 +801,7 @@
             "  while (i > 0) {",
             "    i--;",
             "    x = i % 8;",
-            "    if (x == 1)",
-            "      y++;",
+            "    if (x == 1) y++;",
             "  }",
             "  cout << y << endl;",
             "  return 0;",
@@ -853,10 +810,9 @@
         },
         "questions": [
           {
-            "id": "cr2",
+            "id": "q24",
             "type": "single",
-            "points": 8,
-            "question": "输出：",
+            "question": "24. 程序输出的结果是（ ）。",
             "options": [
               {
                 "value": "A",
@@ -878,55 +834,39 @@
             "answer": [
               "C"
             ],
-            "analysis": "i=1,9,17,25,33,41,49,57,65,73,81,89,97 共 13 个（i=99 时 99%8=3 不计）。",
-            "codeLines": [
-              "#include <iostream>",
-              "using namespace std;",
-              "int main() {",
-              "  int i = 100, x = 0, y = 0;",
-              "  while (i > 0) {",
-              "    i--;",
-              "    x = i % 8;",
-              "    if (x == 1) y++;",
-              "  }",
-              "  cout << y << endl;",
-              "  return 0;",
-              "}"
-            ],
-            "codeTitle": "阅读程序（2）",
-            "codeDescription": "统计 1~99 中 mod 8 == 1 的整数个数。"
+            "analysis": "i 从 99 到 0，满足 i%8==1 的有 1,9,17,...,97 共 13 个。",
+            "points": 8,
+            "hasAnswer": true
           }
         ],
-        "kind": "code-reading"
+        "kind": "read"
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786247387836,
-      "updatedAt": 1786247387836,
+      "createdAt": 1786535570851,
+      "updatedAt": 1786535570851,
       "category": "read"
     },
     {
-      "id": "sc_cspj16j_read_3",
+      "id": "sc_cspj16j_read3",
       "stageId": "cm_imp_cspj2016j_v1",
       "type": "quiz",
-      "title": "三、阅读程序写结果 3（8 分）",
-      "order": 5,
+      "title": "二、阅读程序（3）数组原地反转（每题 8 分）",
+      "order": 4,
       "content": {
         "type": "quiz",
         "codeBlock": {
           "language": "cpp",
-          "title": "阅读程序（3）",
-          "description": "将数组前后对应位置交换（反序）。",
+          "title": "二、阅读程序（3）数组原地反转（每题 8 分）",
+          "description": "",
           "lines": [
             "#include <iostream>",
             "using namespace std;",
             "int main() {",
-            "  int a[6] = {",
-            "    1, 2, 3, 4, 5, 6",
-            "  };",
+            "  int a[6] = {1, 2, 3, 4, 5, 6};",
             "  int pi = 0;",
             "  int pj = 5;",
             "  int t, i;",
@@ -937,8 +877,7 @@
             "    pi++;",
             "    pj--;",
             "  }",
-            "  for (i = 0; i < 6; i++)",
-            "    cout << a[i] << \",\";",
+            "  for (i = 0; i < 6; i++) cout << a[i] << \",\";",
             "  cout << endl;",
             "  return 0;",
             "}"
@@ -946,96 +885,78 @@
         },
         "questions": [
           {
-            "id": "cr3",
+            "id": "q25",
             "type": "single",
-            "points": 8,
-            "question": "输出：",
+            "question": "25. 程序输出的结果是（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "1,2,3,4,5,6,"
+                "label": "1,2,3,4,5,6"
               },
               {
                 "value": "B",
-                "label": "6,5,4,3,2,1,"
+                "label": "6,5,4,3,2,1"
               },
               {
                 "value": "C",
-                "label": "6,5,4,5,6,1,"
+                "label": "1,3,2,6,4,5"
               },
               {
                 "value": "D",
-                "label": "4,3,2,1,2,3,"
+                "label": "1,5,3,4,2,6"
               }
             ],
             "answer": [
               "B"
             ],
-            "analysis": "完全反序输出 6,5,4,3,2,1,",
-            "codeLines": [
-              "#include <iostream>",
-              "using namespace std;",
-              "int main() {",
-              "  int a[6] = {1, 2, 3, 4, 5, 6};",
-              "  int pi = 0; int pj = 5;",
-              "  int t, i;",
-              "  while (pi < pj) {",
-              "    t = a[pi]; a[pi] = a[pj]; a[pj] = t;",
-              "    pi++; pj--;",
-              "  }",
-              "  for (i = 0; i < 6; i++) cout << a[i] << \",\";",
-              "  cout << endl;",
-              "  return 0;",
-              "}"
-            ],
-            "codeTitle": "阅读程序（3）",
-            "codeDescription": "将数组前后对应位置交换（反序）。"
+            "analysis": "pi/pj 双指针交换，数组完全反转。",
+            "points": 8,
+            "hasAnswer": true
           }
         ],
-        "kind": "code-reading"
+        "kind": "read"
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786247387836,
-      "updatedAt": 1786247387836,
+      "createdAt": 1786535570851,
+      "updatedAt": 1786535570851,
       "category": "read"
     },
     {
-      "id": "sc_cspj16j_read_4",
+      "id": "sc_cspj16j_read4",
       "stageId": "cm_imp_cspj2016j_v1",
       "type": "quiz",
-      "title": "三、阅读程序写结果 4（8 分）",
-      "order": 6,
+      "title": "二、阅读程序（4）字符串大写比较（每题 8 分）",
+      "order": 5,
       "content": {
         "type": "quiz",
         "codeBlock": {
           "language": "cpp",
-          "title": "阅读程序（4）",
-          "description": "两个字符串都转大写后比较大小。",
+          "title": "二、阅读程序（4）字符串大写比较（每题 8 分）",
+          "description": "",
           "lines": [
             "#include <iostream>",
             "#include <string>",
             "using namespace std;",
             "int main() {",
-            "  int i, length1, length2;",
             "  string s1, s2;",
+            "  int i, length1, length2;",
             "  s1 = \"I have a dream.\";",
             "  s2 = \"I Have A Dream.\";",
             "  length1 = s1.size();",
             "  length2 = s2.size();",
             "  for (i = 0; i < length1; i++)",
             "    if (s1[i] >= 'a' && s1[i] <= 'z')",
-            "      s1[i] -= 'a' - 'A';",
+            "      s1[i] = 'a' - 'A';",
             "  for (i = 0; i < length2; i++)",
             "    if (s2[i] >= 'a' && s2[i] <= 'z')",
-            "      s2[i] -= 'a' - 'A';",
+            "      s2[i] = 'a' - 'A';",
             "  if (s1 == s2)",
             "    cout << \"=\" << endl;",
-            "  else",
-            "  if (s1 > s2)",
+            "  else if (s1 > s2)",
             "    cout << \">\" << endl;",
             "  else",
             "    cout << \"<\" << endl;",
@@ -1045,14 +966,13 @@
         },
         "questions": [
           {
-            "id": "cr4",
+            "id": "q26",
             "type": "single",
-            "points": 8,
-            "question": "输出：",
+            "question": "26. 程序输出的结果为（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "="
+                "label": "<"
               },
               {
                 "value": "B",
@@ -1060,91 +980,69 @@
               },
               {
                 "value": "C",
-                "label": "<"
+                "label": "="
               },
               {
                 "value": "D",
-                "label": "程序错误"
+                "label": "以上都不对"
               }
             ],
             "answer": [
-              "A"
+              "C"
             ],
-            "analysis": "都转为 \"I HAVE A DREAM.\" 完全相等，输出 =。",
-            "codeLines": [
-              "#include <iostream>",
-              "#include <string>",
-              "using namespace std;",
-              "int main() {",
-              "  int i, length1, length2;",
-              "  string s1, s2;",
-              "  s1 = \"I have a dream.\";",
-              "  s2 = \"I Have A Dream.\";",
-              "  length1 = s1.size(); length2 = s2.size();",
-              "  for (i = 0; i < length1; i++)",
-              "    if (s1[i] >= 'a' && s1[i] <= 'z') s1[i] -= 'a' - 'A';",
-              "  for (i = 0; i < length2; i++)",
-              "    if (s2[i] >= 'a' && s2[i] <= 'z') s2[i] -= 'a' - 'A';",
-              "  if (s1 == s2) cout << \"=\" << endl;",
-              "  else if (s1 > s2) cout << \">\" << endl;",
-              "  else cout << \"<\" << endl;",
-              "  return 0;",
-              "}"
-            ],
-            "codeTitle": "阅读程序（4）",
-            "codeDescription": "两个字符串都转大写后比较大小。"
+            "analysis": "两个字符串小写转大写后完全相等。",
+            "points": 8,
+            "hasAnswer": true
           }
         ],
-        "kind": "code-reading"
+        "kind": "read"
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786247387836,
-      "updatedAt": 1786247387836,
+      "createdAt": 1786535570851,
+      "updatedAt": 1786535570851,
       "category": "read"
     },
     {
-      "id": "sc_cspj16j_perfect",
+      "id": "sc_cspj16j_perfect1",
       "stageId": "cm_imp_cspj2016j_v1",
       "type": "quiz",
-      "title": "四、完善程序（1）读入整数（第一、五空 2.5 分，其余 3 分，共 14 分）",
-      "order": 7,
+      "title": "三、完善程序（1）读入整数（每题 14 分）",
+      "order": 6,
       "content": {
         "type": "quiz",
         "codeBlock": {
           "language": "cpp",
-          "title": "完善程序（1）读入整数",
-          "description": "读入两个 int 范围内的整数并输出。",
+          "title": "三、完善程序（1）读入整数（每题 14 分）",
+          "description": "使用字符流读入两个 int 范围内的整数并分行输出。",
           "lines": [
             "#include <iostream>",
             "using namespace std;",
-            "int readint() {",
+            "int readInt() {",
             "  int num = 0;",
             "  int negative = 0;",
             "  char c;",
             "  c = cin.get();",
-            "  while ((c < '0' || c > '9') && c != '-')",
-            "    c = (1) ;",
+            "  while ((c < '0' || c > '9') && c != '-') c = ①;",
             "  if (c == '-')",
             "    negative = 1;",
-            "  else",
-            "    (2) ;",
+            "  ②;",
             "  c = cin.get();",
-            "  while ( (3) ) {",
-            "    (4) ;",
+            "  while (③) {",
+            "    ④;",
             "    c = cin.get();",
             "  }",
             "  if (negative == 1)",
-            "    (5) ;",
+            "    ⑤;",
             "  return num;",
             "}",
             "int main() {",
             "  int a, b;",
-            "  a = readint();",
-            "  b = readint();",
+            "  a = readInt();",
+            "  b = readInt();",
             "  cout << a << endl << b << endl;",
             "  return 0;",
             "}"
@@ -1154,212 +1052,221 @@
           {
             "id": "p1_1",
             "type": "single",
-            "question": "完善程序（1）读入整数。填空(1)：跳过非数字字符的语句？",
+            "question": "27. ① 处应填（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "cin.get()"
+                "label": "0xff"
               },
               {
                 "value": "B",
-                "label": "cin >> c"
+                "label": "'0'"
               },
               {
                 "value": "C",
-                "label": "cin.getline(c, 1)"
+                "label": "0"
               },
               {
                 "value": "D",
-                "label": "c = cin.peek()"
+                "label": "cin.get()"
               }
             ],
             "answer": [
-              "A"
+              "D"
             ],
-            "analysis": "cin.get() 读下一个字符。",
+            "analysis": "跳过非数字/非负号字符，继续从输入流读下一字符。",
             "points": 2.5,
             "hasAnswer": true
           },
           {
             "id": "p1_2",
             "type": "single",
-            "question": "填空(2)：else 分支？",
+            "question": "28. ② 处应填（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "num = c"
+                "label": "negative=0"
               },
               {
                 "value": "B",
-                "label": "num = c - '0'"
+                "label": "negative=1"
               },
               {
                 "value": "C",
-                "label": "num = c + '0'"
+                "label": "continue"
               },
               {
                 "value": "D",
-                "label": "num++"
+                "label": "num=c-'0'"
               }
             ],
             "answer": [
-              "B"
+              "D"
             ],
-            "analysis": "当前字符已是数字字符, num 初始化为 c - '0'。",
+            "analysis": "负号后已是数字第一位，先把它累加到 num。",
             "points": 3,
             "hasAnswer": true
           },
           {
             "id": "p1_3",
             "type": "single",
-            "question": "填空(3)：while 循环条件？",
+            "question": "29. ③ 处应填（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "c != '-'"
+                "label": "c!=EOF"
               },
               {
                 "value": "B",
-                "label": "c >= '0' && c <= '9'"
+                "label": "c!=0"
               },
               {
                 "value": "C",
-                "label": "c != EOF"
+                "label": "c<='9' && c>='0'"
               },
               {
                 "value": "D",
-                "label": "!negative"
+                "label": "cin.get()<='9' && cin.get()>='0'"
               }
             ],
             "answer": [
-              "B"
+              "C"
             ],
-            "analysis": "读后续数字字符。",
+            "analysis": "当 c 是数字字符时继续累加。",
             "points": 3,
             "hasAnswer": true
           },
           {
             "id": "p1_4",
             "type": "single",
-            "question": "填空(4)：循环体？",
+            "question": "30. ④ 处应填（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "num = c"
+                "label": "num+=c"
               },
               {
                 "value": "B",
-                "label": "num = num * 10 + (c - '0')"
+                "label": "num=num*10+c"
               },
               {
                 "value": "C",
-                "label": "num++"
+                "label": "num+=c*48"
               },
               {
                 "value": "D",
-                "label": "num = num + c"
+                "label": "num=num*10+c-48"
               }
             ],
             "answer": [
-              "B"
+              "D"
             ],
-            "analysis": "累加每位数字。",
+            "analysis": "十进制数累加：num = num*10 + (c - '0')。",
             "points": 3,
             "hasAnswer": true
           },
           {
             "id": "p1_5",
             "type": "single",
-            "question": "填空(5)：负数处理？",
+            "question": "31. ⑤ 处应填（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "num = -num"
+                "label": "return -num"
               },
               {
                 "value": "B",
-                "label": "num = num - 1"
+                "label": "return -1"
               },
               {
                 "value": "C",
-                "label": "negative = -1"
+                "label": "num=0"
               },
               {
                 "value": "D",
-                "label": "num = num * -1"
+                "label": "num-=1"
               }
             ],
             "answer": [
               "A"
             ],
-            "analysis": "取负号。",
+            "analysis": "如果是负数则取负后返回。",
             "points": 2.5,
             "hasAnswer": true
           }
         ],
-        "kind": "code-completion"
+        "kind": "perfect"
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786247387836,
-      "updatedAt": 1786247387836,
+      "createdAt": 1786535570851,
+      "updatedAt": 1786535570851,
       "category": "perfect"
     },
     {
       "id": "sc_cspj16j_perfect2",
       "stageId": "cm_imp_cspj2016j_v1",
       "type": "quiz",
-      "title": "四、完善程序（2）郊游活动（第四、五空 2.5 分，其余 3 分，共 14 分）",
-      "order": 8,
+      "title": "三、完善程序（2）郊游活动（每题 14 分）",
+      "order": 7,
       "content": {
         "type": "quiz",
         "codeBlock": {
           "language": "cpp",
-          "title": "完善程序（2）郊游活动",
-          "description": "n 名同学郊游, 二分求最多能租到自行车的人数。",
+          "title": "三、完善程序（2）郊游活动（每题 14 分）",
+          "description": "n 名学生租自行车郊游：每辆车 C[j] 元，学生自己带 M[i] 元；学校预算 A 元。利用贪心+二分求最大可租人数。",
           "lines": [
             "#include <iostream>",
             "using namespace std;",
-            "#define MAXN 1000000",
+            "#define MAXN 100000",
             "int n, B, A, M[MAXN], C[MAXN], l, r, ans, mid;",
             "bool check(int nn) {",
             "  int count = 0, i, j;",
-            "  i = (1) ;",
+            "  i = ①;",
             "  j = 1;",
             "  while (i <= n) {",
-            "    if ( (2) ) {",
+            "    if (②)",
             "      count += C[j] - M[i];",
-            "      i++;",
-            "      j++;",
-            "    }",
+            "    i++;",
+            "    j++;",
             "  }",
-            "  return (3) ;",
+            "  return ③;",
             "}",
             "void sort(int a[], int l, int r) {",
-            "  ...",
+            "  int i = l, j = r, x = a[(l + r) / 2], y;",
+            "  while (i <= j) {",
+            "    while (a[i] < x) i++;",
+            "    while (a[j] > x) j--;",
+            "    if (i <= j) {",
+            "      y = a[i];",
+            "      a[i] = a[j];",
+            "      a[j] = y;",
+            "      i++;",
+            "      j--;",
+            "    }",
+            "  }",
+            "  if (i < r) sort(a, i, r);",
+            "  if (l < j) sort(a, l, j);",
             "}",
             "int main() {",
             "  int i;",
             "  cin >> n >> B >> A;",
-            "  for (i = 1; i <= n; i++)",
-            "    cin >> M[i];",
-            "  for (i = 1; i <= B; i++)",
-            "    cin >> C[i];",
+            "  for (i = 1; i <= n; i++) cin >> M[i];",
+            "  for (i = 1; i <= B; i++) cin >> C[i];",
             "  sort(M, 1, n);",
             "  sort(C, 1, B);",
             "  l = 0;",
             "  r = n;",
             "  while (l <= r) {",
             "    mid = (l + r) / 2;",
-            "    if ( (4) ) {",
+            "    if (④) {",
             "      ans = mid;",
             "      l = mid + 1;",
-            "    }",
-            "    else",
-            "      r = (5) ;",
+            "    } else",
+            "      r = ⑤;",
             "  }",
             "  cout << ans << endl;",
             "  return 0;",
@@ -1370,94 +1277,94 @@
           {
             "id": "p2_1",
             "type": "single",
-            "question": "完善程序（2）郊游活动（二分）。填空(1)：i 初始化？",
+            "question": "32. ① 处应填（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "0"
-              },
-              {
-                "value": "B",
                 "label": "1"
               },
               {
-                "value": "C",
-                "label": "n"
-              },
-              {
-                "value": "D",
-                "label": "nn"
-              }
-            ],
-            "answer": [
-              "B"
-            ],
-            "analysis": "i 从 1 开始（数组下标）。",
-            "points": 3,
-            "hasAnswer": true
-          },
-          {
-            "id": "p2_2",
-            "type": "single",
-            "question": "填空(2)：判断是否够钱租？",
-            "options": [
-              {
-                "value": "A",
-                "label": "M[i] + A / nn >= C[j]"
-              },
-              {
                 "value": "B",
-                "label": "M[i] >= C[j]"
+                "label": "nn"
               },
               {
                 "value": "C",
-                "label": "A >= C[j]"
+                "label": "n-nn+1"
               },
               {
                 "value": "D",
-                "label": "M[i] + C[j] <= A"
+                "label": "n-nn"
               }
             ],
             "answer": [
               "A"
             ],
-            "analysis": "用 nn 共享学校经费 nn 元, 学生自带的 M[i] 加共享 nn 元够租金 C[j] 即租。",
+            "analysis": "从第 1 个学生开始枚举（i 初值）。",
+            "points": 2.5,
+            "hasAnswer": true
+          },
+          {
+            "id": "p2_2",
+            "type": "single",
+            "question": "33. ② 处应填（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "M[i]<C[j]"
+              },
+              {
+                "value": "B",
+                "label": "M[i]!=0"
+              },
+              {
+                "value": "C",
+                "label": "M[i]>C[j]"
+              },
+              {
+                "value": "D",
+                "label": "M[i]!=C[j]"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "学生钱不够时学校需补差额。",
             "points": 3,
             "hasAnswer": true
           },
           {
             "id": "p2_3",
             "type": "single",
-            "question": "填空(3)：返回值？",
+            "question": "34. ③ 处应填（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "count > 0"
+                "label": "count"
               },
               {
                 "value": "B",
-                "label": "count <= A"
+                "label": "A-count"
               },
               {
                 "value": "C",
-                "label": "i > n"
+                "label": "A>=count"
               },
               {
                 "value": "D",
-                "label": "true"
+                "label": "j"
               }
             ],
             "answer": [
-              "B"
+              "C"
             ],
-            "analysis": "总花费 count 不超过学校经费 A。",
+            "analysis": "学校总预算 A 是否够补贴的总和 count。",
             "points": 3,
             "hasAnswer": true
           },
           {
             "id": "p2_4",
             "type": "single",
-            "question": "填空(4)：mid 合法？",
+            "question": "35. ④ 处应填（ ）。",
             "options": [
               {
                 "value": "A",
@@ -1465,63 +1372,63 @@
               },
               {
                 "value": "B",
-                "label": "check(mid) == true"
+                "label": "!check(mid)"
               },
               {
                 "value": "C",
-                "label": "mid <= A"
+                "label": "mid"
               },
               {
                 "value": "D",
-                "label": "B >= mid"
+                "label": "mid<A"
               }
             ],
             "answer": [
               "A"
             ],
-            "analysis": "check(mid) 判断 mid 个人能否租到。",
-            "points": 2.5,
+            "analysis": "若 mid 人能租到（check(mid) 为真），则继续向上找更大值。",
+            "points": 3,
             "hasAnswer": true
           },
           {
             "id": "p2_5",
             "type": "single",
-            "question": "填空(5)：r 更新？",
+            "question": "36. ⑤ 处应填（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "mid"
+                "label": "mid+1"
               },
               {
                 "value": "B",
-                "label": "mid - 1"
+                "label": "mid-1"
               },
               {
                 "value": "C",
-                "label": "mid + 1"
+                "label": "l+mid"
               },
               {
                 "value": "D",
-                "label": "l"
+                "label": "r-mid"
               }
             ],
             "answer": [
               "B"
             ],
-            "analysis": "r 收缩到 mid-1。",
+            "analysis": "否则把上界收紧到 mid-1。",
             "points": 2.5,
             "hasAnswer": true
           }
         ],
-        "kind": "code-completion"
+        "kind": "perfect"
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786247387836,
-      "updatedAt": 1786247387836,
+      "createdAt": 1786535570851,
+      "updatedAt": 1786535570851,
       "category": "perfect"
     }
   ]

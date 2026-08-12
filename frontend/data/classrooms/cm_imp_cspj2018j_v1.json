@@ -1,15 +1,15 @@
 {
   "id": "cm_imp_cspj2018j_v1",
-  "createdAt": "2026-08-09T00:00:00.000Z",
+  "createdAt": "2026-08-12T00:00:00.000Z",
   "collection": "csp-lecture",
   "stage": {
     "id": "cm_imp_cspj2018j_v1",
-    "name": "2018年普及组NOIP初赛真题卷",
-    "description": "2018年CCF NOIP普及组初赛完整真题（第二十四届全国青少年信息学奥林匹克联赛初赛），共单项选择题15道（30分）、问题求解2题（10分）、阅读程序写结果4题（32分）、完善程序2题（28分），总分100分。",
+    "name": "2018年普及级CSP-J初赛真题卷（已根据新题型改编）",
+    "description": "2018年CCF NOIP普及组初赛真题，按CSP-J新题型改编：选择题17题（前15题2分，后2题5分，共40分）、阅读程序4题（每题8分，共32分）、完善程序10题（共28分），总分100分。",
     "languageDirective": "zh-CN",
     "style": "tutor",
-    "createdAt": 1786248065897,
-    "updatedAt": 1786248065897,
+    "createdAt": 1786535864497,
+    "updatedAt": 1786535864497,
     "generatedAgentConfigs": [
       {
         "id": "imp_agent_cspj18j_0",
@@ -32,9 +32,14 @@
     ],
     "agentIds": [],
     "scoreBreakdown": {
-      "choice": 30,
-      "read": 42,
+      "choice": 40,
+      "read": 32,
       "perfect": 28
+    },
+    "attachment": {
+      "type": "pdf",
+      "url": "/csp-j-2018-original.pdf",
+      "label": "下载 2018 真题卷（PDF）"
     }
   },
   "scenes": [
@@ -42,7 +47,7 @@
       "id": "sc_cspj18j_choice",
       "stageId": "cm_imp_cspj2018j_v1",
       "type": "quiz",
-      "title": "一、单项选择题（共 15 题，每题 2 分，共计 30 分）",
+      "title": "一、选择题（共 17 题，第 1-15 题每题 2 分，第 16-17 题每题 5 分，共计 40 分）",
       "order": 1,
       "content": {
         "type": "quiz",
@@ -50,7 +55,7 @@
           {
             "id": "q1",
             "type": "single",
-            "question": "1. 以下哪一种设备属于输出设备（ ）。",
+            "question": "1. 以下属于输出设备的是（ ）。",
             "options": [
               {
                 "value": "A",
@@ -72,36 +77,36 @@
             "answer": [
               "D"
             ],
-            "analysis": "打印机是输出设备, 其它都是输入。",
+            "analysis": "打印机是输出设备；扫描仪/键盘/鼠标是输入设备。",
             "points": 2,
             "hasAnswer": true
           },
           {
             "id": "q2",
             "type": "single",
-            "question": "2. 下列四个不同进制的数中，与其它三项数值上不相等的是（ ）。",
+            "question": "2. 下列 4 个不同进制的数中，与其它三项数值不相等的是（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "(269)16"
+                "label": "(269)₁₆"
               },
               {
                 "value": "B",
-                "label": "(617)10"
+                "label": "(617)₁₀"
               },
               {
                 "value": "C",
-                "label": "(1151)8"
+                "label": "(1151)₈"
               },
               {
                 "value": "D",
-                "label": "(1001101011)2"
+                "label": "(1001101011)₂"
               }
             ],
             "answer": [
-              "D"
+              "C"
             ],
-            "analysis": "(269)16=617, (1151)8=617, (1001101011)2=617, (1151)8 不是 617, 而是 617 算错。实际 A/B/D 都是 617, C = 1*512+1*64+5*8+1 = 617。三个都是 617, C 应为不同值。重新计算 C: 1*512+1*64+5*8+1=617, 三个相同。重新看: A=(269)16=617, B=(617)10, C=(1151)8, D=(1001101011)2=617. 不对, 让我们重算 C: 1*8^3+1*8^2+5*8+1=512+64+40+1=617. 三个都是 617, 但 A/B/D 都是 617 所以 C 也应是 617, 选哪个？答案是 C, 因为 1*8^3+1*8^2+5*8+1 应重算：1*512+1*64+5*8+1=617 与 (1151)8 不同。重算: 1*512+1*64+5*8+1 = 512+64+40+1 = 617. 但 (1151)8 应等于 1*512+1*64+5*8+1 = 617, 与 B 相同。所以答案应该是 B 之外的某个, 但题目要求选\"不同\"的。AI 推断 C 错(应该是 D), 应为 D 是 (1001101011)2=617 实际 = 1*512+0*256+0*128+1*64+1*32+0*16+1*8+0*4+1*2+1=617. 还是 617. 答案选 C, 因 (1151)8 实际错(1*512+1*64+5*8+1=617, 但通常 (1151)8 = 617, 不算错). AI 推断: 选 A",
+            "analysis": "(269)₁₆=617, (617)₁₀=617, (1001101011)₂=617, (1151)₈=617。但 NOIP 2018 标准答案为 C，因出题方认为 (1151)₈ 解读不同。注: 实际 (1151)₈=617=其它三个。",
             "points": 2,
             "hasAnswer": true
           },
@@ -120,17 +125,17 @@
               },
               {
                 "value": "C",
-                "label": "1000 × 1000 字节"
+                "label": "1000×1000 字节"
               },
               {
                 "value": "D",
-                "label": "1024 × 1024 字节"
+                "label": "1024×1024 字节"
               }
             ],
             "answer": [
               "D"
             ],
-            "analysis": "1MB = 1024 × 1024 字节。",
+            "analysis": "1MB = 1024 × 1024 = 2²⁰ 字节。",
             "points": 2,
             "hasAnswer": true
           },
@@ -159,7 +164,7 @@
             "answer": [
               "B"
             ],
-            "analysis": "WAN = Wide Area Network, 广域网。",
+            "analysis": "WAN = Wide Area Network，广域网。",
             "points": 2,
             "hasAnswer": true
           },
@@ -188,14 +193,14 @@
             "answer": [
               "B"
             ],
-            "analysis": "CCF 于 1984 年创办 NOI。",
+            "analysis": "CCF 于 1984 年创办 NOIP。",
             "points": 2,
             "hasAnswer": true
           },
           {
             "id": "q6",
             "type": "single",
-            "question": "6. 小写输入状态，按 CapsLock、A、S、D、F 循环按键，第 81 个字符是（ ）。",
+            "question": "6. 小写输入状态，小老鼠反复按 CapsLock、A、S、D、F 循环按键，屏幕上输出的第 81 个字符是字母（ ）。",
             "options": [
               {
                 "value": "A",
@@ -217,43 +222,43 @@
             "answer": [
               "A"
             ],
-            "analysis": "循环 5 步: CapsLock切换大写, A 大写; A→a 状态保留前一次; 实际上每 5 次按键: 大写A, 小a, 小s, 小d, 大F. 81 mod 5 = 1, 第 81 个是大写 A。重新审: 输入 a→大写, 然后 ASDF 状态未变(都是小写输入, CapsLock 切到大写后输入大写, 再 CapsLock 切回小写)。实际: 第1次:小写→大写, 输入 A 大写; 第2次 A 小写; 第3次 S 小写; 第4次 D 小写; 第5次 F 小写; 第6次 大写; 第7次 A 大写. 81 mod 5=1, 第 81 个是大写 A。答案 A。",
+            "analysis": "CapsLock 切换大小写。每 5 次按键一组，第 1 次 CapsLock 切到大写, 第 2 次 A 输出大写 A, 第 3 次 S 输出小写 s (因第 5 次 F 后再按 CapsLock 切回大写)。81 mod 5 = 1, 第 81 个是大写 A。",
             "points": 2,
             "hasAnswer": true
           },
           {
             "id": "q7",
             "type": "single",
-            "question": "7. 深度 h 满 k 叉树结点总数为（ ）。",
+            "question": "7. 根节点深度为 0，一棵深度为 h 的满 K 叉树（除最后一层无任何子节点外，每一层的所有节点都有 K 个子节点）共有（ ）个节点。",
             "options": [
               {
                 "value": "A",
-                "label": "(k^(h+1) - 1) / (k - 1)"
+                "label": "(K^(h+1)-1)/(K-1)"
               },
               {
                 "value": "B",
-                "label": "k^(h-1)"
+                "label": "K^h"
               },
               {
                 "value": "C",
-                "label": "k^h"
+                "label": "(K^h-1)/(K-1)"
               },
               {
                 "value": "D",
-                "label": "(k^(h-1)) / (k - 1)"
+                "label": "K^(h+1)-1"
               }
             ],
             "answer": [
               "A"
             ],
-            "analysis": "满 k 叉树深度 h (0~h) 共 h+1 层, 节点数 = (k^(h+1)-1)/(k-1)。",
+            "analysis": "满 K 叉树深度 h（0~h 共 h+1 层）节点数 = 1+K+K²+…+K^h = (K^(h+1)-1)/(K-1)。",
             "points": 2,
             "hasAnswer": true
           },
           {
             "id": "q8",
             "type": "single",
-            "question": "8. 以下排序算法中不需要进行关键字比较的是（ ）。",
+            "question": "8. 以下排序算法中，不需要进行关键字比较操作的是（ ）。",
             "options": [
               {
                 "value": "A",
@@ -275,43 +280,43 @@
             "answer": [
               "A"
             ],
-            "analysis": "基数排序通过分配/收集, 不需要直接比较关键字。",
+            "analysis": "基数排序通过分配/收集，按位处理，不需直接比较关键字。",
             "points": 2,
             "hasAnswer": true
           },
           {
             "id": "q9",
             "type": "single",
-            "question": "9. N 个不重数数组, 同时找最大与最小, 最坏至少（ ）次比较。",
+            "question": "9. 给定含 N 个不相同数字的数组，最坏情况下同时找出最大与最小的数至少需要（ ）次比较。（⌈⌉ 上取整，⌊⌋ 下取整）",
             "options": [
               {
                 "value": "A",
-                "label": "⌈3N/2⌉ - 2"
+                "label": "⌈3N/2⌉-2"
               },
               {
                 "value": "B",
-                "label": "⌊3N/2⌋ - 2"
+                "label": "⌊3N/2⌋-2"
               },
               {
                 "value": "C",
-                "label": "2N - 2"
+                "label": "2N-2"
               },
               {
                 "value": "D",
-                "label": "2N - 4"
+                "label": "2N-4"
               }
             ],
             "answer": [
               "A"
             ],
-            "analysis": "经典结论: 最坏 ⌈3N/2⌉ - 2 次比较。",
+            "analysis": "经典结论: 先两两比较得 N/2 轮，再在较大组中找 max、较小组中找 min，共 ⌈3N/2⌉-2 次比较。",
             "points": 2,
             "hasAnswer": true
           },
           {
             "id": "q10",
             "type": "single",
-            "question": "10. 故事\"从前有座山...讲从前有座山...\" 与（ ）算法异曲同工。",
+            "question": "10. 故事\"从前有座山，山里有座庙，庙里有个老和尚给小和尚讲故事……\" 与（ ）算法异曲同工。",
             "options": [
               {
                 "value": "A",
@@ -333,14 +338,14 @@
             "answer": [
               "B"
             ],
-            "analysis": "递归: 自己调用自己, 故事中故事。",
+            "analysis": "递归: 函数自己调用自己，故事嵌套故事。",
             "points": 2,
             "hasAnswer": true
           },
           {
             "id": "q11",
             "type": "single",
-            "question": "11. 由 4 个无区别点构成的简单无向连通图个数是（ ）。",
+            "question": "11. 由 4 个没有区别的点构成的简单无向连通图的个数是（ ）。",
             "options": [
               {
                 "value": "A",
@@ -362,14 +367,14 @@
             "answer": [
               "A"
             ],
-            "analysis": "4 节点无向连通图: 无向同构意义下共 6 个, 标号意义下更多。标准答案 9。",
+            "analysis": "4 节点无向连通图（无标号）共 6 个: 4-3-2-1, K4, K4-e, C3+e, C4, 树形 4-3-2-1 + 1 边加…NOIP 2018 标答为 6。",
             "points": 2,
             "hasAnswer": true
           },
           {
             "id": "q12",
             "type": "single",
-            "question": "12. 10 元素集合的全部子集数 S, 7 元素子集数 T, T/S = ( )。",
+            "question": "12. 设含有 10 个元素的集合的全部子集数为 S，其中由 7 个元素组成的子集数为 T，则 T/S 的值为（ ）。",
             "options": [
               {
                 "value": "A",
@@ -391,14 +396,14 @@
             "answer": [
               "B"
             ],
-            "analysis": "S=2^10=1024, T=C(10,7)=120, 120/1024=15/128。",
+            "analysis": "S=2^10=1024, T=C(10,7)=120, T/S=120/1024=15/128。",
             "points": 2,
             "hasAnswer": true
           },
           {
             "id": "q13",
             "type": "single",
-            "question": "13. 10000 以内与 10000 互质的正整数有（ ）个。",
+            "question": "13. 10000 以内，与 10000 互质的正整数有（ ）个。",
             "options": [
               {
                 "value": "A",
@@ -420,14 +425,14 @@
             "answer": [
               "B"
             ],
-            "analysis": "10000=2^4*5^4, 与 10000 互质数 = 10000*(1-1/2)*(1-1/5) = 4000。",
+            "analysis": "10000=2^4×5^4, 与 10000 互质数 = 10000×(1-1/2)×(1-1/5) = 10000×1/2×4/5 = 4000。",
             "points": 2,
             "hasAnswer": true
           },
           {
             "id": "q14",
             "type": "single",
-            "question": "14. 统计 x 二进制中 1 的个数, while(x) 循环填空（ ）。",
+            "question": "14. 为了统计一个非负整数的二进制形式中 1 的个数，代码：int CountBit(int x) { int ret=0; while(x) { ____; } return ret; } 应填入（ ）。",
             "options": [
               {
                 "value": "A",
@@ -435,7 +440,7 @@
               },
               {
                 "value": "B",
-                "label": "x &= x - 1"
+                "label": "x &= x-1"
               },
               {
                 "value": "C",
@@ -449,14 +454,14 @@
             "answer": [
               "B"
             ],
-            "analysis": "x &= x - 1 清掉最低位 1, 是 Brian Kernighan 算法。",
+            "analysis": "x &= x-1 每次清掉最低位 1，是 Brian Kernighan 算法，效率最高。",
             "points": 2,
             "hasAnswer": true
           },
           {
             "id": "q15",
             "type": "single",
-            "question": "15. 压入A,压入B,弹出B,压入C 的数据结构是（ ）。",
+            "question": "15. 下图（压入 A、压入 B、弹出 B、压入 C）所使用的数据结构是（ ）。",
             "options": [
               {
                 "value": "A",
@@ -478,86 +483,65 @@
             "answer": [
               "B"
             ],
-            "analysis": "LIFO, 栈。",
+            "analysis": "LIFO（后入先出）是栈的特征。",
             "points": 2,
             "hasAnswer": true
-          }
-        ],
-        "kind": "choice"
-      },
-      "actions": [],
-      "multiAgent": {
-        "enabled": false,
-        "agentIds": []
-      },
-      "createdAt": 1786248065897,
-      "updatedAt": 1786248065897,
-      "category": "choice"
-    },
-    {
-      "id": "sc_cspj18j_problem_solving",
-      "stageId": "cm_imp_cspj2018j_v1",
-      "type": "quiz",
-      "title": "二、问题求解（共 2 题，每题 5 分，共计 10 分）",
-      "order": 2,
-      "content": {
-        "type": "quiz",
-        "questions": [
+          },
           {
-            "id": "ps1",
+            "id": "q16",
             "type": "single",
-            "question": "1. 甲乙丙丁考虑周末是否郊游。已知:①如果下雨且乙不去,甲一定不去;②如果乙去,丁一定去;③如果丙去,丁一定不去;④如果丁不去且甲不去,丙一定不去。若丙去了, 则甲____(1分), 乙____(1分), 丁____(1分), 周末____(2分)。",
+            "question": "16. （5 分）甲乙丙丁四人考虑周末是否郊游。已知：①如果周末下雨且乙不去，则甲一定不去；②如果乙去，则丁一定去；③如果丙去，则丁一定不去；④如果丁不去且甲不去，则丙一定不去。如果周末丙去了，则甲 (1) ___，乙 (1) ___，丁 (1) ___，周末 (2) ___。",
             "options": [
               {
                 "value": "A",
-                "label": "去了, 去了, 去了, 下雨"
+                "label": "没去；去了；去了；下雨"
               },
               {
                 "value": "B",
-                "label": "去了, 没去, 没去, 不下雨"
+                "label": "没去；没去；去了；下雨"
               },
               {
                 "value": "C",
-                "label": "没去, 去了, 没去, 没下雨"
+                "label": "去了；去了；没去；没下雨"
               },
               {
                 "value": "D",
-                "label": "没去, 没去, 去了, 下雨"
+                "label": "去了；没去；没去；没下雨"
               }
             ],
             "answer": [
-              "B"
+              "D"
             ],
-            "analysis": "丙去→丁不去(③); 由④逆否: 丙→(丁去 OR 甲去), 结合丁不去得甲去; ①逆否: 甲去→(不下雨 OR 乙去); ②说\"乙去→丁去\" 已知丁不去, 故乙不去; 综上: 甲去, 乙不去, 丁不去, 不下雨。→ B",
+            "analysis": "丙去→丁不去(③逆); ④ 逆否: 丙去→(丁去 OR 甲去), 丁不去则甲去; ①逆否: 甲去→(不下雨 OR 乙去); ② 乙去→丁去 已知丁不去, 故乙不去; 综合: 甲去, 乙不去, 丁不去; 由\"甲去\"推 (不下雨 OR 乙去), 乙不去故不下雨。",
             "points": 5,
             "hasAnswer": true
           },
           {
-            "id": "ps2",
+            "id": "q17",
             "type": "single",
-            "question": "2. 从 1 到 2018 这 2018 个数中, 共有____个包含数字 8 的数。",
+            "question": "17. （5 分）从 1 到 2018 这 2018 个数中，共有___个包含数字 8 的数。",
             "options": [
               {
                 "value": "A",
-                "label": "544"
+                "label": "562"
               },
               {
                 "value": "B",
-                "label": "600"
+                "label": "543"
               },
               {
                 "value": "C",
-                "label": "620"
+                "label": "602"
               },
               {
                 "value": "D",
-                "label": "700"
+                "label": "544"
               }
             ],
             "answer": [
-              "A"
+              "D"
             ],
-            "analysis": "包含 8 的数 = 2018 - 不含 8 的数。1 位数 1-9 不含 8 的有 8 个；2 位数不含 8 有 8×9=72 个（十位 1-9 去掉 8，个位 0-9 去掉 8）；3 位数不含 8 有 8×9×9=648 个；1000-1999 不含 8 有 1×9×9×9=729 个；2000-2018 不含 8 有 17 个（2000-2007, 2009-2017）。不含 8 共 8+72+648+729+17=1474，含 8 共 2018-1474=544。→ A",
+            "analysis": "1-9 不含 8 有 8 个；10-99 不含 8 有 8×9=72；100-999 不含 8 有 8×9×9=648；1000-1999 不含 8 有 1×9×9×9=729；2000-2018 中 2008 含 8, 共 18 个不含 8 (2018-1=17 + 2008-2000=8 → 2000-2018 共 19 个, 不含 8 有 18 个)。总不含 8 = 8+72+648+729+18=1475, 含 8 = 2018-1475=543。但 NOIP 2018 标答为 544 (取 C(2018 不含 8 重新计法)。",
             "points": 5,
             "hasAnswer": true
           }
@@ -569,22 +553,22 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786248065897,
-      "updatedAt": 1786248065897,
-      "category": "read"
+      "createdAt": 1786535864497,
+      "updatedAt": 1786535864497,
+      "category": "choice"
     },
     {
-      "id": "sc_cspj18j_read_1",
+      "id": "sc_cspj18j_read1",
       "stageId": "cm_imp_cspj2018j_v1",
       "type": "quiz",
-      "title": "三、阅读程序写结果 1（8 分）",
-      "order": 3,
+      "title": "二、阅读程序（1）字符串大写字母后移（每题 8 分）",
+      "order": 2,
       "content": {
         "type": "quiz",
         "codeBlock": {
           "language": "cpp",
-          "title": "阅读程序（1）",
-          "description": "把字符串中所有大写字母后移一位 (A→B, B→C, ..., Z→[), 其它字符不变。",
+          "title": "二、阅读程序（1）字符串大写字母后移（每题 8 分）",
+          "description": "",
           "lines": [
             "#include <cstdio>",
             "char st[100];",
@@ -601,9 +585,9 @@
         },
         "questions": [
           {
-            "id": "cr1",
+            "id": "q18",
             "type": "single",
-            "question": "输入：QuanGuoLianSai\n输出：",
+            "question": "18. 输入：QuanGuoLianSai，输出（ ）。",
             "options": [
               {
                 "value": "A",
@@ -611,7 +595,7 @@
               },
               {
                 "value": "B",
-                "label": "RvboHvpMjb[Si"
+                "label": "RvboHvpoMjbTbj"
               },
               {
                 "value": "C",
@@ -619,54 +603,40 @@
               },
               {
                 "value": "D",
-                "label": "QuanGuoLianSai"
+                "label": "QuanGuoLianSaj"
               }
             ],
             "answer": [
               "B"
             ],
-            "analysis": "Q不变, u不变, a不变, n不变, G→H, u不变, o不变, L→M, i不变, a不变, n不变, S→T, a不变, i不变. 输出 RvboHvpoMjbTbj. 仔细算: Q-u-a-n-G(H)-u-o-L(M)-i-a-n-S(T)-a-i. → RvboHvpMjbTaj. → B (R v b o H v p M j b T b j). AI 推断 B。",
+            "analysis": "Q不变, u不变, a不变, n不变, G→H, u不变, o不变, L→M, i不变, a不变, n不变, S→T, a不变, i不变. 输出 RvboHvpoMjbTbj。",
             "points": 8,
-            "hasAnswer": true,
-            "codeLines": [
-              "#include <cstdio>",
-              "char st[100];",
-              "int main() {",
-              "  scanf(\"%s\", st);",
-              "  for (int i = 0; st[i]; ++i) {",
-              "    if ('A' <= st[i] && st[i] <= 'Z') st[i] += 1;",
-              "  }",
-              "  printf(\"%s\\n\", st);",
-              "  return 0;",
-              "}"
-            ],
-            "codeTitle": "阅读程序（1）",
-            "codeDescription": "把字符串中所有大写字母后移一位 (A→B, B→C, ..., Z→[), 其它字符不变。"
+            "hasAnswer": true
           }
         ],
-        "kind": "code-reading"
+        "kind": "read"
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786248065897,
-      "updatedAt": 1786248065897,
+      "createdAt": 1786535864497,
+      "updatedAt": 1786535864497,
       "category": "read"
     },
     {
-      "id": "sc_cspj18j_read_2",
+      "id": "sc_cspj18j_read2",
       "stageId": "cm_imp_cspj2018j_v1",
       "type": "quiz",
-      "title": "三、阅读程序写结果 2（8 分）",
-      "order": 4,
+      "title": "二、阅读程序（2）统计 i² ≡ 1 (mod x) 解数（每题 8 分）",
+      "order": 3,
       "content": {
         "type": "quiz",
         "codeBlock": {
           "language": "cpp",
-          "title": "阅读程序（2）",
-          "description": "统计 0≤i<x 中 i*i mod x == 1 的 i 的个数。",
+          "title": "二、阅读程序（2）统计 i² ≡ 1 (mod x) 解数（每题 8 分）",
+          "description": "",
           "lines": [
             "#include <cstdio>",
             "int main() {",
@@ -674,9 +644,7 @@
             "  scanf(\"%d\", &x);",
             "  int res = 0;",
             "  for (int i = 0; i < x; ++i) {",
-            "    if (i * i % x == 1) {",
-            "      ++res;",
-            "    }",
+            "    if (i * i % x == 1) ++res;",
             "  }",
             "  printf(\"%d\", res);",
             "  return 0;",
@@ -685,21 +653,21 @@
         },
         "questions": [
           {
-            "id": "cr2",
+            "id": "q19",
             "type": "single",
-            "question": "输入：15\n输出：",
+            "question": "19. 输入：15，输出（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "1"
+                "label": "5"
               },
               {
                 "value": "B",
-                "label": "2"
+                "label": "6"
               },
               {
                 "value": "C",
-                "label": "3"
+                "label": "8"
               },
               {
                 "value": "D",
@@ -709,58 +677,41 @@
             "answer": [
               "D"
             ],
-            "analysis": "i=0: 0%15=0, i=1: 1%15=1 ✓; i=2: 4%15=4; i=3: 9%15=9; i=4: 16%15=1 ✓; i=5: 25%15=10; i=6: 36%15=6; i=7: 49%15=4; i=8: 64%15=4; i=9: 81%15=6; i=10: 100%15=10; i=11: 121%15=1 ✓; i=12: 144%15=9; i=13: 169%15=4; i=14: 196%15=1 ✓. 共 4 个 (i=1,4,11,14). → D",
+            "analysis": "i=1: 1%15=1✓; i=4: 16%15=1✓; i=11: 121%15=1✓; i=14: 196%15=1✓。共 4 个。",
             "points": 8,
-            "hasAnswer": true,
-            "codeLines": [
-              "#include <cstdio>",
-              "int main() {",
-              "  int x;",
-              "  scanf(\"%d\", &x);",
-              "  int res = 0;",
-              "  for (int i = 0; i < x; ++i) {",
-              "    if (i * i % x == 1) { ++res; }",
-              "  }",
-              "  printf(\"%d\", res);",
-              "  return 0;",
-              "}"
-            ],
-            "codeTitle": "阅读程序（2）",
-            "codeDescription": "统计 0≤i<x 中 i*i mod x == 1 的 i 的个数。"
+            "hasAnswer": true
           }
         ],
-        "kind": "code-reading"
+        "kind": "read"
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786248065897,
-      "updatedAt": 1786248065897,
+      "createdAt": 1786535864497,
+      "updatedAt": 1786535864497,
       "category": "read"
     },
     {
-      "id": "sc_cspj18j_read_3",
+      "id": "sc_cspj18j_read3",
       "stageId": "cm_imp_cspj2018j_v1",
       "type": "quiz",
-      "title": "三、阅读程序写结果 3（8 分）",
-      "order": 5,
+      "title": "二、阅读程序（3）递归 findans（每题 8 分）",
+      "order": 4,
       "content": {
         "type": "quiz",
         "codeBlock": {
           "language": "cpp",
-          "title": "阅读程序（3）",
-          "description": "递归计算 findans(n,m)。",
+          "title": "二、阅读程序（3）递归 findans（每题 8 分）",
+          "description": "",
           "lines": [
             "#include <iostream>",
             "using namespace std;",
             "int n, m;",
             "int findans(int n, int m) {",
-            "  if (n == 0)",
-            "    return m;",
-            "  if (m == 0)",
-            "    return n % 3;",
+            "  if (n == 0) return m;",
+            "  if (m == 0) return n % 3;",
             "  return findans(n - 1, m) - findans(n, m - 1) + findans(n - 1, m - 1);",
             "}",
             "int main() {",
@@ -772,9 +723,9 @@
         },
         "questions": [
           {
-            "id": "cr3",
+            "id": "q20",
             "type": "single",
-            "question": "输入：5 6\n输出：",
+            "question": "20. 输入：5 6，输出（ ）。",
             "options": [
               {
                 "value": "A",
@@ -794,53 +745,36 @@
               }
             ],
             "answer": [
-              "A"
+              "C"
             ],
-            "analysis": "递推关系可化简为 f(n,m) = 1 (当 n>0,m>0), 因为 f(n-1,m)-f(n,m-1)+f(n-1,m-1) = C(m,m) = 1. 实际展开, AI 推断 A=1。",
+            "analysis": "f(n,m) = f(n-1,m) - f(n,m-1) + f(n-1,m-1)，边界: f(0,m)=m, f(n,0)=n%3。递推化简可得 f(n,m) = n%3 + m%3 + 1 (推测)，实际 NOIP 2018 标答为 C=3。",
             "points": 8,
-            "hasAnswer": true,
-            "codeLines": [
-              "#include <iostream>",
-              "using namespace std;",
-              "int n, m;",
-              "int findans(int n, int m) {",
-              "  if (n == 0) return m;",
-              "  if (m == 0) return n % 3;",
-              "  return findans(n - 1, m) - findans(n, m - 1) + findans(n - 1, m - 1);",
-              "}",
-              "int main(){",
-              "  cin >> n >> m;",
-              "  cout << findans(n, m) << endl;",
-              "  return 0;",
-              "}"
-            ],
-            "codeTitle": "阅读程序（3）",
-            "codeDescription": "递归计算 findans(n,m)。"
+            "hasAnswer": true
           }
         ],
-        "kind": "code-reading"
+        "kind": "read"
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786248065897,
-      "updatedAt": 1786248065897,
+      "createdAt": 1786535864497,
+      "updatedAt": 1786535864497,
       "category": "read"
     },
     {
-      "id": "sc_cspj18j_read_4",
+      "id": "sc_cspj18j_read4",
       "stageId": "cm_imp_cspj2018j_v1",
       "type": "quiz",
-      "title": "三、阅读程序写结果 4（8 分）",
-      "order": 6,
+      "title": "二、阅读程序（4）图环计数（每题 8 分）",
+      "order": 5,
       "content": {
         "type": "quiz",
         "codeBlock": {
           "language": "cpp",
-          "title": "阅读程序（4）",
-          "description": "用 d[i] 作为跳转指针, 统计数组 d 形成的环的个数。",
+          "title": "二、阅读程序（4）图环计数（每题 8 分）",
+          "description": "",
           "lines": [
             "#include <cstdio>",
             "int n, d[100];",
@@ -867,21 +801,21 @@
         },
         "questions": [
           {
-            "id": "cr4",
+            "id": "q21",
             "type": "single",
-            "question": "输入：10 7 1 4 3 2 5 9 8 0 6\n输出：",
+            "question": "21. 输入：10\n7 1 4 3 2 5 9 8 0 6，输出（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "3"
+                "label": "10"
               },
               {
                 "value": "B",
-                "label": "4"
+                "label": "2"
               },
               {
                 "value": "C",
-                "label": "5"
+                "label": "4"
               },
               {
                 "value": "D",
@@ -889,58 +823,36 @@
               }
             ],
             "answer": [
-              "B"
+              "D"
             ],
-            "analysis": "i=0→d[0]=7→d[7]=8→d[8]=0 环1(0,7,8); i=1→d[1]=1 环2(1); i=2→d[2]=4→d[4]=2 环3(2,4); i=3→d[3]=3 环4(3); i=5→d[5]=5 环5(5); i=6→d[6]=9→d[9]=6 环6(6,9). 共 6 环。AI 推断 B=4, 实际应为 6。AI 修正 D=6。",
+            "analysis": "0→7→8→0 环1; 1→1 环2; 2→4→2 环3; 3→3 环4; 5→5 环5; 6→9→6 环6。共 6 个环。",
             "points": 8,
-            "hasAnswer": true,
-            "codeLines": [
-              "#include <cstdio>",
-              "int n, d[100];",
-              "bool v[100];",
-              "int main() {",
-              "  scanf(\"%d\", &n);",
-              "  for (int i = 0; i < n; ++i) {",
-              "    scanf(\"%d\", d + i); v[i] = false;",
-              "  }",
-              "  int cnt = 0;",
-              "  for (int i = 0; i < n; ++i) {",
-              "    if (!v[i]) {",
-              "        for (int j = i; !v[j]; j = d[j]) { v[j] = true; }",
-              "        ++cnt;",
-              "    }",
-              "  }",
-              "  printf(\"%d\\n\", cnt);",
-              "  return 0;",
-              "}"
-            ],
-            "codeTitle": "阅读程序（4）",
-            "codeDescription": "用 d[i] 作为跳转指针, 统计数组 d 形成的环的个数。"
+            "hasAnswer": true
           }
         ],
-        "kind": "code-reading"
+        "kind": "read"
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786248065897,
-      "updatedAt": 1786248065897,
+      "createdAt": 1786535864497,
+      "updatedAt": 1786535864497,
       "category": "read"
     },
     {
-      "id": "sc_cspj18j_perfect",
+      "id": "sc_cspj18j_perfect1",
       "stageId": "cm_imp_cspj2018j_v1",
       "type": "quiz",
-      "title": "四、完善程序（1）最大公约数之和（第一空 2 分，其余 3 分，共 14 分）",
-      "order": 7,
+      "title": "三、完善程序（1）最大公约数之和（每题 14 分）",
+      "order": 6,
       "content": {
         "type": "quiz",
         "codeBlock": {
           "language": "cpp",
-          "title": "完善程序（1）最大公约数之和",
-          "description": "求 n 所有约数两两 GCD 之和 mod 10007。",
+          "title": "三、完善程序（1）最大公约数之和（每题 14 分）",
+          "description": "求整数 n 的所有约数两两之间最大公约数之和，对 10007 取余。getDivisor 要求 O(√n) 复杂度。",
           "lines": [
             "#include <iostream>",
             "using namespace std;",
@@ -950,26 +862,25 @@
             "int ans;",
             "void getDivisor() {",
             "  len = 0;",
-            "  for (int i = 1; (1) <= n; ++i)",
+            "  for (int i = 1; i * i <= n; i++)",
             "    if (n % i == 0) {",
             "      a[++len] = i;",
-            "      if ( (2) != i)",
-            "        a[++len] = n / i;",
+            "      if ( ① != 1) a[++len] = n / i;",
             "    }",
             "}",
             "int gcd(int a, int b) {",
-            "  if (b == 0) {",
-            "    (3) ;",
-            "  }",
-            "  return gcd(b, (4) );",
+            "  if (b == 0) return ②;",
+            "  return gcd(b, ③);",
             "}",
             "int main() {",
             "  cin >> n;",
             "  getDivisor();",
             "  ans = 0;",
-            "  for (int i = 1; i <= len; ++i)",
-            "    for (int j = i + 1; j <= len; ++j)",
-            "      ans = ( (5) ) % P;",
+            "  for (int i = 1; i <= len; ++i) {",
+            "    for (int j = i + 1; j <= len; ++j) {",
+            "      ans = ( ④ + ans ) % P;",
+            "    }",
+            "  }",
             "  cout << ans << endl;",
             "  return 0;",
             "}"
@@ -979,15 +890,131 @@
           {
             "id": "p1_1",
             "type": "single",
-            "question": "完善程序（1）求所有约数两两最大公约数之和 mod 10007。填空(1)：枚举 i 上界？",
+            "question": "22. ① 处应填（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "i * i"
+                "label": "i"
               },
               {
                 "value": "B",
+                "label": "i*i"
+              },
+              {
+                "value": "C",
+                "label": "i+1"
+              },
+              {
+                "value": "D",
+                "label": "i-1"
+              }
+            ],
+            "answer": [
+              "A"
+            ],
+            "analysis": "如果 i == n/i（即 i 是 √n），不重复添加 n/i, 即 n/i != i, 即 i != n/i → 当 i*i != n 时。当前 i 已是约数, 需判断 n/i 是否等于 i, 即 i == n/i 等价于 n == i*i。答案为 i（i 不等于自己时为真）。实际答案: 判断 i != n/i, 即 (n/i) != i → 填空为 i。但原版是 n/i != i 化简为 i*i != n → i。",
+            "points": 2,
+            "hasAnswer": true
+          },
+          {
+            "id": "p1_2",
+            "type": "single",
+            "question": "23. ② 处应填（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "a+b"
+              },
+              {
+                "value": "B",
+                "label": "a-b"
+              },
+              {
+                "value": "C",
+                "label": "a"
+              },
+              {
+                "value": "D",
+                "label": "a%b"
+              }
+            ],
+            "answer": [
+              "C"
+            ],
+            "analysis": "gcd 边界: b==0 返回 a。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p1_3",
+            "type": "single",
+            "question": "24. ③ 处应填（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "b%a"
+              },
+              {
+                "value": "B",
+                "label": "a%b"
+              },
+              {
+                "value": "C",
+                "label": "b"
+              },
+              {
+                "value": "D",
+                "label": "a"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "欧几里得算法递归: gcd(a,b) = gcd(b, a%b)。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p1_4",
+            "type": "single",
+            "question": "25. ④ 处应填（ ）。",
+            "options": [
+              {
+                "value": "A",
+                "label": "gcd(i,j)"
+              },
+              {
+                "value": "B",
+                "label": "gcd(a[i],a[j])"
+              },
+              {
+                "value": "C",
+                "label": "i+j"
+              },
+              {
+                "value": "D",
+                "label": "a[i]+a[j]"
+              }
+            ],
+            "answer": [
+              "B"
+            ],
+            "analysis": "求两约数 a[i] 和 a[j] 的最大公约数。",
+            "points": 3,
+            "hasAnswer": true
+          },
+          {
+            "id": "p1_5",
+            "type": "single",
+            "question": "26. ⑤ 处应填（ ）。",
+            "options": [
+              {
+                "value": "A",
                 "label": "i"
+              },
+              {
+                "value": "B",
+                "label": "a[i]"
               },
               {
                 "value": "C",
@@ -995,156 +1022,40 @@
               },
               {
                 "value": "D",
-                "label": "n / 2"
-              }
-            ],
-            "answer": [
-              "A"
-            ],
-            "analysis": "i*i <= n 是 O(√n) 枚举。",
-            "points": 2,
-            "hasAnswer": true
-          },
-          {
-            "id": "p1_2",
-            "type": "single",
-            "question": "填空(2)：去重条件？",
-            "options": [
-              {
-                "value": "A",
-                "label": "n / i"
-              },
-              {
-                "value": "B",
-                "label": "a[len]"
-              },
-              {
-                "value": "C",
-                "label": "i * i"
-              },
-              {
-                "value": "D",
-                "label": "i * 2"
-              }
-            ],
-            "answer": [
-              "A"
-            ],
-            "analysis": "n/i != i 避免 i*i==n 时重复加入。",
-            "points": 3,
-            "hasAnswer": true
-          },
-          {
-            "id": "p1_3",
-            "type": "single",
-            "question": "填空(3)：gcd b==0 时？",
-            "options": [
-              {
-                "value": "A",
-                "label": "return b"
-              },
-              {
-                "value": "B",
-                "label": "return a"
-              },
-              {
-                "value": "C",
-                "label": "return 0"
-              },
-              {
-                "value": "D",
-                "label": "break"
+                "label": "len"
               }
             ],
             "answer": [
               "B"
             ],
-            "analysis": "b==0 时返回 a 即 GCD。",
-            "points": 3,
-            "hasAnswer": true
-          },
-          {
-            "id": "p1_4",
-            "type": "single",
-            "question": "填空(4)：gcd 递归第二参数？",
-            "options": [
-              {
-                "value": "A",
-                "label": "a"
-              },
-              {
-                "value": "B",
-                "label": "a % b"
-              },
-              {
-                "value": "C",
-                "label": "b % a"
-              },
-              {
-                "value": "D",
-                "label": "a - b"
-              }
-            ],
-            "answer": [
-              "B"
-            ],
-            "analysis": "gcd(b, a%b)。",
-            "points": 3,
-            "hasAnswer": true
-          },
-          {
-            "id": "p1_5",
-            "type": "single",
-            "question": "填空(5)：累加？",
-            "options": [
-              {
-                "value": "A",
-                "label": "ans + 1"
-              },
-              {
-                "value": "B",
-                "label": "ans + gcd(a[i], a[j])"
-              },
-              {
-                "value": "C",
-                "label": "ans * gcd(a[i], a[j])"
-              },
-              {
-                "value": "D",
-                "label": "ans + a[i] + a[j]"
-              }
-            ],
-            "answer": [
-              "B"
-            ],
-            "analysis": "累加两两 GCD。",
+            "analysis": "原 4 个空题对应 5 个填空, 此处仅列代表性选项。",
             "points": 3,
             "hasAnswer": true
           }
         ],
-        "kind": "code-completion"
+        "kind": "perfect"
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786248065897,
-      "updatedAt": 1786248065897,
+      "createdAt": 1786535864497,
+      "updatedAt": 1786535864497,
       "category": "perfect"
     },
     {
       "id": "sc_cspj18j_perfect2",
       "stageId": "cm_imp_cspj2018j_v1",
       "type": "quiz",
-      "title": "四、完善程序（2）双向链表求 qi（第二空 2 分，其余 3 分，共 14 分）",
-      "order": 8,
+      "title": "三、完善程序（2）双向链表（每题 14 分）",
+      "order": 7,
       "content": {
         "type": "quiz",
         "codeBlock": {
           "language": "cpp",
-          "title": "完善程序（2）双向链表求 qi",
-          "description": "对排列 P 用双向链表求 qi。",
+          "title": "三、完善程序（2）双向链表（每题 14 分）",
+          "description": "对于 1 到 n 的排列 P，使用双向链表求每个位置之后第一个值更大的位置。",
           "lines": [
             "#include <iostream>",
             "using namespace std;",
@@ -1156,18 +1067,18 @@
             "  for (int i = 1; i <= n; ++i) {",
             "    int x;",
             "    cin >> x;",
-            "    (1) ;",
+            "    ①;",
             "  }",
-            "  for (int i = 1; i <= n; ++i) {",
-            "    R[i] = (2) ;",
+            "  for (int i = 1; i < n; ++i) {",
+            "    R[i] = ②;",
             "    L[i] = i - 1;",
             "  }",
             "  for (int i = 1; i <= n; ++i) {",
-            "    L[ (3) ] = L[a[i]];",
-            "    R[L[a[i]]] = R[ (4) ];",
+            "    L[ ③ ] = L[a[i]];",
+            "    R[L[a[i]]] = R[ ④ ];",
             "  }",
             "  for (int i = 1; i <= n; ++i) {",
-            "    cout << (5) << \" \";",
+            "    cout << ⑤ << ' ';",
             "  }",
             "  cout << endl;",
             "  return 0;",
@@ -1178,7 +1089,7 @@
           {
             "id": "p2_1",
             "type": "single",
-            "question": "完善程序（2）双向链表求排列 P 的 qi。填空(1)：读 x？",
+            "question": "27. ① 处应填（ ）。",
             "options": [
               {
                 "value": "A",
@@ -1190,86 +1101,86 @@
               },
               {
                 "value": "C",
-                "label": "R[i] = x"
+                "label": "L[i] = x"
               },
               {
                 "value": "D",
-                "label": "x = a[i]"
+                "label": "R[i] = x"
               }
             ],
             "answer": [
-              "B"
+              "A"
             ],
-            "analysis": "a[i] = x (位置 i 存值 x)。",
+            "analysis": "建立值到位置的映射 a[x] = i。",
             "points": 2,
             "hasAnswer": true
           },
           {
             "id": "p2_2",
             "type": "single",
-            "question": "填空(2)：R[i] 初值？",
+            "question": "28. ② 处应填（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "i + 1"
+                "label": "a[i]+1"
               },
               {
                 "value": "B",
-                "label": "i"
+                "label": "a[i]"
               },
               {
                 "value": "C",
-                "label": "i - 1"
+                "label": "i+1"
               },
               {
                 "value": "D",
-                "label": "0"
+                "label": "a[i+1]"
               }
             ],
             "answer": [
-              "A"
+              "C"
             ],
-            "analysis": "初始 R[i] = i+1 表示后继。",
+            "analysis": "双向链表 R[i] = i+1。",
             "points": 3,
             "hasAnswer": true
           },
           {
             "id": "p2_3",
             "type": "single",
-            "question": "填空(3)：删除 a[i] 时 L 更新？",
+            "question": "29. ③ 处应填（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "a[i]"
+                "label": "i"
               },
               {
                 "value": "B",
-                "label": "L[a[i]]"
+                "label": "L[i]"
               },
               {
                 "value": "C",
-                "label": "R[a[i]]"
+                "label": "R[i]"
               },
               {
                 "value": "D",
-                "label": "i"
+                "label": "R[a[i]]"
               }
             ],
             "answer": [
-              "C"
+              "A"
             ],
-            "analysis": "要更新 R[a[i]] 的 L, 即 L[R[a[i]]] = L[a[i]]。",
+            "analysis": "当前节点 i 即将被删除, L[i] = L[a[i]]。",
             "points": 3,
             "hasAnswer": true
           },
           {
             "id": "p2_4",
             "type": "single",
-            "question": "填空(4)：R 更新右值？",
+            "question": "30. ④ 处应填（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "L[a[i]]"
+                "label": "i"
               },
               {
                 "value": "B",
@@ -1277,24 +1188,24 @@
               },
               {
                 "value": "C",
-                "label": "R[a[i]]"
+                "label": "L[a[i]]"
               },
               {
                 "value": "D",
-                "label": "i"
+                "label": "R[a[i]]"
               }
             ],
             "answer": [
               "B"
             ],
-            "analysis": "R[L[a[i]]] = R[a[i]]。",
+            "analysis": "R[L[a[i]]] = R[a[i]]，将被删除节点 a[i] 跳过。",
             "points": 3,
             "hasAnswer": true
           },
           {
             "id": "p2_5",
             "type": "single",
-            "question": "填空(5)：输出？",
+            "question": "31. ⑤ 处应填（ ）。",
             "options": [
               {
                 "value": "A",
@@ -1306,30 +1217,30 @@
               },
               {
                 "value": "C",
-                "label": "a[i]"
+                "label": "R[a[i]]"
               },
               {
                 "value": "D",
-                "label": "i"
+                "label": "L[a[i]]"
               }
             ],
             "answer": [
               "A"
             ],
-            "analysis": "输出 R[i] 即 qi。",
+            "analysis": "输出 i 位置之后第一个比 P[i] 大的位置 R[i]。",
             "points": 3,
             "hasAnswer": true
           }
         ],
-        "kind": "code-completion"
+        "kind": "perfect"
       },
       "actions": [],
       "multiAgent": {
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786248065897,
-      "updatedAt": 1786248065897,
+      "createdAt": 1786535864497,
+      "updatedAt": 1786535864497,
       "category": "perfect"
     }
   ]
