@@ -8,8 +8,8 @@
     "description": "2016年CCF NOIP普及组初赛真题，按CSP-J新题型改编：选择题22题（前20题1.5分，后2题5分，共40分）、阅读程序4题（每题8分，共32分）、完善程序10题（共28分），总分100分。",
     "languageDirective": "zh-CN",
     "style": "tutor",
-    "createdAt": 1786543048517,
-    "updatedAt": 1786543048517,
+    "createdAt": 1786543980660,
+    "updatedAt": 1786543980660,
     "generatedAgentConfigs": [
       {
         "id": "imp_agent_cspj16j_0",
@@ -711,8 +711,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786543048517,
-      "updatedAt": 1786543048517,
+      "createdAt": 1786543980659,
+      "updatedAt": 1786543980659,
       "category": "choice"
     },
     {
@@ -790,8 +790,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786543048517,
-      "updatedAt": 1786543048517,
+      "createdAt": 1786543980659,
+      "updatedAt": 1786543980659,
       "category": "read"
     },
     {
@@ -859,8 +859,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786543048517,
-      "updatedAt": 1786543048517,
+      "createdAt": 1786543980659,
+      "updatedAt": 1786543980659,
       "category": "read"
     },
     {
@@ -934,8 +934,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786543048517,
-      "updatedAt": 1786543048517,
+      "createdAt": 1786543980659,
+      "updatedAt": 1786543980659,
       "category": "read"
     },
     {
@@ -1015,8 +1015,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786543048517,
-      "updatedAt": 1786543048517,
+      "createdAt": 1786543980659,
+      "updatedAt": 1786543980659,
       "category": "read"
     },
     {
@@ -1215,8 +1215,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786543048517,
-      "updatedAt": 1786543048517,
+      "createdAt": 1786543980660,
+      "updatedAt": 1786543980660,
       "category": "perfect"
     },
     {
@@ -1310,9 +1310,9 @@
               }
             ],
             "answer": [
-              "A"
+              "C"
             ],
-            "analysis": "从第 1 个学生开始枚举（i 初值）。",
+            "analysis": "M 已升序排序。贪心: 让学校补贴最少, 应选 M 最大的 nn 个学生, 即从第 n-nn+1 个学生开始枚举 (对应最便宜的 nn 辆车)。",
             "points": 2.5,
             "hasAnswer": true
           },
@@ -1440,8 +1440,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786543048517,
-      "updatedAt": 1786543048517,
+      "createdAt": 1786543980660,
+      "updatedAt": 1786543980660,
       "category": "perfect"
     }
   ]
