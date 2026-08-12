@@ -40,9 +40,23 @@ const choiceQuestions = [
   { id:'q12', points:1.5, q:'12. 若有程序段 s=a; for(b=1;b<=c;b++) s=s+1;（c>0），与该段修改 s 值等价的赋值语句是（ ）。',
     opts:[['A','s=a+b'],['B','s=a+c'],['C','s=s+c'],['D','s=b+c']],
     ans:['B'], a:'循环执行 c 次 s+1，所以 s 累计加了 c。' },
-  { id:'q13', points:1.5, q:'13. 下列程序：k=4, n=0; while(n<k){n++; if(n%3!=0) continue; k--;} cout<<k<<","<<n<<endl; 的输出是（ ）。',
+  { id:'q13', points:1.5, q:'13. 下列程序：的输出是（ ）。',
     opts:[['A','2,2'],['B','2,3'],['C','3,2'],['D','3,3']],
-    ans:['D'], a:'n=0→1, 1%3!=0 continue; n=1→2, 2%3!=0 continue; n=2→3, 3%3==0 k--; n=3 不小于 k=3 退出。输出 3,3。' },
+    ans:['D'],
+    codeBlock: {
+      language: 'cpp',
+      lines: [
+        'k = 4;',
+        'n = 0;',
+        'while (n < k) {',
+        '  n++;',
+        '  if (n % 3 != 0) continue;',
+        '  k--;',
+        '}',
+        'cout << k << "," << n << endl;',
+      ],
+    },
+    a:'n=0→1, 1%3!=0 continue; n=1→2, 2%3!=0 continue; n=2→3, 3%3==0 k--; n=3 不小于 k=3 退出。输出 3,3。' },
   { id:'q14', points:1.5, q:'14. 给定单峰数组 L（存在 xi 比两侧都大）求峰顶位置的三段代码（c 找到峰顶，b 上升段递归右半，a 下降段递归左半），正确的填空顺序是（ ）。',
     opts:[['A','c,a,b'],['B','c,b,a'],['C','a,b,c'],['D','b,a,c']],
     ans:['B'], a:'峰顶→上升段递归右半→下降段递归左半。' },
@@ -345,6 +359,7 @@ function buildQuestion(q) {
     analysis: q.a,
     points: q.points,
     hasAnswer: true,
+    codeBlock: q.codeBlock,
   };
 }
 

@@ -204,6 +204,23 @@ export interface QuizQuestion {
    * "参考程序结构". Pure cosmetic; never affects grading.
    */
   imageCaption?: string;
+  /**
+   * Optional per-question code listing. When present, the
+   * renderer draws a paper-style code block (line-numbered
+   * gutter, amber placeholder badges for ① ② ③ ...) above
+   * the question text. Used by single-choice questions
+   * that ship with a small C++ snippet (e.g. "下列程序
+   * 的输出是"). Lines is the canonical source; the
+   * renderer handles line numbers and placeholder
+   * styling the same way as the scene-level codeBlock.
+   *
+   * Pre-2026 builds flattened these snippets into the
+   * `question` string with semicolon-separated statements
+   * on one line, which was unreadable. Adding this field
+   * lets us keep the question stem short ("下列程序的输出
+   * 是？") and put the code in a properly formatted block.
+   */
+  codeBlock?: QuizCodeBlock;
 }
 
 /**

@@ -890,6 +890,25 @@ function QuestionCard({
         </figure>
       )}
 
+      {/* Question code block (optional). Some single-choice
+          questions ship with a tiny C++ snippet (e.g. "下列
+          程序的输出是？") and the older builds flattened the
+          whole thing into one semicolon-separated line in
+          the question text, which was unreadable. When the
+          question carries a `codeBlock` field we render the
+          listing in the same paper-style CodeBlockView that
+          the read/perfect scenes use, with line numbers and
+          amber placeholder badges for ① ② ③ — so the
+          student gets a proper code block instead of a wall
+          of punctuation. The same component is reused for
+          scene-level code blocks to keep the visual language
+          consistent across the paper. */}
+      {question.codeBlock && (
+        <div className="my-3">
+          <CodeBlockView block={question.codeBlock} />
+        </div>
+      )}
+
       {/* Body */}
       {children}
 

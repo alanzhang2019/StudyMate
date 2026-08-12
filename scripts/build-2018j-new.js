@@ -48,9 +48,26 @@ const choiceQuestions = [
   { id:'q13', points:2, q:'13. 10000 以内，与 10000 互质的正整数有（ ）个。',
     opts:[['A','2000'],['B','4000'],['C','6000'],['D','8000']],
     ans:['B'], a:'10000=2^4×5^4, 与 10000 互质数 = 10000×(1-1/2)×(1-1/5) = 10000×1/2×4/5 = 4000。' },
-  { id:'q14', points:2, q:'14. 为了统计一个非负整数的二进制形式中 1 的个数，代码：int CountBit(int x) { int ret=0; while(x) { ____; } return ret; } 应填入（ ）。',
-    opts:[['A','x >>= 1'],['B','x &= x-1'],['C','x |= x >> 1'],['D','x <<= 1']],
-    ans:['B'], a:'x &= x-1 每次清掉最低位 1，是 Brian Kernighan 算法，效率最高。' },
+  { id:'q14', points:2, q:'14. 为了统计一个非负整数的二进制形式中 1 的个数，代码如下：则空格内要填入的语句是（ ）。',
+    opts:[['A','x >>= 1'], ['B','x &= x-1'], ['C','x |= x >> 1'], ['D','x <<= 1']],
+    ans:['B'],
+    codeBlock: {
+      language: 'cpp',
+      title: 'CountBit',
+      lines: [
+        'int CountBit(int x)',
+        '{',
+        '    int ret = 0;',
+        '    while (x)',
+        '    {',
+        '        ret++;',
+        '        _______________;',
+        '    }',
+        '    return ret;',
+        '}',
+      ],
+    },
+    a:'x &= x-1 每次清掉最低位 1，是 Brian Kernighan 算法，效率最高。' },
   { id:'q15', points:2, q:'15. 下图（压入 A、压入 B、弹出 B、压入 C）所使用的数据结构是（ ）。',
     opts:[['A','哈希表'],['B','栈'],['C','队列'],['D','二叉树']],
     ans:['B'], a:'LIFO（后入先出）是栈的特征。' },
@@ -292,6 +309,7 @@ function buildQuestion(q) {
     analysis: q.a,
     points: q.points,
     hasAnswer: true,
+    codeBlock: q.codeBlock,
   };
 }
 

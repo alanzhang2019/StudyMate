@@ -8,8 +8,8 @@
     "description": "2018年CCF NOIP普及组初赛真题，按CSP-J新题型改编：选择题17题（前15题2分，后2题5分，共40分）、阅读程序4题（每题8分，共32分）、完善程序10题（共28分），总分100分。",
     "languageDirective": "zh-CN",
     "style": "tutor",
-    "createdAt": 1786542637205,
-    "updatedAt": 1786542637205,
+    "createdAt": 1786543078098,
+    "updatedAt": 1786543078098,
     "generatedAgentConfigs": [
       {
         "id": "imp_agent_cspj18j_0",
@@ -432,7 +432,7 @@
           {
             "id": "q14",
             "type": "single",
-            "question": "14. 为了统计一个非负整数的二进制形式中 1 的个数，代码：int CountBit(int x) { int ret=0; while(x) { ____; } return ret; } 应填入（ ）。",
+            "question": "14. 为了统计一个非负整数的二进制形式中 1 的个数，代码如下：则空格内要填入的语句是（ ）。",
             "options": [
               {
                 "value": "A",
@@ -456,7 +456,23 @@
             ],
             "analysis": "x &= x-1 每次清掉最低位 1，是 Brian Kernighan 算法，效率最高。",
             "points": 2,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "codeBlock": {
+              "language": "cpp",
+              "title": "CountBit",
+              "lines": [
+                "int CountBit(int x)",
+                "{",
+                "    int ret = 0;",
+                "    while (x)",
+                "    {",
+                "        ret++;",
+                "        _______________;",
+                "    }",
+                "    return ret;",
+                "}"
+              ]
+            }
           },
           {
             "id": "q15",
@@ -553,8 +569,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786542637205,
-      "updatedAt": 1786542637205,
+      "createdAt": 1786543078098,
+      "updatedAt": 1786543078098,
       "category": "choice"
     },
     {
@@ -621,8 +637,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786542637205,
-      "updatedAt": 1786542637205,
+      "createdAt": 1786543078098,
+      "updatedAt": 1786543078098,
       "category": "read"
     },
     {
@@ -689,8 +705,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786542637205,
-      "updatedAt": 1786542637205,
+      "createdAt": 1786543078098,
+      "updatedAt": 1786543078098,
       "category": "read"
     },
     {
@@ -759,8 +775,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786542637205,
-      "updatedAt": 1786542637205,
+      "createdAt": 1786543078098,
+      "updatedAt": 1786543078098,
       "category": "read"
     },
     {
@@ -837,8 +853,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786542637205,
-      "updatedAt": 1786542637205,
+      "createdAt": 1786543078098,
+      "updatedAt": 1786543078098,
       "category": "read"
     },
     {
@@ -1040,8 +1056,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786542637205,
-      "updatedAt": 1786542637205,
+      "createdAt": 1786543078098,
+      "updatedAt": 1786543078098,
       "category": "perfect"
     },
     {
@@ -1239,8 +1255,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786542637205,
-      "updatedAt": 1786542637205,
+      "createdAt": 1786543078098,
+      "updatedAt": 1786543078098,
       "category": "perfect"
     }
   ]

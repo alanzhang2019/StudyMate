@@ -8,8 +8,8 @@
     "description": "2016年CCF NOIP普及组初赛真题，按CSP-J新题型改编：选择题22题（前20题1.5分，后2题5分，共40分）、阅读程序4题（每题8分，共32分）、完善程序10题（共28分），总分100分。",
     "languageDirective": "zh-CN",
     "style": "tutor",
-    "createdAt": 1786538940701,
-    "updatedAt": 1786538940701,
+    "createdAt": 1786543048517,
+    "updatedAt": 1786543048517,
     "generatedAgentConfigs": [
       {
         "id": "imp_agent_cspj16j_0",
@@ -403,7 +403,7 @@
           {
             "id": "q13",
             "type": "single",
-            "question": "13. 下列程序：k=4, n=0; while(n<k){n++; if(n%3!=0) continue; k--;} cout<<k<<\",\"<<n<<endl; 的输出是（ ）。",
+            "question": "13. 下列程序：的输出是（ ）。",
             "options": [
               {
                 "value": "A",
@@ -427,7 +427,20 @@
             ],
             "analysis": "n=0→1, 1%3!=0 continue; n=1→2, 2%3!=0 continue; n=2→3, 3%3==0 k--; n=3 不小于 k=3 退出。输出 3,3。",
             "points": 1.5,
-            "hasAnswer": true
+            "hasAnswer": true,
+            "codeBlock": {
+              "language": "cpp",
+              "lines": [
+                "k = 4;",
+                "n = 0;",
+                "while (n < k) {",
+                "  n++;",
+                "  if (n % 3 != 0) continue;",
+                "  k--;",
+                "}",
+                "cout << k << \",\" << n << endl;"
+              ]
+            }
           },
           {
             "id": "q14",
@@ -698,8 +711,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786538940701,
-      "updatedAt": 1786538940701,
+      "createdAt": 1786543048517,
+      "updatedAt": 1786543048517,
       "category": "choice"
     },
     {
@@ -777,8 +790,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786538940701,
-      "updatedAt": 1786538940701,
+      "createdAt": 1786543048517,
+      "updatedAt": 1786543048517,
       "category": "read"
     },
     {
@@ -846,8 +859,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786538940701,
-      "updatedAt": 1786538940701,
+      "createdAt": 1786543048517,
+      "updatedAt": 1786543048517,
       "category": "read"
     },
     {
@@ -921,8 +934,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786538940701,
-      "updatedAt": 1786538940701,
+      "createdAt": 1786543048517,
+      "updatedAt": 1786543048517,
       "category": "read"
     },
     {
@@ -1002,8 +1015,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786538940701,
-      "updatedAt": 1786538940701,
+      "createdAt": 1786543048517,
+      "updatedAt": 1786543048517,
       "category": "read"
     },
     {
@@ -1202,8 +1215,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786538940701,
-      "updatedAt": 1786538940701,
+      "createdAt": 1786543048517,
+      "updatedAt": 1786543048517,
       "category": "perfect"
     },
     {
@@ -1427,8 +1440,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786538940701,
-      "updatedAt": 1786538940701,
+      "createdAt": 1786543048517,
+      "updatedAt": 1786543048517,
       "category": "perfect"
     }
   ]
