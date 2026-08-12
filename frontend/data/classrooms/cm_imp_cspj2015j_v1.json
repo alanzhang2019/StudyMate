@@ -1304,9 +1304,9 @@
               }
             ],
             "answer": [
-              "A"
+              "D"
             ],
-            "analysis": "统计不超过 mid 的元素个数。",
+            "analysis": "count 统计的是大于 mid 的元素个数。若 >n/2 个元素都 > mid，说明 mid 偏小，lbound=mid+1 往上搜；否则 rbound=mid 收紧上界。",
             "hasAnswer": true
           },
           {
