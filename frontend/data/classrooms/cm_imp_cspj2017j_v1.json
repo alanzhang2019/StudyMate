@@ -702,6 +702,8 @@
               "B"
             ],
             "analysis": "通过 4 次操作可使 13 格全 0 (中心操作 + 3 个角的协同)。",
+            "points": 5,
+            "hasAnswer": true,
             "image": "/figures/csp-j-2017/cspj2017-ps2-figure.png",
             "imageCaption": "图: 13 格十字棋盘 (中心格 1, 周围含 0/1)"
           }
