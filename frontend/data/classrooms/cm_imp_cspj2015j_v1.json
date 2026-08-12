@@ -1020,7 +1020,7 @@
             "    offset = ②;",
             "  for (i = 0; i < offset; i++)",
             "    cout << \"\\t\";",
-            "  for (i = 1; i < ③; i++) {",
+            "  for (i = 1; i <= ③; i++) {",
             "    cout << ④;",
             "    if (i == dayNum[m] || ⑤ == 0)",
             "      cout << endl;",
@@ -1123,11 +1123,11 @@
             "options": [
               {
                 "value": "A",
-                "label": "i"
+                "label": "1"
               },
               {
                 "value": "B",
-                "label": "1"
+                "label": "i"
               },
               {
                 "value": "C",
@@ -1135,11 +1135,11 @@
               },
               {
                 "value": "D",
-                "label": "m"
+                "label": "'\\t'"
               }
             ],
             "answer": [
-              "A"
+              "B"
             ],
             "analysis": "循环变量 i 即为要打印的日期。",
             "hasAnswer": true
@@ -1151,7 +1151,7 @@
             "options": [
               {
                 "value": "A",
-                "label": "(i + 1) % 7"
+                "label": "i % 7"
               },
               {
                 "value": "B",
@@ -1159,7 +1159,7 @@
               },
               {
                 "value": "C",
-                "label": "(offset + 1) % 7"
+                "label": "(offset + i) % 7"
               },
               {
                 "value": "D",
@@ -1169,7 +1169,7 @@
             "answer": [
               "C"
             ],
-            "analysis": "每行 7 列，当前行满后需换行；(offset+1)%7 用于判断列累计。",
+            "analysis": "列号每行 7 列换行；当前打印的 i 出现在列 (i-1+offset)%7=6 时需换行，等价 (offset+i)%7==0。",
             "hasAnswer": true
           }
         ],
@@ -1272,7 +1272,7 @@
               },
               {
                 "value": "D",
-                "label": "count = count - 1"
+                "label": "count = count + 1"
               }
             ],
             "answer": [
