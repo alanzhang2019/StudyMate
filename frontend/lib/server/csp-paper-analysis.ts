@@ -306,19 +306,43 @@ export async function loadWrongQuestionContexts(
     >();
     for (const q of content.questions) {
       if (!q?.id) continue;
+      // 字段名兼容: classroom JSON 里用 `question` 存题干、`label` 存
+      // 选项文本、`answer` 存答案键 (与 quiz-view 渲染时一致);
+      // 少数老数据 / 通用题库可能用 `text` / `options[].text` /
+      // `correctAnswer` 写法, 都做 fallback, 避免漏读。
+      const rawText = String(
+        (q as any).text ?? (q as any).question ?? '',
+      ).slice(0, 500);
+      const rawCorrect = ((q as any).correctAnswer ??
+        (q as any).answer ??
+        '') as string | string[];
       qMap.set(q.id, {
-        text: String(q.text ?? '').slice(0, 500), // 限长，避免 prompt 爆炸
+        text: rawText,
         options: Array.isArray(q.options)
-          ? q.options.map((o: any) => ({
-              label: String(o.label ?? ''),
-              value: String(o.value ?? ''),
-              text: String(o.text ?? '').slice(0, 200),
-            }))
+          ? q.options.map((o: any) => {
+              // 兼容两种 JSON 写法:
+              //   A. CSP 真题 JSON: { value: 'A', label: 'C++' }
+              //      (value 是答案键 / 显示字母, label 是选项文本)
+              //   B. 通用题库:      { value: 'A', label: 'A', text: 'C++' }
+              // 我们对外统一输出 { value, label, text }:
+              //   value = 答案键 (用于 "你的答案 / 正确答案" 比较)
+              //   label = 显示用字母 (UI 渲染时拿来当 "A/B/C/D" 前缀)
+              //   text  = 选项文本 (UI 拿来当题目内容)
+              const value = String(o.value ?? o.label ?? '');
+              // CSP JSON 的 o.label 实际是文本, 不是字母 —— 我们要
+              // 把 value 复制到 label 让 UI 能当字母前缀, 同时把
+              // o.label 当作 text 用。
+              const text = String(o.text ?? o.label ?? value).slice(0, 200);
+              return { label: value, value, text };
+            })
           : [],
-        correctAnswer: (q.correctAnswer ?? q.answer ?? '') as string | string[],
-        analysis: String(q.analysis ?? '').slice(0, 400),
+        correctAnswer: rawCorrect,
+        analysis: String((q as any).analysis ?? '').slice(0, 400),
         points: typeof q.points === 'number' ? q.points : 1,
-        topicHint: typeof q.topic === 'string' ? q.topic : undefined,
+        topicHint:
+          typeof (q as any).topic === 'string'
+            ? ((q as any).topic as string)
+            : undefined,
       });
     }
     sceneIndex.set(scene.id, {
