@@ -1,6 +1,6 @@
 {
   "id": "cm_imp_cspj2016j_v1",
-  "createdAt": "2026-08-12T15:11:57.031Z",
+  "createdAt": "2026-08-12T15:15:23.763Z",
   "collection": "csp-lecture",
   "stage": {
     "id": "cm_imp_cspj2016j_v1",
@@ -8,8 +8,8 @@
     "description": "2016年CCF NOIP普及组初赛真题,按CSP-J新题型改编: 选择题22题 (前20题1.5分,后2题5分,共40分)、阅读程序4题 (每题8分,共32分)、完善程序2题 (每题5个空,共28分), 总分100分。",
     "languageDirective": "zh-CN",
     "style": "tutor",
-    "createdAt": 1786547517030,
-    "updatedAt": 1786547517030,
+    "createdAt": 1786547723763,
+    "updatedAt": 1786547723763,
     "generatedAgentConfigs": [
       {
         "id": "imp_agent_cspj16j_0",
@@ -399,7 +399,7 @@
             {
               "id": "q13",
               "type": "single",
-              "question": "13. 下列程序的输出是（ ）。",
+              "question": "13. 有以下程序:",
               "options": [
                 {
                   "value": "A",
@@ -563,7 +563,7 @@
             {
               "id": "q18",
               "type": "single",
-              "question": "18. Lucia 和她的朋友以及朋友的朋友都在某社交网站上注册了账号。下图是他们之间的关系图,两个人之间有边相连代表这两个人是朋友,没有边相连代表不是朋友。Lucia 已经上传了一张照片,但是她不想让 Jacob 看见这张照片,那么她可以向（ ）分享该照片。",
+              "question": "18. Lucia 和她的朋友以及朋友的朋友都在某社交网站上注册了账号。下图是他们之间的关系图,两个人之间有边相连代表这两个人是朋友,没有边相连代表不是朋友。这个社交网站的规则是: 如果某人 A 向他（她）的朋友 B 分享了某张照片,那么 B 就可以对该照片进行评论;如果 B 评论了该照片,那么他（她）的所有朋友都可以看见这个评论以及被评论的照片,但是不能对该照片进行评论（除非 A 也向这些人分享了该照片）。现在 Lucia 已经上传了一张照片,但是她不想让 Jacob 看见这张照片,那么她可以向（ ）分享该照片。",
               "options": [
                 {
                   "value": "A",
@@ -585,7 +585,7 @@
               "answer": [
                 "B"
               ],
-              "analysis": "分享规则: 看到评论的人也能看到被评论的照片(但不能再评论除非 A 也直接分享给 Ta)。要 Jacob 看不见, 分享对象到 Jacob 的任何路径上不能有 Lucia→Ta 的可达性。Dana 朋友: John(无关), Eve; Eve 朋友: Michael(无关), Jacob (无法评论但可见照片 → Jacob 看见); Peter 朋友: Jacob; Charles 朋友: Jacob; Lena→Jacob; Monica 朋友: Sam, Peter→Jacob。",
+              "analysis": "规则: 看到评论的人也能看到照片(但不能再评论除非 A 也直接分享给 Ta)。要 Jacob 看不见, 分享对象到 Jacob 的任何路径上不能有 Lucia→Ta 的可达性。Lucia 朋友: Dana, Michael, Eve, Peter, Charles; Peter→Jacob, Charles→Jacob, Lena→Jacob (直接邻接); 分享 Dana/Eve/Monica, 评论链不经过 Peter/Charles/Lena 等到 Jacob 的路径。",
               "points": 1.5,
               "hasAnswer": true,
               "image": "/figures/csp-j-2016/q18-social.png",
@@ -715,8 +715,8 @@
           "enabled": false,
           "agentIds": []
         },
-        "createdAt": 1786547517030,
-        "updatedAt": 1786547517030,
+        "createdAt": 1786547723763,
+        "updatedAt": 1786547723763,
         "category": "choice"
       },
       {
@@ -760,7 +760,7 @@
             {
               "id": "q23",
               "type": "single",
-              "question": "23. 当程序的输入为\"1234560 7\"时,对应的输出是（ ）。",
+              "question": "23. 当程序的输入为\"1 2 3 4 5 6 0 7\"时,对应的输出是（ ）。",
               "options": [
                 {
                   "value": "A",
@@ -782,7 +782,7 @@
               "answer": [
                 "A"
               ],
-              "analysis": "输入 1,2,3,4,5,6,0,7: 0 终止本轮,7 因后面没新 0 也终止。max=6, min=1, sum=21, count=6, sum/count=3。输出 6,1,3。",
+              "analysis": "输入 1 2 3 4 5 6 0 7: 逐个读取, 读到 0 时本轮 while 退出 (前面已读取 6 个非零数, 1+2+3+4+5+6=21, count=6, max=6, min=1)。输出 6,1,21/6=3 → \"6,1,3\"。",
               "points": 8,
               "hasAnswer": true
             }
@@ -794,8 +794,8 @@
           "enabled": false,
           "agentIds": []
         },
-        "createdAt": 1786547517030,
-        "updatedAt": 1786547517030,
+        "createdAt": 1786547723763,
+        "updatedAt": 1786547723763,
         "category": "read"
       },
       {
@@ -863,8 +863,8 @@
           "enabled": false,
           "agentIds": []
         },
-        "createdAt": 1786547517030,
-        "updatedAt": 1786547517030,
+        "createdAt": 1786547723763,
+        "updatedAt": 1786547723763,
         "category": "read"
       },
       {
@@ -938,8 +938,8 @@
           "enabled": false,
           "agentIds": []
         },
-        "createdAt": 1786547517030,
-        "updatedAt": 1786547517030,
+        "createdAt": 1786547723763,
+        "updatedAt": 1786547723763,
         "category": "read"
       },
       {
@@ -1018,8 +1018,8 @@
           "enabled": false,
           "agentIds": []
         },
-        "createdAt": 1786547517030,
-        "updatedAt": 1786547517030,
+        "createdAt": 1786547723763,
+        "updatedAt": 1786547723763,
         "category": "read"
       },
       {
@@ -1219,8 +1219,8 @@
           "enabled": false,
           "agentIds": []
         },
-        "createdAt": 1786547517030,
-        "updatedAt": 1786547517030,
+        "createdAt": 1786547723763,
+        "updatedAt": 1786547723763,
         "category": "perfect"
       },
       {
@@ -1444,8 +1444,8 @@
           "enabled": false,
           "agentIds": []
         },
-        "createdAt": 1786547517030,
-        "updatedAt": 1786547517030,
+        "createdAt": 1786547723763,
+        "updatedAt": 1786547723763,
         "category": "perfect"
       }
     ]

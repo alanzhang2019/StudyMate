@@ -74,7 +74,7 @@ const choiceQuestions = [
     ans:['B'], a:'for 循环 b 从 1 到 c 共 c 次, s 自增 c 次, 所以 s = a + c。' },
 
   { id:'q13', points:1.5,
-    q:'13. 下列程序的输出是（ ）。',
+    q:'13. 有以下程序:',
     codeBlock: {
       language: 'cpp',
       lines: [
@@ -132,11 +132,11 @@ const choiceQuestions = [
 
   // q18: Lucia shares photo but doesn't want Jacob to see.
   { id:'q18', points:1.5,
-    q:'18. Lucia 和她的朋友以及朋友的朋友都在某社交网站上注册了账号。下图是他们之间的关系图,两个人之间有边相连代表这两个人是朋友,没有边相连代表不是朋友。Lucia 已经上传了一张照片,但是她不想让 Jacob 看见这张照片,那么她可以向（ ）分享该照片。',
+    q:'18. Lucia 和她的朋友以及朋友的朋友都在某社交网站上注册了账号。下图是他们之间的关系图,两个人之间有边相连代表这两个人是朋友,没有边相连代表不是朋友。这个社交网站的规则是: 如果某人 A 向他（她）的朋友 B 分享了某张照片,那么 B 就可以对该照片进行评论;如果 B 评论了该照片,那么他（她）的所有朋友都可以看见这个评论以及被评论的照片,但是不能对该照片进行评论（除非 A 也向这些人分享了该照片）。现在 Lucia 已经上传了一张照片,但是她不想让 Jacob 看见这张照片,那么她可以向（ ）分享该照片。',
     image: '/figures/csp-j-2016/q18-social.png',
     imageCaption: '图: 社交网络关系图',
     opts:[['A','Dana、Michael、Eve'],['B','Dana、Eve、Monica'],['C','Michael、Eve、Jacob'],['D','Michael、Peter、Monica']],
-    ans:['B'], a:'分享规则: 看到评论的人也能看到被评论的照片(但不能再评论除非 A 也直接分享给 Ta)。要 Jacob 看不见, 分享对象到 Jacob 的任何路径上不能有 Lucia→Ta 的可达性。Dana 朋友: John(无关), Eve; Eve 朋友: Michael(无关), Jacob (无法评论但可见照片 → Jacob 看见); Peter 朋友: Jacob; Charles 朋友: Jacob; Lena→Jacob; Monica 朋友: Sam, Peter→Jacob。' },
+    ans:['B'], a:'规则: 看到评论的人也能看到照片(但不能再评论除非 A 也直接分享给 Ta)。要 Jacob 看不见, 分享对象到 Jacob 的任何路径上不能有 Lucia→Ta 的可达性。Lucia 朋友: Dana, Michael, Eve, Peter, Charles; Peter→Jacob, Charles→Jacob, Lena→Jacob (直接邻接); 分享 Dana/Eve/Monica, 评论链不经过 Peter/Charles/Lena 等到 Jacob 的路径。' },
 
   { id:'q19', points:1.5,
     q:'19. 周末,小明和爸爸妈妈三个人一起动手做三道菜。小明负责洗菜,爸爸负责切菜,妈妈负责炒菜。假设做每道菜的顺序都是: 先洗菜 10 分钟,然后切菜 10 分钟,最后炒菜 10 分钟。那么做一道菜需要 30 分钟。注意: 两道不同的菜的相同步骤不可以同时进行。例如第一道菜和第二道的菜不能同时洗,也不能同时切。那么做完三道菜的最短时间需要（ ）分钟。',
@@ -189,9 +189,9 @@ const readPrograms = [
       '}',
     ],
     q: { id:'q23', points:8,
-      q:'23. 当程序的输入为"1234560 7"时,对应的输出是（ ）。',
+      q:'23. 当程序的输入为"1 2 3 4 5 6 0 7"时,对应的输出是（ ）。',
       opts:[['A','6,1,3'],['B','6,1,4'],['C','1,6,3'],['D','1,6,4']],
-      ans:['A'], a:'输入 1,2,3,4,5,6,0,7: 0 终止本轮,7 因后面没新 0 也终止。max=6, min=1, sum=21, count=6, sum/count=3。输出 6,1,3。' },
+      ans:['A'], a:'输入 1 2 3 4 5 6 0 7: 逐个读取, 读到 0 时本轮 while 退出 (前面已读取 6 个非零数, 1+2+3+4+5+6=21, count=6, max=6, min=1)。输出 6,1,21/6=3 → "6,1,3"。' },
   },
   {
     id:'sc_cspj16j_read2',
