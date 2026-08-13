@@ -8,27 +8,36 @@
 //   307 to the login page and the user lands there fine, but
 //   WeChat's in-app X5 browser does NOT follow the 307 — it
 //   renders the body and shows "404 This page could not be
-//   found." A plain 302 from middleware normally fixes this, BUT
-//   in Next.js 14 production `NextResponse.redirect()` also
-//   attaches the Location URL as a small text body (47 bytes),
-//   and `Transfer-Encoding: chunked` is set automatically. X5
-//   receives a 302 with a non-empty body and again refuses to
-//   follow the redirect, rendering the URL text as a "page not
-//   found" error.
-// Forcing `new NextResponse(null, …)` with an explicit
-// `Content-Length: 0` header produces a true empty body that X5
-// follows per HTTP spec.
+//   found."
 //
-// Why `NextResponse` and not the raw Web `Response`: the previous
-// attempt used `new Response(null, { status: 302, headers: {...} })`
-// and it compiled fine, but at runtime Next.js 14's middleware
-// pipeline threw a 500 Internal Server Error before the response
-// reached the edge — likely because the framework patches the
-// Response prototype for its own headers (e.g. `x-nextjs-redirect`)
-// and a vanilla `Response` instance slips past that path. Using
-// `new NextResponse(null, …)` keeps the body empty AND keeps the
-// response in the framework's expected type, so the 302 with no
-// body actually gets emitted.
+//   A plain 302 from middleware looks like the obvious fix, but
+//   it isn't. The Next.js 14 middleware pipeline post-processes
+//   every 3xx response that carries a `Location` header:
+//     * `NextResponse.redirect(url)`  → 302 with the URL as body
+//       (47 bytes) and `Transfer-Encoding: chunked`.
+//     * `new NextResponse(null, { status: 302, headers: { Location } })`
+//       → still ends up rewritten to relative Location + URL as
+//       body + chunked (the framework overrides your headers).
+//     * `new Response(null, …)`  → 500 Internal Server Error in
+//       the edge runtime (the framework patches `Response.prototype`
+//       and a vanilla instance crashes the pipeline).
+//     * `new NextResponse(null, { status: 302, Location: '/auth/...' })`
+//       → `ERR_INVALID_URL` (Location must be absolute).
+//     * `new NextResponse(null, { status: 302, Location: '<abs URL>' })`
+//       → Location is downgraded back to relative, body filled
+//       with URL, forced to chunked. Same as `NextResponse.redirect`.
+//   In every variant X5 receives a 3xx with a non-empty body and
+//   refuses to follow it, rendering the body text as "404 page
+//   not found".
+//
+// What works:
+//   Return a 200 OK HTML page with a `<meta http-equiv="refresh">`
+//   tag plus a `<script>window.location.replace(...)</script>`
+//   fallback. Status 200 means the framework leaves the body
+//   alone (no Location post-processing), and X5 happily parses
+//   both the meta tag and the script to navigate. The HTML is
+//   ~400 bytes and served from the edge, so the visible flash
+//   is sub-100ms.
 //
 // Two-layer gate:
 //   1. Middleware (here) does a fast cookie check. If the
@@ -68,34 +77,60 @@ export function middleware(req: NextRequest) {
     // by the JWT verification step.
     return NextResponse.next();
   }
-  // No session cookie — 302 (not 307) to the login page with
-  // the same query params the original page.tsx redirect used
-  // to send, so the login UI's "create student account" branch
-  // keeps working unchanged. We deliberately hand-roll a
-  // `new NextResponse(null, …)` instead of calling
-  // `NextResponse.redirect()`, because in Next.js 14 production
-  // the latter attaches the Location URL as response body and
-  // `Transfer-Encoding: chunked`, which causes WeChat's X5
-  // browser to render the body and show "404 page not found"
-  // instead of following the redirect. The explicit
-  // `Content-Length: 0` header prevents Next.js from falling
-  // back to chunked encoding. We use `NextResponse` (not the
-  // raw Web `Response`) because the framework's middleware
-  // pipeline patches the `Response` prototype and a vanilla
-  // instance crashes with 500 before the edge sees the response.
+  // No session cookie — gate the user behind the login page.
   //
-  // The Location header MUST be an absolute URL — Next.js's
-  // NextResponse constructor parses it via `new URL(...)` during
-  // construction and throws `ERR_INVALID_URL` for relative paths
-  // like `/auth/login?…`. We resolve against `req.url` so the
-  // response works on both the bare domain and any reverse-proxy
-  // prefix (e.g. `/ai/…`).
-  const loginUrl = new URL(LOGIN_REDIRECT_TARGET, req.url);
-  return new NextResponse(null, {
-    status: 302,
+  // Why not a plain 302 / 307:
+  //   `page.tsx`'s `redirect()` produces a 307 with the rendered
+  //   `_next/error` HTML in the body. `NextResponse.redirect()`
+  //   and even a hand-rolled `new NextResponse(null, { status: 302,
+  //   headers: { Location } })` both end up with the Location URL
+  //   as response body and `Transfer-Encoding: chunked`, because
+  //   Next.js 14's middleware pipeline post-processes any 3xx
+  //   response that carries a `Location` header — it treats them
+  //   as framework-issued redirects and rewrites the body. WeChat's
+  //   in-app X5 browser refuses to follow 3xx responses that have
+  //   a non-empty body: it renders the body text and shows "404
+  //   page not found" instead. The X5 bug is well-known and does
+  //   not affect 200 OK HTML pages.
+  //
+  // Workaround: return a 200 OK HTML page with a
+  //   <meta http-equiv="refresh"> tag and a JS fallback. Status 200
+  //   means the middleware response pipeline leaves the body alone
+  //   (no Location post-processing), and X5 happily parses both the
+  //   meta tag and the script to navigate. The HTML is tiny (~400
+  //   bytes) and served from the edge, so the visible flash is
+  //   sub-100ms.
+  const loginUrl = new URL(LOGIN_REDIRECT_TARGET, req.url).toString();
+  // Escape the URL for safe inclusion in:
+  //   * the `content` attribute of <meta http-equiv="refresh"> —
+  //     needs HTML entity escaping for `&`, `"`, `<`, `>`.
+  //   * a single-quoted JS string literal inside the inline
+  //     `<script>` — needs `\` and `'` escaped.
+  // We do both passes rather than `encodeURI` because `encodeURI`
+  // would over-escape `&` to `%26` and break the query string
+  // when it lands back in the address bar of the login page.
+  const safeUrl = loginUrl
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  const jsUrl = loginUrl.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+  const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="refresh" content="0; url=${safeUrl}">
+<title>\u6b63\u5728\u8df3\u8f6c\u2026</title>
+<script>window.location.replace('${jsUrl}');</script>
+</head>
+<body>
+<p>\u6b63\u5728\u8df3\u8f6c\u5230\u767b\u5f55\u9875\u2026</p>
+</body>
+</html>`;
+  return new NextResponse(html, {
+    status: 200,
     headers: {
-      Location: loginUrl.toString(),
-      "Content-Length": "0",
+      "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": "no-store",
       "X-Content-Type-Options": "nosniff",
     },
