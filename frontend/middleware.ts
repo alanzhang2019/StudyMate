@@ -100,7 +100,21 @@ export function middleware(req: NextRequest) {
   //   meta tag and the script to navigate. The HTML is tiny (~400
   //   bytes) and served from the edge, so the visible flash is
   //   sub-100ms.
-  const loginUrl = new URL(LOGIN_REDIRECT_TARGET, req.url).toString();
+  // `new URL(target, req.url)` resolves the relative path against
+  // `req.url`, but in Next.js 14 `req.url` is the internal listen
+  // URL of the Node process (e.g. `http://0.0.0.0:3001/...`),
+  // NOT the public host that the user typed in their browser.
+  // That makes the meta-refresh target `https://0.0.0.0:3001/...`
+  // which only works from inside the container, not from a
+  // WeChat client on the public internet. Re-anchor the URL to
+  // the request's `Host` header (or `X-Forwarded-Host` if the
+  // reverse proxy is passing it through), and the
+  // `X-Forwarded-Proto` (or default to `https` for prod).
+  const forwardedHost = req.headers.get("x-forwarded-host");
+  const host = forwardedHost ?? req.headers.get("host") ?? req.nextUrl.host;
+  const forwardedProto = req.headers.get("x-forwarded-proto");
+  const proto = forwardedProto ?? (req.nextUrl.protocol.replace(":", "") || "https");
+  const publicLoginUrl = `${proto}://${host}${LOGIN_REDIRECT_TARGET}`;
   // Escape the URL for safe inclusion in:
   //   * the `content` attribute of <meta http-equiv="refresh"> —
   //     needs HTML entity escaping for `&`, `"`, `<`, `>`.
@@ -109,12 +123,12 @@ export function middleware(req: NextRequest) {
   // We do both passes rather than `encodeURI` because `encodeURI`
   // would over-escape `&` to `%26` and break the query string
   // when it lands back in the address bar of the login page.
-  const safeUrl = loginUrl
+  const safeUrl = publicLoginUrl
     .replace(/&/g, "&amp;")
     .replace(/"/g, "&quot;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
-  const jsUrl = loginUrl.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+  const jsUrl = publicLoginUrl.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
   const html = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
