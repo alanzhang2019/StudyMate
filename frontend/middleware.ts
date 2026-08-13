@@ -83,10 +83,18 @@ export function middleware(req: NextRequest) {
   // raw Web `Response`) because the framework's middleware
   // pipeline patches the `Response` prototype and a vanilla
   // instance crashes with 500 before the edge sees the response.
+  //
+  // The Location header MUST be an absolute URL — Next.js's
+  // NextResponse constructor parses it via `new URL(...)` during
+  // construction and throws `ERR_INVALID_URL` for relative paths
+  // like `/auth/login?…`. We resolve against `req.url` so the
+  // response works on both the bare domain and any reverse-proxy
+  // prefix (e.g. `/ai/…`).
+  const loginUrl = new URL(LOGIN_REDIRECT_TARGET, req.url);
   return new NextResponse(null, {
     status: 302,
     headers: {
-      Location: LOGIN_REDIRECT_TARGET,
+      Location: loginUrl.toString(),
       "Content-Length": "0",
       "Cache-Control": "no-store",
       "X-Content-Type-Options": "nosniff",
