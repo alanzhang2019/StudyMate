@@ -616,7 +616,20 @@ function SingleChoiceQuestion({
               </span>
               <span
                 className={cn(
-                  'flex-1',
+                  // Base color must be set explicitly so the
+                  // option text stays visible regardless of
+                  // whether the parent (or any ancestor above
+                  // it) has the `.dark` class. Without the
+                  // base `text-gray-800 dark:text-gray-100` the
+                  // label inherits the body color, which on
+                  // some WebViews (WeChat X5, certain Android
+                  // Chrome builds) gets forced to the same
+                  // hue as the card background when the system
+                  // is in dark mode — the option label then
+                  // disappears until the user actually selects
+                  // it (because the selected state carries its
+                  // own `bg-violet-50` that lifts contrast).
+                  'flex-1 text-gray-800 dark:text-gray-100',
                   isReview && !isCorrectOpt && !selected && 'text-gray-400 dark:text-gray-500',
                 )}
               >
@@ -727,7 +740,16 @@ function MultipleChoiceQuestion({
               </span>
               <span
                 className={cn(
-                  'flex-1',
+                  // Same reasoning as the single-choice label
+                  // above: anchor the colour to
+                  // text-gray-800/dark:text-gray-100 so a UA
+                  // forcing dark-mode text colour can't render
+                  // the option text the same hue as the card
+                  // background. Without this, the user only
+                  // sees the label after clicking it (selected
+                  // state carries its own contrast via
+                  // bg-violet-50).
+                  'flex-1 text-gray-800 dark:text-gray-100',
                   isReview && !isCorrectOpt && !isSelected && 'text-gray-400 dark:text-gray-500',
                 )}
               >
@@ -894,7 +916,7 @@ function QuestionCard({
             <p className="text-sm font-medium text-gray-800 dark:text-gray-100 leading-relaxed">
               {question.question}
             </p>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
               {question.type === 'single'
                 ? t('quiz.singleChoice')
                 : question.type === 'multiple'
@@ -1786,7 +1808,7 @@ export function QuizView({
                 <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
                   {t('quiz.answering')}
                 </span>
-                <span className="text-xs text-gray-400 ml-1">
+                <span className="text-xs text-gray-400 dark:text-slate-500 ml-1">
                   {
                     Object.keys(answers).filter((k) => {
                       const a = answers[k];
@@ -1899,7 +1921,7 @@ export function QuizView({
               <p className="text-base font-semibold text-gray-700 dark:text-gray-200">
                 {t('quiz.aiGrading')}
               </p>
-              <p className="text-sm text-gray-400 mt-1">{t('quiz.aiGradingWait')}</p>
+              <p className="text-sm text-gray-400 dark:text-slate-500 mt-1">{t('quiz.aiGradingWait')}</p>
             </div>
             <div className="flex gap-1 mt-2">
               {[0, 1, 2].map((i) => (
@@ -2158,7 +2180,9 @@ function FinalScorePage({
           {levelLabel(level)}
         </div>
         {pct > 0 && (
-          <div className="text-xs text-slate-400 tabular-nums">{pct}%</div>
+          <div className="text-xs text-slate-400 dark:text-slate-500 tabular-nums">
+            {pct}%
+          </div>
         )}
       </div>
 
@@ -2174,15 +2198,15 @@ function FinalScorePage({
       {result.paperHistory && result.paperHistory.length > 1 && (
         <Card>
           <CardContent className="p-0">
-            <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
-              <span className="text-sm font-semibold text-slate-800">
+            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2">
+              <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
                 得分历史
               </span>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 rounded-full px-2 py-0.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-full px-2 py-0.5">
                 {result.paperHistory.length} 次交卷
               </span>
             </div>
-            <ol className="divide-y divide-slate-100">
+            <ol className="divide-y divide-slate-100 dark:divide-slate-700">
               {[...result.paperHistory]
                 .sort((a, b) => b.attemptIndex - a.attemptIndex)
                 .map((h, idx) => {
@@ -2207,19 +2231,19 @@ function FinalScorePage({
                       <div
                         className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold ${
                           isFirst
-                            ? 'bg-slate-100 text-slate-600'
+                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                             : isLatest
                               ? 'bg-violet-600 text-white'
-                              : 'bg-amber-100 text-amber-700'
+                              : 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300'
                         }`}
                       >
                         {isFirst ? '首' : `订${h.attemptIndex - 1}`}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold text-slate-800 tabular-nums">
+                        <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 tabular-nums">
                           {isFirst ? '首次交卷' : `第 ${h.attemptIndex} 次交卷（订正 ${h.attemptIndex - 1}）`}
                         </div>
-                        <div className="text-[11px] text-slate-500 tabular-nums">
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">
                           {h.submittedAt
                             ? formatInBeijing(
                                 h.submittedAt,
@@ -2254,7 +2278,7 @@ function FinalScorePage({
                                 ? 'text-emerald-600'
                                 : delta < 0
                                   ? 'text-red-600'
-                                  : 'text-slate-400'
+                                  : 'text-slate-400 dark:text-slate-500'
                             }`}
                           >
                             {delta > 0 ? '↑' : delta < 0 ? '↓' : '·'}{' '}
@@ -2273,7 +2297,7 @@ function FinalScorePage({
       {/* V3: 三类分项（单选题 / 程序阅读题 / 完善程序题） */}
       {useV3 && result.breakdown && result.breakdown.length > 0 && (
         <Card>
-          <CardContent className="p-0 divide-y divide-slate-100">
+          <CardContent className="p-0 divide-y divide-slate-100 dark:divide-slate-700">
             {result.breakdown.map((b) => {
               const catPct =
                 b.max > 0 ? Math.round((b.earned / b.max) * 100) : 0;
@@ -2284,10 +2308,10 @@ function FinalScorePage({
                   className="flex items-center gap-3 px-4 py-3"
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold text-slate-800">
+                    <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">
                       {b.label}
                     </div>
-                    <div className="text-[11px] text-slate-500 tabular-nums">
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">
                       {b.sceneCount} 个场景 · 得分占比 {catPct}%
                     </div>
                   </div>
@@ -2356,12 +2380,12 @@ function FinalScorePage({
                   <div className="flex items-start gap-3">
                     <div className="flex-1 min-w-0">
                       <div
-                        className="text-sm font-medium text-slate-800"
+                        className="text-sm font-medium text-slate-800 dark:text-slate-100"
                         title={s.title}
                       >
                         {displayTitle}
                       </div>
-                      <div className="text-[11px] text-slate-500 tabular-nums">
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">
                         答对 {s.correctCount} / {s.totalQuestions} 题 · {scenePct}%
                       </div>
                     </div>
@@ -2394,7 +2418,7 @@ function FinalScorePage({
                       Y". */}
                   {sceneHistory.length > 1 && (
                     <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] tabular-nums">
-                      <span className="text-slate-400 mr-0.5">历次:</span>
+                      <span className="text-slate-400 dark:text-slate-500 mr-0.5">历次:</span>
                       {sceneHistory.map((h) => {
                         const isFirst = h.attemptIndex === 1;
                         return (
@@ -2402,10 +2426,10 @@ function FinalScorePage({
                             key={h.attemptIndex}
                             className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 ${
                               isFirst
-                                ? 'border-slate-200 bg-slate-50 text-slate-600'
+                                ? 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                                 : h.score >= sceneHistory[sceneHistory.length - 2].score
-                                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                                  : 'border-amber-200 bg-amber-50 text-amber-700'
+                                  ? 'border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
+                                  : 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
                             }`}
                             title={
                               h.submittedAt
@@ -2476,7 +2500,7 @@ function FinalScorePage({
         </Button>
       </div>
 
-      <p className="text-center text-xs text-slate-400">
+      <p className="text-center text-xs text-slate-400 dark:text-slate-500">
         交卷后全 {result.sceneResults.length} scene 成绩已汇总写入排行榜。重新答题只重置当前 scene。
       </p>
 
