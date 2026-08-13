@@ -14,9 +14,21 @@
 //   and `Transfer-Encoding: chunked` is set automatically. X5
 //   receives a 302 with a non-empty body and again refuses to
 //   follow the redirect, rendering the URL text as a "page not
-//   found" error. Forcing `new Response(null, …)` with an
-//   explicit `Content-Length: 0` header produces a true empty
-//   body that X5 follows per HTTP spec.
+//   found" error.
+// Forcing `new NextResponse(null, …)` with an explicit
+// `Content-Length: 0` header produces a true empty body that X5
+// follows per HTTP spec.
+//
+// Why `NextResponse` and not the raw Web `Response`: the previous
+// attempt used `new Response(null, { status: 302, headers: {...} })`
+// and it compiled fine, but at runtime Next.js 14's middleware
+// pipeline threw a 500 Internal Server Error before the response
+// reached the edge — likely because the framework patches the
+// Response prototype for its own headers (e.g. `x-nextjs-redirect`)
+// and a vanilla `Response` instance slips past that path. Using
+// `new NextResponse(null, …)` keeps the body empty AND keeps the
+// response in the framework's expected type, so the 302 with no
+// body actually gets emitted.
 //
 // Two-layer gate:
 //   1. Middleware (here) does a fast cookie check. If the
@@ -60,15 +72,18 @@ export function middleware(req: NextRequest) {
   // the same query params the original page.tsx redirect used
   // to send, so the login UI's "create student account" branch
   // keeps working unchanged. We deliberately hand-roll a
-  // `new Response(null, …)` instead of calling
+  // `new NextResponse(null, …)` instead of calling
   // `NextResponse.redirect()`, because in Next.js 14 production
   // the latter attaches the Location URL as response body and
   // `Transfer-Encoding: chunked`, which causes WeChat's X5
   // browser to render the body and show "404 page not found"
   // instead of following the redirect. The explicit
   // `Content-Length: 0` header prevents Next.js from falling
-  // back to chunked encoding.
-  return new Response(null, {
+  // back to chunked encoding. We use `NextResponse` (not the
+  // raw Web `Response`) because the framework's middleware
+  // pipeline patches the `Response` prototype and a vanilla
+  // instance crashes with 500 before the edge sees the response.
+  return new NextResponse(null, {
     status: 302,
     headers: {
       Location: LOGIN_REDIRECT_TARGET,
