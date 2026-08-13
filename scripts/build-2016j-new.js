@@ -167,7 +167,7 @@ const choiceQuestions = [
     image: '/figures/csp-j-2016/q18-social.png',
     imageCaption: '图: 社交网络关系图',
     opts:[['A','Dana、Michael、Eve'],['B','Dana、Eve、Monica'],['C','Michael、Eve、Jacob'],['D','Michael、Peter、Monica']],
-    ans:['B'], a:'规则: 看到评论的人也能看到照片(但不能再评论除非 A 也直接分享给 Ta)。要 Jacob 看不见, 分享对象到 Jacob 的任何路径上不能有 Lucia→Ta 的可达性。Lucia 朋友: Dana, Michael, Eve, Peter, Charles; Peter→Jacob, Charles→Jacob, Lena→Jacob (直接邻接); 分享 Dana/Eve/Monica, 评论链不经过 Peter/Charles/Lena 等到 Jacob 的路径。' },
+    ans:['A'], a:'规则核心: 评论链只能通过 Lucia 的直接收件人扩散(非直接收件人看到照片但不能评论,链断)。要 Jacob 看不见, 收件人中不能含 Jacob 的直接朋友,也不能让评论链经由直接收件人触达 Jacob。Lucia 的直接朋友: Dana, Michael, Eve, Peter, Charles(注意 Monica 不是 Lucia 的直连)。Jacob 的直连: Peter, Charles, Lena。所以排除 Peter / Charles。剩下 Dana / Michael / Eve 单独任一分享, 评论都只到第一层(Lena 虽与 Jacob 邻接, 但 Lena 不是 Lucia 直接收件人, 不能继续评论, 链断), Jacob 看不见。Monica 本身不是 Lucia 直连朋友, 无法分享。答案 A。' },
 
   { id:'q19', points:1.5,
     q:'19. 周末,小明和爸爸妈妈三个人一起动手做三道菜。小明负责洗菜,爸爸负责切菜,妈妈负责炒菜。假设做每道菜的顺序都是: 先洗菜 10 分钟,然后切菜 10 分钟,最后炒菜 10 分钟。那么做一道菜需要 30 分钟。注意: 两道不同的菜的相同步骤不可以同时进行。例如第一道菜和第二道的菜不能同时洗,也不能同时切。那么做完三道菜的最短时间需要（ ）分钟。',

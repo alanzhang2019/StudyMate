@@ -1,6 +1,6 @@
 {
   "id": "cm_imp_cspj2016j_v1",
-  "createdAt": "2026-08-12T16:02:50.223Z",
+  "createdAt": "2026-08-13T00:35:53.465Z",
   "collection": "csp-lecture",
   "stage": {
     "id": "cm_imp_cspj2016j_v1",
@@ -8,8 +8,8 @@
     "description": "2016年CCF NOIP普及组初赛真题,按CSP-J新题型改编: 选择题22题 (前20题1.5分,后2题5分,共40分)、阅读程序4题 (每题8分,共32分)、完善程序2题 (每题5个空,共28分), 总分100分。",
     "languageDirective": "zh-CN",
     "style": "tutor",
-    "createdAt": 1786550570223,
-    "updatedAt": 1786550570223,
+    "createdAt": 1786581353465,
+    "updatedAt": 1786581353465,
     "generatedAgentConfigs": [
       {
         "id": "imp_agent_cspj16j_0",
@@ -604,9 +604,9 @@
               }
             ],
             "answer": [
-              "B"
+              "A"
             ],
-            "analysis": "规则: 看到评论的人也能看到照片(但不能再评论除非 A 也直接分享给 Ta)。要 Jacob 看不见, 分享对象到 Jacob 的任何路径上不能有 Lucia→Ta 的可达性。Lucia 朋友: Dana, Michael, Eve, Peter, Charles; Peter→Jacob, Charles→Jacob, Lena→Jacob (直接邻接); 分享 Dana/Eve/Monica, 评论链不经过 Peter/Charles/Lena 等到 Jacob 的路径。",
+            "analysis": "规则核心: 评论链只能通过 Lucia 的直接收件人扩散(非直接收件人看到照片但不能评论,链断)。要 Jacob 看不见, 收件人中不能含 Jacob 的直接朋友,也不能让评论链经由直接收件人触达 Jacob。Lucia 的直接朋友: Dana, Michael, Eve, Peter, Charles(注意 Monica 不是 Lucia 的直连)。Jacob 的直连: Peter, Charles, Lena。所以排除 Peter / Charles。剩下 Dana / Michael / Eve 单独任一分享, 评论都只到第一层(Lena 虽与 Jacob 邻接, 但 Lena 不是 Lucia 直接收件人, 不能继续评论, 链断), Jacob 看不见。Monica 本身不是 Lucia 直连朋友, 无法分享。答案 A。",
             "points": 1.5,
             "hasAnswer": true,
             "image": "/figures/csp-j-2016/q18-social.png",
@@ -736,8 +736,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786550570223,
-      "updatedAt": 1786550570223,
+      "createdAt": 1786581353465,
+      "updatedAt": 1786581353465,
       "category": "choice"
     },
     {
@@ -815,8 +815,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786550570223,
-      "updatedAt": 1786550570223,
+      "createdAt": 1786581353465,
+      "updatedAt": 1786581353465,
       "category": "read"
     },
     {
@@ -884,8 +884,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786550570223,
-      "updatedAt": 1786550570223,
+      "createdAt": 1786581353465,
+      "updatedAt": 1786581353465,
       "category": "read"
     },
     {
@@ -959,8 +959,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786550570223,
-      "updatedAt": 1786550570223,
+      "createdAt": 1786581353465,
+      "updatedAt": 1786581353465,
       "category": "read"
     },
     {
@@ -1039,8 +1039,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786550570223,
-      "updatedAt": 1786550570223,
+      "createdAt": 1786581353465,
+      "updatedAt": 1786581353465,
       "category": "read"
     },
     {
@@ -1240,8 +1240,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786550570223,
-      "updatedAt": 1786550570223,
+      "createdAt": 1786581353465,
+      "updatedAt": 1786581353465,
       "category": "perfect"
     },
     {
@@ -1465,8 +1465,8 @@
         "enabled": false,
         "agentIds": []
       },
-      "createdAt": 1786550570223,
-      "updatedAt": 1786550570223,
+      "createdAt": 1786581353465,
+      "updatedAt": 1786581353465,
       "category": "perfect"
     }
   ]
