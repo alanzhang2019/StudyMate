@@ -1488,17 +1488,31 @@ export function QuizView({
         Array.from(submitSentForScene.current),
       );
 
-      // 1. Force-submit the current scene if it has local
-      //    answers we haven't already pushed.
+      // True iff the current scene has any in-progress or
+      // previously-persisted answers that we should push now.
       const currentHasAnswers =
         localAnswersByScene.has(sceneId) &&
         Object.keys(localAnswersByScene.get(sceneId) || {}).length > 0;
+
+      // 1. Force-submit the current scene if it has local
+      //    answers we haven't already pushed. This is the
+      //    new Q3 behavior: always run the FULL grading
+      //    (choice locally + short_answer via AI) — even
+      //    for short_answer questions in a scene whose
+      //    per-scene 提交答案 button the student never
+      //    clicked. The previous implementation forced
+      //    short_answer to `correct: false` and the
+      //    student had to 重新答题 to recover the real
+      //    score; with gradeSceneFully, the AI grading
+      //    runs inline here as part of 交卷.
       if (currentHasAnswers && !alreadySentInThisPass.has(sceneId)) {
         const sceneAnswers = localAnswersByScene.get(sceneId)!;
-        const sceneResults =
-          results.length > 0
-            ? results
-            : gradeChoiceQuestions(questions, sceneAnswers);
+        const sceneResults = await gradeSceneFully(
+          sceneId,
+          questions,
+          sceneAnswers,
+          locale,
+        );
         const payload: ReportQuizPayload = {
           sceneId,
           totalQuestions: questions.length,
@@ -1507,10 +1521,6 @@ export function QuizView({
             return {
               questionId: q.id,
               choice: pickChoice(sceneAnswers[q.id]),
-              // If we have a graded result, use it; otherwise
-              // mark short-answer / ungraded questions as
-              // incorrect (better than crashing; the student
-              // can re-do via 重新答题 to get the real grade).
               correct: r ? r.status === 'correct' : false,
               ms: 0,
               points: q.points ?? 1,
@@ -1519,14 +1529,17 @@ export function QuizView({
         };
         await cspProgress.reportQuizSubmit(payload);
         alreadySentInThisPass.add(sceneId);
+        // Persist the freshly-computed results so a
+        // subsequent 重新答题 / 退出 / 进入 路径能找到
+        // them via readSubmittedState.
+        writeSubmittedResults(sceneId, sceneResults);
       }
 
-      // 2. Force-submit every OTHER quiz scene that has local
-      //    answers (from localStorage) but hasn't been
-      //    submitted yet. This covers the case where the
-      //    student answered scenes 1, 2, 3, … but only
-      //    clicked 交卷 at the end without ever hitting
-      //    提交答案.
+      // 2. Force-submit every OTHER quiz scene that has
+      //    local answers but hasn't been pushed yet.
+      //    Same Q3 behavior: run gradeSceneFully so
+      //    short_answer scenes get real AI grading
+      //    instead of being silently marked wrong.
       for (const s of allScenes) {
         if (!s || !s.id) continue;
         if (s.id === sceneId) continue; // already handled above
@@ -1537,7 +1550,13 @@ export function QuizView({
         if (!sceneAnswers || Object.keys(sceneAnswers).length === 0) continue;
         const sceneQuestions = c.questions;
         if (!Array.isArray(sceneQuestions) || sceneQuestions.length === 0) continue;
-        const sceneResults = gradeChoiceQuestions(sceneQuestions, sceneAnswers);
+
+        const sceneResults = await gradeSceneFully(
+          s.id,
+          sceneQuestions,
+          sceneAnswers,
+          locale,
+        );
         const payload: ReportQuizPayload = {
           sceneId: s.id,
           totalQuestions: sceneQuestions.length,
@@ -1554,6 +1573,7 @@ export function QuizView({
         };
         await cspProgress.reportQuizSubmit(payload);
         alreadySentInThisPass.add(s.id);
+        writeSubmittedResults(s.id, sceneResults);
       }
 
       const res = await fetch('/api/csp-quiz/finalize-classroom', {
@@ -1682,7 +1702,15 @@ export function QuizView({
     } finally {
       setIsFinalizing(false);
     }
-  }, [isFullPaper, results, questions, sceneId, classroomId, answers, cspProgress]);
+  }, [
+    isFullPaper,
+    sceneId,
+    classroomId,
+    answers,
+    questions,
+    cspProgress,
+    locale,
+  ]);
 
   // handleReset: triggered by "重新答题" on the total score
   // page. Calls /api/csp-quiz/reset for THIS scene, clears
