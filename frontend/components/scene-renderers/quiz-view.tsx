@@ -57,6 +57,60 @@ function pickChoice(value: string | string[] | undefined): string {
   return value;
 }
 
+/**
+ * Grade every question in a single scene end-to-end:
+ *   1. If the scene already has persisted `quizResults:<sceneId>`
+ *      (i.e. the student has hit 提交答案 before and the reviewing
+ *      cache is still there), return it as-is. This is the fast
+ *      path: no AI round-trips, no re-grading.
+ *   2. Otherwise, locally grade choice questions and concurrently
+ *      AI-grade short_answer questions via /api/quiz-grade. Returns
+ *      a single QuestionResult[] in the original question order
+ *      (matching the per-scene grading useEffect's contract).
+ *
+ * The function is intentionally exported (named export only) so
+ * vitest can import it from quiz-view.test.ts without rendering
+ * the whole component.
+ */
+export async function gradeSceneFully(
+  sceneId: string,
+  sceneQuestions: QuizQuestion[],
+  sceneAnswers: Record<string, string | string[]>,
+  locale: string,
+): Promise<QuestionResult[]> {
+  if (Object.keys(sceneAnswers).length === 0) return [];
+
+  // Fast path: re-use the reviewing cache the per-scene grading
+  // useEffect already wrote. Avoids redundant AI calls when the
+  // student has already finished this scene.
+  const persisted = readSubmittedState(sceneId);
+  if (persisted?.kind === 'reviewing' && persisted.results.length > 0) {
+    return persisted.results;
+  }
+
+  // Slow path: local grade for choice + AI grade for short_answer.
+  const choiceResults = gradeChoiceQuestions(sceneQuestions, sceneAnswers);
+  const shortAnswerQs = sceneQuestions.filter(isShortAnswer);
+  const shortResults = await Promise.all(
+    shortAnswerQs.map((q) =>
+      gradeShortAnswerQuestion(
+        q,
+        (sceneAnswers[q.id] as string) ?? '',
+        locale,
+      ),
+    ),
+  );
+
+  // Merge in original question order so callers can zip by index.
+  const allResultsMap = new Map<string, QuestionResult>();
+  for (const r of [...choiceResults, ...shortResults]) {
+    allResultsMap.set(r.questionId, r);
+  }
+  return sceneQuestions
+    .map((q) => allResultsMap.get(q.id))
+    .filter((r): r is QuestionResult => Boolean(r));
+}
+
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 type Phase = 'not_started' | 'answering' | 'submitting' | 'grading' | 'reviewing' | 'finalized';
