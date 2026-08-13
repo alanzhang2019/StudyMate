@@ -286,8 +286,19 @@ export default function AdminClassroomView({
           method: 'DELETE',
         });
         if (!res.ok) {
-          const data = (await res.json().catch(() => ({}))) as { error?: string };
-          throw new Error(data.error || `HTTP ${res.status}`);
+          // Prefer `details` over `error` so the actual cause
+          // (e.g. "EACCES: permission denied, unlink ...") reaches
+          // the operator — `error` is just a generic Chinese label
+          // like "failed to delete classroom" and is useless for
+          // diagnosis. The DELETE route sets `details` to
+          // `err.message` on 500, so EACCES / ENOENT / EROFS all
+          // surface here.
+          const data = (await res.json().catch(() => ({}))) as {
+            error?: string;
+            details?: string;
+          };
+          const msg = data.details || data.error || `HTTP ${res.status}`;
+          throw new Error(msg);
         }
         await load();
         router.refresh();
