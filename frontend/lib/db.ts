@@ -351,6 +351,39 @@ export function getDb(): Database {
     ON csp_quiz_submission_history (userId, classroomId, submittedAt DESC);
 `)
 
+  // 2026-08-13 AI 学习诊断报告持久化缓存
+  //
+  // 之前 analyze-paper 路由只走 in-process LRU 缓存 (5min TTL,
+  // 200 条), 学生每次重开页面 / 多副本部署 / 服务重启 都会
+  // 重新调 LLM, 烧 token 也烧时间. 现在改成 SQLite 持久化:
+  // 一份报告挂到 (userId, classroomId) 上, 错题变了就 UPSERT
+  // 覆盖, 错题没变就一直复用. 上线日期: 2026-08-13 Q2 实施.
+  //
+  // cacheKey 是 hash(classroomId + userId + sorted(wrongQuestionIds)),
+  // 调用方读出来会校验: 跟当前错题 hash 匹配就复用, 不匹配说明
+  // 错题变了, 触发重新生成. 这样 UPSERT 不会因为错题变了而误
+  // 命中老报告.
+  //
+  // PRIMARY KEY (userId, classroomId) — 同一用户同一套卷子永远
+  // 只保留最新一份报告, 旧报告直接覆盖, 不留历史.
+  _db.exec(`
+  CREATE TABLE IF NOT EXISTS csp_paper_analysis_reports (
+    userId TEXT NOT NULL,
+    classroomId TEXT NOT NULL,
+    cacheKey TEXT NOT NULL,
+    wrongQuestionIdsJson TEXT NOT NULL,
+    totalCount INTEGER NOT NULL,
+    wrongCount INTEGER NOT NULL,
+    score REAL NOT NULL,
+    reportJson TEXT NOT NULL,
+    generatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+    updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (userId, classroomId)
+  );
+  CREATE INDEX IF NOT EXISTS idx_csp_par_user_updated
+    ON csp_paper_analysis_reports (userId, updatedAt DESC);
+`)
+
   // CSP 初赛水平摸底：每个学生一行（PRIMARY KEY userId）
   // 上线日期：2026-07-26 + 摸底 spec 增量
   _db.exec(`
@@ -1017,6 +1050,93 @@ class PrismaCompatClient {
           'SELECT * FROM csp_quiz_submissions WHERE userId = ? ORDER BY submittedAt DESC',
         )
         .all(userId) as any[]
+    },
+  }
+  // 2026-08-13 AI 学习诊断报告持久化
+  //
+  // 之前用 in-process LRU 缓存 5min TTL, 服务重启就清空.
+  // 现在持久化到 csp_paper_analysis_reports 表, 一份报告挂
+  // 在 (userId, classroomId) 上, 错题变了就 UPSERT 覆盖, 错
+  // 题没变就一直复用, 跨设备跨部署跨服务重启都共享.
+  //
+  // 调用方约定:
+  //   1. computeCacheKey(classroomId, userId, wrongQuestionIds)
+  //      用与写入时同样的 hash 函数, 读出来的 cacheKey 跟它
+  //      匹配才说明错题列表没变, 直接复用 reportJson.
+  //   2. upsert 永远走同一份 cacheKey 计算规则, 错题变了
+  //      cacheKey 变了就覆盖成新报告.
+  cspPaperAnalysisReport = {
+    /**
+     * 读 (userId, classroomId) 下的最新报告 row. 找不到返回 null.
+     * 调用方需要自己校验 cacheKey 是否匹配当前错题, 这里不校验
+     * 因为错题列表本身在调用方手里, 这里只负责 IO.
+     */
+    findByUserClassroom: (userId: string, classroomId: string) => {
+      const row = getDb()
+        .prepare(
+          'SELECT * FROM csp_paper_analysis_reports WHERE userId = ? AND classroomId = ? LIMIT 1',
+        )
+        .get(userId, classroomId) as any
+      return row ?? null
+    },
+    /**
+     * 写一份报告. 同一 (userId, classroomId) 已存在就覆盖
+     * (cacheKey / reportJson / 各种计数 / updatedAt 全部更新),
+     * 不存在就 INSERT. 写完后返回最新 row.
+     */
+    upsert: (params: {
+      userId: string
+      classroomId: string
+      cacheKey: string
+      wrongQuestionIds: string[]
+      totalCount: number
+      wrongCount: number
+      score: number
+      reportJson: string
+    }) => {
+      const wrongJson = JSON.stringify(params.wrongQuestionIds)
+      getDb()
+        .prepare(
+          `INSERT INTO csp_paper_analysis_reports
+             (userId, classroomId, cacheKey, wrongQuestionIdsJson,
+              totalCount, wrongCount, score, reportJson,
+              generatedAt, updatedAt)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+           ON CONFLICT(userId, classroomId) DO UPDATE SET
+             cacheKey = excluded.cacheKey,
+             wrongQuestionIdsJson = excluded.wrongQuestionIdsJson,
+             totalCount = excluded.totalCount,
+             wrongCount = excluded.wrongCount,
+             score = excluded.score,
+             reportJson = excluded.reportJson,
+             updatedAt = datetime('now')`,
+        )
+        .run(
+          params.userId,
+          params.classroomId,
+          params.cacheKey,
+          wrongJson,
+          params.totalCount,
+          params.wrongCount,
+          params.score,
+          params.reportJson,
+        )
+      return this.cspPaperAnalysisReport.findByUserClassroom(
+        params.userId,
+        params.classroomId,
+      )
+    },
+    /**
+     * 删除某一卷子的报告, 用于 csp-progress 重置或重做时让老
+     * 报告跟着失效. 返回删除行数.
+     */
+    deleteByUserClassroom: (userId: string, classroomId: string) => {
+      const r = getDb()
+        .prepare(
+          'DELETE FROM csp_paper_analysis_reports WHERE userId = ? AND classroomId = ?',
+        )
+        .run(userId, classroomId)
+      return r.changes
     },
   }
   // csp_quiz_submission_history: append-only audit log of every
