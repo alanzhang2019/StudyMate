@@ -27,6 +27,16 @@
 //     pointer-events 变 none, 学生点不动。
 // 自管 state 后这两个问题都消失: open 走 useState, 遮罩 + 居中
 // 卡片 + ESC 关闭 + 背景点击关闭 全部手工实现, 不依赖 portal。
+//
+// 2026-08-13 加上 localStorage 持久化: 后端 SQLite 缓存 +
+// 前端 localStorage 二段缓存, 已生成的报告直接打开不重算.
+// - 打开 modal 时: 先从 localStorage 读; 命中且 classroomId
+//   匹配就直接渲染, 不发请求; 命中但 classroomId 不匹配 (用户
+//   切了别的卷子) 就清掉再请求.
+// - fetch 成功 (含 forceRefresh=true): 写回 localStorage, 让下
+//   次开 modal 直接秒开.
+// - localStorage read/write 失败 (隐私模式 / 配额超限) 全部吞
+//   掉, 不影响主流程.
 
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -157,6 +167,50 @@ interface Props {
   classroomId: string;
 }
 
+// ── localStorage 二级缓存 (2026-08-13) ─────────────────────────
+//
+// 后端 SQLite 缓存解决"服务重启/跨部署"场景, 前端 localStorage
+// 进一步避免"打开 modal 都要走一次网络请求"——初次返回秒开。
+//
+// 命名空间: `paper_analysis:<classroomId>`, 跟 userId 不挂钩
+// (localStorage 天然是当前用户的). 内容是整个 Report 对象
+// JSON.stringify 后的字符串. meta.cached 在序列化时会保留,
+// 反序列化回来后还是 true, 渲染时会继续显示 "缓存" 徽章.
+//
+// 读失败 (parse 错 / quota 错 / 隐私模式) 一律返回 null, 让
+// 上层走正常的 fetch 路径, 体验降级但不卡死.
+
+const STORAGE_PREFIX = 'paper_analysis:';
+
+function loadFromLocalStorage(classroomId: string): Report | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(STORAGE_PREFIX + classroomId);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Report;
+    // 防御: 缓存的 classroomId 必须匹配, 防止跨卷子串号
+    if (!parsed?.meta || parsed.meta.classroomId !== classroomId) {
+      window.localStorage.removeItem(STORAGE_PREFIX + classroomId);
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function saveToLocalStorage(report: Report): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(
+      STORAGE_PREFIX + report.meta.classroomId,
+      JSON.stringify(report),
+    );
+  } catch {
+    // 配额超限 / 隐私模式: 静默吞掉, 不影响主流程
+  }
+}
+
 export function PaperAnalysisReport({ open, onOpenChange, classroomId }: Props) {
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(false);
@@ -192,7 +246,11 @@ export function PaperAnalysisReport({ open, onOpenChange, classroomId }: Props) 
           `HTTP ${res.status}`;
         throw new Error(detail);
       }
-      setReport(json.report as Report);
+      const next = json.report as Report;
+      setReport(next);
+      // 写回 localStorage, 下次开 modal 直接秒开 (不管
+      // 这次是首次还是 force refresh)
+      saveToLocalStorage(next);
     } catch (e: any) {
       setError(e?.message ?? 'AI 分析失败，请稍后再试');
     } finally {
@@ -200,10 +258,19 @@ export function PaperAnalysisReport({ open, onOpenChange, classroomId }: Props) 
     }
   };
 
-  // open=false → false 时清理，避免下次打开看到旧数据闪烁
+  // open=true → 优先用 localStorage 里的旧报告秒开; 没有才
+  // 走 fetch. 切到别的 classroom 时 (open=true 但 classroomId
+  // 跟当前 report 不匹配) 也会自动重新拉.
   useEffect(() => {
     if (open) {
       if (!report || report.meta.classroomId !== classroomId) {
+        // 先尝试 localStorage 命中: 命中就直接渲染, 不打网络
+        const cached = loadFromLocalStorage(classroomId);
+        if (cached) {
+          setReport(cached);
+          return;
+        }
+        // 没有缓存 / classroomId 不匹配: 走网络
         void fetchReport(false);
       }
     } else {
