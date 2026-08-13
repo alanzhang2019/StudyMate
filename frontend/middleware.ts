@@ -8,8 +8,15 @@
 //   307 to the login page and the user lands there fine, but
 //   WeChat's in-app X5 browser does NOT follow the 307 — it
 //   renders the body and shows "404 This page could not be
-//   found." A plain 302 from middleware has no body, so X5
-//   follows it correctly and the user lands on the login page.
+//   found." A plain 302 from middleware normally fixes this, BUT
+//   in Next.js 14 production `NextResponse.redirect()` also
+//   attaches the Location URL as a small text body (47 bytes),
+//   and `Transfer-Encoding: chunked` is set automatically. X5
+//   receives a 302 with a non-empty body and again refuses to
+//   follow the redirect, rendering the URL text as a "page not
+//   found" error. Forcing `new Response(null, …)` with an
+//   explicit `Content-Length: 0` header produces a true empty
+//   body that X5 follows per HTTP spec.
 //
 // Two-layer gate:
 //   1. Middleware (here) does a fast cookie check. If the
@@ -37,21 +44,39 @@ const SESSION_COOKIE_NAMES = [
   "__Secure-next-auth.session-token",
 ];
 
+const LOGIN_REDIRECT_TARGET = "/auth/login?redirect=/csp-lecture&as=student";
+
 export function middleware(req: NextRequest) {
   const hasSessionCookie = SESSION_COOKIE_NAMES.some((name) =>
     req.cookies.has(name),
   );
   if (hasSessionCookie) {
+    // Pass through to the page; auth() inside the server component
+    // still enforces the redirect for users whose cookie was rejected
+    // by the JWT verification step.
     return NextResponse.next();
   }
   // No session cookie — 302 (not 307) to the login page with
   // the same query params the original page.tsx redirect used
   // to send, so the login UI's "create student account" branch
-  // keeps working unchanged.
-  const loginUrl = req.nextUrl.clone();
-  loginUrl.pathname = "/auth/login";
-  loginUrl.search = "?redirect=/csp-lecture&as=student";
-  return NextResponse.redirect(loginUrl, 302);
+  // keeps working unchanged. We deliberately hand-roll a
+  // `new Response(null, …)` instead of calling
+  // `NextResponse.redirect()`, because in Next.js 14 production
+  // the latter attaches the Location URL as response body and
+  // `Transfer-Encoding: chunked`, which causes WeChat's X5
+  // browser to render the body and show "404 page not found"
+  // instead of following the redirect. The explicit
+  // `Content-Length: 0` header prevents Next.js from falling
+  // back to chunked encoding.
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: LOGIN_REDIRECT_TARGET,
+      "Content-Length": "0",
+      "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff",
+    },
+  });
 }
 
 export const config = {
