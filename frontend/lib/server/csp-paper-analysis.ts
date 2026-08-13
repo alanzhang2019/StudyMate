@@ -206,6 +206,107 @@ function hashKey(parts: string[]): string {
   return createHash('sha256').update(parts.join('|')).digest('hex').slice(0, 32);
 }
 
+/**
+ * 公开：计算某次"用户 + 课堂 + 错题列表"的 cacheKey。
+ *
+ * 写报告 / 读报告必须走同一个函数, 否则 hash 不一致会导致
+ * 缓存永远不命中. 调用方在调用 generatePaperAnalysis 之前
+ * 也应该用这个函数自己算一次, 用来校验 db 里读出的报告
+ * 是不是对应当前错题列表.
+ *
+ * 算法: sha256(classroomId|userId|sortedWrongIds).sort() 是
+ * 关键, 不排序的话同一份错题但 entries 顺序不同会算出不同
+ * 的 cacheKey, 误判为"错题变了".
+ */
+export function computePaperAnalysisCacheKey(
+  userId: string,
+  classroomId: string,
+  wrongQuestionIds: string[],
+): string {
+  return hashKey([
+    classroomId,
+    userId,
+    ...[...wrongQuestionIds].sort(),
+  ]);
+}
+
+// ── 持久化缓存 (csp_paper_analysis_reports) ─────────────────────
+//
+// 2026-08-13 改造: 之前只用 in-process LRU (5min TTL), 服务重
+// 启 / 跨部署 / 跨进程都失效. 现在二段式缓存: 同进程内走 LRU
+// (热路径), 跨进程走 db 持久化. 命中后写回两级, 下次同进程
+// 再访问直接走 LRU, 不打 db.
+//
+// db 写入失败不能影响主流程: 报告仍然返回, 仅打印 warn 日志,
+// 下次访问还会再尝试写.
+
+function readPersistedReport(
+  userId: string,
+  classroomId: string,
+  cacheKey: string,
+): PaperAnalysisReport | null {
+  // 同步 — better-sqlite3 全程同步, 不需要 await.
+  let row: ReturnType<typeof db.cspPaperAnalysisReport.findByUserClassroom>;
+  try {
+    row = db.cspPaperAnalysisReport.findByUserClassroom(userId, classroomId);
+  } catch (err) {
+    log.warn('[analyze-paper] db read failed, falling through to LLM:', err);
+    return null;
+  }
+  if (!row) return null;
+  if (row.cacheKey !== cacheKey) {
+    // 错题变了, 老报告失效, 让上游重新生成
+    return null;
+  }
+  let parsed: PaperAnalysisReport;
+  try {
+    parsed = JSON.parse(row.reportJson) as PaperAnalysisReport;
+  } catch (err) {
+    // 报告 JSON 损坏 (例如老版本字段不兼容), 视为失效,
+    // 让上游重新生成. warn 一行方便线上排查.
+    log.warn('[analyze-paper] corrupted reportJson in db, falling through:', err);
+    return null;
+  }
+  // 重新挂上 meta: JSON round-trip 会丢 cached 标志, 这里补回
+  return {
+    ...parsed,
+    meta: {
+      ...parsed.meta,
+      classroomId, // 防止老 row 拿到错 classroom
+      cached: true,
+      generatedAt: row.generatedAt,
+    },
+  };
+}
+
+function writePersistedReport(args: {
+  userId: string;
+  classroomId: string;
+  cacheKey: string;
+  wrongQuestionIds: string[];
+  totalCount: number;
+  wrongCount: number;
+  score: number;
+  report: PaperAnalysisReport;
+}): void {
+  // 同步 — better-sqlite3 全程同步, 失败仅打印 warn,
+  // 不影响主流程 (best-effort).
+  try {
+    db.cspPaperAnalysisReport.upsert({
+      userId: args.userId,
+      classroomId: args.classroomId,
+      cacheKey: args.cacheKey,
+      wrongQuestionIds: args.wrongQuestionIds,
+      totalCount: args.totalCount,
+      wrongCount: args.wrongCount,
+      score: args.score,
+      reportJson: JSON.stringify(args.report),
+    });
+  } catch (err) {
+    log.warn('[analyze-paper] db write failed (non-fatal):', err);
+  }
+}
+
 // ── 错题聚合 ─────────────────────────────────────────────────────
 
 type AnswerEntry = {
@@ -625,19 +726,24 @@ export async function generatePaperAnalysis(
   }
 
   const knownIds = new Set(questions.map((q) => q.id));
-  const cacheKey = hashKey([
-    classroomId,
-    userId,
-    ...questions.map((q) => q.id).sort(),
-  ]);
+  const wrongIds = questions.map((q) => q.id);
+  const cacheKey = computePaperAnalysisCacheKey(userId, classroomId, wrongIds);
 
   if (!options.forceRefresh) {
-    const cached = cacheGet(cacheKey);
-    if (cached) {
+    // 一级缓存：同进程内的热路径, 5min TTL, 命中立刻返回
+    const hot = cacheGet(cacheKey);
+    if (hot) {
       return {
-        ...cached,
-        meta: { ...cached.meta, cached: true },
+        ...hot,
+        meta: { ...hot.meta, cached: true },
       };
+    }
+    // 二级缓存：db 持久化, 跨进程 / 跨部署 / 服务重启都生效
+    const cold = readPersistedReport(userId, classroomId, cacheKey);
+    if (cold) {
+      // 回填一级缓存, 后续同进程访问直接走 LRU
+      cachePut(cacheKey, cold);
+      return cold;
     }
   }
 
@@ -719,6 +825,20 @@ export async function generatePaperAnalysis(
       wrongQuestions: wrongQuestionsPayload,
     },
   };
+  // 一级缓存 (进程内)
   cachePut(cacheKey, report);
+  // 二级缓存 (db 持久化) — 同步调用, 失败仅 warn 不影响主流程.
+  // better-sqlite3 写入很快 (< 1ms), 没必要 async, 同步写完
+  // 直接返回报告, 学生体验更顺 (不用等 db 写完).
+  writePersistedReport({
+    userId,
+    classroomId,
+    cacheKey,
+    wrongQuestionIds: wrongIds,
+    totalCount,
+    wrongCount: questions.length,
+    score,
+    report,
+  });
   return report;
 }
