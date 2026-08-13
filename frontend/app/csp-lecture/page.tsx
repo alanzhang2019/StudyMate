@@ -62,6 +62,18 @@ type Lecture = {
   chapters: Chapter[];
 };
 
+// Bucket assignment is ID-driven rather than title-driven so
+// renames don't break the grouping. Both J (`cspj…j`) and S
+// (`csps…s`) 真题 land in the `paper` bucket.
+//
+// Hoisted to module scope so that the <ExpandChapterList> call
+// sites inside the top-level card components (`LectureCard`,
+// `PaperLectureCard`) can also consult this when deciding
+// whether to render the "查看上次成绩" entry.
+type Bucket = 'primer' | 'paper';
+const bucketOf = (id: string): Bucket =>
+  id.startsWith('cm_imp_cspj') || id.startsWith('cm_imp_csps') ? 'paper' : 'primer';
+
 async function listCspLectures(): Promise<Lecture[]> {
   let entries: string[] = [];
   try {
@@ -165,11 +177,9 @@ async function listCspLectures(): Promise<Lecture[]> {
   // 最新一年的卷子, 体验差。
   //
   // Bucket assignment is ID-driven rather than title-driven so
-  // renames don't break the grouping. Both J (`cspj…j`) and S
-  // (`csps…s`) 真题 land in the `paper` bucket.
-  type Bucket = 'primer' | 'paper';
-  const bucketOf = (id: string): Bucket =>
-    id.startsWith('cm_imp_cspj') || id.startsWith('cm_imp_csps') ? 'paper' : 'primer';
+  // renames don't break the grouping. (The actual `Bucket` type
+  // and `bucketOf` helper now live at module top level so the
+  // top-level card components can also call them.)
   const primerItems = items.filter((it) => bucketOf(it.id) === 'primer');
   const paperItems = items.filter((it) => bucketOf(it.id) === 'paper');
 
@@ -635,7 +645,11 @@ function LectureCard({ lecture }: { lecture: Lecture }) {
           </p>
         )}
         <div className="mt-auto">
-          <ExpandChapterList lectureId={lecture.id} chapters={lecture.chapters} />
+          <ExpandChapterList
+            lectureId={lecture.id}
+            chapters={lecture.chapters}
+            isPaper={bucketOf(lecture.id) === 'paper'}
+          />
         </div>
       </CardContent>
     </Card>
@@ -690,7 +704,11 @@ function PaperLectureCard({
           </p>
         )}
         <div className="mt-auto space-y-3">
-          <ExpandChapterList lectureId={lecture.id} chapters={lecture.chapters} />
+          <ExpandChapterList
+            lectureId={lecture.id}
+            chapters={lecture.chapters}
+            isPaper={bucketOf(lecture.id) === 'paper'}
+          />
           {pdfHref && (
             <a
               href={pdfHref}
