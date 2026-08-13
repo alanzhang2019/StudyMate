@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronRight, FileText, ListChecks, MousePointerClick, Folder } from 'lucide-react';
 import type { SceneType } from '@/lib/types/stage';
+import { PaperReportRow } from './PaperReportRow';
+import { PaperReportModal } from '@/components/csp-lecture/paper-report-modal';
+import type { PaperTrendItem } from '@/lib/types/paper-trend';
 
 type Chapter = {
   id: string;
@@ -18,6 +21,31 @@ const TYPE_META: Record<SceneType, { label: string; Icon: React.ComponentType<{ 
   pbl: { label: '项目', Icon: Folder },
 };
 
+// module-level cache for paper-trend (5min TTL).
+// 24 张真题卡都可能展开，缓存避免 24 次重复 fetch。
+type PaperTrendCache = { ts: number; data: PaperTrendItem[] };
+let _paperTrendCache: PaperTrendCache | null = null;
+const CACHE_TTL_MS = 5 * 60 * 1000;
+
+async function loadPaperTrend(): Promise<PaperTrendItem[] | null> {
+  const now = Date.now();
+  if (_paperTrendCache && now - _paperTrendCache.ts < CACHE_TTL_MS) {
+    return _paperTrendCache.data;
+  }
+  try {
+    const res = await fetch('/api/csp-quiz/paper-trend');
+    if (!res.ok) return null;
+    const json = await res.json();
+    const papers: PaperTrendItem[] = Array.isArray(json?.papers)
+      ? json.papers
+      : [];
+    _paperTrendCache = { ts: now, data: papers };
+    return papers;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Collapsible chapter list inside a single lecture card on the
  * public /csp-lecture page. Each row deep-links into the player at
@@ -30,11 +58,29 @@ const TYPE_META: Record<SceneType, { label: string; Icon: React.ComponentType<{ 
 export function ExpandChapterList({
   lectureId,
   chapters,
+  isPaper,
 }: {
   lectureId: string;
   chapters: Chapter[];
+  isPaper?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [paperList, setPaperList] = useState<PaperTrendItem[] | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  // 真题卡片：展开时拉 paper-trend（命中模块缓存，1 次/5min）
+  useEffect(() => {
+    if (!open || !isPaper) return;
+    let cancelled = false;
+    loadPaperTrend().then((data) => {
+      if (!cancelled) setPaperList(data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, isPaper]);
+
+  const myPaper = paperList?.find((p) => p.classroomId === lectureId) ?? null;
 
   if (chapters.length === 0) {
     return (
@@ -87,6 +133,15 @@ export function ExpandChapterList({
 
       {open && (
         <ol className="mt-3 space-y-1.5 border-l-2 border-indigo-100 pl-3">
+          {isPaper && paperList !== null && (
+            <li key="__paper_report__">
+              <PaperReportRow
+                classroomId={lectureId}
+                paper={myPaper}
+                onOpenModal={() => setModalOpen(true)}
+              />
+            </li>
+          )}
           {chapters.map((c) => {
             const meta = TYPE_META[c.type] ?? TYPE_META.slide;
             const Icon = meta.Icon;
@@ -124,6 +179,14 @@ export function ExpandChapterList({
             );
           })}
         </ol>
+      )}
+
+      {isPaper && (
+        <PaperReportModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          paper={myPaper}
+        />
       )}
     </div>
   );
