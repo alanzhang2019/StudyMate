@@ -304,7 +304,7 @@ const perfect2 = {
       ans:['B'], a:'二分条件 lbound < ubound。' },
     { id:'p2_4', points:3, q:'36. ④ 处应填（ ）。',
       opts:[['A','(lbound+ubound+1)>>1'], ['B','(lbound+ubound)>>1'], ['C','lbound+ubound+1'], ['D','(lbound+ubound>>1)+1']],
-      ans:['B'], a:'mid = (lbound+ubound)/2。' },
+      ans:['A'], a:'mid = (lbound+ubound+1)/2（向上取整），避免 lbound+1=ubound 时因 lbound=mid 不变导致死循环。' },
     { id:'p2_5', points:3, q:'37. ⑤ 处应填（ ）。',
       opts:[['A','count=len[i]/mid'], ['B','count+=len[i]'], ['C','count+=len[i]/mid'], ['D','count=len[i]']],
       ans:['C'], a:'累加每条绳子在当前 mid 长度下能切几段。' },

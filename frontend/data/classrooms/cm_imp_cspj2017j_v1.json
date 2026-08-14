@@ -1390,9 +1390,9 @@
               }
             ],
             "answer": [
-              "B"
+              "A"
             ],
-            "analysis": "mid = (lbound+ubound)/2。",
+            "analysis": "mid = (lbound+ubound+1)/2（向上取整），避免 lbound+1=ubound 时因 lbound=mid 不变导致死循环。",
             "points": 3,
             "hasAnswer": true
           },
