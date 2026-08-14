@@ -901,9 +901,9 @@
               }
             ],
             "answer": [
-              "D"
+              "B"
             ],
-            "analysis": "求最少的 0 翻转数使得 1 都在 0 前面（或类似最优分割）。NOIP 2017 第 25 题答案为 D=13。",
+            "analysis": "NOIP 2017 第 25 题标准答案为 B=11。",
             "points": 8,
             "hasAnswer": true
           }
