@@ -1161,9 +1161,9 @@
               }
             ],
             "answer": [
-              "C"
+              "A"
             ],
-            "analysis": "p 为奇数时 result = (result^2) mod m。",
+            "analysis": "p 为奇数时，把当前 x 乘入 result 并取模：result = result * x % m。",
             "points": 3,
             "hasAnswer": true
           },
@@ -1190,9 +1190,9 @@
               }
             ],
             "answer": [
-              "A"
+              "C"
             ],
-            "analysis": "每轮将 x 平方（实际还需要取模但答案按原始教材为 x*x）。",
+            "analysis": "每轮将 x 平方并取模，防止溢出：x = x * x % m。",
             "points": 3,
             "hasAnswer": true
           },
