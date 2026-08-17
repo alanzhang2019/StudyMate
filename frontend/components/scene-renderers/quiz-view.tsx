@@ -1537,11 +1537,13 @@ export function QuizView({
     // the finalize endpoint sums these to give a real "总分 / 满分"
     // rather than "答对题数 / 总题数".
     const pointsByQuestionId = new Map<string, number>(
-      questions.map((q) => [q.id, q.points ?? 1]),
+      questions
+        .filter((q) => q.type !== 'code_section')
+        .map((q) => [q.id, q.points ?? 1]),
     );
     const payload: ReportQuizPayload = {
       sceneId,
-      totalQuestions: questions.length,
+      totalQuestions: questions.filter((q) => q.type !== 'code_section').length,
       answers: results.map((r) => ({
         // Use the original question's `id` from the question
         // bank (not the result's, which is identical but we
@@ -2062,7 +2064,7 @@ export function QuizView({
                       return typeof a === 'string' && a.trim().length > 0;
                     }).length
                   }{' '}
-                  / {questions.length}
+                  / {questions.filter((q) => q.type !== 'code_section').length}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -2365,7 +2367,14 @@ export function QuizView({
               return typeof a === 'string' && a.trim().length > 0;
             }).length
           }
-          totalCount={questions.length}
+          // Exclude `code_section` sentinels from the total —
+          // they are paper-style dividers inserted by
+          // SceneRenderer's `buildMergedQuiz` and are not
+          // answerable. Without this filter the modal always
+          // reports N "未答" where N equals the number of
+          // sentinels (e.g. 6 for CSP-J 2021), even after
+          // the student answers every real question.
+          totalCount={questions.filter((q) => q.type !== 'code_section').length}
           onConfirm={handleFinalize}
           onCancel={() => setIsConfirming(false)}
         />
