@@ -2119,61 +2119,69 @@ export function QuizView({
 
             {/* Questions */}
             <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-              {questions.map((q, i) => {
+              {(() => {
                 // 真题卷 merged mode: a `code_section` sentinel
                 // marks a section divider. Render it as a
                 // paper-style code block (with optional
                 // section title and kind chip) instead of a
-                // question card. The index `i` is intentionally
-                // the array position, not the question number,
-                // so the sentinel slots into the page at the
-                // right vertical position; the next question
-                // uses `i + 1` for its "第 N 题" badge.
-                if (q.type === 'code_section') {
+                // question card. The `questionNumber` counter
+                // tracks only real questions, so the badge
+                // shows 1, 2, 3 ... for the first real
+                // question even when a sentinel sits at array
+                // index 0. Without this, a `code_section`
+                // inserted in front of the first scene (which
+                // has `kind` set but no `codeBlock`) would
+                // shift every badge by +1.
+                let questionNumber = 0;
+                return questions.map((q) => {
+                  if (q.type === 'code_section') {
+                    return (
+                      <CodeSectionBlock
+                        key={q.id}
+                        sectionTitle={q.sectionTitle}
+                        sectionKind={q.sectionKind}
+                        codeBlock={q.codeBlock}
+                      />
+                    );
+                  }
+                  const displayIndex = questionNumber;
+                  questionNumber += 1;
+                  if (q.type === 'single') {
+                    return (
+                      <SingleChoiceQuestion
+                        key={q.id}
+                        question={q}
+                        index={displayIndex}
+                        indexOffset={questionIndexOffset}
+                        value={answers[q.id] as string | undefined}
+                        onChange={(v) => handleSetAnswer(q.id, v)}
+                      />
+                    );
+                  }
+                  if (q.type === 'multiple') {
+                    return (
+                      <MultipleChoiceQuestion
+                        key={q.id}
+                        question={q}
+                        index={displayIndex}
+                        indexOffset={questionIndexOffset}
+                        value={answers[q.id] as string[] | undefined}
+                        onChange={(v) => handleSetAnswer(q.id, v)}
+                      />
+                    );
+                  }
                   return (
-                    <CodeSectionBlock
-                      key={q.id}
-                      sectionTitle={q.sectionTitle}
-                      sectionKind={q.sectionKind}
-                      codeBlock={q.codeBlock}
-                    />
-                  );
-                }
-                if (q.type === 'single') {
-                  return (
-                    <SingleChoiceQuestion
+                    <ShortAnswerQuestion
                       key={q.id}
                       question={q}
-                      index={i}
+                      index={displayIndex}
                       indexOffset={questionIndexOffset}
                       value={answers[q.id] as string | undefined}
                       onChange={(v) => handleSetAnswer(q.id, v)}
                     />
                   );
-                }
-                if (q.type === 'multiple') {
-                  return (
-                    <MultipleChoiceQuestion
-                      key={q.id}
-                      question={q}
-                      index={i}
-                      indexOffset={questionIndexOffset}
-                      value={answers[q.id] as string[] | undefined}
-                      onChange={(v) => handleSetAnswer(q.id, v)}
-                    />
-                  );
-                }
-                return (
-                  <ShortAnswerQuestion
-                    key={q.id}
-                    question={q}
-                    index={i}
-                    indexOffset={questionIndexOffset}
-                    value={answers[q.id] as string | undefined}
-                    onChange={(v) => handleSetAnswer(q.id, v)}
-                  />
-                );
-              })}
+                });
+              })()}
             </div>
           </motion.div>
         )}
@@ -2245,29 +2253,64 @@ export function QuizView({
 
               {codeBlock && <CodeBlockView block={codeBlock} />}
 
-              {questions.map((q, i) => {
+              {(() => {
                 // 真题卷 merged mode: render the section
                 // divider (heading + kind chip + code listing)
                 // at the same vertical position as in
                 // answering, so the post-grading report reads
-                // as one continuous document.
-                if (q.type === 'code_section') {
+                // as one continuous document. The
+                // `questionNumber` counter mirrors the
+                // answering-phase counter so the reviewing
+                // badges line up 1:1 with the badges the
+                // student saw while answering.
+                let questionNumber = 0;
+                return questions.map((q) => {
+                  if (q.type === 'code_section') {
+                    return (
+                      <CodeSectionBlock
+                        key={q.id}
+                        sectionTitle={q.sectionTitle}
+                        sectionKind={q.sectionKind}
+                        codeBlock={q.codeBlock}
+                      />
+                    );
+                  }
+                  const displayIndex = questionNumber;
+                  questionNumber += 1;
+                  const r = resultMap[q.id];
+                  if (q.type === 'single') {
+                    return (
+                      <SingleChoiceQuestion
+                        key={q.id}
+                        question={q}
+                        index={displayIndex}
+                        indexOffset={questionIndexOffset}
+                        value={answers[q.id] as string | undefined}
+                        onChange={() => {}}
+                        disabled
+                        result={r}
+                      />
+                    );
+                  }
+                  if (q.type === 'multiple') {
+                    return (
+                      <MultipleChoiceQuestion
+                        key={q.id}
+                        question={q}
+                        index={displayIndex}
+                        indexOffset={questionIndexOffset}
+                        value={answers[q.id] as string[] | undefined}
+                        onChange={() => {}}
+                        disabled
+                        result={r}
+                      />
+                    );
+                  }
                   return (
-                    <CodeSectionBlock
-                      key={q.id}
-                      sectionTitle={q.sectionTitle}
-                      sectionKind={q.sectionKind}
-                      codeBlock={q.codeBlock}
-                    />
-                  );
-                }
-                const r = resultMap[q.id];
-                if (q.type === 'single') {
-                  return (
-                    <SingleChoiceQuestion
+                    <ShortAnswerQuestion
                       key={q.id}
                       question={q}
-                      index={i}
+                      index={displayIndex}
                       indexOffset={questionIndexOffset}
                       value={answers[q.id] as string | undefined}
                       onChange={() => {}}
@@ -2275,34 +2318,8 @@ export function QuizView({
                       result={r}
                     />
                   );
-                }
-                if (q.type === 'multiple') {
-                  return (
-                    <MultipleChoiceQuestion
-                      key={q.id}
-                      question={q}
-                      index={i}
-                      indexOffset={questionIndexOffset}
-                      value={answers[q.id] as string[] | undefined}
-                      onChange={() => {}}
-                      disabled
-                      result={r}
-                    />
-                  );
-                }
-                return (
-                  <ShortAnswerQuestion
-                    key={q.id}
-                    question={q}
-                    index={i}
-                    indexOffset={questionIndexOffset}
-                    value={answers[q.id] as string | undefined}
-                    onChange={() => {}}
-                    disabled
-                    result={r}
-                  />
-                );
-              })}
+                });
+              })()}
             </div>
           </motion.div>
         )}
