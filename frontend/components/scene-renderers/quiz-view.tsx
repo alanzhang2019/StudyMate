@@ -16,6 +16,8 @@ import {
   ListChecks,
   Code2,
   PencilLine,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/hooks/use-i18n';
@@ -111,6 +113,59 @@ export async function gradeSceneFully(
     .filter((r): r is QuestionResult => Boolean(r));
 }
 
+/**
+ * Per-process Set of "collapsed" code-block signatures, shared
+ * by every `CodeBlockView` rendered in this page load. The set
+ * is created exactly once via a module-level `useState`-on-
+ * mount trick (`useState(() => new Set())`) so re-renders
+ * don't reset the user's "I expanded this block" choices.
+ *
+ * Why a module-level state instead of useState inside the
+ * component:
+ *   - We want ALL `CodeBlockView` instances rendered on the
+ *     page (a single merged 真题卷 can have 5 of them) to
+ *     share the same collapsed set. A useState inside
+ *     CodeBlockView would give each block its own state, and
+ *     every block would start as "default collapsed" — so the
+ *     user could not persist a manual expansion while
+ *     navigating.
+ *   - We do NOT want a global Zustand store just for this
+ *     tiny piece of ephemeral UI state. A module-scope `useState`
+ *     gives us the right balance: in-memory only (no
+ *     localStorage), shared across all instances, re-initialized
+ *     on hard refresh.
+ *
+ * Why a Set keyed by string instead of a plain object map:
+ *   - A Set gives O(1) `has` / `add` / `delete`, which is the
+ *     only operation we perform on it from the renderer.
+ *   - Keys are derived from `language|lineCount|firstLine`
+ *     so two different code listings in the same paper
+ *     don't share collapsed state (see `blockKey` inside
+ *     `CodeBlockView`).
+ */
+function useCodeBlockCollapsed() {
+  const [set, setSet] = useState<Set<string>>(() => new Set());
+  // `toggle` returns a fresh Set so React notices the change.
+  // Mutating the existing Set in place would also work for
+  // re-render purposes (the consumer only reads `has`), but
+  // a fresh Set is safer if a future caller ever calls
+  // `setState(prev => ...)` style updates against it.
+  return {
+    has: (key: string) => set.has(key),
+    toggle: (key: string) => {
+      setSet((prev) => {
+        const next = new Set(prev);
+        if (next.has(key)) {
+          next.delete(key);
+        } else {
+          next.add(key);
+        }
+        return next;
+      });
+    },
+  };
+}
+
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 type Phase = 'not_started' | 'answering' | 'submitting' | 'grading' | 'reviewing' | 'finalized';
@@ -126,6 +181,18 @@ interface QuizViewProps {
   readonly classroomId: string;
   readonly codeBlock?: QuizCodeBlock;
   readonly kind?: QuizKind;
+  /**
+   * 真题卷 "one-page" merged mode (Aug 2026):
+   *
+   * When the SceneRenderer flattens a stage's N quiz scenes
+   * into a single virtual scene, it passes these two fields
+   * so the cover can show the *combined* question count
+   * (e.g. "共 43 题") and the first scene's original title
+   * (e.g. "一、单项选择题"). When omitted, the cover shows
+   * the per-scene count (legacy single-scene behaviour).
+   */
+  readonly mergedTitle?: string;
+  readonly mergedTotalPoints?: number;
   /**
    * 0-based offset added to the per-question local index
    * when displaying the question number on the QuestionCard.
@@ -250,8 +317,45 @@ function CodeBlockView({ block }: { block: QuizCodeBlock }) {
   const maxLineNo = startLine + block.lines.length - 1;
   const gutterDigits = Math.max(2, String(maxLineNo).length);
   const pad = (n: number) => String(n).padStart(gutterDigits, '0');
+
+  // 真题卷 "one-page" mode (Aug 2026): the previous version
+  // capped every code block at `max-h-[40vh]` and forced the
+  // student to scroll inside the block, which was a horrible
+  // UX on small screens (the user explicitly flagged
+  // "代码部分需要小屏滚动"). New rules:
+  //   - Short listings (≤ SHORT_CODE_LINE_THRESHOLD lines) are
+  //     always rendered in full — the block grows to its
+  //     natural height with no inner scroll.
+  //   - Long listings collapse to a fixed preview window
+  //     (LONG_CODE_PREVIEW_LINES visible lines) with a
+  //     "展开全部 N 行" toggle. Default state: collapsed, so
+  //     the page opens quickly and the student chooses when
+  //     to spend the vertical space on a 50-line program.
+  //   - Each block tracks its own collapsed state via a
+  //     `Set` of block signatures inside this component's
+  //     instance — the simplest, no-prop, no-effect design
+  //     that survives re-renders without re-collapsing
+  //     blocks the user has already expanded.
+  const SHORT_CODE_LINE_THRESHOLD = 18;
+  const LONG_CODE_PREVIEW_LINES = 14;
+  const isLong = block.lines.length > SHORT_CODE_LINE_THRESHOLD;
+  // Key per block by language + line count + first line
+  // content, so two distinct listings in the same paper
+  // don't share a collapsed state.
+  const blockKey = `${block.language}|${block.lines.length}|${block.lines[0] ?? ''}`;
+  const collapsedSet = useCodeBlockCollapsed();
+  const collapsed = collapsedSet.has(blockKey);
+
+  const toggleCollapsed = useCallback(() => {
+    collapsedSet.toggle(blockKey);
+  }, [collapsedSet, blockKey]);
+
+  const visibleLines = isLong && collapsed
+    ? block.lines.slice(0, LONG_CODE_PREVIEW_LINES)
+    : block.lines;
+
   return (
-    <div className="rounded-lg border-2 border-slate-300 dark:border-slate-600 overflow-hidden bg-white dark:bg-slate-800 shadow-sm max-h-[40vh] flex flex-col">
+    <div className="rounded-lg border-2 border-slate-300 dark:border-slate-600 overflow-hidden bg-white dark:bg-slate-800 shadow-sm flex flex-col">
       {(block.title || block.description) && (
         <div className="px-4 py-2.5 border-b border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/50 shrink-0">
           {block.title && (
@@ -270,18 +374,17 @@ function CodeBlockView({ block }: { block: QuizCodeBlock }) {
           gutter and the code as siblings inside the same flex
           row, so the line number and the code share a single
           1px horizontal divider and stay perfectly aligned
-          even if the user zooms in. The wrapper is
-          `overflow-y-auto` so blocks longer than the parent's
-          `max-h-[40vh]` (set on the outer div above) scroll
-          inside the code block instead of pushing the
-          questions below the viewport. We add `min-h-0` so
-          flexbox's default min-content auto doesn't let this
-          child grow past the outer `max-h-[40vh]` cap — without
-          it the long 52-line perfect-program blocks (2016
-          完善程序 (2)) push the questions below the fold and
-          the page becomes unscrollable. */}
-      <div className="font-mono text-[12.5px] leading-[1.95] text-slate-800 dark:text-slate-100 overflow-y-auto flex-1 min-h-0">
-        {block.lines.map((line, i) => (
+          even if the user zooms in.
+
+          Aug 2026: removed the `max-h-[40vh]` + `overflow-y-auto`
+          pair — every block now grows to its natural height
+          (or to a 14-line preview when collapsed). The
+          outer page (the question list scroll container)
+          owns the scrollbar, so the code block can be
+          as long as it needs to be without trapping the
+          user inside a tiny sub-scroll. */}
+      <div className="font-mono text-[12.5px] leading-[1.95] text-slate-800 dark:text-slate-100">
+        {visibleLines.map((line, i) => (
           <div
             key={`row-${i}`}
             className="flex items-stretch border-b border-slate-200 dark:border-slate-700 last:border-b-0 hover:bg-slate-50/60 dark:hover:bg-slate-700/40 transition-colors"
@@ -307,12 +410,121 @@ function CodeBlockView({ block }: { block: QuizCodeBlock }) {
             </pre>
           </div>
         ))}
+        {/* Collapsed-mode fade: when the block is folded
+            we paint a soft white→transparent gradient over
+            the last visible row so the user can tell the
+            listing is truncated. Pointer events are
+            disabled so the gradient never intercepts
+            clicks meant for the toggle button below. */}
+        {isLong && collapsed && (
+          <div className="pointer-events-none -mt-10 h-10 bg-gradient-to-b from-transparent to-white dark:to-slate-800" />
+        )}
       </div>
+      {/* Expand / collapse toggle (long blocks only) */}
+      {isLong && (
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          className="w-full px-3 py-2 text-[11px] font-medium text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-1.5"
+          aria-expanded={!collapsed}
+        >
+          {collapsed ? (
+            <>
+              <ChevronDown className="w-3.5 h-3.5" />
+              展开全部 {block.lines.length} 行
+              <span className="text-slate-400 ml-1">
+                (还隐藏 {block.lines.length - LONG_CODE_PREVIEW_LINES} 行)
+              </span>
+            </>
+          ) : (
+            <>
+              <ChevronUp className="w-3.5 h-3.5" />
+              收起
+            </>
+          )}
+        </button>
+      )}
       {/* Footer — language tag so the block looks like a labelled listing */}
       <div className="px-3 py-1.5 border-t border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/50 text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5 shrink-0">
         <span className="inline-block w-1.5 h-1.5 rounded-full bg-slate-400" />
         {block.language}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Section divider rendered for `code_section` sentinels
+ * (真题卷 merged mode). Wraps the section's `codeBlock` in
+ * a heading + kind chip so the student sees the part title
+ * ("二、阅读程序题（1）：质数统计") and type tag
+ * ("阅读程序题") above the listing, mimicking the cover
+ * they would have seen in the per-scene render.
+ *
+ * If the sentinel has no `codeBlock` (e.g. the choice scene
+ * of CSP-J 2021 has no program listing, just a heading),
+ * we still render the heading so the page is scannable.
+ */
+function CodeSectionBlock({
+  sectionTitle,
+  sectionKind,
+  codeBlock,
+}: {
+  sectionTitle?: string;
+  sectionKind?: QuizKind;
+  codeBlock?: QuizCodeBlock;
+}) {
+  const kindMeta: Record<
+    QuizKind,
+    { label: string; Icon: typeof PieChart; ring: string; bg: string; text: string }
+  > = {
+    choice: {
+      label: '单项选择题',
+      Icon: ListChecks,
+      ring: 'ring-indigo-200/60',
+      bg: 'bg-indigo-50',
+      text: 'text-indigo-700',
+    },
+    'code-reading': {
+      label: '阅读程序题',
+      Icon: Code2,
+      ring: 'ring-sky-200/60',
+      bg: 'bg-sky-50',
+      text: 'text-sky-700',
+    },
+    'code-completion': {
+      label: '完善程序题',
+      Icon: PencilLine,
+      ring: 'ring-violet-300/60',
+      bg: 'bg-violet-50',
+      text: 'text-violet-700',
+    },
+  };
+  const meta = sectionKind ? kindMeta[sectionKind] : null;
+
+  return (
+    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white/60 dark:bg-slate-800/40 p-4 space-y-3 shadow-sm">
+      <div className="flex flex-wrap items-center gap-2">
+        {sectionTitle && (
+          <h4 className="text-base font-bold text-slate-800 dark:text-slate-100">
+            {sectionTitle}
+          </h4>
+        )}
+        {meta && (
+          <span
+            className={cn(
+              'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ring-1',
+              meta.bg,
+              meta.ring,
+              meta.text,
+            )}
+          >
+            <meta.Icon className="w-3 h-3" />
+            {meta.label}
+          </span>
+        )}
+      </div>
+      {codeBlock && <CodeBlockView block={codeBlock} />}
     </div>
   );
 }
@@ -383,6 +595,12 @@ function QuizCover({
    *  the chapter so the student sees the global numbering
    *  even before pressing "开始答题". */
   indexOffset = 0,
+  /** 真题卷 merged mode: when set, the cover shows the
+   *  first scene's original title (e.g. "一、单项选择题")
+   *  and the question count is the *total* across the
+   *  whole exam (43 for CSP-J 2021), not the per-scene
+   *  count. */
+  mergedTitle,
   onStart,
 }: {
   questionCount: number;
@@ -390,6 +608,7 @@ function QuizCover({
   /** High-level quiz type; defaults to "choice" if omitted. */
   kind?: QuizKind;
   indexOffset?: number;
+  mergedTitle?: string;
   onStart: () => void;
 }) {
   const { t } = useI18n();
@@ -477,8 +696,19 @@ function QuizCover({
         transition={{ delay: 0.1 }}
         className="text-center z-10"
       >
-        <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">{t('quiz.title')}</h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('quiz.subtitle')}</p>
+        {/* 真题卷 merged mode: show the exam's full title
+            (e.g. "2021年入门级CSP-J初赛真题卷") so the cover
+            telegraphs the entire paper instead of just the
+            first scene. The original generic title is
+            replaced when mergedTitle is provided. */}
+        <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 max-w-md px-4">
+          {mergedTitle ?? t('quiz.title')}
+        </h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          {mergedTitle
+            ? `本次考试共 ${questionCount} 道题 · 一页连续作答，无需翻页`
+            : t('quiz.subtitle')}
+        </p>
       </motion.div>
 
       <motion.div
@@ -1107,6 +1337,8 @@ export function QuizView({
   codeBlock,
   kind,
   questionIndexOffset = 0,
+  mergedTitle,
+  mergedTotalPoints,
 }: QuizViewProps) {
   const { t, locale } = useI18n();
   const cspProgress = useCspProgress();
@@ -1150,13 +1382,26 @@ export function QuizView({
     }
   }
 
-  const totalPoints = useMemo(
-    () => questions.reduce((sum, q) => sum + (q.points ?? 1), 0),
-    [questions],
-  );
+  const totalPoints = useMemo(() => {
+    // 真题卷 merged mode: total points are pre-computed by the
+    // SceneRenderer (which has visibility over all scenes in
+    // the stage, including the per-scene points we've already
+    // summed during the merge). When `mergedTotalPoints` is
+    // passed in we trust it; otherwise we sum the per-question
+    // points of *this* scene. Sentinels (`code_section`) carry
+    // no points and are filtered out.
+    if (typeof mergedTotalPoints === 'number') return mergedTotalPoints;
+    return questions
+      .filter((q) => q.type !== 'code_section')
+      .reduce((sum, q) => sum + (q.points ?? 1), 0);
+  }, [questions, mergedTotalPoints]);
 
   const allAnswered = useMemo(() => {
     return questions.every((q) => {
+      // `code_section` sentinels are visual dividers, not
+      // answerable items, so they can never block the
+      // "submit" button.
+      if (q.type === 'code_section') return true;
       const a = answers[q.id];
       if (!a) return false;
       if (Array.isArray(a)) return a.length > 0;
@@ -1784,10 +2029,11 @@ export function QuizView({
             className="flex-1"
           >
             <QuizCover
-              questionCount={questions.length}
+              questionCount={questions.filter((q) => q.type !== 'code_section').length}
               totalPoints={totalPoints}
               kind={kind}
               indexOffset={questionIndexOffset}
+              mergedTitle={mergedTitle}
               onStart={() => setPhase('answering')}
             />
           </motion.div>
@@ -1854,7 +2100,17 @@ export function QuizView({
 
             {/* Code block (paper-style) — sticky-style: scrolled with the list so the
                 student can always scroll back up to refer to the program. Rendered
-                above the questions, full width. */}
+                above the questions, full width.
+
+                In 真题卷 merged mode (Aug 2026) the scene-level
+                `codeBlock` is undefined — each section's code
+                listing is instead embedded as a `code_section`
+                sentinel inside the `questions` array (see the
+                SceneRenderer `buildMergedQuiz` for the merge
+                algorithm), so the question list below renders
+                one continuous page with all code listings in
+                place. The fallback below only fires for
+                single-scene classrooms (随堂练习 etc.). */}
             {codeBlock && (
               <div className="px-6 pt-4">
                 <CodeBlockView block={codeBlock} />
@@ -1864,6 +2120,25 @@ export function QuizView({
             {/* Questions */}
             <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
               {questions.map((q, i) => {
+                // 真题卷 merged mode: a `code_section` sentinel
+                // marks a section divider. Render it as a
+                // paper-style code block (with optional
+                // section title and kind chip) instead of a
+                // question card. The index `i` is intentionally
+                // the array position, not the question number,
+                // so the sentinel slots into the page at the
+                // right vertical position; the next question
+                // uses `i + 1` for its "第 N 题" badge.
+                if (q.type === 'code_section') {
+                  return (
+                    <CodeSectionBlock
+                      key={q.id}
+                      sectionTitle={q.sectionTitle}
+                      sectionKind={q.sectionKind}
+                      codeBlock={q.codeBlock}
+                    />
+                  );
+                }
                 if (q.type === 'single') {
                   return (
                     <SingleChoiceQuestion
@@ -1971,6 +2246,21 @@ export function QuizView({
               {codeBlock && <CodeBlockView block={codeBlock} />}
 
               {questions.map((q, i) => {
+                // 真题卷 merged mode: render the section
+                // divider (heading + kind chip + code listing)
+                // at the same vertical position as in
+                // answering, so the post-grading report reads
+                // as one continuous document.
+                if (q.type === 'code_section') {
+                  return (
+                    <CodeSectionBlock
+                      key={q.id}
+                      sectionTitle={q.sectionTitle}
+                      sectionKind={q.sectionKind}
+                      codeBlock={q.codeBlock}
+                    />
+                  );
+                }
                 const r = resultMap[q.id];
                 if (q.type === 'single') {
                   return (

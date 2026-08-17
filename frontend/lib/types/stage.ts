@@ -179,7 +179,39 @@ export interface QuizOption {
 
 export interface QuizQuestion {
   id: string;
-  type: 'single' | 'multiple' | 'short_answer';
+  type: 'single' | 'multiple' | 'short_answer' | 'code_section';
+  /**
+   * Marker for an in-list "code section" sentinel — i.e. an
+   * entry in the `questions` array that does NOT represent a
+   * real answerable question, but rather a divider that tells
+   * the renderer to draw a paper-style code listing (and
+   * optional section heading / kind chip) before the next
+   * real question.
+   *
+   * Used by the merged-rendering 真题卷 (e.g. CSP-J 2021):
+   * when a stage contains N consecutive quiz scenes (each
+   * with its own `codeBlock`), the SceneRenderer concatenates
+   * them into a single virtual scene and inserts a sentinel
+   * of this type in front of each scene's questions so the
+   * student sees ONE long page with all section headings and
+   * code listings in order, instead of N separate scenes
+   * requiring manual page flipping.
+   *
+   * Sentinels are filtered out before grading
+   * (see `lib/quiz/grading.ts`) and never appear in the
+   * QuestionCard badge.
+   */
+  /**
+   * Optional section heading rendered above the code block,
+   * e.g. "二、阅读程序题（1）". Only meaningful when
+   * `type === 'code_section'`.
+   */
+  sectionTitle?: string;
+  /**
+   * Optional kind chip rendered next to the section heading,
+   * e.g. "阅读程序题". Mirrors `QuizContent['kind']`.
+   */
+  sectionKind?: QuizKind;
   question: string;
   options?: QuizOption[];
   answer?: string[]; // Correct answer values: ["A"], ["A","C"], or undefined for text
