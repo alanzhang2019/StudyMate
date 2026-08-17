@@ -1244,9 +1244,9 @@
               }
             ],
             "answer": [
-              "B"
+              "D"
             ],
-            "analysis": "移位到下一个人。",
+            "analysis": "处理完当前 i 后翻转 p，让下一个人切换到相反的报数状态（0↔1）。",
             "points": 3,
             "hasAnswer": true
           },
