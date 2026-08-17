@@ -1219,7 +1219,9 @@
             "answer": [
               "C"
             ],
-            "analysis": "离开 1 人, 剩余 n-c-1, 实际上 c 计数 +1。"
+            "analysis": "离开 1 人, 剩余 n-c-1, 实际上 c 计数 +1。",
+            "points": 3,
+            "hasAnswer": true
           },
           {
             "id": "p1_4",

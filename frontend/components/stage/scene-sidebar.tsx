@@ -18,7 +18,7 @@ import { ThumbnailSlide } from '@/components/slide-renderer/components/Thumbnail
 import { ThumbnailInteractive } from '@/components/slide-renderer/components/ThumbnailInteractive';
 import { useStageStore, useCanvasStore } from '@/lib/store';
 import { useI18n } from '@/lib/hooks/use-i18n';
-import type { SceneType, SlideContent, InteractiveContent } from '@/lib/types/stage';
+import type { Scene, SceneType, SlideContent, InteractiveContent } from '@/lib/types/stage';
 import { PENDING_SCENE_ID } from '@/lib/store/stage';
 
 interface SceneSidebarProps {
@@ -27,6 +27,17 @@ interface SceneSidebarProps {
   readonly onSceneSelect?: (sceneId: string) => void;
   readonly onRetryOutline?: (outlineId: string) => Promise<void>;
   readonly isCourseComplete?: boolean;
+  /**
+   * Optional override for the scene list. When provided, the
+   * sidebar renders THIS list instead of the full `scenes`
+   * array from the store. Used by `Stage` to hide the
+   * per-scene covers of a FULL_PAPER classroom (the merge
+   * view stitches every quiz scene into the first scene, so
+   * the extra covers would just be confusing noise — the
+   * user already answered those questions as part of the
+   * merged paper).
+   */
+  readonly scenes?: Scene[];
 }
 
 const DEFAULT_WIDTH = 220;
@@ -39,11 +50,16 @@ export function SceneSidebar({
   onSceneSelect,
   onRetryOutline,
   isCourseComplete,
+  scenes: scenesOverride,
 }: SceneSidebarProps) {
   const { t } = useI18n();
   const router = useRouter();
-  const { scenes, currentSceneId, setCurrentSceneId, generatingOutlines, generationStatus } =
-    useStageStore();
+  const storeScenes = useStageStore((s) => s.scenes);
+  const scenes = scenesOverride ?? storeScenes;
+  const currentSceneId = useStageStore((s) => s.currentSceneId);
+  const setCurrentSceneId = useStageStore((s) => s.setCurrentSceneId);
+  const generatingOutlines = useStageStore((s) => s.generatingOutlines);
+  const generationStatus = useStageStore((s) => s.generationStatus);
   const failedOutlines = useStageStore.use.failedOutlines();
   const viewportSize = useCanvasStore.use.viewportSize();
   const viewportRatio = useCanvasStore.use.viewportRatio();

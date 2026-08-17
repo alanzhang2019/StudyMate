@@ -47,6 +47,47 @@ import { useStageStore } from '@/lib/store';
 import { formatInBeijing } from '@/lib/utils/date';
 
 /**
+ * 完整真题卷 classroom ids。真题卷需要做成一页连续作答（多 scene 合并为
+ * 一份长卷子）、启用"交卷"流程。同时 Stage 在 sidebar / 上下页导航
+ * 里只暴露第一个 scene，避免子分卷（阅读程序/完善程序各自的封面）成为
+ * 干扰入口——其余 scene 的题目仍由 SceneRenderer 的 `buildMergedQuiz`
+ * 拉取进合并视图。
+ *
+ * 当前覆盖 21 套 (J 组 9 + S 组 12 + 既有 3 套 J=2023/24/25):
+ *   J 组: 2014j ~ 2025j
+ *   S 组: 2014s ~ 2025s
+ *
+ * 必须保持模块顶层（不在组件内），这样跨组件 import 是同一份引用、
+ * 不会随每次 render 重新创建 Set。
+ */
+export const FULL_PAPER_CLASSROOM_IDS = new Set<string>([
+  'cm_imp_cspj2014j_v1',
+  'cm_imp_cspj2015j_v1',
+  'cm_imp_cspj2016j_v1',
+  'cm_imp_cspj2017j_v1',
+  'cm_imp_cspj2018j_v1',
+  'cm_imp_cspj2019j_v1',
+  'cm_imp_cspj2020j_v1',
+  'cm_imp_cspj2021j_v1',
+  'cm_imp_cspj2022j_v1',
+  'cm_imp_cspj2023j_v1',
+  'cm_imp_cspj2024j_v1',
+  'cm_imp_cspj2025j_v1',
+  'cm_imp_csps2014s_v1',
+  'cm_imp_csps2015s_v1',
+  'cm_imp_csps2016s_v1',
+  'cm_imp_csps2017s_v1',
+  'cm_imp_csps2018s_v1',
+  'cm_imp_csps2019s_v1',
+  'cm_imp_csps2020s_v1',
+  'cm_imp_csps2021s_v1',
+  'cm_imp_csps2022s_v1',
+  'cm_imp_csps2023s_v1',
+  'cm_imp_csps2024s_v1',
+  'cm_imp_csps2025s_v1',
+]);
+
+/**
  * Stringify a user's answer to a single field for the
  * /api/csp-quiz/submit payload. Single-choice questions
  * store a string, multiple-choice questions store a
@@ -1630,39 +1671,11 @@ export function QuizView({
   const [resetError, setResetError] = useState<string | null>(null);
 
   // Full-paper mode: true for the 真题卷s that have the
-  // 交卷" (finalize) flow enabled. As more 真题卷s are added
-  // (cm_imp_cspj2023j_v1, cm_imp_csps2014s_v1, etc), they
-  // should be appended here so the 交卷 button renders.
-  //
-  // 当前覆盖 21 套 (J 组 9 + S 组 12 + 既有 3 套 J=2023/24/25):
-  //   J 组: 2014j ~ 2025j
-  //   S 组: 2014s ~ 2025s
-  const FULL_PAPER_CLASSROOM_IDS = new Set<string>([
-    'cm_imp_cspj2014j_v1',
-    'cm_imp_cspj2015j_v1',
-    'cm_imp_cspj2016j_v1',
-    'cm_imp_cspj2017j_v1',
-    'cm_imp_cspj2018j_v1',
-    'cm_imp_cspj2019j_v1',
-    'cm_imp_cspj2020j_v1',
-    'cm_imp_cspj2021j_v1',
-    'cm_imp_cspj2022j_v1',
-    'cm_imp_cspj2023j_v1',
-    'cm_imp_cspj2024j_v1',
-    'cm_imp_cspj2025j_v1',
-    'cm_imp_csps2014s_v1',
-    'cm_imp_csps2015s_v1',
-    'cm_imp_csps2016s_v1',
-    'cm_imp_csps2017s_v1',
-    'cm_imp_csps2018s_v1',
-    'cm_imp_csps2019s_v1',
-    'cm_imp_csps2020s_v1',
-    'cm_imp_csps2021s_v1',
-    'cm_imp_csps2022s_v1',
-    'cm_imp_csps2023s_v1',
-    'cm_imp_csps2024s_v1',
-    'cm_imp_csps2025s_v1',
-  ]);
+  // "交卷" (finalize) flow enabled. The set is defined at
+  // module top-level and imported as `FULL_PAPER_CLASSROOM_IDS`
+  // so the same set instance is shared with `Stage` (which uses
+  // it to hide the per-scene covers from the sidebar / keyboard
+  // navigation in full-paper classrooms).
   const isFullPaper = FULL_PAPER_CLASSROOM_IDS.has(classroomId);
 
   const handleRetry = useCallback(() => {
@@ -1776,16 +1789,33 @@ export function QuizView({
       //    runs inline here as part of 交卷.
       if (currentHasAnswers && !alreadySentInThisPass.has(sceneId)) {
         const sceneAnswers = localAnswersByScene.get(sceneId)!;
+        // 真题卷 merged mode injects `code_section` sentinels
+        // into the in-memory `questions` array so the merged
+        // cover can draw section headings + code listings. They
+        // are NOT real questions — they have no answer, no
+        // meaningful points, and the local grading helpers
+        // (gradeSceneFully / isAnswerable) already skip them.
+        // We must filter them out here too: otherwise the
+        // /api/csp-quiz/submit payload would carry phantom
+        // entries that the server-side finalize-classroom
+        // aggregator counts as +1 point each (via the
+        // `lookupPoints` fallback for unknown questionIds),
+        // inflating the paper's 满分 by 6 for CSP-J 2021
+        // (6 merged sections) and breaking the headline
+        // "总分 / 满分" ratio.
+        const answerableQuestions = questions.filter(
+          (q) => q.type !== 'code_section',
+        );
         const sceneResults = await gradeSceneFully(
           sceneId,
-          questions,
+          answerableQuestions,
           sceneAnswers,
           locale,
         );
         const payload: ReportQuizPayload = {
           sceneId,
-          totalQuestions: questions.length,
-          answers: questions.map((q) => {
+          totalQuestions: answerableQuestions.length,
+          answers: answerableQuestions.map((q) => {
             const r = sceneResults.find((x) => x.questionId === q.id);
             return {
               questionId: q.id,

@@ -193,6 +193,23 @@ export async function POST(req: NextRequest) {
         points?: number;
       }>;
       for (const entry of parsed) {
+        // `__section_<sceneId>__` sentinels are inserted by
+        // the merged-mode frontend (buildMergedQuiz in
+        // SceneRenderer) as paper-style dividers. They are NOT
+        // real questions — they carry no real points and were
+        // never meant to be aggregated. The previous code path
+        // let them through, and `lookupPoints` returned its
+        // 1-point fallback for unknown ids, which inflated the
+        // per-scene `maxPoints` (and consequently the paper's
+        // 满分) by 6 for CSP-J 2021 (6 merged sections). Skip
+        // them here so the V2 denominator and the per-scene
+        // score line stay aligned with the classroom JSON's
+        // declared 满分 — and so even legacy, pre-fix rows
+        // surface the correct number when finalize is
+        // re-fetched.
+        if (typeof entry?.questionId === 'string' && entry.questionId.startsWith('__section_')) {
+          continue;
+        }
         const pts =
           typeof entry?.points === 'number' && Number.isFinite(entry.points) && entry.points > 0
             ? entry.points

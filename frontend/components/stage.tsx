@@ -17,6 +17,7 @@ import { createAudioPlayer } from '@/lib/utils/audio-player';
 import { useDiscussionTTS } from '@/lib/hooks/use-discussion-tts';
 import { useCspProgress } from '@/lib/hooks/use-csp-progress';
 import { useWidgetIframeStore } from '@/lib/store/widget-iframe';
+import { FULL_PAPER_CLASSROOM_IDS } from '@/components/scene-renderers/quiz-view';
 import type { AudioIndicatorState } from '@/components/roundtable/audio-indicator';
 import type { Action, DiscussionAction, SpeechAction } from '@/lib/types/action';
 import { cn } from '@/lib/utils';
@@ -214,6 +215,28 @@ export function Stage({
   const failedOutlineReason = useStageStore.use.failedOutlineReason();
 
   const currentScene = getCurrentScene();
+
+  // 真题卷一页模式 (FULL_PAPER): buildMergedQuiz in
+  // SceneRenderer takes the first quiz scene in order and
+  // stitches every following quiz scene's questions into
+  // a single long page. The merged paper IS the
+  // classroom — the user navigates within the page
+  // (previous/next question), not between scene covers.
+  // Hide the per-scene covers (e.g. the 随堂测验 card for
+  // the read1 sub-quiz that the user complained about)
+  // from the sidebar AND from the keyboard / button
+  // next-scene traversal, so the user sees a single
+  // "开始答题 → 答完 → 报告" flow instead of being
+  // bounced into the read1 sub-quiz's cover after
+  // submitting the merged paper.
+  const stageId = useStageStore((s) => s.stage?.id ?? null);
+  const displayScenes = useMemo(() => {
+    if (!stageId) return scenes;
+    if (!FULL_PAPER_CLASSROOM_IDS.has(stageId)) return scenes;
+    const firstQuiz = scenes.find((s) => s.type === 'quiz');
+    if (!firstQuiz) return scenes;
+    return [firstQuiz];
+  }, [scenes, stageId]);
 
   // Layout state from settings store (persisted via localStorage)
   const sidebarCollapsed = useSettingsStore((s) => s.sidebarCollapsed);
@@ -1208,23 +1231,23 @@ export function Stage({
   const handlePreviousScene = useCallback(() => {
     if (isPendingScene) {
       // From pending page → go to last real scene
-      if (scenes.length > 0) {
-        gatedSceneSwitch(scenes[scenes.length - 1].id);
+      if (displayScenes.length > 0) {
+        gatedSceneSwitch(displayScenes[displayScenes.length - 1].id);
       }
       return;
     }
-    const currentIndex = scenes.findIndex((s) => s.id === currentSceneId);
+    const currentIndex = displayScenes.findIndex((s) => s.id === currentSceneId);
     if (currentIndex > 0) {
-      gatedSceneSwitch(scenes[currentIndex - 1].id);
+      gatedSceneSwitch(displayScenes[currentIndex - 1].id);
     }
-  }, [currentSceneId, gatedSceneSwitch, isPendingScene, scenes]);
+  }, [currentSceneId, gatedSceneSwitch, isPendingScene, displayScenes]);
 
   // next scene (gated)
   const handleNextScene = useCallback(() => {
     if (isPendingScene) return; // Already on pending, nowhere to go
-    const currentIndex = scenes.findIndex((s) => s.id === currentSceneId);
-    if (currentIndex < scenes.length - 1) {
-      gatedSceneSwitch(scenes[currentIndex + 1].id);
+    const currentIndex = displayScenes.findIndex((s) => s.id === currentSceneId);
+    if (currentIndex < displayScenes.length - 1) {
+      gatedSceneSwitch(displayScenes[currentIndex + 1].id);
     } else if (canAdvanceToPendingSlot) {
       // On last real scene → advance to pending slot (generating or completion page)
       setCurrentSceneId(PENDING_SCENE_ID);
@@ -1234,14 +1257,14 @@ export function Stage({
     gatedSceneSwitch,
     canAdvanceToPendingSlot,
     isPendingScene,
-    scenes,
+    displayScenes,
     setCurrentSceneId,
   ]);
 
   const currentSceneIndex = isPendingScene
-    ? scenes.length
-    : scenes.findIndex((s) => s.id === currentSceneId);
-  const totalScenesCount = scenes.length + (canAdvanceToPendingSlot ? 1 : 0);
+    ? displayScenes.length
+    : displayScenes.findIndex((s) => s.id === currentSceneId);
+  const totalScenesCount = displayScenes.length + (canAdvanceToPendingSlot ? 1 : 0);
 
   // get action information
   const totalActions = currentScene?.actions?.length || 0;
@@ -1439,6 +1462,7 @@ export function Stage({
         onSceneSelect={gatedSceneSwitch}
         onRetryOutline={onRetryOutline}
         isCourseComplete={isCourseComplete}
+        scenes={displayScenes}
       />
 
       {/* Main Content Area */}
