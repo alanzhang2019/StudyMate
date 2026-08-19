@@ -143,6 +143,28 @@ export async function POST(req: NextRequest) {
       categoryBySceneId.set(scene.id, cat);
     }
   }
+  // Build a global questionId → Category map by scanning every
+  // scene's questions. Used by the V3 per-category breakdown to
+  // distribute the "merged paper" submission (handleFinalize writes
+  // all answers to one row with sceneId="merged-<stageId>" or
+  // similar) across 单选/阅读/完善 — without this map, that row
+  // would be silently dropped from every category and the per-type
+  // breakdown would show 完善程序题 "0 个场景" even when the user
+  // actually answered 10 完善 questions.
+  const categoryByQuestionId = new Map<string, Category>();
+  for (const scene of classroom.scenes ?? []) {
+    if (!scene || !scene.id) continue;
+    const cat = (scene as any).category;
+    if (cat !== 'choice' && cat !== 'read' && cat !== 'perfect') continue;
+    const content = (scene as any).content;
+    if (!content || !Array.isArray(content.questions)) continue;
+    for (const q of content.questions) {
+      const qid = (q as any)?.id;
+      if (typeof qid === 'string' && qid.length > 0) {
+        categoryByQuestionId.set(qid, cat);
+      }
+    }
+  }
   // stage.scoreBreakdown: paper-standard 满分 per category.
   // Defaults to zeros for any missing key (so the response still
   // has all three rows; they'll just show 0/0 in the UI).
@@ -321,20 +343,105 @@ export async function POST(req: NextRequest) {
   // `category` field. This lets the FinalScorePage show "单选题 24/30
   // / 阅读 18/24 / 完善 38/46" with the actual per-question sum as
   // the per-category denominator instead of refusing to group at all.
+  //
+  // 真题卷 merged-mode fix (2026-08-19): when the user submits the
+  // whole paper in one go, handleFinalize in quiz-view writes all
+  // answers to a single csp_quiz_submissions row whose sceneId is
+  // NOT in the classroom's `scenes` array (it's the synthetic
+  // `merged-<stageId>` id or, for older runs, a "第 1 部分" label).
+  // That row's `category` resolves to null, so the simple
+  // `sceneResults.filter(r => r.category === cat)` below would drop
+  // every answer from the breakdown — producing 完善程序题 "0 个场景"
+  // even when the user actually filled in 10 完善 questions. To fix
+  // this, for any scene with category=null we redistribute its
+  // earned/maxPoints across the 3 categories by looking up each
+  // questionId in `categoryByQuestionId` (built above from every
+  // scene's questions). The per-question `points` and `correct`
+  // flags are re-read from the raw `r.answersJson` so the
+  // redistribution is exact (no double-counting from V2's count-based
+  // fields).
   const breakdown = (
     ['choice', 'read', 'perfect'] as Category[]
   ).map((cat) => {
-    const scenes = sceneResults.filter((r) => r.category === cat);
-    const earned = scenes.reduce((s, r) => s + r.points, 0);
+    const categorizedScenes = sceneResults.filter((r) => r.category === cat);
+    const earned = categorizedScenes.reduce((s, r) => s + r.points, 0);
     const standardMax = scoreBreakdown[cat];
-    const actualMax = scenes.reduce((s, r) => s + r.maxPoints, 0);
+    const actualMax = categorizedScenes.reduce((s, r) => s + r.maxPoints, 0);
+    let catEarned = earned;
+    let catActualMax = actualMax;
+    let catSceneCount = categorizedScenes.length;
+
+    // Distribute the un-categorized "merged paper" submission
+    // (category=null) across the 3 categories by looking up each
+    // questionId in `categoryByQuestionId` (built above from every
+    // scene's questions). The per-question `points` and `correct`
+    // flags are re-read from the raw `answersJson` so the
+    // redistribution is exact (no double-counting from V2's
+    // count-based fields).
+    const earnByCat: Record<Category, number> = {
+      choice: 0,
+      read: 0,
+      perfect: 0,
+    };
+    const maxByCat: Record<Category, number> = {
+      choice: 0,
+      read: 0,
+      perfect: 0,
+    };
+    for (const r of sceneResults) {
+      if (r.category !== null) continue;
+      // Re-read the raw row to split by questionId; the byScene
+      // Map above didn't keep the raw entries.
+      const rawRow = db.cspQuizSubmission.findByUserScene(
+        userId,
+        classroomId,
+        r.sceneId,
+      );
+      if (!rawRow) continue;
+      let rawEntries: Array<{
+        questionId?: string;
+        correct?: boolean;
+        points?: number;
+      }> = [];
+      try {
+        const parsed = JSON.parse(rawRow.answersJson ?? '[]');
+        if (Array.isArray(parsed)) rawEntries = parsed as any;
+      } catch {
+        // ignore — fall back to proportional split below
+      }
+      if (rawEntries.length > 0) {
+        for (const e of rawEntries) {
+          if (typeof e?.questionId === 'string' && e.questionId.startsWith('__section_')) continue;
+          const qcat = categoryByQuestionId.get(e.questionId ?? '');
+          if (!qcat) continue;
+          const pts =
+            typeof e?.points === 'number' && Number.isFinite(e.points) && e.points > 0
+              ? e.points
+              : 1;
+          maxByCat[qcat] += pts;
+          if (e?.correct === true) earnByCat[qcat] += pts;
+        }
+      } else {
+        // Proportional fallback when answersJson is missing or
+        // unparseable. The only path that hits this is
+        // pre-`points`-field legacy rows.
+        for (const k of ['choice', 'read', 'perfect'] as Category[]) {
+          maxByCat[k] += r.maxPoints / 3;
+          earnByCat[k] += r.points / 3;
+        }
+      }
+    }
+    catEarned += earnByCat[cat];
+    catActualMax += maxByCat[cat];
+    if (maxByCat[cat] > 0) catSceneCount += 1;
+
     return {
       category: cat,
       label: CATEGORY_LABEL[cat],
-      earned,
-      max: hasBreakdown ? standardMax : actualMax,
-      actualMax,
-      sceneCount: scenes.length,
+      earned: catEarned,
+      max: hasBreakdown ? standardMax : catActualMax,
+      actualMax: catActualMax,
+      sceneCount: catSceneCount,
     };
   });
   const totalEarnedV3 = breakdown.reduce((s, b) => s + b.earned, 0);

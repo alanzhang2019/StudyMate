@@ -2270,13 +2270,24 @@ export function QuizView({
                   {t('quiz.quizReport')}
                 </span>
               </div>
-              <button
-                onClick={handleRetry}
-                className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                {t('quiz.retry')}
-              </button>
+              <div className="flex items-center gap-2">
+                {isFullPaper && finalizedResult && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setPhase('finalized')}
+                  >
+                    查看总分
+                  </Button>
+                )}
+                <button
+                  onClick={handleRetry}
+                  className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  {t('quiz.retry')}
+                </button>
+              </div>
             </div>
 
             {/* Results */}
@@ -2383,6 +2394,9 @@ export function QuizView({
               isResetting={isResetting}
               resetError={resetError}
               classroomId={classroomId}
+              onBackToReview={
+                isFullPaper ? () => setPhase('reviewing') : undefined
+              }
             />
           </motion.div>
         )}
@@ -2474,12 +2488,14 @@ function FinalScorePage({
   isResetting,
   resetError,
   classroomId,
+  onBackToReview,
 }: {
   result: FinalScoreResult;
   onReset: () => void;
   isResetting: boolean;
   resetError: string | null;
   classroomId?: string;
+  onBackToReview?: () => void;
 }) {
   // V3 (standard or category-grouped): show the per-category
   // breakdown whenever *any* scene has a category. Standard mode
@@ -2817,6 +2833,15 @@ function FinalScorePage({
       )}
 
       <div className="flex flex-wrap items-center justify-center gap-2">
+        {/* 交卷后导航: 真题卷模式下允许在"总分页"和"卷面回顾"间切换,
+            学生可先看分再看错题, 也可回总分页确认总分。满分卷不显示
+            AI 入口, 节省 AI 调用; 返回卷面 / 重新答题 / 返回课件
+            列表 这 3 个动作始终可用。 */}
+        {onBackToReview && (
+          <Button variant="outline" onClick={onBackToReview}>
+            返回卷面
+          </Button>
+        )}
         {/* AI 智能分析按钮 — 学生交卷后, 在"重新答题 / 返回课件列表"
             旁边放一个明显的入口 (渐变 + 闪光图标), 有错题才显示,
             满分时节省一次 AI 调用。点击后弹出 PaperAnalysisReport
