@@ -456,7 +456,7 @@
           {
             "id": "q15",
             "type": "single",
-            "question": "15. 今有一空栈 S，对下列待进栈的数据元素序列 abcdexf 依次执行进栈、进栈、出栈、进栈、进栈、出栈的操作，则此操作完成后，栈 S 的栈顶元素为（ ）。",
+            "question": "15. 今有一空栈 S，对下列待进栈的数据元素序列 a,b,c,d,e,f 依次进行进栈，进栈，出栈，进栈，进栈，出栈的操作，则此操作完成后，栈 S 的栈顶元素为（ ）。",
             "options": [
               {
                 "value": "A",
@@ -882,7 +882,7 @@
           {
             "id": "q25",
             "type": "single",
-            "question": "25. 输入：NOI2016 will be held in Mian Yang -，输出：It has（ ）lowercases。",
+            "question": "25. 输入：NOI2016 will be held in Mian Yang.，输出：_________",
             "options": [
               {
                 "value": "A",

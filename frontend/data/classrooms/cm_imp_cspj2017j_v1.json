@@ -729,7 +729,7 @@
           {
             "id": "q23",
             "type": "single",
-            "question": "23. 输入 xyzyxw，输出（ ）。",
+            "question": "23. 输入 xyzxyw，输出（ ）。",
             "options": [
               {
                 "value": "A",

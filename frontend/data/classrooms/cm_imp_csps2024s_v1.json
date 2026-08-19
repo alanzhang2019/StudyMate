@@ -466,7 +466,8 @@
                 "label": "3"
               },
               {
-                "value": "D"
+                "value": "D",
+                "label": "4"
               }
             ],
             "answer": [

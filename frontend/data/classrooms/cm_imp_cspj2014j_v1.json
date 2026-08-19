@@ -851,7 +851,7 @@
             "codeTitle": "阅读程序（2）",
             "codeDescription": "fun 递归函数，fun(1)=1, fun(2)=2, fun(n) = fun(n-2) - fun(n-1)。",
             "type": "single",
-            "question": "输入：7\n输出：",
+            "question": "2. 输入：7 输出：_________",
             "options": [
               {
                 "value": "A",
@@ -1039,7 +1039,7 @@
             "codeTitle": "阅读程序（4）",
             "codeDescription": "埃拉托斯特尼筛法（Sieve of Eratosthenes）统计 1~n 内的素数个数。",
             "type": "single",
-            "question": "输入：30\n输出：",
+            "question": "4. 输入：30 输出：_________",
             "options": [
               {
                 "value": "A",
