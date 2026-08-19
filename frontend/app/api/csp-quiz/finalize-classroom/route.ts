@@ -115,6 +115,21 @@ export async function POST(req: NextRequest) {
   //      "highest points wins" matches csp-completion.ts's rule
   //      and matches the user-visible "重做全对就算通过" promise.
   const rows = db.cspQuizSubmission.findByUser(userId, classroomId);
+  // 真题卷 merged mode 过滤 (2026-08-19): 前端 SceneRenderer
+  // 把同一 stage 的多个 quiz scene 合并为一个连续页面, 提交
+  // 时所有答案都写入 sceneId=`merged-<stageId>` 的 row。但
+  // 旧子场景的 csp_quiz_submissions 记录(用户早期用多页模式
+  // 答过题留下的)仍在表里, 不剔除就会和合并 row 一起被聚合,
+  // 出现"总分 100.5/100"(旧单选 2 分 + 旧阅读 0 分 + 合并
+  // 98.5 分 = 100.5 超过满分)。规则: 同一 classroom 下只要
+  // 存在 sceneId 以 `merged-` 开头的 row, 就只聚合这些
+  // merged row, 旧子场景 row 一律丢弃 — 因为合并 row 已经
+  // 包含全部题目的最新答案, 子场景 row 是过期数据, 重复计
+  // 算会污染总分。
+  const hasMergedRow = rows.some((r) => typeof r.sceneId === 'string' && r.sceneId.startsWith('merged-'));
+  const filteredRows = hasMergedRow
+    ? rows.filter((r) => typeof r.sceneId === 'string' && r.sceneId.startsWith('merged-'))
+    : rows;
   // Build a sceneId → questions[] lookup from the classroom
   // JSON so we can fill in the per-question `points` for
   // submissions written before that field was persisted in
@@ -199,7 +214,7 @@ export async function POST(req: NextRequest) {
       submittedAt: string;
     }
   >();
-  for (const r of rows) {
+  for (const r of filteredRows) {
     const existing = byScene.get(r.sceneId);
     // Compute this row's per-scene point totals regardless of
     // whether we'll keep it; we need them to compare against

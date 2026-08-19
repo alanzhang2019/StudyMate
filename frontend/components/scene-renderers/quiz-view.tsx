@@ -1832,6 +1832,14 @@ export function QuizView({
         // subsequent 重新答题 / 退出 / 进入 路径能找到
         // them via readSubmittedState.
         writeSubmittedResults(sceneId, sceneResults);
+        // 同步到 React state — handleFinalize 不像
+        // handleSubmit 那样经过 grading useEffect,results 不会
+        // 自动 setResults,这里手动同步以保证"返回卷面"按钮
+        // 点击 setPhase('reviewing') 时 resultMap 不为空,
+        // 每题的对错状态能正确显示。如果不 set, reviewing
+        // 阶段会回退到 useState 的初始值 [], ScoreBanner
+        // 显示 0/100, 全部题目标记为未答。
+        setResults(sceneResults);
       }
 
       // 2. Force-submit every OTHER quiz scene that has
