@@ -372,24 +372,22 @@ export async function loadWrongQuestionContexts(
   const title = classroom.stage?.name ?? classroomId;
 
   // sceneId -> { category, questions[] } 索引
-  const sceneIndex = new Map<
-    string,
-    {
-      title: string;
-      category: 'choice' | 'read' | 'perfect' | null;
-      questions: Map<
-        string,
-        {
-          text: string;
-          options: Array<{ label: string; value: string; text: string }>;
-          correctAnswer: string | string[];
-          analysis: string;
-          points: number;
-          topicHint?: string;
-        }
-      >;
-    }
-  >();
+  type SceneInfo = {
+    title: string;
+    category: 'choice' | 'read' | 'perfect' | null;
+    questions: Map<
+      string,
+      {
+        text: string;
+        options: Array<{ label: string; value: string; text: string }>;
+        correctAnswer: string | string[];
+        analysis: string;
+        points: number;
+        topicHint?: string;
+      }
+    >;
+  };
+  const sceneIndex = new Map<string, SceneInfo>();
   for (const scene of classroom.scenes ?? []) {
     if (!scene?.id) continue;
     const content = (scene as any).content;
@@ -467,6 +465,38 @@ export async function loadWrongQuestionContexts(
     }
   }
 
+  // 全局 questionId → (owning sceneId, sceneInfo, qCtx) 兜底索引。
+  //
+  // 真题卷 (full paper) merged mode 交卷时 (handleFinalize →
+  // cspProgress.reportQuizSubmit) 会把"当前 scene"在合并视图里
+  // 见到的所有题目答案**全部**打包进 csp_quiz_submissions 的同一
+  // 行, sceneId 是当前 scene 的 id。其它 scene (阅读程序 / 完善
+  // 程序) 的题虽然在自己的 answersJson 中也有, 但如果用户在合并
+  // 视图里只点了 交卷 而没点过每分卷的 提交答案, 这些 scene 不会
+  // 各自再写一行 — 所有错题都集中在当前 scene 的那一行。
+  //
+  // 按行级 sceneInfo.questions.get(questionId) 只能找到当前
+  // scene 的题元数据, 阅读 / 完善的错题 questionId 找不到 → 被
+  // `if (!qCtx) continue` 静默丢弃 → questions.length === 0 →
+  // AI 报告抛 NO_DATA "本卷子没有错题"。
+  //
+  // 兜底做法: 提前在 sceneIndex 上扫一遍, 把每个 questionId 映到
+  // 它**真正所属**的 scene, 处理答案时优先用行级 scene, 找不到
+  // 再回退到全局索引。回退命中时 wrongQuestion.sceneId 也要换成
+  // 真实所属 scene, 否则前端 /csp-quiz/qa 会按错的 scene 渲染
+  // 解析/分类标签.
+  const globalQuestionMap = new Map<
+    string,
+    { sceneId: string; sceneInfo: SceneInfo }
+  >();
+  for (const [sid, info] of sceneIndex) {
+    for (const qid of info.questions.keys()) {
+      if (!globalQuestionMap.has(qid)) {
+        globalQuestionMap.set(qid, { sceneId: sid, sceneInfo: info });
+      }
+    }
+  }
+
   const questions: QuestionContext[] = [];
   let totalCount = 0;
   let totalCorrect = 0;
@@ -484,7 +514,22 @@ export async function loadWrongQuestionContexts(
     }
     for (const e of entries) {
       if (!e.questionId) continue;
-      const qCtx = sceneInfo.questions.get(e.questionId);
+      // 1) 优先按 row.sceneId 找 (单 scene 随堂练习、chapter
+      //    quiz 等正常路径走这里);
+      // 2) 找不到再回退到全局索引 (真题卷 merged 模式
+      //    handleFinalize 把所有合并题目塞到当前 scene 那一
+      //    行, 阅读/完善的题需要回退).
+      let resolvedSceneInfo = sceneInfo;
+      let resolvedSceneId = row.sceneId;
+      let qCtx = sceneInfo.questions.get(e.questionId);
+      if (!qCtx) {
+        const fallback = globalQuestionMap.get(e.questionId);
+        if (fallback) {
+          resolvedSceneInfo = fallback.sceneInfo;
+          resolvedSceneId = fallback.sceneId;
+          qCtx = fallback.sceneInfo.questions.get(e.questionId);
+        }
+      }
       if (!qCtx) continue;
       totalCount += 1;
       totalPoints += qCtx.points;
@@ -496,9 +541,9 @@ export async function loadWrongQuestionContexts(
       // wrong 收录
       questions.push({
         id: e.questionId,
-        sceneId: row.sceneId,
-        sceneTitle: sceneInfo.title,
-        sceneCategory: sceneInfo.category,
+        sceneId: resolvedSceneId,
+        sceneTitle: resolvedSceneInfo.title,
+        sceneCategory: resolvedSceneInfo.category,
         text: qCtx.text,
         options: qCtx.options,
         correctAnswer: qCtx.correctAnswer,
