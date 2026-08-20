@@ -368,116 +368,116 @@
           {
             "id": "q12",
             "type": "single",
-            "question": "12. 二进制数 1011 转换成十进制是（ ）。",
+            "question": "12. 表达式 a*(b+c)-d 的后缀表达形式为（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "11"
+                "label": "-+*abcd"
               },
               {
                 "value": "B",
-                "label": "10"
+                "label": "abc+*d-"
               },
               {
                 "value": "C",
-                "label": "13"
+                "label": "abc*+d-"
               },
               {
                 "value": "D",
-                "label": "12"
+                "label": "abcd*+-"
               }
             ],
             "answer": [
-              "A"
+              "B"
             ],
-            "analysis": "1×8+0×4+1×2+1=11。",
+            "analysis": "中缀 a*(b+c)-d 转后缀：先算 b+c 得 abc+，再算 a*(b+c) 得 abc+*，最后减 d 得 abc+*d-。",
             "points": 2,
             "hasAnswer": true
           },
           {
             "id": "q13",
             "type": "single",
-            "question": "13. 一棵深度为 h 的满 k 叉树（除最后一层外都有 k 个子结点）共有（ ）个结点。",
+            "question": "13. 从一个 4×4 的棋盘中选取不在同一行也不在同一列上的两个方格, 共有（ ）种方法。",
             "options": [
               {
                 "value": "A",
-                "label": "(k^(h+1)-1)/(k-1)"
+                "label": "60"
               },
               {
                 "value": "B",
-                "label": "k^(h-1)"
+                "label": "72"
               },
               {
                 "value": "C",
-                "label": "k^h"
+                "label": "64"
               },
               {
                 "value": "D",
-                "label": "(k^(h-1))/(k-1)"
+                "label": "86"
               }
             ],
             "answer": [
-              "A"
+              "B"
             ],
-            "analysis": "满 k 叉树节点数 = (k^(h+1)-1)/(k-1)。",
+            "analysis": "先选第一个方格 4×4=16 种, 第二个方格需与第一个不在同行同列, 即 3×3=9 种, 共 16×9/2=72 种。",
             "points": 2,
             "hasAnswer": true
           },
           {
             "id": "q14",
             "type": "single",
-            "question": "14. 表达式 a*d-b*c 的前缀形式是（ ）。",
+            "question": "14. 对一个 n 个顶点、m 条边的带权有向简单图用 Dijkstra 算法计算单源最短路时, 如果不使用堆或其它优先队列进行优化, 则其时间复杂度为（ ）。",
             "options": [
               {
                 "value": "A",
-                "label": "a d * b c * -"
+                "label": "θ(m + n²)"
               },
               {
                 "value": "B",
-                "label": "- * a d * b c"
+                "label": "θ((m + n²) log n)"
               },
               {
                 "value": "C",
-                "label": "a * d - b * c"
+                "label": "θ((m + n) log n)"
               },
               {
                 "value": "D",
-                "label": "- * * a d b c"
+                "label": "θ(n²)"
               }
             ],
             "answer": [
-              "B"
+              "A"
             ],
-            "analysis": "(a*d) 前缀 * a d, (b*c) 前缀 * b c, 相减前缀 - * a d * b c。",
+            "analysis": "Dijkstra 不使用堆优化时, 每次选最小值需 O(n) 扫描, 更新邻接点需 O(degree), 总计 θ(m + n²)。",
             "points": 2,
             "hasAnswer": true
           },
           {
             "id": "q15",
             "type": "single",
-            "question": "15. 一棵树有 n 个节点, 从 1 到 n 编号, 树根为 1 号节点。深度优先遍历得到的节点序列是 1, 2, 4, 3, 5, 6。则该树的广度优先遍历序列是（ ）。",
+            "question": "15. 1948 年,（ ）将热力学中的熵引入信息通信领域, 标志着信息论研究的开端。",
             "options": [
               {
                 "value": "A",
-                "label": "1, 2, 3, 4, 5, 6"
+                "label": "冯·诺伊曼 (John von Neumann)"
               },
               {
                 "value": "B",
-                "label": "1, 2, 3, 4, 6, 5"
+                "label": "欧拉 (Leonhard Euler)"
               },
               {
                 "value": "C",
-                "label": "1, 2, 3, 5, 6, 4"
+                "label": "克劳德·香农 (Claude Shannon)"
               },
               {
                 "value": "D",
-                "label": "1, 2, 4, 5, 3, 6"
+                "label": "图灵 (Alan Turing)"
               }
             ],
             "answer": [
-              "A"
+              "C"
             ],
-            "analysis": "DFS 1,2,4,3,5,6, 树结构: 1-2-4, 1-3-5, 3-6, BFS 1,2,3,4,5,6。",
+            "analysis": "1948 年, 香农 (Shannon) 发表《通信的数学理论》, 创立信息论。",
             "points": 2,
             "hasAnswer": true
           }
