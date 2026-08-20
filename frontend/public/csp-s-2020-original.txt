@@ -1,1 +1,884 @@
- 
+2020CCF非专业级别软件能力认证第一轮
+（CSP-S）提高级C++语言试题
+认证时间：2020年10月11日09：30~11:30
+考生注意事项：
+试题纸共有13页，答题纸共有1页，满分100分。请在答题纸上作答，写
+在试题纸上的一律无效。
+不得使用任何电子设备（如计算器、手机、电子词典等）或查阅任何书籍
+资料。
+一、单项选择题（共15题，每题2分，共计30分；每题有且仅有一个正确选
+项）
+1.请选出以下最大的数（
+210
+C.
+D.
+A.
+B.
+(550）10
+(777)8
+(22F)16
+2.操作系统的功能是（
+)。
+负责外设与主机之间的信息交换
+A.
+控制和管理计算机系统的各种硬件和软件资源的使用
+B.
+负责诊断机器的故障
+C.
+将源程序编译成目标程序
+D.
+3.现有一段8分钟的视频文件，它的播放速度是每秒24帧图像，每帧图像是
+一幅分辨率为2048×1024像素的32位真彩色图像。请问要存储这段原始无
+压缩视频，需要多大的存储空间？（
+)。
+B.90G
+450G
+150G
+D.
+C.
+A.30G
+4.今有一空栈S，对下列待进栈的数据元素序列a,b，c，d，e，f依次进行：进
+栈，进栈，出栈，进栈，进栈，出栈的操作，则此操作完成后，栈底元素为
+(
+）。
+C.
+A.b
+D.
+B.a
+C
+5.将（2，7，10，18）分别存储到某个地址区间为0~10的哈希表中，如果
+哈希函数h（x）=（），将不会产生冲突，其中amodb表示a除以b的
+余数。
+x²mod11
+A.
+2x mod11
+B.
+xmod11
+C.
+[x/2]mod11，其中[x/2]表示x/2下取整
+D.
+6.下列哪些问题不能用贪心法精确求解？（
+CCFCSP-S2020第一轮C++语言试题
+第1页，共13页
+
+霍夫曼编码问题
+A.
+0-1背包问题
+B.
+最小生成树问题
+单源最短路径问题
+C.
+D.
+7.具有n个顶点，e条边的图采用邻接表存储结构，进行深度优先遍历运算的
+时间复杂度为（）。
+D.
+A.
+θ(n+e)
+B.
+θ(n²)
+θ(e²)
+(u)θ
+8.二分图是指能将顶点划分成两个部分，每一部分内的顶点间没有边相连的简
+单无向图。那么，24个顶点的二分图至多有（）条边。
+B.100
+122
+A.144
+C.48
+D.
+9.广度优先搜索时，一定需要用到的数据结构是（
+A.栈
+B.二叉树
+D．哈希表
+C.队列
+10.一个班学生分组做游戏，如果每组三人就多两人，每组五人就多三人，每组
+七人就多四人，问这个班的学生人数n在以下哪个区间？已知n<60。（
+）。
+A.30<n<40
+B.40<n<50
+C.50<n<60
+D.20<n<30
+11.小明想通过走楼梯来锻炼身体，假设从第1层走到第2层消耗10卡热量，
+接着从第2层走到第3层消耗20卡热量，再从第3层走到第4层消耗30
+卡热量，依此类推，从第k层走到第k+1层消耗10k卡热量（k>1）。如果小
+明想从1层开始，通过连续向上爬楼梯消耗1000卡热量，至少要爬到第几
+)。
+层楼？（
+C.
+15
+D.
+14
+16
+13
+)。
+12.表达式a*（b+c）-d的后缀表达形式为（
+-+*abcd
+abc+*d-
+A.abc*+d-
+abcd*+-
+C.
+D.
+13.从一个4×4的棋盘中选取不在同一行也不在同一列上的两个方格，共有
+(
+）种方法。
+D.
+C.
+86
+64
+A.
+60
+72
+14.对一个n个顶点、m条边的带权有向简单图用Dijkstra算法计算单源最短
+路时，如果不使用堆或其它优先队列进行优化，则其时间复杂度为（
+）。
+θ（mn +n²)
+A.
+θ((m + n²) 1og n)
+B.
+C.
+θ((m + n) log n)
+D.
+(zu)θ
+15.1948年，（）将热力学中的熵引入信息通信领域，标志着信息论研究的
+开端。
+冯·诺伊曼（JohnvonNeumann）
+欧拉（LeonhardEuler）
+B.
+A.
+C.
+克劳德·香农（ClaudeShannon）
+D.
+图灵（AlanTuring）
+CCFCSP-S2020第一轮C++语言试题
+第2页，共13页
+
+二、阅读程序（程序输入不超过数组或字符串定义的范围；判断题正确填V，
+错误填×；除特殊说明外，判断题1.5分，选择题3分，共计40分）
+1.
+01 #include<iostream>
+02 using namespace std;
+03
+04 int n;
+05intd[1000];
+06
+intmain(）{
+07
+08
+cin >> n;
+for（inti=0;i<n；++i)
+60
+10
+cin >> d[i];
+int ans=-1;
+11
+for（inti=0;i<n；++i)
+12
+13
+for（int j=0;j<n;++j)
+14
+if(d[i]<d[j])
+15
+ans =max(ans，d[i]+d[j]-（d[i]&d[j]));
+16
+cout<<ans;
+return 0;
+17
+18}
+假设输入的n和d[i]都是不超过10000的正整数，完成下面的判断题和单
+选题：
+判断题
+1）n必须小于1000，否则程序可能会发生运行错误。（）
+2）输出一定大于等于0。（
+3）若将第13行的"j=0"改为"j=i+1”，程序输出可能会改变。
+（）
+4）将第14行的“d[i]<d[j]"改为“d[i]！=d[j]"，程序输出不会改
+变。（）
+单选题
+5）若输入n为100，且输出为127，则输入的d[i]中不可能有（）
+B.126
+C.128
+D.125
+A.
+127
+6）若输出的数大于0，则下面说法正确的是（）。
+A.若输出为偶数，则输入的d[i]中最多有两个偶数
+CCFCSP-S2020第一轮C++语言试题
+第3页，共13页
+
+若输出为奇数，则输入的d[i]中至少有两个奇数
+B.
+若输出为偶数，则输入的d[i]中至少有两个偶数
+C.
+若输出为奇数，则输入的d[i]中最多有两个奇数
+D.
+2.
+01 #include <iostream>
+02 #include <cstdlib>
+03 using namespace std;
+04
+05 int n;
+int d[10000];
+06
+07
+08
+int find（int L，int R，int k）{
+60
+int x=rand（）%（R-L+1）+L;
+10
+swap(d[L]，d[x]);
+inta=L+1，b=R；
+11
+12
+while（a<b）{
+13
+while(a<b &&d[a]<d[L])
+14
+++a;
+15
+while (a<b&& d[b]>= d[L])
+--b;
+16
+17
+swap(d[a],d[b]);
+18
+}
+19
+if(d[a]<d[L])
+20
+++a;
+if(a-L==k)
+21
+22
+return d[L];
+23
+if(a-L<k)
+24
+return find(a,R,k-（a-L));
+25
+return find(L+1，a-1，k);
+26
+27
+28
+int main(）{
+29
+int k;
+30
+cin >> n;
+cin >> k;
+31
+for（int i=0;i<n；++i)
+32
+cin >> d[i];
+33
+34
+cout << find(0,n-1，k);
+return 0;
+35
+36}
+CCFCSP-S2020第一轮C++语言试题
+第4页，共13页
+
+假设输入的n，k和d[i]都是不超过10000的正整数，且k不超过n，并
+假设rand（）函数产生的是均匀的随机数，完成下面的判断题和单选题：
+判断题
+1）第9行的“×”的数值范围是L+1到R，即[L+1，R]。（）
+2）将第19行的“d[a]”改为“d[b]”，程序不会发生运行错误。（
+单选题
+（2.5分）当输入的d[i]是严格单调递增序列时，第17行的
+3)
+“swap”平均执行次数是（）。
+A.
+B. θ(n)
+D.θ(n^2)
+θ(n log n)
+C.
+θ(log n)
+4）
+（2.5分）当输入的d[i]是严格单调递减序列时，第17行的"swap”
+平均执行次数是（）。
+θ(n log n) D. θ(log n)
+A.
+θ(n~2)
+B.
+θ(n)
+（2.5分）若输入的d[i]为i，此程序①平均的时间复杂度和②最坏
+5)
+情况下的时间复杂度分别是（）。
+A.
+θ（n），θ（n~2）
+B.
+θ(n），θ(nlog n)
+C.
+θ(n1og n)，θ(n^2)
+θ(n log n),θ(n log n)
+D.
+（2.5分）若输入的d[i]都为同一个数，此程序平均的时间复杂度是
+6)
+（）。
+A.
+B.
+θ(log n)
+θ(n)
+C.
+θ(n log n)
+D.θ(n^2)
+3.
+01 #include <iostream>
+02 #include <queue>
+03 using namespace std;
+04
+const int maxl = 2000000000;
+05
+90
+07
+class Map{
+struct item {
+08
+60
+string key; int value;
+10
+}d[maxl];
+int cnt;
+11
+public:
+12
+13
+int find(string x）{
+for（inti=θ;i<cnt;++i)
+14
+if （d[i].key == x)
+15
+16
+return d[i].value;
+return -1;
+17
+CCFCSP-S2020第一轮C++语言试题
+第5页，共13页
+
+18
+{
+19
+staticint end(） {return-1;}
+20
+void insert(string k,int v）{
+21
+d[cnt].key =k;d[cnt++].value =v;
+}
+22
+23
+}s[2];
+24
+25
+class Queue {
+26
+string q[maxl];
+int head,tail;
+27
+28
+public:
+29
+void pop(）{++head;}
+30
+string front(） { return q[head +1];}
+31
+bool empty() { return head == tail;}
+32
+void push(string x){q[++tail]=x;}
+33
+}q[2];
+34
+35
+string st0,st1;
+36
+int m;
+37
+38
+string LtoR(string S,int L，int R){
+39
+string t = s;
+40
+char tmp = t[L];
+41
+for（int i=L；i<R;++i)
+42
+t[i]=t[i+1];
+43
+t[R]= tmp;
+44
+return t;
+45
+{
+46
+47
+string RtoL(string S, int L，int R){
+48
+string t = s;
+49
+char tmp = t[R];
+50
+for（int i=R;i>L;--i)
+51
+t[i]=t[i-1];
+52
+t[L]=tmp;
+53
+return t;
+54
+{
+55
+56
+bool check(string st,int p, int step）{
+57
+if(s[p].find(st）!= s[p].end())
+return false;
+58
+59
+++step;
+09
+if(s[p^1].find(st）== s[p].end()）{
+CCFCSP-S2020第一轮C++语言试题
+第6页，共13页
+
+61
+s[p].insert(st,step);
+62
+q[p].push(st);
+return false;
+63
+64
+{
+65
+cout<<s[p^1].find（st）+step<<endl;
+66
+return true;
+67
+{
+68
+69
+int main(）{
+70
+cin >> st0 >> st1;
+71
+int len = st0.length();
+72
+if （len != st1.length()）{
+cout<<-1<<endl;
+73
+74
+return 0;
+75
+76
+if （st0 == st1）{
+77
+cout<<0<<endl;
+78
+return0;
+79
+1
+80
+cin >>m;
+81
+s[0].insert(st0, 0); s[1].insert(st1, 0);
+q[0].push(st0);q[1].push(st1);
+82
+for （int p =0;
+83
+84
+!(q[0].empty(）&&q[1].empty());
+85
+p^=1）{
+86
+string st=q[p].front();q[p].pop(）;
+87
+int step = s[p].find(st);
+88
+if（（p==θ&&
+89
+(check(LtoR(st，m，len -1)，P，step）Il
+06
+check(RtoL(st，0，m)，P，step)))
+91
+92
+（p==1&&
+93
+（check（LtoR(st，0，m)，P，step）1l
+94
+check(RtoL(st，m,len -1)，P，step))))
+95
+return 0;
+96
+{
+cout<<-1<<endl;
+97
+98
+return 0;
+66
+判断题
+1）输出可能为0。（）
+CCFCSP-S2020第一轮C++语言试题
+第7页，共13页
+
+2）若输入的两个字符串长度均为101时，则m=0时的输出与m=100时的
+输出是一样的。（）
+3）若两个字符串的长度均为n，则最坏情况下，此程序的时间复杂度为
+θ(n!)。 （)
+单选题
+4）（2.5分）若输入的第一个字符串长度由100个不同的字符构成，第二
+个字符串是第一个字符串的倒序，输入的㎡为0，则输出为（）。
+49
+B.50
+C.100
+A.
+D.-1
+5)
+换行符。
+56
+B.84
+C.102
+D.68
+A.
+（4分）若两个字符串的长度均为n，且0<m<n-1，且两个字符串的构
+6）
+成相同（即任何一个字符在两个字符串中出现的次数均相同），则下列
+说法正确的是（）。提示：考虑输入与输出有多少对字符前后顺序不
+一样。
+若n、m均为奇数，则输出可能小于0。
+A.
+B.
+若n、m均为偶数，则输出可能小于0。
+若n为奇数、m为偶数，则输出可能小于0。
+C.
+若n为偶数、m为奇数，则输出可能小于0。
+D.
+三、完善程序（单选题，每小题3分，共计30分）
+1.
+（分数背包）小S有n块蛋糕，编号从1到n。第i块蛋糕的价值是wu，
+体积是v。他有一个大小为B的盒子来装这些蛋糕，也就是说装入盒子的
+蛋糕的体积总和不能超过B。
+他打算选择一些蛋糕装入盒子，他希望盒子里装的蛋糕的价值之和尽量
+大。
+为了使盒子里的蛋糕价值之和更大，他可以任意切割蛋糕。具体来说，他
+可以选择一个α（0<a<1），并将一块价值是w，体积为v的蛋糕切割成两
+块，其中一块的价值是α·w，体积是α·V，另一块的价值是（1-α)·w，体
+积是（1一α)·V。他可以重复无限次切割操作。
+现要求编程输出最大可能的价值，以分数的形式输出。
+比如n=3，B=8，三块蛋糕的价值分别是4、4、2，体积分别是5、3、2。
+那么最优的方案就是将体积为5的蛋糕切成两份，一份体积是3，价值是
+2.4，另一份体积是2，价值是1.6，然后把体积是3的那部分和后两块蛋
+糕打包进盒子。最优的价值之和是8.4，故程序输出42/5。
+CCFCSP-S2020第一轮C++语言试题
+第8页，共13页
+
+输入的数据范围为：1≤n≤1000，1≤B≤105；1≤w，v≤100。
+提示：将所有的蛋糕按照性价比w/v从大到小排序后进行贪心选择。
+试补全程序。
+01 #include<cstdio>
+02 using namespace std;
+03
+04 const int maxn = 1005;
+05
+06 intn，B，w[maxn]，v[maxn];
+07
+08
+int gcd(int u，int v）{
+60
+if（v==0)
+10
+return u;
+11
+return gcd(v，u%v);
+12}
+13
+14
+void print(int w，int v）{
+15
+int d=gcd（w，v);
+16
+w=w/d;
+17
+v=v/d;
+18
+if（v==1)
+19
+printf("%d\n",w);
+else
+20
+21
+printf("%d/%d\n"，w，v);
+22}
+23
+24
+4void swap（int &x，int &y）{
+25
+intt=x；x=y;y=t;
+26}
+27
+28
+int main(）{
+scanf("%d %d",&n,&B);
+29
+for（int i=1；i<=n；i++）{
+30
+31
+scanf("%d%d"，&w[i]，&v[i]);
+32
+33
+for（inti=1;i<n;i++)
+34
+for(int j=1;j<n;j ++)
+if(①）{
+35
+36
+swap(w[j],w[j +1]);
+37
+swap(v[j]，v[j + 1]);
+38
+{
+39
+int curV, curW;
+CCFCSP-S2020第一轮C++语言试题
+第9页，共13页
+
+if(②)
+40
+41
+42
+}else{
+43
+print(B *w[1]，v[1]);
+44
+return 0;
+45
+{
+46
+for（inti=2;i<=n；i++）
+47
+48
+if(curV+v[i]<=B）{
+49
+curV +=v[i];
+curw += w[i];
+50
+}else{
+51
+52
+print(④);
+return 0;
+53
+}
+54
+55
+print(③);
+return 0;
+56
+57}
+58
+59
+①处应填（）
+1)
+A.
+w[j]/v[j]<w[j+1]/v[j+1]
+B.
+w[j]/v[j]>w[j+1]/v[j+1]
+C.
+v[j]*w[j+1]<v[j+1]*w[j]
+w[j]*v[j+1]<w[j+1]*v[j]
+D.
+②处应填（
+2）
+B.
+A.
+w[1]<=B
+v[1]<=B
+C.
+W[1]>=B
+v[1]>=B
+③处应填（
+3)
+A.
+print（v[1],w[1]);return 0;
+B.
+curV=0;curW=0；
+C.
+print(w[1],v[1]);return0;
+D.
+curV=v[1];curW=w[1];
+④处应填（）
+4
+A.
+curW *v[i]+ curV *w[i]，v[i]
+B.
+（curW -w[i]）*v[i]+（B-curV） *w[i]，v[i]
+C.
+curW + v[i]，w[i]
+D.
+curW *v[i]+（B-curV) *w[i]，v[i]
+③处应填（）
+5）
+CCFCSP-S2020第一轮C++语言试题
+第10页，共13页
+
+curw,curV
+B.
+A.
+curw,1
+curV,curw
+curV,1
+C.
+D.
+（最优子序列）取m=16，给出长度为n的整数序列a,a2，"，an（0≤a<
+2.
+2m)。对于一个二进制数x，定义其分值w(x)为x+popcnt(x)，其中
+popcnt(x)表示x二进制表示中1的个数。对于一个子序列b,b2，,bk，定
+义其子序列分值S为w(bb2）+w（b2①b3）+w（b3①b4）+·+
+w(bk-1br)。其中表示按位异或。对于空子序列，规定其子序列分值为
+0。求一个子序列使得其子序列分值最大，输出这个最大值。
+输入第一行包含一个整数n（1≤n≤40000)。接下来一行包含n个整数
+a1,a2,.,ano
+提示：考虑优化朴素的动态规划算法，将前一位和后一位分开计算。
+Max[x][y]表示当前的子序列下一个位置的高8位是x、最后一个位置的
+低8位是y时的最大价值。
+试补全程序。
+01 #include<iostream>
+02
+03 using namespace std;
+04
+05 typedef longlongLL;
+06
+07
+constint MAXN =40000，M=16，B=M>>1，MS=（1<<
+B)
+-1;
+08
+ConStLLINF=1000000000000000LL;
+LLMax[MS+4][MS+4];
+09
+10
+11 int w(int x)
+12
+{
+13
+ints=x;
+while (x)
+14
+15
+{
+①；
+16
+17
+s++;
+18
+19
+return s;
+20}
+21
+22 void to_max(LL &x,LL y)
+23{
+CCFCSP-S2020第一轮C++语言试题
+第11页，共13页
+
+24
+if (x<y)
+25
+x=y;
+26}
+27
+int main()
+28
+29
+{
+int n;
+30
+31
+LL ans =0;
+cin
+32
+>>n;
+for（intx=θ;x<=MS;x++)
+33
+34
+for（int y=θ；y<=MS;y++)
+35
+Max[x][y] = -INF;
+for（int i=1；i<=n；i++)
+36
+37
+{
+38
+LLa;
+cin >> a;
+39
+intx=②，y=a&MS；
+40
+LLv=③;
+41
+for（int z=0;z<=MS;z++)
+42
+43
+to_max(v，④);
+44
+for（int z=θ;z<=MS;z++)
+45
+to_max(ans, v);
+46
+47
+}
+48
+cout<<ans<<endl;
+49
+return 0;
+50
+{
+①处应填（
+1)
+A.
+x>>=1
+B.
+=x&（x（x+1））
+X
+x-=x｜-x
+C.
+D.
+x^=x&（x^（x-1）)
+②处应填（）
+2)
+A.
+B.
+（a&MS）<<B
+a>>B
+C.
+a&（1<<B)
+D.
+a&（MS<<B)
+③处应填（）
+3)
+-INF
+B.
+Max[y][x]
+A.
+Max[x][y]
+C.
+D.
+4）④处应填（）
+CCFCSP-S2020第一轮C++语言试题
+第12页，共13页
+
+A.
+B.
+Max[x][z]+w(y^z)
+Max[x][z]+w(az)
+C.
+D.
+Max[x][z]+w（x^（z<<B）)
+Max[x][z]+w(xz)
+③处应填（）
+5）
+A.
+to_max（Max[y][z]，v+w（a（z<<B)）)
+B.
+to_max（Max[z][y]，v+w（(x^z）<<B))
+C.
+to_max(Max[z][y]，v+w(a ^(z<<B)))
+to_max(Max[x][z]，v+w(y^z))
+D.
+CCFCSP-S2020第一轮C++语言试题
+第13页，共13页
