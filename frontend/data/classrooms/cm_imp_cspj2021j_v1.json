@@ -1139,7 +1139,7 @@
           {
             "id": "p1_1",
             "type": "single",
-            "question": "Josephus 问题。①while 条件：",
+            "question": "34. ① 处应填（ ）。",
             "options": [
               {
                 "value": "A",
@@ -1255,7 +1255,7 @@
           {
             "id": "p1_5",
             "type": "single",
-            "question": "⑤循环末尾：",
+            "question": "38. ⑤ 处应填（ ）。",
             "options": [
               {
                 "value": "A",
@@ -1399,7 +1399,7 @@
           {
             "id": "p2_2",
             "type": "single",
-            "question": "②unique 去重条件：",
+            "question": "40. ② 处应填（ ）。",
             "options": [
               {
                 "value": "A",
@@ -1486,7 +1486,7 @@
           {
             "id": "p2_5",
             "type": "single",
-            "question": "⑤枚举条件：",
+            "question": "43. ⑤ 处应填（ ）。",
             "options": [
               {
                 "value": "A",

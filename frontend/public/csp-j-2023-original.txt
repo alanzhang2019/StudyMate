@@ -1,0 +1,602 @@
+2023 CCF 非 专 业 级 别 软 件 能 力 认 证 第 一 轮
+(CSP-]1) 入 门 级 C++ 语 言 试 题
+认 证 时 间 : 2823 年 9 月 16 日 99:38~11:39
+考 生 注 意 事 项 :
+@ 试 题 纸 共 有 16 页 , 答 题 纸 共 有 1 页 , 满 分 168 分 。 请 在 答 题 纸 上 作 答 , 写 在
+试 题 纸 上 的
+一 律 无 效 。
+@ 不 得 使 用 任 何 电 子 设 备 ( 如 计 算 器 、 手 机 、 电 子 词 典 等 ) 或 查 阅 任 何 书 籍 资 料 。
+一 、 单 项 选 择 题 ( 共 15 题 , 每 题 2 分 , 共 计 39 分 ; 每 题 有 且 有 一 个 正 确 选 项 )
+1. 在 C++ 中 , 下 面 哪 个 关 键 字 用 于 声 明 一 个 变 量 , 其 值 不 能 被 修 改 》 ( 。 )
+A。 unsigned
+B const
+C, static
+D。,mutable
+2. 八 进 制 数 12345678s 和 87654321s 的 和 为 () 。
+A 222222218
+B, 211111118
+C,221111118
+D,. 222222118
+3. 阅 读 下 述 代 码 , 请 问 修 改 data 的 value 成 员 以 存 储 3.14, 正 确 的 方 式 是 ()
+union Data 《
+int num;
+float value;
+char s)/m[】o二[;
+]
+union Data (二_a谕二a′蔓
+A data.value = 3.14;
+B.value.data = 3.14;
+C, data->value = 3.14;
+D:value->data = 3.14;
+CCF CSP-J 2023 第 一 轮 C++ 诱 言 试 意
+第 1 页 , 共 10 页
+
+
+--- PAGE BREAK ---
+
+4 假 设 有 一 个 链 表 的 节 点 定 义 如 下 :
+struct Node {
+int datai
+Node* next ;
+]
+
+现 在 有 一 个 指 向 链 表 头 部 的 指 针 , Node* head。 如 果 想 要 在 链 表 中 插 入 一 个 新
+的 节 点 , 其 成 员 data 的 值 为 42, 苯 使 新 节 点 成 为 链 表 的 第 一 个 节 点 , 下 面 哪 个
+操 作 是 正 确 的 ? (C 。 )
+
+A Node* newNode = new Nodei newNode->data = 42; newNode->next = head;
+
+head = newNode;
+
+B,Node* newNode = new Node; head->data = 42; newNode->next = head;
+
+head = newNodei
+
+C, Node* newNode = new Node; newNode->data = 42; head->next = newNode;
+
+D Node* newNode = new Node; newNode->data = 42; newNode->next = head;
+5. 根 节 点 的 高 度 为 1, 一 棵 拥 有 2823 个 节 点 的 三 又 树 高 度 至 少 为 ()
+
+A。6
+
+B,7
+
+C,8
+
+D,9
+6 小 明 在 树 一 天 中 依 次 有 七 个 空 闲 时 间 段 , 他 想 要 选 出 至 少 一 个 空 闲 时 间 段 来 练
+
+习 唱 歌 , 但 他 希 望 任 意 两 个 练 习 的 时 间 段 之 间 都 有 至 少 两 个 空 闲 的 时 间 段 让 他
+
+休 息 。 则 小 明 一 共 有 ( ) 种 选 择 时 间 段 的 方 案
+
+A 31
+
+B,18
+
+C,21
+
+D,33
+7- 以 下 关 于 高 精 度 运 算 的 说 法 错 误 的 是 ( )。
+
+A 高 精 度 计 算 主 要 是 用 来 处 理 大 整 数 或 需 要 保 留 多 位 小 数 的 运 算 。
+
+B. 大 整 数 除 以 小 整 数 的 处 理 的 步 骤 可 以 是 , 将 被 除 数 和 除 数 对 齐 , 从 左 到 右 逐
+
+位 尝 试 将 除 数 乘 以 某 个 数 , 通 过 减 法 得 到 新 的 被 除 数 , 并 累 加 商 。
+
+C, 高 精 度 乘 法 的 运 算 时 间 只 与 参 与 运 算 的 两 个 整 数 中 长 度 较 长 者 的 位 数 有 关 。
+
+D 高 精 度 加 法 运 算 的 关 键 在 于 逐 位 相 加 并 处 理 进 位 。
+
+CCF CSP-] 2023 第 一 轮 C++ 诵 言 试 颜
+第 2 页 , 共 10 页
+
+
+--- PAGE BREAK ---
+
+8。 后 缀 表 达 式 r6 2 3 + - 3 8 2 / + * 2 3 4 对 应 的 中 缀 表 达 式 是 ( )。
+A ((6 - (2 + 3)) * (3 + 8 / 2)) ^2 + 3
+B, 6 - 2 + 3 3 + 8 / 2 ^ 2 + 3
+C,(6 - (2 + 3)) * ((3 + 8 / 2) ^ 2) + 3
+D 6 - ((2 + 3) * (3 + 8 / 2)) ^ 2 + 3
+9 数 1816162 和 166s 的 和 为 ( )
+A 181188882
+B,236s
+C, 158
+D,ABus
+18. 假 设 有 一 组 字 符 fa,b,c,d,e,fj}, 对 应 的 频 率 分 别 为 5%、9%、12%、 13%、
+16%、 45%。 请 问 以 下 哪 个 选 项 是 字 符 a,b,c,d,e,f 分 别 对 应 的 一 组 哈 夫 曼
+编 码 32( )
+A 1111,1118,181,180,116,8
+B. 18196,1881,1898,811,819,80
+C, 888,881,818,811,18,11
+D, 1818,1811,118,111,886,61
+11. 给 定 一 棵 二 叉 树 , 其 前 序 遍 历 结 果 为 : ABDECFG, 中 序 道 历 结 果 为 : DEBACFG。
+请 问 这 棵 树 的 正 确 后 序 遍 历 结 果 是 什 么 ?( )
+A EDBFGCA
+B. EDBGCFA
+C. DEBGFCA
+D. DBEGFCA
+12 . 考 虑 一 个 有 向 无 环 图 , 该 图 包 含 4 条 有 向 边 :(1,2), (1,3), (2,4) 和
+(3,4) 。 以 下 郧 个 选 项 是 这 个 有 向 无 环 图 的 一 个 有 效 的 拓 扑 排 序 3( )
+A.4,2,3, 工
+B.1,2,3,4
+C.l,2,4, 3
+D.2,1,3,4 /'〈喜〉)\
+G D
+八 一 工
+G
+CCF CSP-J 2023 第 一 轮 C++ 诱 言 试 意
+第 3 页 , 共 10 页
+
+
+--- PAGE BREAK ---
+
+13. 在 计 算 机 中 , 以 下 哪 个 选 项 描 述 的 数 据 存 储 容 量 最 小 2( )
+
+A 字 节 (byte)
+
+B, 比 特 (bit)
+
+C, 字 (word)
+
+D 十 字 节 (kilobyte)
+14. 一 个 班 级 有 16 个 男 生 和 12 个 女 生 。 如 果 要 选 出 一 个 3 人 的 小 组 , 并 且 小 组 中
+必 须 至 少 包 含 1 个 女 生 , 那 么 有 多 少 种 可 能 的 组 合 7( 。 )
+
+A。 1428
+
+B,1776
+
+C、1540
+
+D,2200
+15. 以 下 哪 个 不 是 操 作 系 统 2( )
+
+A Linux
+
+B. Mindows
+
+C,Android
+
+D,HTML
+二 、 阅 读 程 序 ( 程 序 输 入 不 超 过 数 组 或 字 符 串 定 义 的 范 围 , 判 断 题 正 确 填 y , 错 误
+填 x; 除 特 殊 说 明 外 , 判 断 题 1.5 分 , 选 择 题 3 分 , 共 计 46 分 )
+(2)
+
+61 拓 nclude <iostream>
+
+62 技 nclude <cmath>
+
+683 using namespace stdi
+
+04
+
+85 double f(double a,double b,double c) 【
+
+86 double s = (a + b + C) / 2
+
+87 return Sqrt(S 车 (S - a) 车 (S - b) (s - c))3
+
+68 】
+
+09
+
+19 int main() {
+
+11 cout.flags(ios::flxed) ;
+
+12 cout.precision(4);
+
+13
+
+14 int a,b,c;
+
+CCF CSP-] 2023 第 一 轮 C++ 诵 言 试 颜
+第 4 页 , 共 10 页
+
+
+--- PAGE BREAK ---
+
+15 cin 2>> a 2> D >> c
+
+16 cout <k f(a,b,C) 《 endl3;
+
+17 return 6
+
+18 ]
+
+假 设 输 入 的 所 有 数 都 为 不 超 过 1666 的 正 整 数 , 完 成 下 面 的 判 断 题 和 单 选 题 判 断 题
+@ “ 判 断 额
+16,(2 分 ) 当 输 入 为 “2 2 2“ 时 , 输 出 为 “1.73212。( )
+17, (2 分 ) 将 第 7 行 中 的 “r(s - b)*(s - c)> 改 为 r(s - c)*(s - b)“ 不 会 影
+响 程 序 运 行 的 结 果 。( )
+18. (2 分 ) 程 序 总 是 输 出 四 位 小 数 。( )
+@ “ 单 选 题
+19 . 当 输 入 为 “3 4 5“ 时 , 输 出 为 ( )。
+
+A.“6.8888“ B.“12.8888“ “C.。.“24.8888“ D.“38.88887“
+28 . 当 输 入 为 “5 12 13“ 时 , 输 出 为 ( )
+
+A.“24.8888“B、“38.8888“ C.“68.8888“ “D.“128.8888“
+(2)
+
+61 拓 nclude <iostream>
+
+62 技 nclude <vector>
+
+83 抓nclude <algorithm>
+
+84 using namespace stdi
+
+85
+
+86 int f(string x,string y) 《
+
+87 int M = X.Size() ;
+
+88 int n = y.Size() 3
+
+89 vectorkvector<int>> v(W+l,vectork<int>(n+1,8));
+
+16 for(int 王 = 1; 王 <= mi i++) 【
+
+11 for(int 于 = 1; 于 <= ni j++) 《
+
+12 if(x[it-1] == y[j-11) 《
+
+13 v[][J] = v[i-1][j-1] + 1
+
+14 } else {
+
+15 v[i][J] = max(v[i-1][J,v[i][j-1])3
+
+16 ]
+
+17 ]
+
+18 ]
+
+19 return v[m] [n] ;
+
+26 ]
+
+CCF CSP-] 2023 第 一 轮 C++ 语 言 试 颜
+第 5 页 , 共 10 页
+
+
+--- PAGE BREAK ---
+
+21
+
+22 bool g(string x,string y) 《
+
+23 if(x.size() 1= y.size()) 【
+
+24 return fa1Se;
+
+25 ]
+
+26 return f(X + X,y) == y.Size() ;
+
+27 ]
+
+28
+
+29 int main() {
+
+38 String xX,y3
+
+31 cin 2> X 2> 3
+
+32 cout 《 g(x,y) 《d end1;
+
+33 return 83;
+
+34 】
+豚 “ 判 断 题
+21.f 函 数 的 返 回 值 小 于 等 于 min(n,m)。( )
+22.f 函 数 的 返 回 值 等 于 两 个 输 入 字 符 串 的 最 长 公 共 子 串 的 长 度 。( )
+23. 当 输 入 两 个 完 全 相 同 的 字 符 串 时 ,g 函 数 的 返 回 值 总 是 true.( )
+豚 “ 单 选 题
+24. 将 第 19 行 中 的 “v[m] [n]“ 晴 换 为 “v[n] [m]“, 那 么 该 程 序 ( )。
+
+A 行 为 不 变 B. 只 会 改 变 输 出 C. 一 定 非 正 常 退 出 D, 可 能 非 正 常 退 出
+25. 当 输 入 为 “rcsp-j p-jcs“ 时 , 输 出 为 ( )。
+
+E B 《17 C T D。“F“
+26 . 当 输 入 为 “rcsppsc spsccp“ 时 , 输 出 为 ( )。
+
+A T B.“F C.,“87 D 27
+(3)
+
+81 #include 《iostream>
+
+82 ##include 《cmath>
+
+803 using namespace std;
+
+04
+
+85 int solvel(int n) {
+
+86 return n 气 ni
+
+87 】
+
+08
+
+89 int solve2(int n) {
+
+CCF CSP-] 2023 第 一 轮 C++ 语 言 试 颜
+第 6 页 , 共 10 页
+
+
+--- PAGE BREAK ---
+
+16 int sum = 8;
+
+11 for (int 王 = 1; 王 k= Sqrt(n); i++) 《
+
+12 if(n % 工 == 6) 《
+
+13 if(nyi == 1) {
+
+14 SUm += 王 3
+
+15 } else {
+
+16 Sum += A 木 (n/i)4(n/i) 3
+
+7 丁
+
+18 ]
+
+19
+
+2 return Sumi
+
+21 ]
+
+22
+
+23 int main() {
+
+24 int ni
+
+25 cin 2> ni
+
+26 cout<<solve2(solvel(n))<<““<<solvel(solve2(n))< endl;
+
+27 return 6
+
+28 ]
+
+假 设 输 入 的 n 是 绝 对 值 不 超 过 1668 的 整 数 , 完 成 下 面 的 判 断 题 和 单 选 题 :
+豚 “ 判 断 题
+27 . 如 果 输 入 的 n 为 正 整 数 ,solve2 函 数 的 作 用 是 计 算 n 所 有 的 因 子 的 平 方 和 。( )
+28 . 第 13-14 行 的 作 用 是 避 免 n 的 平 方 根 因 子 ( 或 n/ 士 进 入 第 16 行 而 被 计 算 两 次 。( )
+29 . 如 果 输 入 的 n 为 质 数 ,solve2(n) 的 返 回 值 为 ns+l。( )
+豚 单 选 题
+38.(4 分 ) 如 果 输 入 的 n 为 质 数 p 的 平 方 , 那 么 solve2(n) 的 返 回 值 为 ( )。
+
+A 毕 十 p 王 工 B 木 十 工 C。 02 十 工 D。 p 十 2p2 + 工
+31. 当 输 入 为 正 整 数 时 , 第 一 项 减 去 第 二 项 的 差 值 一 定 ( )。
+
+A 大 于 等 于 8 . 大 于 等 于 e 且 不 一 定 大 于
+
+C. 小 于 8 D 小 于 等 于 e 且 不 一 定 小 于 8
+32 . 当 输 入 为 “5“ 时 , 输 出 为 ( )。
+
+A.“651 625“ B.“658 729“ C.“651 6767“ D.“652 625“
+
+CCF CSP-] 2023 第 一 轮 C++ 诵 言 试 颜
+第 7 页 , 共 10 页
+
+
+--- PAGE BREAK ---
+
+三 、 完 善 程 序 ( 单 选 题 , 每 小 题 3 分 , 共 计 36 分 )
+(1) ( 寻 找 被 移 除 的 元 素 》 问 题 : 原 有 长 度 为 n+l、 公 差 为 1 的 等 差 升 序 数 列 ; 将 数
+列 输 入 到 程 序 的 数 组 时 移 除 了 一 个 元 素 , 导 致 长 度 为 n 的 升 序 数 组 可 能 不 再 连 续 ,
+除 非 被 移 除 的 是 第 一 个 或 最 后 一 个 元 素 。 需 要 在 数 组 不 连 续 时 , 找 出 被 移 除 的 元
+素 。
+试 补 全 程 序 。
+
+61 技 nclude <iostream>
+
+62 技 nclude <vector>
+
+03
+
+84 using namespace stdi
+
+05
+
+86 int find_missing(vector<int>& nums) 《
+
+67 int left = 8,right = nums.size() - 1;
+
+08 while (left 《 right) {
+
+69 int mid = left + (right - left) / 23;
+
+16 if (nums[mid] == mid + 〇 ) {
+
+11 @
+
+12 } else {
+
+13 @)
+
+14 。 丁
+
+15 。 丁
+
+16 return 回
+
+17 ]
+
+18
+
+29 int main() {
+
+2 int ni
+
+21 cin 2> ni
+
+22 vectorcint> nums(n) ;
+
+23 for(int 王 = 8; 王 < n; i++)cin >> nums [ 工 ];
+
+24 int missing_number = find_missing(nums) ;
+
+25 if (missing_number == @G) {
+
+26 cout <6E“Sequence is consecutive“ k end1j
+
+27 } else {
+
+28 cout 《6c“Missing number is “ << missing_number 《< endlj
+
+29 1
+
+38 return 83;
+
+31 ]
+33. (D 处 应 该 塔 ( )
+
+A B,nums [9] C,right D, left
+CCF CSP-] 2023 第 一 轮 C++ 语 言 试 颜
+第 8 页 , 共 10 页
+
+
+--- PAGE BREAK ---
+
+34. @ 处 应 该 境 ( )
+A 1left = mid + 工 B,right = mid - 1
+C,right = mid D,left = mid
+
+35. @ 处 应 该 境 ( )
+A 1left = mid + 工 B,right = mid - 1
+C,right = mid D,left = mid
+
+36. @ 处 应 该 境 ( )
+A left = nums[9] B,right + nums [9]
+C,mid + nums [9] D right + I
+
+37. @ 处 应 该 塔 ( )
+
+A nums[8]+n “B.nums[8]+n-1 “C, nums[8]+n+1 “D,nums[n-1]
+(2) ( 编 辑 距 离 ) 给 定 两 个 孙 符 串 , 每 次 操 作 可 以 选 择 删 除 (Delete)、 插 入 (insert)
+菩 换 (Replace) 个 字 符 , 求 将 第 一 个 字 符 串 转 换 为 第 二 个 字 符 串 所 需 要 的 最 少 操 作
+次 数 。
+
+试 补 全 动 态 规 划 算 法 。
+
+61 技 nclude <iostream>
+
+62 技 nclude <string>
+
+83 技nclude <vector>
+
+84 using namespace stdi
+
+85
+
+86 int min(int x,int y,int z) 《
+
+87 return min(min(x,y),z)3
+
+68 】
+
+09
+
+18 int edit_dist_dp(string strl,string str2) 《
+
+11 int m = strl.length() ;
+
+12 int n = str2.1ength() ;
+
+13 vectorkvectork<int>> dp(m + 1,vectork<int>(n + 1))3;
+
+14
+
+15 for (int 王 = 8; 士 <= mi i++) 《
+
+16 for (int 于 = 8; 于 = n; j++) {
+
+17 if ( == 0)
+
+18 dp[i][j1 = a;
+
+19 else if (j == 0)
+
+26 dp[i][j1 = a;
+
+21 else if (@)
+
+22 dp[i][j1 = e;
+
+23 else
+
+CCF CSP-] 2023 第 一 轮 C++ 语 言 试 颜
+第 9 页 , 共 10 页
+
+
+--- PAGE BREAK ---
+
+24 dp[i][j]=lhmin(dp[i1[j - 1],dp[i - 1][j1, @);
+
+25 ]
+
+26 ]
+
+27 return dp[m] [n] ;
+
+28 ]
+
+29
+
+38 int main() {
+
+31 String strl,str2;
+
+32 cin >> Strl >> Str23
+
+33 cout 《k“Mininum number of operation:“
+
+34 k4 edit_dist_dp(strl,str2) 《 endl3;
+
+35 return 8
+
+35 】
+38. D 处 应 该 填 ( )
+
+A. 丁 B. i C,m D,n
+39. @ 处 应 该 填 ( )
+
+A. 丁 B. i C,m D,n
+48. @) 处 应 该 填 ( )
+
+A strl[i - 1] == str2[j - 1] B,strl[i] == str2[j1
+
+C. strl[i - 1] 1= str2[j - 1] D: strl[i] 1= str2[]1
+41, @ 处 应 该 塔 ( )
+
+A dp[t - 工 [ 二 - 1 + 1 B.dp[i - 1]1[j - 1]
+
+c. dp[i - 1][j1 D. dp[i][j - 1]
+42. @ 处 应 该 填 ( )
+
+A dp[i][J] + 1 B. dp[i - ][j - 1] + 1
+
+C. dp[t - 11[j - 1] D. dp[i][j1
+
+CCF CSP-J 2023 第 一 轮 C++ 诱 言 试 意
+第 10 页 , 共 10 页
+
+
+--- PAGE BREAK ---
+

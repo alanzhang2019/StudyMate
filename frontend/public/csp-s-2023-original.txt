@@ -1,1 +1,567 @@
- 
+2823 CCF 非 专 业 级 别 软 件 能 力 认 证 第 一 轮
+(cSp-S1) 提 高 级 C++ 语 言 诙 题
+认 证 时 间 : 2823 年 9 月 16 日 14;39~16:39
+
+二1基′生i熹于髦塞墓茎7具T 13 页 , 答 题 纸 共 有 1 页 , 满 分 168 分 。 请 在 答 题 纸 上 作 答 , 写 在 试 题 纸 上 的
+
+0 不萼寻霆 骂曰I薯王何l电子i壬t备~ ( 如 计 算 器 、 手 机 、 电 子 词 典 等 ) 或 查 阅 任 何 书 籍 资 料 。
+
+一 、 单 项 选 择 题 ( 共 15 题 , 每 题 2 分 , 共 计 3 分 ; 每 题 有 且 仅 有 一 个 正 确 选 项 )
+
+1. 在 Linux 系 统 终 端 中 , 以 下 哪 个 命 令 用 于 创 建 一 个 新 的 目 录 ? ( 》
+
+A、newdir
+B、mkdir
+C、Create
+D、mkfolder
+
+2. 8, 1, 2, 3, 4 中 选 取 4 个 数 字 , 能 组 成 ( ) 个 不 同 四 位 数 。 ( 注 : 最 小 的 四 位 数 是 1668,
+最 大 的 四 位 数 是 9999。 )
+
+A。96
+818
+C。 128
+D、84
+
+3- 便 设 n 是 图 的 顶 点 的 个 数 ,m 是 图 的 边 的 个 数 , 为 求 解 树 一 问 题 有 下 面 四 种 不 同 时 间 复 杂
+度 的 算 法 . 对 于 m = 8(n) 的 稀 疏 图 而 言 , 下 面 的 四 个 选 项 , 哪 一 项 的 渐 近 时 间 复 杂 度 最 小 ,
+C )
+
+A- 0(myIogn-I68l68m)
+B 0(n2 十 口 )
+
+C. 0[nz/logm+ mlog n)
+D. 0(m+nlogn)
+
+4. 假 设 有 n 根 柱 子 , 需 要 按 照 以 下 规 则 依 次 放 置 编 号 为 1 2、3、.,. 的 圆 环 : 每 根 柱 子 的 底
+部 固 定 , 顶 部 可 以 放 入 圆 环 ; 征 次 从 柱 子 顶 部 放 入 圆 环 时 , 需 要 保 证 任 何 两 个 相 邻 圆 环 的
+编 号 之 和 是 一 个 完 全 平 方 数 请 计 算 当 有 4 根 柱 子 时 , 最 多 可 以 放 置 (C ) 个 圆 环
+
+CCF CSP-s 鸳盖 熹" ……'『…熹+^`吝sr』t′，!〖 “
+
+
+--- PAGE BREAK ---
+
+A。7
+B,9
+C,11
+D,5
+[ 以下扇r鹭妻!芝穸售重吉宁勾【董(]表iE′拦不苹羲合当I蔷蕾]]1iJj是【 C 1
+A- 队 列 是 一 种 先 进 先 出 CFIFo 的 线 性 结 构
+B- 哈 夫 曼 树 的 构 造 过 程 主 要 是 为 了 实 现 图 的 深 度 优 先 搜 索
+5- 散 列 表 是 一 种 通 过 散 列 函 数 将 关 键 字 映 射 到 存 储 位 置 的 数 据 结 构
+D 二 叉 树 是 一 种 每 个 结 点 最 多 有 两 个 子 结 点 的 树 结 构
+6 以 下 逊 通 无 向 图 中 , ( ) 一 定 可 以 用 不 超 过 两 种 颜 色 迹 行 染 色 。
+A- 完 全 三 又 树
+B. 平 面 图
+C- 边 双 连 通 图
+D- 欧 拉 图
+7- 最 长 公 共 子 序 列 长 度 常 常 用 来 衡 量 两 个 序 列 的 相 似 度 。 其 定 义 如 下 : 给 定 两 个 序 列 x =
+Daxaxa.xaj 和 Y = [yiyzya ynj, 最 长 公 共 子 序 列 (LCS 问 题 的 目 标 是 找 到 一 个
+最 长 的 新 序 列 Z = [z z2, z3,.., zkj, 使 得 序 列 Z 既 是 序 列 X 的 子 序 列 , 又 是 序 列 Y 的 子 序
+列 , 且 序 列 Z 的 长 度 k 在 满 足 上 述 条 件 的 序 列 里 是 最 大 的 。 ( 注 ; 序 列 A 是 序 列 8 的 子 序
+列 , 当 东 仅 当 在 保 持 序 列 B 元 素 顺 序 的 情 况 下 , 从 序 列 B 中 删 除 若 干 个 元 素 , 可 以 使 得 剩
+余 的 元 素 构 成 序 列 A。) 则 序 列 “ABCAAABA“ 和 “ABABCBABA“ 的 最 长 公 共 子 序 列 长 度
+为 ( 7 。
+A 4
+亭 B。5
+| C- 6
+D 7
+3, 一 位 玩 家 正 在 玩 一 个 特 殊 的 掷 骰 子 的 游 戏 , 游 戏 要 求 连 续 掷 两 次 骰 子 , 收 益 规 则 如 下 : 玩
+家 第 一 次 掷 出 x 点 , 得 到 2x 元 ; 第 二 次 掷 出 y 点 , 当 y=x 时 玩 家 会 失 去 之 前 得 到 的 2x 元 ,
+而 当 y 吴 时 玩 家 能 保 住 第 一 次 获 得 的 2x 元 。 上 述 x,yf1,2,3,4,5,6}。 例 如 : 玩 家 第
+一 次 掷 出 3 点 得 到 6 元 后 , 但 第 二 次 再 次 拍 出 3 点 , 会 失 去 之 前 得 到 的 6 元 , 玩 家 最 终 收
+CCF CSP-S 2023 第 一 轮 C++ 语 言 试
+第 2 页 , 共 13 页
+
+
+--- PAGE BREAK ---
+
+益 为 8 元 ; 如 果 玩 家 第 - 次 掀 出 3 点 、 第 : 次 掷 出 4 点 , 则 最 终 收 益 是 6 元 。 假 设 骰 子 掷
+出 任 意 一 点 的 概 率 均 为 1/6, 玩 家 逊 线 掷 两 次 子 后 , 所们叽‖闹们衫卜收龊的邢均们腿名
+少 2 (
+
+A. 7 元
+
+B. 至 元
+
+cC. 芒 元
+
+D- 冬 元
+9. 假 设 我 们 有 以 下 的 C++ 代 码 :
+
+int a = 5, b = 3,C = 43
+bool res = a & b || c ^b && a | c3
+
+请 问 ,res 的 值 是 什 么 ? 〔 )
+
+提 示 , 在 C++ 中 , 逻 辑 运 算 的 优 先 级 从 高 到 低 依 次 为 : 逻 辑 非 (1 、 逻 辑 与 (8&) 、 逻
+辑 或 (||)。 位 运 算 的 优 先 级 从 高 到 低 依 次 为 : 位 非 C*) 、 位 与 (&) 、 位 异 或 (^) 、 位 或
+(C| ) 。 同 时 , 双 目 位 运 算 的 优 先 级 高 于 双 目 逻 辑 运 算 ; 逻 辑 非 和 位 非 优 先 级 相 同 , 且 高 于 所
+有 双 目 运 算 符 。
+
+A- 七 rue
+
+B-false
+
+C 工
+
+D 6
+蛐.假设快速排序算法的输入是一个长度为n的己擅寻I…序蛊习壹蜇(乡且′ 且 该 快 速 排 序 算 法 在 分 治 过 程 总
+
+是 选 择 第 一 个 元 素 作 为 基 准 元 素 。 以下[旦蒯隔个j晕星项描jZ柱庄【4〕是在这牙罐曹l′丨青7j剪巳下的′膏萝更羞墓盏冒|髌′弓[行为?
+
+)
+
+A. 快 速 排 序 对 于 此 类 输 入 的 表 现 最 好 , 因 为 数 组 已 经 排 序 。
+
+B. 快 速 排 序 对 于 此 类 输 入 的 时 间 复 杂 度 是 0(nlogn)。
+
+工 快 速 排 序 对 于 此 类 输 入 的 时 间 复 杂 度 是 0(na)。
+
+D. 快 速 排 序 无 法 对 此 类 数 组 迹 行 排 序 , 因 为 数 组 已 经 排 序 。
+
+11. 以 下 哪 个 命 令 , 能 将 一 个 名 为 “main.cpp“ 的 C++ 源 文 件 , 编 译 并 生 成 一 个 名 为 “main“
+
+的 可 执 行 文 件 ? ( )
+
+CCF CSP-S 2023 第 一 轮 C++ 语 言 试 题
+第 3 页 , 共 13 页
+
+
+--- PAGE BREAK ---
+
+A ++ -0 matn _matn . cpp
+8, B++ -0 matn.Cpp main
+C, g++ afn -0 matn . cpp
+0, g++ main.CPp -0 main. cpp
+22 . 在 图 论 中 , 树 的 重 心 是 树 上 的 一 个 结 点 , 以 试 结 点 为 根 时 , 信 得 其 所 有 的 子 树 中 结 点 数 盔
+多 的 子 树 的 结 点 数 再 少 。 一 椎 树 可 能 有 多 个 野 心 . 诸 问 下 面 哥 种 树 一 定 只 有 一 个 野 心 2 ( )
+A. 4 个 结 点 的 树
+8. 6 个 结 点 的 树
+c. 7 个 结 点 的 树
+D0. 8 个 结 点 的 树
+13 . 如 因 是 一 张 包 含 6 个 顶 点 的 有 向 图 , 但 顶 点 间 不 存 在 拓 扑 序 。 如 果 要 删 除 其 中 一 条 边 , 使
+这 6 个 顶 点 能 进 行 拓 扑 排 序 , 请 问 总 共 有 多 少 条 边 可 以 作 为 候 选 的 被 删 除 边 2 ( )
+A 工 。
+s.2 Q *蘑呱
+C. 3 `l疃L_, (，
+D 4 。
+14. 若 n = _o16i .xi, 定 义 f(n) = ZK_oxi; 其 中 xi E [8, l .., 15}。 对 于 给 定 自 然 数 n 存
+在 序 列 no n na..,nm, 其 中 对 于 1 三 i< m 都 有 ni = f(ni_1), 且 nm = nm_l, 称 nn 为 n 关
+于 f 的 不 动 点 。 问 在 1696 至 1Agus 中 , 关 于 f 的 不 动 点 为 9 的 自 然 数 个 数 为 (C 。
+A 16
+B ,11
+C。 12
+D, 13
+CCF (二s_】-s易【′董i璞(宁 覃 霉一擎言罩丐l君雉一_,_篇丨 试 额
+
+
+--- PAGE BREAK ---
+
+25。 9
+]芗玉屯餮主丨…蓉i宣Z口下1J蠢f甫重′」来l十拿荨)(”' 其 时 间 复 杂 度 为 ( ) 。
+double quick_power(double x,unsigned n) 《
+if (n => 8) return 1
+if (n =# 1) return x;
+return quick_power(x,n / 2)
+* quick_power(x,n / 2)
+车 (n & 1) x 1
+]
+A 0(n)
+B. 0(1)
+C. 0(logm)
+D. 0(nlogm,)
+二 、 阅 读 程 序 ( 程 序 输 入 不 超 过 数 组 或 字 符 申 定 义 的 范 围 ; 判 断 题 正 确 填 V, 错 误 填 x; 除 特
+殊 说 明 外 , 判 断 题 1.5 分 , 选 择 题 3 分 , 共 计 4 分 )
+C1》
+81 #lnclude 《iostream>
+82 using namespace std;
+83
+84 unsigned short f(unsigned short x) 《
+85 X = X 《k 63
+86 X = X 2> 83
+67 return X
+608 】
+89
+18 int main() 《
+11 unsigned Short X;
+12 cin >> X;
+13 unsigned short y = f(x)3
+14 cout 《k y <kendl;
+15 return 83
+16 ]
+假 设 输 入 的 x 是 不 超 过 65535 的 自 然 数 , 完 成 下 面 的 判 断 题 和 单 选 题 ;
+判 断 题
+CCF CSP-8 2023 第 一 轮 C++ 语 言 试 题
+第 5 页 , 共 3 页
+
+
+--- PAGE BREAK ---
+
+16. 当 输 入 非 零 时 , 输 出 一 定 不 为 零 。 ( )
+17′、(2 分 》 习眺@纂F官囊'娄蜇【的亳i盲可入叁蟹萎!更亡丨{J害′龌茎靓己1()gunsl【gne'j int, 程 序 的 输 出 不 变 。 《 》
+18 - 当 输 入 为 “65535“ 时 , 输 出 为 “63“ 。 ( )
+19 . 当 输 入 为 “1“ 时 , 输 出 为 <64“ 。 ( )
+单 选 题
+28. 当 输 入 为 “512“ 时 , 输 出 为 ( ) 。
+. “33288“ 、 “33410“ C。 “33166“ D。 “33346“
+21. 当 输 入 为 “64“ 时 , 执 行 完 第 5 行 后 x 的 值 为 ( ) 。
+A- “8256“ B、 “4138“ C, “41287 D。 “4168“
+《2》
+81 #include <iostream>
+82 拓 Include <cmath>
+83 #include 《vector>
+84 #include <algorithm>
+85 using namespace std ;
+86
+87 long long solvel(int n) 《
+88 vector<bool> p(n+l,true) ;
+89 vectork<long long> f(n+l,8),g(n+l,8)3
+16 f[1] = 13
+11 for (int 王 = 2; 士 中 士 《= ni i+H+) 《
+12 if (p[i]) {
+13 vector<int> d3
+14 for (int K 二 王 ; K 《 n 一 #= 王 ) d.push_back(K) ;
+15 reverse(d.begin(),d.end())3
+16 for (int k d) 《
+17 for (int 于 = ki 于 6= ni 于 + K) 【
+18 if (p[J1)
+19 p[j] = falsej
+E f[J】 = 工
+21 E[J】 = K3
+22 0
+23}
+24 ]
+25 ]
+壹妻 巍「 (int 王 = sqrt(n) + 1 王 < n E++) 【
+28 if (p[i]) 《
+CCF CSP-S 2023 第 一 轮 C++ 语 言 试 额
+第 6 页 , 共 13 页
+
+
+--- PAGE BREAK ---
+
+29 f[i] = 1
+38 E[i] = 工 ;
+31 }
+32 ]
+33 1long long sum = 1;
+34 for (int 王 = 2; 士 = n; t++) 《 木 f
+35 f[i] = f[t / g[i]1 * (8[it1 * f[i] - 121 / (f[i] - 73
+36 Sum += 十 [ 工 ] ;
+37 }
+38 return Sums
+39 ]
+49
+41 long long solve2(int n) 《
+42 long long sum = 8;
+43 for (int 王 = 1; 工 6= n; t++) {
+44 Sum += 王 车 (n / 工 3
+45 }
+46 return Sum;
+47 】
+48
+49 int main() 《
+56 int n;
+51 Cin >> n
+52 cout 《k solvel(n) 《k endl;
+53 cout 《k Solve2(n) 《《 endl;
+54 return 83
+55 ]
+假 设 输 入 的 n 是 不 超 过 196e6ee 的 自 然 数 , 完 成 下 面 的 判 断 题 和 单 选 题 :
+判 断 题
+22 - 将 第 15 行 删 去 , 输 出 不 变 。 ( )
+23. 当 输 入 为 “19“ 时 , 输 出 的 第 一 行 大 于 第 二 行 。 ( )
+24. (2 分 ) 当 输 入 为 “le69“ 时 , 输 出 的 第 一 行 与 第 二 行 相 等 。 ( )
+@ 单 选 题
+25.Solvel(n) 的 时 间 复 杂 度 为 ( ) 。
+A 8(nlog2m) B. (m) C., @(nlogm) D. @(nloglogm)
+26.solve2(n) 的 时 间 复 杂 度 为 ( ) 。
+, CCF CSP-8 2023 第 一 轮 C++ 语 言 试 题
+第 7 页 , 共 13 页
+
+
+--- PAGE BREAK ---
+
+A:。 8(n2) B、 8() C, 8(rlog ) D @(ny 史 )
+27. 输 入 为 “5“ 时 , 输 出 的 第 二 行 为 ( ) ,
+A “287 B 《217 C, 22n D0, 239
+(3)
+8g1 技 nclude 《vector>
+62 #include <algorithm>
+63 nclude <iostream>
+84
+805 using namespace stdi;
+66
+87 bool f8(vector<int>& a,int m,int k) {
+08 int s = 86;
+89 for (int 王 = 8, 于 = 8; 《 a.size(); it++) {
+16 while (a[il - a[j1 > m j++;
+11 S += 工 - 于 ;
+12 丁
+13 return S >= k;
+14 ]
+15
+16 int f(vector<int>& a,int k) 《
+17 sort(a.begin(),a.end())3
+18
+19 int g = 8;
+28 int h = a.back() - a[8];
+21 while (g8《 h) 《
+22 int m = + (h - 8) 7 23
+23 if (fe(a,m。,K)) 《
+24 h = i
+25 } else {
+26 匹 = 0 十 工 ;
+27 ]
+28 丁
+29
+3 return 目 3
+31 ]
+32
+33 int main() 《
+34 。 int n,K3
+35 cin 2> n 2> K3
+36 vectorsint> a(n,8) ;
+37 for(int 1 = 8; 士 《 ni i++) 《
+CCF CSP-8 2023 第 一 轮 C++ 语 言 试
+第 8 页 , 共 1 页
+
+
+--- PAGE BREAK ---
+
+亘彗 ) cin >> a[i] ;
+
+48 coutcc f(a,K) dli
+4l Fetu 伟 << en
+42 ]
+
+【 闻 和 单
+iZ{i题丨匮`蠢乏′歹鑫曹′`′'妻′是菩】`薯…!熹B菩】且|a[i] sler nsleeee 和 lsksn(n-2)/2, 完 成 下 面 的 判 断 属
+判 断 题
+28- 将 第 24 行 的 “m“ 改 为 “m - 1“, 输 出 有 可 能 不 变 , 而 剩 下 情 况 为 少 2。 《 “
+
+29. 将 第 22 行 的 “g + (h - 8) / 2“ 改 为 “(h + 8) >> 1“, 输 出 不 变 。 〈 》
+38. 当 输 入 为 “5 7 2 -4 5 1 -3“ , 输 出 为 “5“。 ( 》
+单 选 题
+31 . 设 a 数 组 中 最 大 值 减 最 小 值 加 1 为 A, 则 f 函 数 的 时 间 复 杂 度 为 ( 7 。
+A。 6(rlog ) B.。 @(nzlog 0 C.。 (nlog (n4)) 0. 8(nlog 力
+32 . 将 第 1 行 中 的 “>“ 替 换 为 “>=“, 那 么 原 输 出 与 现 输 出 的 大 小 关 系 为 ( 7 。
+A- 一 定 小 于 B。 一 定 小 于 等 于 且 不 一 定 小 于
+C- 一 定 大 于 等 于 且 不 一 定 大 于 D 以 上 世 种 情 况 都 不 对
+33. 当 输 入 为 “5 8 2 -5 3 8 -12“ 时 , 输 出 为 (C ) 。
+A 3 B “147
+C。 《 87 D 一 57
+三 、 完 善 程 序 ( 单 选 题 , 每 小 题 3 分 , 共 计 3 分 )
+(1) ( 第 小 路 径 ) 给 定 一 张 n 个 点 m 条 边 的 有 向 无 环 图 , 顶 点 编 号 从 0 到 n - 1
+对 于 一 条 路 径 , 我 们 定 义 “ 路 径 序 列 “ 为 该 路 径 从 起 点 出 发 依 次 经 过 的 顶 点 编 号 构 成 的 序
+列 。 求 所 有 至 少 包 含 一 个 点 的 简 单 路 径 中 ,“ 路 径 序 列 “ 字 典 序 第 k 小 的 路 径 。 保 证 存
+在 至 少 k 条 路 径 。 上 述 参 数 满 足 1 < .m < 105 和 1 三 / 三 1018。
+
+在 程 序 中 , 我 们 求 出 从 每 个 点 出 发 的 路 径 数 量 。 超 过 1018 的 数 都 用 1018 表 示 。 然
+后 我 们 根 据 K 的 值 和 征 个 顶 点 的 路 径 数 量 , 确 定 路 径 的 起 点 , 然 后 可 以 类 似 地 依 次 求 出
+路 径 中 的 每 个 点 。
+
+试 补 全 程 序 。
+
+81 #tnc1lude 《itostream>
+CCF CSP-S 2023 第 一 轮 C++ 语 言 试 题
+第 9 页 , 共 13 页
+
+
+--- PAGE BREAK ---
+
+82 #include <algorithm>
+
+63 #include <vector>
+
+84
+
+85 const int MAXN = 1688e6;
+
+宣彗 const l(，′lg l。_'】g LIM = _ 1668888888888888888911 ;
+88 int n,m,deg[MAXN];
+
+89 std: :vector<int> E[MAXN] ;
+
+18 long long k,f[MAXN]3
+
+11
+
+12 int next(std: :vector<int> cand,long long &K) 《
+13 “std::sort(cand.begin(),cand.end())3
+14 “for (int u : cand) {
+
+15 if (@) return u;
+
+16 k -= f[u];
+
+27
+
+18 return -1;
+
+19 ]
+
+28
+
+21 int main() 《
+
+22 。 std::cin 2> n >> M 2> K;
+
+23 “for (int 士 = @; < m; ++i) 《
+
+24 Ent u,V3
+
+25 std::cin >> u >> V; // 一 条 从 u 到 v 的 边
+26 E[u] .push_back(v) ;
+
+27 ++deg[v] 3
+
+28
+
+29 “ std::vector<int> Q;
+
+38 “for (int 王 = 8; 士 《 n; ++i)
+
+31 if (ldeg[i]) Q.push_back(i)3
+
+32 “for (int i = 8; 士 < n; ++i) 【
+
+33 int u = Q[i]3;
+
+34 for (int v : E[u]) 《
+
+35 if (@) Q.push_back(v);
+
+356 --deg[v];
+
+37 ]
+
+38
+
+39 “ std::reverse(Q.begin(),Q.end())3
+49 “for (int u ; Q) 《
+41 f[u] = 13
+42 for (int V : E[u]) f[u] = @;
+43 】
+44 “int u = next(Q,K)3;
+45 std;i:cout 《6 U 《4 std: :end13
+
+CCF CSP-S 2023 第 一 轮 C++ 语 言 试 题
+第 10 页 , 共 13 页
+
+
+--- PAGE BREAK ---
+
+46 “while (@) {
+47 @;
+48 4 = next(E[u],K) ;
+叁亘 }st(1::<二。u1: <4 U 《k std: ;end1;
+51 “return e;
+52 ]
+34. @ 处 应 填 ( )
+A K 2 不 [u] B K c f[u] C.,K >f[u] D。 k 《 f[u]
+35. @ 处 应 填 ( )
+A.。 deg[v] == 1 _B. deg[v] == 8 C, deg[v] > 1 “0.。 deg[v] > 98
+36. @ 处 应 填 ( )
+A std::min(f[u] + f[v],LIM) B.。 std::min(f[u] + f[v] + , LIM)
+C。 std:imin(f[u] 车 f[v],LIM) D。 std::min(f[u] 车 (f[v] + 1),LIM)
+37. 回 处 应 填 ( )
+A 一 1 - B.。 1E[u].empty() “C:。 K > 6 D k > 工
+38. @ 处 应 填 ( )
+A “K += 半 [u] B K -= f[u] C, k D ++k
+(2) ( 最 大 值 之 和 ) 给 定 整 数 序 列 ao, . an-, 求 该 序 列 所 有 非 空 连 续 子 序 列 的 最 大 值 之
+和 。 上 述 参 数 满 足 1 <n < 105 和 1 < ai < 108。
+一 个 序 列 的 非 空 连 续 子 序 列 可 以 用 两 个 下 标 和 7 ( 其 中 0 <1<r < ) 表 示 , 对
+应 的 序 列 为 au a ..v0r。 两 个 非 空 连 续 子 序 列 不 同 , 当 且 仅 当 下 标 不 同 。
+例 如 , 当 原 序 列 为 [L2,L2] 时 , 要 计 算 子 序 列 [ [z]+ [ 小 [ [Lzl+ [211+ [LZ1、
+[L24]、 [2LZ] [L2,12] 的 最 大 值 之 和 , 答 案 为 18。 注 意 [L4] 和 [2,2] 虽 然 是 原 序 列
+的 子 序 列 , 但 不 是 连 续 子 序 列 , 所 以 不 应 该 被 计 算 。 另 外 , 注 意 其 中 有 一 些 值 相 同 的 子 序
+列 , 但 由 于 他 们 在 原 序 列 中 的 下 标 不 同 , 属 于 不 同 的 非 空 连 续 子 序 列 , 所 以 会 被 分 别 计 算 。
+解 决 该 问 题 有 许 多 算 法 , 以 下 程 序 使 用 分 治 算 法 , 时 间 复 杂 度 0(nlogm) 。
+试 补 全 程 序 。
+g1 #nclude 《iostream>
+82 #nclude <algorithm>
+83 #include 《vector>
+04
+CCF CSP-8 2023 叁署骞一薯4仑cJ『fi吾言i藿〖晕旦
+I 第 11 页 , 共 13 页
+
+
+--- PAGE BREAK ---
+
+05 const int MAXN = 188888;
+06 t ni
+87 in , 、
+8 int a[MAXN] ;
+g9 long 1long ans3
+10
+11 void solve(int 1,int r) 《
+公 if G + 口 山 1
+13 ans += a[1]
+14 returns
+15 }
+16 int mid =《(1 + r) >> 1
+17 std::vector<int> pre(a + mid,a + r) ;
+18 for (int 王 = 1; 王 《 r - mid; ++i) @〕…
+19 std: :vector<long long> sum(r - mid + 1) ;
+2 for (int 王 = 8; 王 《 r - mid; ++i) Sum 〔+ 目 ,
+邝 for (int 王 = mid - 1 于 = mid,max = 咖 1 2 sunHJ + pre[i];
+22 while (j《 r && @) ++J; 1
+23 max = std: :maX(maX, [ 工 ] ) ;
+24 ans += @
+25 ans += 回 ;
+26 ]
+27 Solve(L1,mid)3
+28 solve(mid,r)3
+29 】
+38
+31 int main() 【
+32 std::cin 2>2 n3
+33 for (int 王 二 8; 二 《 ni ++2) stds icin >> a[i] 3
+34 @;
+35 std::cout < ans 《《 std::end13
+36 return 83
+37 】
+39.@ 处 应 填 ( 》
+
+A: pre[i] = std::max(pre[t - 1], a[ - 21)
+
+B.。 pre[ + 1】] = std::max(pre[i], pre[i + 2])
+
+C, pre[i] = std::max(pre[: - L],a[i])
+
+D.。 pre[i】 = std: ;max(pre[:] pre[ 一 1])
+
+48.@ 处 应 填 ( )
+A.。 a[j] 〈 max 8, a[J《 a[i]
+C, pre[j - mid] 〈 max D pre[j“ td] > 9
+CCp CSP-S 2023 第 一 轮 C++ 语 言 试 胸
+第 12 页 , 共 13 页
+E
+
+
+--- PAGE BREAK ---
+
+|
+' |
+41.@ 处 应 填 ( _
+A、 (long long)(j - mid) * max _
+B. (long long)(j - mid) * ( - 1 “ max `
+C, sum[j - mid]
+D. sum[j - mid] 车 - 1)
+42. 国 处 应 填 ( )
+A、 (long long)(r - 扎 《 max
+B. (long long)Cr - 才 (mid - 1) 《 max
+C, sun[r - mid] - sum[j - mid]
+D (Csum[r - mid] - sum[j - mid]) 《 (mid - 工
+43. @ 处 应 填 ( )
+A “Solve(8,n) B、 solve(8,n - 工 )
+C.。 solve(l,n) D。 solve(l,n - 工 )
+CCF CSP-8 2023 第 一 轮 C++ 诵 言 试 颉
+第 13 页 , 共 13 页
+
+
+--- PAGE BREAK ---
+

@@ -758,12 +758,13 @@
               "  ans = a * b;",
               "  cout << \"Ans = \" << ans << endl;",
               "  return 0;",
-              "}"
+              "}",
+              "输入：2 3 4",
+              "输出："
             ],
-            "codeTitle": "阅读程序（1）",
-            "codeDescription": "读入三个整数 a、b、c，按指定公式计算 ans 并输出。",
+            "codeTitle": "1.",
             "type": "single",
-            "question": "输入：2 3 4\n输出：",
+            "question": "1. 输入：2 3 4 输出：_________",
             "options": [
               {
                 "value": "A",
@@ -940,7 +941,7 @@
             "codeTitle": "阅读程序（3）",
             "codeDescription": "将字符串中所有小写字母转换为大写，其它字符不变。",
             "type": "single",
-            "question": "输入：Hello, my name is Lostmonkey.\n输出：",
+            "question": "3. 输入：Hello, my name is Lostmonkey. 输出：_________",
             "options": [
               {
                 "value": "A",

@@ -1,0 +1,597 @@
+2824 CCF 非 专 业 级 别 软 件 能 力 认 证 第 一 轮
+(CSP-]1) 入 门 级 C+ 语 言 试 题
+认 证 时 间 : 2824 年 9 月 21 日 89:38~11 : 38
+
+考 生 注 意 事 项 ;
+@ “ 试 题 纸 有 12 页 , 答 题 纸 共 有 1 页 , 满 分 169 分 。 请 在 答 题 纸 上 作 答 , 写 在 试 题 纸 上 的
+
+一 律 无 效 。
+@ “ 不 得 使 用 任 何 电 子 设 备 ( 如 计 算 器 、 手 机 、 电 子 词 典 等 ) 或 查 任 何 书 筹 资 料 。
+一 、 单 项 选 择 题 ( 共 15 题 , 每 题 2 分 , 共 计 36 分 ; 每 题 有 丁 仅 有 一 个 正 确 选 项 》
+1. 32 位 int 存 傅 范 园 是 ( 》
+
+A.-2147483647~+2147483647
+
+B . -2147483647~+2147483648
+
+C.-2147483648~+2147483647
+
+D.-2147483648~+2147483648
+2. 计 算 (148-16162)*Due-11812 的 结 果 , 并 选 择 答 案 的 十 进 制 值 : ( 》
+
+A 13
+
+B、14
+
+C。15
+
+D,16
+3 桃 公 司 有 19 名 员 工 , 分 为 3 个 部 门 :A 部 门 有 4 名 员 工 ,B 部 门 有 3 名 员 工 、c 部
+门 有 3 名 员 工 。 现 需 要 从 这 16 名 员 工 中 选 出 4 名 组 成 一 个 工 作 组 , 七 每 个 部 门 至 少 要 有
+1 人 。 问 有 多 少 种 选 择 方 式 》 ( )
+
+A 120
+
+B,126
+
+C。132
+
+D,238
+
+CCF CSP-] 2824 第 一 轮 C++ 语 言 试 题
+第 1 页 共 12 页
+魏 公 众 号 - 跟 随 唐 克 练 编 程
+
+
+--- PAGE BREAK ---
+
+4 以 下 哨 个 序 列 对 应 数 组 @ 至 7 的 4 位 二 进 制 格 雷 码 (Gray code) 2 ( )
+A. 8889,8881,8811,8919,8119,8111,8161,1888
+B,8889,8881,8811,8819,8119,8111,8199,8181
+C. 8889,8881,9811,8919,8189,8161,9111,9110
+D. 8889,8881,8811,8818,8118,8111,8191,8189
+
+5. 记 1Kb 位 1624 字 节 (byte),1MB 位 1824KB, 那 么 1MB 是 多 少 二 进 制 位 (bit) ?
+
+C )
+A.1888888
+B.1848576
+C.8866806
+D.8388688
+6 以 下 哪 个 不 是 C++ 中 的 基 本 数 据 类 型 2 ( )
+A int
+B,float
+C、Struct
+D char
+7 以 下 哪 个 不 是 C++ 中 的 循 环 语 句 2 ( )
+A。for
+B、while
+C,do-while
+D repeat-unti11
+
+8. 在 C/C++ 中 ,(char) (“a“+13) 与 下 面 的 哪 一 个 值 相 等 ( )
+E
+E
+C. z
+
+CCF CSP-] 2824 第 一 轮 C++ 语 言 试 题
+第 2 页 共 12 页
+鲸 公 众 号 . 跟 随 唐 克 练 编 程
+
+
+--- PAGE BREAK ---
+
+D. 3
+9 假 设 有 序 表 中 有 1669 个 元 素 , 则 用 二 分 法 查 找 元 素 x 最 多 需 要 比 较 ( ) 次
+
+A.25
+
+B.16
+
+C.7
+
+D.1
+18. 下 面 哪 一 个 不 是 操 作 系 统 名 字 ( 》
+
+A Notepad
+
+B Linux
+
+C。Mindows
+
+D,mac0S
+11. 在 无 向 图 中 , 所 有 顶 点 的 度 数 之 和 等 于 ( 》
+
+A 图 的 边 数
+
+B 图 的 边 数 的 两 倍
+
+C, 图 的 定 点 数
+
+D 图 的 定 点 数 的 两 倡
+12。 已 知 二 又 树 的 前 序 遗 历 为 [A,B,D,E,C,F,G] , 中 序 遍 历 为 [D,B,E,A,F,C,G], 求 二 又 树
+的 后 序 遍 历 的 结 果 是 ( )
+
+A [D,E,B,F,G,C,A]
+
+B。 [D,E,B,F,G,A,C]
+
+C, [D,B,E,F,G,C,A]
+
+D [D,B,E,F,G,A,C]
+
+CCF CSP-] 2824 第 一 轮 C++ 语 言 试 额
+第 3 页 共 12 页
+鲍 公 众 号 . 跟 随 唐 克 练 编 程
+
+
+--- PAGE BREAK ---
+
+13. 给 定 一 个 空 栈 , 支 持 入 栈 和 出 栈 操 作 。 若 入 栈 操 作 的 元 素 依 次 是 1 2 3 4 5 6, 其 中 1
+最 先 入 栈 ,6 最 后 入 栈 , 下 面 哨 种 出 栈 顺 序 是 不 可 能 的 ( )
+
+A.6 5 4 3 2 1
+
+B.1 6 5 4 3 2
+
+C.2 4 6 5 3 1
+
+D.1 3 5 2 4 6
+14. 有 5 个 男 生 和 3 个 女 生 站 成 一 排 , 规 定 3 个 女 生 必 须 相 邻 , 问 有 多 少 种 不 同 的 排 列
+方 式 2 ( )
+
+A 4328 种
+
+B,5648 种
+
+C, 3688 种
+
+D,2888 种
+15. 编 评 器 的 主 要 作 用 是 什 么 ( ?
+
+A, 直 接 执 行 源 代 码
+
+B 将 源 代 码 转 换 为 机 器 代 码
+
+C。 迹 行 代 码 调 试
+
+D 管 理 程 序 运 行 时 的 内 存
+
+CCF CSP-] 2824 第 一 轮 C++ 语 言 试 题
+第 4 页 共 12 页
+鲸 公 众 号 跟 随 唐 克 练 编 程
+
+
+--- PAGE BREAK ---
+
+二 、 阅 读 程 序 ( 程 序 输 入 不 超 过 数 组 或 字 符 略 定 义 的 范 围 ; 判 断 题 正 确 塔 V, 错 误 填 x; 除
+特 殊 说 明 外 , 判 断 题 1.5 分 , 选 择 题 3 分 , 共 计 48 分 。
+《C12
+
+81| 技 nclude 《iostream>
+
+62| using namespace std;
+
+63
+
+e4| bool isprime(int n) 《
+
+85 if (n <= 1) {
+
+66 return false;
+
+07 4
+
+08 for (int 王 = 2; 王 车 工 c n; i++) 《
+
+69 if (n % 王 == 6) {
+
+16 return false;
+
+2 0 丁
+
+12 ]
+
+13 return truei
+
+14| 7
+
+15
+
+16| int countPrimes(int n) 《
+
+17 int count = 8
+
+18 for (int 王 = 2; 士 = n; i++) 《
+
+19 if (isprime(i)) {
+
+2 count++3
+
+21 ]
+
+22 ]
+
+23 return count ;
+
+24| 】
+
+25
+
+26| int sumPrimes(int n) 《
+
+27 int sum = 8;
+
+28 for (int 王 = 2; 士 k= ni i++) 《
+
+29 if (isprime(i)) {
+
+3 Sunm += 王 ;
+
+3 。 丁
+
+32 ]
+
+33 return Sunmi
+
+34|
+
+35
+
+36|int main() 《
+
+37 Int X3
+
+38 Cin_>> X
+
+CCF CSP-] 2624 第 一 轮 C++ 诲 言 试 题
+第 5 页 共 12 页
+蝉 公 众 号 跟 随 唐 克 练 编 程
+
+
+--- PAGE BREAK ---
+
+cout 《 countPrimes(X) 《6 “ “ 6 Sumprimes(X) 《 endl;
+
+4 return 3
+@ 判 断 题
+16. 当 输 入 为 “18“ 时 , 程 序 的 第 一 个 输 出 为 “4“, 第 二 个 输 出 为 “172。C 。 )
+17. 若 将 ispPrime(i ) 丽 数 种 的 条 件 i # i 《K= n 改 为 i<=n/2, 输 入 “28“ 时 ,countPrimes
+(28) 的 输 出 将 变 为 “6“C 。 )
+18。 sumPrimes 函 数 计 算 的 是 从 2 到 n 之 间 的 所 有 素 数 之 和 ( 》
+@ “ 单 选 题
+19 . 当 输 入 为 “58“ 时 ,sumPrimes(58) 的 输 出 为 ( 。 )
+
+A.1068
+
+B.328
+
+C.381
+
+D.275
+28. 如 果 将 for(int i=2;i*ik=n;i++) 改 为 for(int i=2;ik=n;i++) , 输 入 16“ 时 , 程
+序 的 输 出 C 》
+
+A. 将 不 能 正 确 计 算 16 以 内 素 数 个 数 及 其 和
+
+B. 仍 然 输 出 “4“ 和 “17
+
+C. 输 出 “3“ 和 18
+
+D. 输 出 结 果 不 变 , 但 运 行 时 间 更 短
+《2
+
+81| 秉 cTuge 《I0SEFean5
+
+92| #include <vector>
+
+93| using namespace std:;
+
+e
+
+95| int compute(vector<int> &cost) 《
+
+66 int n = cost.size() 3
+
+67 vectorkint> dp(n + 1,8);
+
+e8 dp[1] = cost[8]3;
+
+CCF CSP-] 2824 第 一 轮 C++ 语 言 试 题
+第 6 页 共 12 页
+鲍 公 众 号 . 跟 随 唐 克 练 编 程
+
+
+--- PAGE BREAK ---
+
+69 for (int 士 = 2; kz n; i++) 【
+16 dp[i] = min(dp[i - 1],dp[i - 2]) + cost[i - 1];
+11 }
+12 return 岫n〈dp〔n]】 叩〔n = 1〕);
+13|
+14
+15[int main() {
+16 int n
+17 cin >> n
+18 vectorkint> cost(n) 3
+19 for (int 王 = 8; 王 《 n; i++) {
+2 cin >> cost[i]3;
+21 ]
+22 cout kk compute(cost) 《k endl;
+23 return 8
+24|7
+皑 判 断 额
+21. 当 输 入 的 cost 数 组 为 [19,15,28} 时 , 程 序 的 输 出 为 15 ( )
+22. 如 果 将 dp[i-1] 改 为 dp[i-3], 程 序 可 能 会 产 生 编 译 错 误 ( 》
+23. (2 分 ) 程 序 总 是 输 出 cost 数 组 中 的 最 小 的 元 素 ( 。
+@ “ 单 选 题
+24. 当 输 入 的 cost 数 组 为 (1,188,1,1,1,188,1,1,188,1} 时 , 程 序 的 输 出 为 ( )
+A.6
+B.7
+C.8
+D.9
+25.(4 分 ) 如 果 输 入 的 cost 数 组 为 {18,15,38,5,5,18,28}, 程 序 的 输 出 为 ( 2。
+A:“25“
+B.“36“
+C,“35“
+D.“4g“
+CCF CSP-] 2824 第 一 轮 C++ 语 言 试 题
+第 7 页 共 12 页
+魏 公 众 号 跟 随 唐 克 练 编 程
+
+
+--- PAGE BREAK ---
+
+26. 若 将 代 码 中 的 min(dp[i-1],dp[i-2])+cost[i-1] 修 改 为 dp[i-1]+cost[i-2], 输
+入 cost 数 组 为 【5,18,15} 时 , 程 序 的 输 出 为 ( )
+
+A,10
+
+B ,15
+
+C、20
+
+D、25
+(3)
+
+81| #include 《iostream>
+
+62| #include 《cmath>
+
+8 引 using namespace std;
+
+04
+
+85| int customFunction(int a,int b) 《
+
+66 if (b == 6) 《
+
+07 return 33
+
+68 ]
+
+E return a + customFunction(a ,b - 1)3
+
+16| }
+
+11
+
+1a| int main() 《
+
+13 int x,y3
+
+14 cin 2> X >> Y
+
+15 int result = customFunction(x,y)3
+
+16 cout 《6 pow(result,2) 《6 endl3;
+
+17 return 83
+
+18| 】
+“ 判 断 题
+27, 当 输 入 为 “2 3“ 时 ,customFunction (2,3 的 返 回 值 为 “642。( )
+28, 当 b 为 负 数 时 ,customFunction (a,b) 会 陷 入 无 限 递 归 。( 。 )
+29. 当 b 的 值 越 大 , 程 序 的 运 行 时 间 越 长 。( 。 )
+@ “ 单 选 题
+38. 当 输 入 为 “5 4“ 时 ,customFunction (5,4) 的 返 回 值 为 ( )。
+
+CCF CSP-] 2624 第 一 轮 C++ 语 言 试 题
+第 8 页 共 12 页
+鲍 公 众 号 . 跟 随 唐 克 练 编 程
+
+
+--- PAGE BREAK ---
+
+A.5
+
+B.25
+
+C.258
+
+D.625
+31. 如 果 输 入 x = 3 和 y = 3, 则 程 序 的 最 终 输 出 为 ( 。 )
+
+A.“277
+
+B.“81“
+
+C.“1447
+
+D.“256
+32.。 (4 分 ) 若 将 customFunction 函 数 改 为 “return a 十 customFunction (a-1,b-
+1); 并 输 入 “3 3“, 则 程 序 的 最 终 输 出 为 ( )。
+
+A.9
+
+B.16
+
+C.25
+
+D.36
+三 、 完 善 程 序 ( 单 选 题 , 每 小 题 3 分 , 共 计 38 分 )
+(C1) ( 判 断 平 方 数 ) 问 题 : 给 定 一 个 正 整 数 n, 判 断 这 个 数 是 否 为 完 全 平 方 数 , 即 存 在 一 个
+正 整 数 x 使 得 x 的 平 方 等 于 n
+
+试 补 全 程 序 。
+
+61]| #ncLude <iostream>
+
+862| #include <vector>
+
+863| using namespace std;
+
+864| bool isSquare(int num){
+
+65 int 王 = Q 〇 ;
+
+66 int bound = @) ;
+
+67 for(;iicboundi++i){
+
+68 if( @ )f
+
+E return @
+
+16 }
+
+11 ]
+
+12 return @ 3
+
+13| 1
+
+CCF CSP-] 2824 第 一 轮 C++ 语 言 试 题
+第 9 页 共 12 页
+砺 公 众 号 . 跟 随 唐 克 练 编 程
+
+
+--- PAGE BREAK ---
+
+14 [int main( )t
+
+15 int ni
+
+16 cin>>nij
+
+17 if(isSquare(n) )f
+
+18 coutkkn<k“is a Square number“<<end1;
+
+19 jelsef
+
+2 coutkkn<k“is not a Square number“<<end1;
+
+21|
+
+22 return ;
+
+23 |
+33. D 处 应 填 ( )
+
+A 工 B,2 C,3 D、4
+34, @) 处 应 填 ( )
+
+A (int) floor(sqrt(num) -1) B。 (int)floor(sqrt(num) )
+
+C,floor(sqrt(num/2))-1 D,floor(sqrt(num/2))
+35. @ 处 应 填 ( 》
+
+A num=2+ 王 B , num== 2+ 王
+
+C。 num=i+i D。 num= = 王
+36. @ 处 应 填 ( )
+
+A。 num= 2 B 。 num==2* 王 C,true D、falSe
+37. @ 处 应 填 ( )
+
+A 1Cnum=2*) B ,num1=2+3 C,true D falSe
+(C2 ( 汉 诺 塔 问 题 ) 给 定 三 根 柱 子 , 分 别 标 记 为 A、B 和 C。 初 始 状 态 下 , 柱 子 A 上 有 若 干
+个 圆 播 , 这 些 圆 撰 从 上 到 下 按 从 小 到 大 的 顺 序 排 列 。 任 务 是 将 这 些 圆 播 全 部 移 到 柱 子 c 上 ,
+东 必 须 保 持 原 有 顺 序 不 变 。 在 移 动 过 程 中 , 需 要 遨 守 以 下 规 则 :
+
+1, 只 能 从 一 根 柱 孔 的 顶 部 取 出 圆 盘 , 并 将 其 放 入 另 一 根 柱 孔 的 顶 部 。
+
+2, 每 次 只 能 移 动 一 个 圆 盘
+
+CCF CSP-] 2824 第 一 轮 C++ 语 言 试 题
+第 16 页 共 12 页
+鲍 公 众 号 . 跟 随 唐 克 练 编 程
+
+
+--- PAGE BREAK ---
+
+3. 小 圆 盘 必 须 始 终 在 大 圆 盘 之 上 。
+
+试 补 全 程 序 。
+
+81[#Include 《bits/stdc++.h>
+
+62| using namespace std ;
+
+63| void move(char Src,char tgt) 《
+
+64 cout 《 “ 从 柱 子 “ < src <c “ 挪 到 柱 子 上 “<k tgt <c end1;
+
+65| 1
+
+86| void dfs(int i,char Src,char tmp,char tgt) 《
+
+67 if(t == O ) {
+
+88 move( @ );
+
+69 returni;
+
+16 ]
+
+11 dfs(i-1, @ );
+
+12 move(Src,tgt) ;
+
+13 dfs( @ ,@ );
+
+14|
+
+15[int main() {
+
+16 int ni
+
+17 cin >> ni
+
+18 dfs(n,“Ar B 1C03
+
+19 return 8;
+
+29|
+38. D 处 应 填 ( )
+
+A.8 B.1 C.2 D.3
+39. @ 处 应 填 ()
+
+A Src,tmp B,src,tgt C。tmp,tgt D,tgt,tmp
+48. @ 处 应 填 ()
+
+A。 src,tmp,tEt B,Src,tgt, tmp
+
+C,tgt,tmp,Src D,tgt,Src,tmp
+41. @ 处 应 填 ()
+
+CCF CSP-] 2824 第 一 轮 C++ 语 言 试 题
+第 11 页 共 12 页
+魅 公 众 号 - 跟 随 唐 克 练 编 程
+
+
+--- PAGE BREAK ---
+
+A。 src,tmp,tgt B,tmp,src,tEt
+C,Src,tgt,tmp D,tgt, src,tmp
+42. @ 处 应 填 ()
+A,6 B , 工 C. 工 -1 D 王
+CCF CSP-] 2824 第 一 轮 C++ 语 言 试 题
+第 12 页 共 12 页
+魅 公 众 号 . 跟 随 唐 克 练 编 程
+
+
+--- PAGE BREAK ---
+

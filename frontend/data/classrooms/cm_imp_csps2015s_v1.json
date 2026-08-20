@@ -779,7 +779,7 @@
           {
             "id": "cr1",
             "type": "single",
-            "question": "输出：",
+            "question": "1. 输出：_________",
             "options": [
               {
                 "value": "A",
@@ -867,7 +867,7 @@
           {
             "id": "cr2",
             "type": "single",
-            "question": "输出：",
+            "question": "2. 输出：_________",
             "options": [
               {
                 "value": "A",
@@ -959,7 +959,7 @@
           {
             "id": "cr3",
             "type": "single",
-            "question": "输入：\nI am a citizen of China #\n输出：",
+            "question": "3. 输入：\nI am a citizen of China #\n输出：_________",
             "options": [
               {
                 "value": "A",
@@ -1056,7 +1056,7 @@
           {
             "id": "cr4",
             "type": "single",
-            "question": "输入：5\n输出：",
+            "question": "4. 输入：5 输出：_________",
             "options": [
               {
                 "value": "A",

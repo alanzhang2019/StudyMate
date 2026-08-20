@@ -203,7 +203,7 @@
               },
               {
                 "value": "B",
-                "label": "01011001"
+                "label": "01110011"
               },
               {
                 "value": "C",
@@ -269,7 +269,7 @@
               },
               {
                 "value": "D",
-                "label": "计算机死机"
+                "label": "电脑死机"
               }
             ],
             "answer": [
@@ -340,7 +340,7 @@
           {
             "id": "q11",
             "type": "single",
-            "question": "11. 下面软件不属于即时通信软件的是（ ）。",
+            "question": "11. 下面哪种软件不属于即时通信软件（ ）。",
             "options": [
               {
                 "value": "A",
@@ -369,7 +369,7 @@
           {
             "id": "q12",
             "type": "single",
-            "question": "12. 6 个顶点的连通图构成的最小生成树，其边数为（ ）。",
+            "question": "12. 6 个顶点的连通图的最小生成树，其边数为（ ）。",
             "options": [
               {
                 "value": "A",
@@ -460,7 +460,7 @@
             "options": [
               {
                 "value": "A",
-                "label": "a"
+                "label": "f"
               },
               {
                 "value": "B",
@@ -468,7 +468,7 @@
               },
               {
                 "value": "C",
-                "label": "d"
+                "label": "a"
               },
               {
                 "value": "D",
@@ -719,9 +719,9 @@
             "  c = 3;",
             "  if (a > b) {",
             "    if (a > c)",
-            "      cout << a;",
+            "      cout << a << ' ';",
             "    else",
-            "      cout << b;",
+            "      cout << b << ' ';",
             "  }",
             "  cout << c << endl;",
             "  return 0;",
@@ -785,17 +785,16 @@
           "lines": [
             "#include <iostream>",
             "using namespace std;",
-            "struct Point {",
+            "struct point {",
             "  int x;",
             "  int y;",
             "};",
             "int main() {",
-            "  struct Ex {",
+            "  struct EX {",
             "    int a;",
             "    int b;",
-            "    Point c;",
-            "  }",
-            "  e;",
+            "    point c;",
+            "  } e;",
             "  e.a = 1;",
             "  e.b = 2;",
             "  e.c.x = e.a + e.b;",

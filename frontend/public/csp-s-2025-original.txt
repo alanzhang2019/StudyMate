@@ -1,1 +1,635 @@
-2025CSP-S 提高组真题卷 一、单项选择 二、程序阅读 第一题 第二题 第三题 程序填空 第一题 第二题 
+2025CSP-S 提 高 组 真 题 卷
+一 、 单 项 选 择
+1 有 5 个 红 色 玮 帜 5 个 英 色 玲 , 它 f 腔 了 茵 色 之 外 光 全 恺 合 , 栾 迢 0 个 玺 成 掳 , 要 汀 王 东 英 色 球 郭 不 胡 恩 钧 有
+李 0 移 不 门 的 扬 方 法 ?
+8, 30
+C 6
+D, 120
+2 在 KMP 算 h 义 于 佳 帕 P-“abacaba , 其 nedt 数 统 (netf 定 丸 为 挂 式 单 PD ] 智 长 公 共 莉 吊 磁 的 长 度 , 日 故 绍 下
+标 从 0 异 8 的 俊 春 f 么 ?
+A 仪 01.0.1.2 对
+B 证 12345 口
+C .0.11.2 2 习
+D. 0.0.0.1.2 对
+3 对 _ 个 火 小 为 15 ( 下 坂 0-15) 的 数 绍 上 林督 海 纳 殴 根 , 查 区 间 B 11| 寺 , 智 , 霍 要 汾 口 多 少 个 仪 绑 点 ( 包 技 限 狒 | 的
+人 红 却 充 全 包 名 坤 闰 区 闭 的 绍 吴 ?
+C9
+
+
+--- PAGE BREAK ---
+
+万 将 孙 答根 rcatl,“car “cartl,“caser,“dogr,“do“ 描 A 一 个 宏 的 Tie 拙 ( 脚 硕 州 ) 中 , 杜 藏 兆 成 ie 树 ( 如 挂 捉 节
+呆 ] 共 有 多 4? 结 咤 ?
+8
+E
+C 0
+D.T1
+5 对 于 一 个 包 吾 个 绘 点 和 m 条 边 的 有 史 无 玟 国 (0AG , 其 招 打 排 帐 皋 结 有 多 少 希 可 腺 ?
+人 史 有 1 种
+8 最 多 n 种
+C 等 于 rm 科
+D 以 | 郭 东
+“ 租neeaen e
+人 5
+8 7
+C
+D. T1
+
+
+--- PAGE BREAK ---
+
+一 个 朐 合 8 个 颂 的 光 全 英 ( 页 的 痘 口 为 刮 8] , 任 恩 网 市 之 门 的 辽 益 英 于 网 顶 师 绍 口 的 芊 红 芒 借 , 伟M 顶 灯
+3 和 7 之 口 b 辽 权 量 为 |7 - | - 4 论 国 的 吴 生 成 户 介 野 春 多 少 7
+人 了
+8 8
+C 9
+D 10
+8 知 林榴 一 又 摄 家 的 吊 序 河 历 巾 是 2,5,4, 8,12,10, 6 那 久 活 8 红 前 卵 历 星 + 么 ?
+又 6 一 2,5. 10, 8, 12
+85, 4 5 2, 10, 12, 8
+C 2 4 5. 6, 8, 10, 仪
+D. 12, 8, 10, 5, 2 4 56
+9 一 个 0-1 背 的 门 题 , 腐 吊 容 春 为 20、 现 有 5 个 物 和 , 其 量 春 和 传 借 分 为 7, 5,4,3,6 和 15,12,9, 7,13. 装 \ 脸
+匆 的 仁 跃 胡 氓 御 的 春 大 怡 仁 偷 春 多 少 ?
+人 的
+8 4
+C 65
+D 4
+
+
+--- PAGE BREAK ---
+
+10 愤丈笋…雳 1 为 棣 的 刹 中 , 给 点 12 和 经 点 18 的 春 E 伟 共 神 兆 (LCA) 是 纳 炎 4 邦 仁 万 善 个 结 扁 的 ICA 绍 司 春 不 可
+司 ICA02 有 =4
+8 ICA08 有 =4
+C LCA02 18 勾 =4
+D. LCA02 刀 =4
+1 遭 当 关 系 式 T = 2Tfy2] + 0(f 指 远 了 荣 分 诃 辅 河 吊 间 复 札 痒 、 请 门 辽 阮 孝 趴 间 发 史 春 多 少 7
+A f
+8 0nleg 史
+C 05
+D. frrlog 口
+12 在 个 刑 的 为 交 招 最 | 挂 (min-heap) 中 , 侦 欠 挂 \ 元 紊 20 12 15.8 10 5 矫 吊 注 汪 扣 行 芸 欠 髁 阪 春 小 佩 ,(dclete-
+min) 握 作 谍 闭 M 堆 氏 示 素 星 + 仁 ?
+E
+8 12
+c 15
+D 20
+
+
+--- PAGE BREAK ---
+
+1 1 到 000 之 间 , 不 郭 敦 2、3、5 中 伯 恩 一 个 河 怀 胡 的 张 政 有 仪 少 个 7
+A 266
+8 267
+C 383
+D. 734
+14 狄 英 河 担 8 罗 宏 人 为 FJ-0 F]-1 Pn-ffn-1-ffr-2) 佳 厂 权 紫 湘 E 方 法 计 算 Finl 的 史 门 复 乐 度 尸 挂 改 技 的 , 而 门
+动 奂 技 刘 ( 吊 沥 仁 ) 方 河 皋 吊 门 扬 汀 痛 春 承 的 , 近 玟 永 移 工 大 县 异 的 枢 棣 团 昼 7
+人 遮 E 医 故 闵 用 吊 开 悍 大
+8, 提 作 玟 江 逼 户 永 应 有 限 制
+C 朱 家 浑 月 中 孙 圭 大 春 的 量 益 孔 门 札 技 量 奂 用
+D 动 土 技 刑 仰 用 了 更 / 的 敌 玲 衍 玟 闵
+伟 1 吴 林外 人 红 有 许 吴 l
+为 了 暨 J 怡 罚 , 应 浑 任 兆 执 行 邹 个 务 7
+人 处 理 肖 闵 绍 的 余 加 A5
+8, 戴 止 寺 间 暨 早 的 务 43
+C 化 途 的 闯 暨 的 医 务 A4
+D 任 惧 一 个 加 都 以
+
+
+--- PAGE BREAK ---
+
+二 、 程 序 阅 读
+1
+卯 ncluds calgorithmy
+62 招 ncluee cstdio>
+白 绘ncluds dcstring>
+的 bool flag[27]3
+85 int n
+86 int p[a7J5
+8 int ans = 8
+88 vaid dfstint ) 《
+8 。 妩 ( n
+16 ens;
+过 return;
+22
+巩 for nt 王 不 主 纠 h 《
+14 坐 (flag[iJ) continue;
+15 现 (ie 3 醒 王 吴 p[k - 切 一 22 continoe;
+16 p[UQ 不
+左 lsg[ 认 = truei
+18 dfs(k + 3
+15 lag[ 打 = falsei
+2
+L return;
+2 3
+3 int main0 《
+灵 scanf(osar gn
+25 afsGD3
+26 printf(ogdvnr ans):
+27 return 6;
+E
+( ( 分 ) 当 招 人 的 n-3 的 阡 侯 , 程 序 江 的 英 为 3.
+E
+锡 氓
+00| 在 d 口 故 汪 行 河 玲 个 , k 的 取 伯 会 漾 居 1<kn+1.
+E
+锭 浩
+(} 彦 脱 篓 19 行 的 g[j-fale「, 为 芸 宏 不 伟 生 彭 跳 .
+E
+锭 浩
+
+
+--- PAGE BREAK ---
+
+仪 . 当 8 入 的 n-4 的 时 森 , 程 卯 @ 出 的 芒 室 为 () .
+A T1
+B
+C 24
+D.9
+( 加 柱 一 为 荣 出 口 题 , 吊 致 玲 帐 汪 市 篓 55 行 的 q 团 数 久 前 , 敷 组 p 的 切 信 并 不 全 为 0, 则 程 希 竞 影 砂 星 () 。
+人 揣 凶 的 芒 宏 匕 厝 英 宏 要 小
+8 无 狄 描 的 芒 宇
+C 租 史 诊 死 江
+D 汪 帕 响
+明 , 限 0 到 女 篓 14 行 的 Mfflagfcontnuer , 缉 \ 3, 得 刹 的 缘 出 芊 室 昼 () 。
+A 27
+8 3
+C 16
+D, 12
+
+
+--- PAGE BREAK ---
+
+2
+
+卯 鞍ncluds cslgoritnep
+直 鞭ncluds dcstdio>
+日 描ncluds ccstring
+84 gdefine i long long
+5 int cnt_broken = 8
+65 int cnt_check - 的
+卯 int u 的
+88 inline bool checktint M) 《
+89 printf(onos checkiWovrr M
+18 cnt_check
+过 。 讨 (cntbroken r 2) 《
+达 printf(oVou heve ne ss
+与 return false;
+24
+45 坐 ( g 《
+15 cntbroken;
+2 retorn true;
+18 3 alse 《
+1 return false;
+E 》
+合 3
+巩 indine pool assert_anstint 0) 《
+3 讪 ( g 《
+娜 printf(oVou are Right using 败 checksynr, cnt_checo
+因 return true;
+26 3 alse 《
+2 printf(oWrong anowerivnr);
+诊 return false;
+3
+3 3
+玖 iniine void guessltint n) 《
+弛 for Gnt 王 = 不 主 0 5 i
+芒 论 (cneckG) 《
+玟 assert_ans(i:
+E return;
+5
+歼
+珂 3
+弩 indine veid guess2(int ) 《
+4 int
+李 for 不 日 口 + 1 2 6 M +
+书 3
+的 for dnt 妮 口 明 助 一 刑 t 0h 仪 如 h z stdtiminohu 0 《
+4 环 (checktom)) 《
+的 for (int 扎 = M - 如 不 扎 4 hy hd) {
+46 i (cneckt) {
+多 assert_ans(;
+4 returni
+的 3
+35 。
+引 assert_ansnh)i
+
+〖 E retorny
+
+
+--- PAGE BREAK ---
+
+医
+5
+歼 3
+56 ins main0 《
+多 scenf(rMatar, &n, 83
+58 int 白
+驿 scanf(osdr 8
+5 。 迁 余 心 《
+取 guesalmi3
+62 7 alse 《
+6 guesa2m
+s
+65 return 8;
+66 3
+( 注 意 : 下 的 「 猪 M8M 为 浩 用 check 艺 数 的 火 改 ( 印 cnLcheck 的 真 ) ; 莲 刘 E 捉 的 伟 义 为 ccerLan 医 政 Ieum
+ue ( 行 箩 5 行 所 区 立 竞 惠 元 ; 所 有 楠 入 俊 泓 1 5 k5 n )
+(0 @ 入 为 「65 个 财 , 狡 炭 为 5; 当 援 人 「652. 时 , 猪 贺 A 为 3
+E
+锭 氓
+( 不 芒 睿 入 的 n 和 k 尿 伟 为 多 少 , t=2 时 的 症 敏 志 昼 少 英 于 t-1 刊 的 振 命 政
+E
+错民
+| 不 符 t 或 t2, 程 希 邹 视 仁 玟 I 技根
+E
+锭 民
+仪 医 数 guexx1 矿 E 行 招 个 ,cntbroken 的 俊 咤 为 ( .
+A 0
+8 1
+c 2
+D n
+
+
+--- PAGE BREAK ---
+
+人 口 敲 guex2 在 汪 行 河 中 , 春 乡 俊 用 的 深 英 惧 的 量 为 [) 。
+A O
+8 O
+C o0 口
+D O0eg 口
+伊 . 录技 入 的 n=100 的 刀 继 , 代 闹 个 乙 1 和 土 2 分 别 荣 芒 的 浩 刹 次 敲 暨 多 分 助 为 ) 。
+A 100 4
+8 100, 13
+C 99, 14
+D 驯 , 1
+
+
+--- PAGE BREAK ---
+
+园
+卯 绍 nclude cslgoritha
+8 银nclude dcstdio>
+8 铁 nclude ccstring
+的 include cvector
+85 2define 1 eng long
+95 int , 邦
+87 stdi:ivectordint> k P;
+88 inine int mpowtint x int 日
+8 int ans 巩
+16 Hor ( 皇 医 知 关 口 刑 一
+L E
+122 ans = an5 5 吊
+巳 ]
+24 return anaj
+15
+16 stditvectordint> ansl, ana23
+1 int cntl cntzi
+18 inling veig dfsstdiivectordinb& ans, int& cnt int l nt P int 0 《
+18 E
+2 cnt
+因 anspush_back(o3
+达 return;
+因 )
+4 for int 当 主 纳 卵 49
+万 gfs(ans,cnt, 王 主 一 W 言 [ 干 posi p[HJ)5
+26 ]
+石 returns
+]
+刑 Stditvectordint> cntanalj
+38 int main() {
+玑 scanf(rgdtdr, n, 的 )
+玑 koresize( + )
+马 puresize(n + ;
+E for Gint 王 = 不 王 6 5 Hi) 《
+围 scanf(oWdtdr, [,8p[)5
+55 }
+E afsfansl cntl 工 n 多 工 1
+竞 dfs(eons2 cnta, n 办 刃 一 I 8
+8 stdisert(anslibegin(0, ansloend073
+4 int newcntl z 4
+亿 cntensl pushcbeck()5
+仪 fer (int 巩 王 6 cnHli ri) {
+的 讪 (ansl[ 认 ansl[nencntl - ) 《
+的 cntansl[newcntl - ;
+白 ] alse t
+46 anal[nesentlrj - analtilj
+4 cntansipushback(J;
+4 3
+的 ]
+E cntl - nescntl;
+驭 stdizort(ans2.begin(0, ans2.end073
+马 int las 83
+咤 L ans - 8
+马 Her (int 5 cntz - 巩 王 B
+马 for ( 1as 《 cntl 鲜 ansl[ias] + ans2[ 打 《6 8 hlaa)
+林
+0 讪 (las 《 cntl 醒 ansl[las] + ans2[ 辽 )
+驯 ans t cntansl[iaa]3
+驯 ]
+50 printf(ogildunr ans):
+叉 return 8;
+6
+
+
+--- PAGE BREAK ---
+
+( 洁 脱 篓 51 行 的 sdcontera2begin0anc2end0|- 后 , 代七 出 的 红 荣 不 仪 口 影 园 .
+E
+错 浩
+伟 | 偏 汪 计 招 d 春 个 不 发 生 泊 出 , 蛭 数 mpowtki 的 加 春 求 出 的 借 , ()
+E
+[
+人 | 代 命 个 算 39 行 刺 箱 50 行 的 目 的 是 为 了 格 an:1 数 纯 行 重 提 、 ()
+E
+[
+仪 . 录睿 为 3 1512 -12 12“ 时 , 辐 d 绘 昂 为 ()
+义 不
+8 8
+C 0
+D 10
+口 记 狒PA 吊 前 p 改 万 泓居 大 借 为 P, 财 沥 代 玖 的 时 闵 沥 应 春 (
+A O
+8 Omlogmj
+c O(nnelogmo 史 )
+D. O(moe Clogmoe+logP) )
+的 . 札 颖 F 的 春 () 。
+人 海 医 a,be E [L 川 的 MB805 程 c 十 付 一 口 的 脱 的 敌 坤
+8 消 居 ah.e e [L, 州 的 狒 8 广 程 吊 十 付 一 以 的 育 的 故 坂
+C 满 居 乙 E |0,| 的 颊 疗 程 51 A - 27 一 0 的 育 的 政 量
+D 满 & zi [ 吸 一 L A - 办 二 0 的 2 春
+
+
+--- PAGE BREAK ---
+
+了 ( 挂 玟 颂 国 限 ) 圭 宏 一 个 合 个 炳 、1 标 江 的 市 无 史 闻 , 边 打 节 、 起 帐 为 5, 经 帕 为 了 刀 于 - 条 5 到 工 的 路
+征 , 史 仁 玲 林 范 垂 中 , 至 多 迪 招 一 李 汞作 为 “ 元 贺 汞 “: 当 蔡 一 欠 江 河 李 顽 泓 丨 的 汀 吊 , 贺 用 顾 为 [: 知 桂 吊 肉 欠 绍
+训 医 江 , 财 历 技 咤 胡 权 量 认 洁 , 点 和 汞 的 允 量 复 经 达 , 手 从 5 刹 一 的 春 小 白 视
+以 下 仁 罚 求 解 了 上 法 口 颜 试 补 全 所
+
+6 5include celgorithe
+
+82 includs hiostreaey
+
+的 招 ncluds cqueuey
+
+84 标 nclude cvector>
+
+65 using nemespace std;
+
+65
+
+8 const iong long IWF - 1el8;
+
+8
+
+9 struct Edge 《
+
+28 int tai
+
+L n netght;
+
+12 23
+
+一
+
+14 struct Stste {
+
+45 。 long long dist;
+
+16 int 一
+
+巩 ink used_fresbiei /1 9 for net used, for sed
+128 pool operstory(const State &other) const 《
+过 return dist > othersdist;
+
+29 3
+
+万 不
+
+区
+
+2 int main() 《
+
+E int , 界 5 的
+
+刑 。 En 加 用 加 里 加 一 加 的
+
+55
+
+知 vectercvectorkdgeoy adi(n + 3
+
+8 far Gnt 王 的 王 6 卯 4
+
+辽 En u w 明
+
+35 cin 加 日 知 日 竞 的
+
+玟 add[uJ.push_bsck(Cou 03
+
+因 add[VJ.push_back(tuu 町 )3
+
+巳 国 脱 ,
+
+团
+
+弼 vectorvectordlong long2 5(n + 1 Vectordlong long2(2, IND)3
+班 priarig_aueuedStste vectorStsteo,gresterdState> pai
+园
+
+邹 a[sJ[e] - 6;
+
+园 pq.pusM(t8, 5 ;
+
+4
+
+仁 s (lpavempy0) 《
+
+阮 State current - pactop(05
+
+的 pa.pap0;
+
+的
+
+5 dong iong dist = currentdist;
+46 int u = currentui
+
+奶 int used = currentusea_freseie;
+
+
+--- PAGE BREAK ---
+
+鬟蓦】'赠鳙咿_(`]
+口 A0
+口 8 1
+D c
+口 0 ee
+
+四 M 0)
+口 A dlboseadl
+teeal
+口 c beedl
+口 D NF
+
+
+--- PAGE BREAK ---
+
+G}.GAbR 塞 ()
+A d
+8 dfused]
+C dlJjtced
+D, d
+的 G 塞 ()
+A dNJII
+8 d
+C d
+D. aluln
+(GMLR 塞 ()
+A fy[
+8 d
+C mindtgL d
+D. a - a
+
+
+--- PAGE BREAK ---
+
+2 工 才 帕 河 吊 户 史 诚 李 门 技 苔 2 生 广 技 , 仁 市 技 刑 衍 圭 阿 的 生 绅 . 工 厂 有 川 条 生 线 ( 瘟 号 0 ~ 一 1) , 巳 知
+其 中 怡有 - 标 生 厂 技 衔 荣 肽 , 每 许 澈 式 力 , 从 芒 平 生 厂 技 竞 库 命 酮 祖 涉 司 成 一 个 招 主 的 宇 户 , 芍 许 i 个 勺 命 胡
+生 一 招 厂 咤 , 眠 户 要 才 泓 质 ( 绍 梁 P 为 1) , 吉 刨 正 帮 收 货 ( 讨 为 0 , 发 惧 后 厂 限 制 , 在 希 有 发 质 股 X 中 , 智 幽
+一 康 人 次 选 货 (80 绘 果 为 的 欠 敦 < /) , 工 厂 的 目 伟 是 , 设 计 春 ? 的 闵 报 灰 敬 i ( 发 质 技 汀 ) , 侯 沈 以
+户 收 财 玟 河 质 皋 双纳 根 , 限 许 宏 行 河 阿 的 丘 绘
+以 下 征 应 宏 现 了 工 的 目 坂 , 包 名 东 邱 分 ] 球 宏 l 的 明 小 俊 , 并 沥 i 居 什 动 江 方 宏 月 林 炎 深 i 绍 根 技 河 阿 的 生
+库 技 , 诗 氓 应 玲 宏 i 春 小 健 的 方 法 为 : 出 于 不 门 的 生 广 竞 扬 腾 时 , 洗 江应 出 诊 不 月 的 武 乐 , 四 u 北英 史 绍 标
+数 不 广 于 生 上 技 政 春
+test_subset(】 国 携 为 招 符 测 式 技 口 , 辖 人 所 有 招 汀 的 方 室 并 法 团 一 个 一 进 刺 脱 罗 ; 诙 振 罡 袁 示 为 每 育 的 怡 R 根
+( 卵 暨 仪 县 简 技 仁 、 春 庭 仁 是 篓 u 批 次 ) ; 其 实 顿 圭 出 札 皋 出
+test_cubset()】 国 狄 为 拓 绍 荣 江 口 , 排 人 所 有 扬 的 方 室 年 园 一 个 一 进 制 狼 罚 ; 试 痛 口 表 示 为 吊 沥 火 的 性 洁 根
+( 卵 尿佐 春 筠 扬 次 . 春 荣 春 箱 w 批 次 ) ; 其 实 颂 医 以 札 的 出
+讳 全 邹 希
+程 学 仪
+
+8 nclude algoritha
+82 彭 nclude Xcstddef>
+8 nclude kiostream
+84 include vectory
+65 using nemespace std;
+85
+87 long long comg(int 日 dnt 3 不
+88 妈 G 68 目 王 2 吊
+因 return 6;
+26
+过 long long res = 训
+12 for (ng 工 招 H
+不 res res 白
+44
+5 return resi
+16 3
+E
+18 // 计 帕 长 膛 为 w、 3 的 个 数 5 k 的 口 孙 志 敦
+19 long long count_patterns(int s int I 《
+28 long long total = 6;
+达 for (int t 8 义 6 Wn(io i a f
+22 total + compQau 白 ;
+史
+4 return total;
+5
+25
+27 // 拍 象 则 训 口
+28 int test_subset(const vectorvectordintyy plan)j
+围
+38 int solveGint n, int 日
+. E
+E E
+弯 wile C_e_) 《
+3 E
+芒
+36 cout Cd s d andl;
+孕
+张 17 “ 第 2 步 : 生 成 贺 i 巾 根 -
+刹 vecterdvectordinto> cods(nu vectardint>Go 日 )
+标 int d 白
+发 far Gnt ones = 8 ones @ 长 酮 idx 《 ni hrones 《
+书 vecterdint> Bits(e 87;
+的 iaitbits.begin(), bits.begin(0 + ones 卯 3
+
+
+--- PAGE BREAK ---
+
+的 do 《
+不 Hor (int 5 = 皂 5 明 + 《
+4 code[taxJ[a] = bits[b];
+4 }
+皋 +
+的 坏 Gdx z ) 《
+38 bresk
+因 }
+豇 3 be (stass__a )
+5
+因
+驯 vectercvectordinpy plano;
+56 for Gnt 王 的 王 6 春 h 《
+E for int 扎 = 卯 才 5 d)
+8 环 C_a__) 《
+驯 plan[Jpush_back()3
+s
+。
+善
+日
+多 。 // - 第 3 步 : 调 用 阪 K 推 口 ---
+5 ing signature z tst_subset(plan);
+656
+57 。 // = 第 4 步 : 结 杰 朗 罗 cn
+68 vecterdnt sigbitsto 9
+far Gint 王 口 的 王 《 园 4 《
+76 训 C_a__) 《
+见 sig_hits[ = 4
+7 3
+刀
+区
+万 for Gnt 扎 < 的 于 6 吊 + 《
+76 设 (C__s__) return 于
+刀 3
+友 3
+口
+86 int main() 《
+L int l
+卯 cn 加 0 加 的
+春 int ans 。 solve03
+卯 cout 6 ans 6 endlj
+5 return 8;
+85 3
+(0.GAb& 境 ()
+亢 165 明 <n
+8 countpsttemstw 日 <n
+C countpaterste 吊 <n
+D,combtw8 <n
+
+
+--- PAGE BREAK ---
+
+Ch M 颈 (
+人 nedt_pemutstontbisbegng bitsend)
+8 prepermutatonfbisbeing biisendf)
+C net pemutstonfbisbegin0 bitsbeghn0+oned
+D, prepermutstontbtsbegn0 btsbegin0-oneg
+GL G 妇 & 菲 (
+A 0>>1&1
+8 5>> &1
+C codeflg ==1
+D, codetf] == 1
+以 G (
+A Gignature>> 〗 匹 1
+8 figrstore 2> 1 41
+C saorstore10 <<
+D, Ggnature 2>〗|1
+口 .GJbR 颂 ()
+又 证 pemutstionfcodetlbegin0 codeland0, sig_btsbeging)
+B code[l == s _bits
+C penJ == 5 bit
+D codef] == sg_bisf
+
+
+--- PAGE BREAK ---
+

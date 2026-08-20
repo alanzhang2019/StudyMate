@@ -692,7 +692,7 @@
           {
             "id": "cr1",
             "type": "single",
-            "question": "输入：7 31\n输出：",
+            "question": "1. 输入：7 31 输出：_________",
             "options": [
               {
                 "value": "A",
@@ -784,7 +784,7 @@
           {
             "id": "cr2",
             "type": "single",
-            "question": "输入：6 3\n输出：",
+            "question": "2. 输入：6 3 输出：_________",
             "options": [
               {
                 "value": "A",
@@ -882,7 +882,7 @@
           {
             "id": "cr3",
             "type": "single",
-            "question": "输入：\n7\naaa aba bbb aaa aaa ccc aa\n输出：",
+            "question": "3. 输入：\n7\naaa aba bbb aaa aaa ccc aa\n输出：_________",
             "options": [
               {
                 "value": "A",
@@ -993,7 +993,7 @@
           {
             "id": "cr4",
             "type": "single",
-            "question": "输入：11 3\n输出：",
+            "question": "4. 输入：11 3 输出：_________",
             "options": [
               {
                 "value": "A",

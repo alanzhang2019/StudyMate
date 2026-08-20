@@ -840,17 +840,25 @@
             "options": [
               {
                 "value": "A",
-                "label": "0"
+                "label": "T"
               },
               {
                 "value": "B",
-                "label": "1"
+                "label": "F"
+              },
+              {
+                "value": "C",
+                "label": "87"
+              },
+              {
+                "value": "D",
+                "label": "27"
               }
             ],
             "answer": [
-              "D"
+              "A"
             ],
-            "analysis": "|csppsc|=|spsccp|=6, 长度相等。f(csppsccsppsc, spsccp) = LCS = 6, 等于 y.size(), g 返回 true。cout<<true 无 boolalpha 输出整数 1。选 D: 1。",
+            "analysis": "g(csppsc, spsccp): 两串长度均为 6, 相等, 返回 f(csppsccsppsc, spsccp) == 6。f 返回 x+x 与 y 的最长公共子串长度, 显然为 6, 等于 y.size(), g 返回 true。cout<<true 无 boolalpha 输出整数 1, 选 A: T。",
             "points": 3,
             "hasAnswer": true
           }

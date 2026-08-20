@@ -772,7 +772,7 @@
           {
             "id": "cr1",
             "type": "single",
-            "question": "输出：",
+            "question": "1. 输出：_________",
             "options": [
               {
                 "value": "A",
@@ -899,7 +899,7 @@
           {
             "id": "cr2",
             "type": "single",
-            "question": "输入：\n3\nAB:ACDEbFBkBD\nAR:ACDBrT\nSARS:Severe Atypical Respiratory Syndrome\n输出：",
+            "question": "2. 输入：\n3\nAB:ACDEbFBkBD\nAR:ACDBrT\nSARS:Severe Atypical Respiratory Syndrome\n输出：_________",
             "options": [
               {
                 "value": "A",
@@ -1005,7 +1005,7 @@
           {
             "id": "cr3",
             "type": "single",
-            "question": "输出：",
+            "question": "3. 输出：_________",
             "options": [
               {
                 "value": "A",
@@ -1124,7 +1124,7 @@
           {
             "id": "cr4",
             "type": "single",
-            "question": "输入：\n11\n1 2\n1 3\n2 4\n2 5\n2 6\n3 7\n7 8\n7 11\n6 9\n9 10\n输出：",
+            "question": "4. 输入：\n11\n1 2\n1 3\n2 4\n2 5\n2 6\n3 7\n7 8\n7 11\n6 9\n9 10\n输出：_________",
             "options": [
               {
                 "value": "A",
