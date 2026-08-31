@@ -563,10 +563,7 @@ export default function CampPage() {
       </section>
 
       <section className="about-section">
-        <div
-          className="section-shell"
-          style={{ display: 'grid', gap: 'clamp(3rem,7vw,6rem)', gridTemplateColumns: 'minmax(0,.6fr) minmax(0,1fr)' }}
-        >
+        <div className="section-shell about-grid">
           <div className="about-brand-identity">
             <img src="/assets/xgls-avatar.png" alt="Alan张老师" />
             <img
@@ -610,10 +607,7 @@ export default function CampPage() {
       </section>
 
       <section className="wechat-section" id="consult">
-        <div
-          className="section-shell"
-          style={{ display: 'grid', gap: 'clamp(3rem,7vw,6rem)', gridTemplateColumns: 'minmax(0,1fr) minmax(300px,.5fr)' }}
-        >
+        <div className="section-shell wechat-grid">
           <div className="wechat-copy">
             <p className="section-kicker">CONSULT / 微信咨询</p>
             <h2>和孩子聊聊他的想法</h2>

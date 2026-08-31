@@ -108,7 +108,7 @@ input{font-family:inherit}
 
 /* Hero Refined */
 .hero-refined .hero-copy{max-width:38rem}
-.hero-refined h1{font-size:clamp(4.6rem,8.8vw,9.6rem);font-weight:480;letter-spacing:-.09em;line-height:.84;max-width:7ch}
+.hero-refined h1{font-size:clamp(4.6rem,8.8vw,9.6rem);font-weight:480;letter-spacing:-.09em;line-height:1.02;max-width:7ch;margin-top:.1em;margin-bottom:.1em}
 .hero-refined .hero-intro{max-width:25rem}
 
 /* ===== Compact Heading ===== */
@@ -248,7 +248,8 @@ input{font-family:inherit}
 .tool-link:hover{background:var(--yellow);border-color:var(--yellow);color:var(--navy-950)}
 
 /* ===== About Section ===== */
-.about-section{display:grid;gap:clamp(3rem,7vw,6rem);grid-template-columns:minmax(0,.6fr) minmax(0,1fr);padding-top:var(--section-space)}
+.about-section{padding-top:var(--section-space)}
+.about-grid{display:grid;gap:clamp(3rem,7vw,6rem);grid-template-columns:minmax(0,.6fr) minmax(0,1fr)}
 .about-brand-identity{text-align:center}
 .about-brand-identity img{border-radius:8px;margin:0 auto .5rem;width:120px;height:120px;object-fit:cover}
 .about-brand-wordmark{width:auto;max-width:200px}
@@ -264,7 +265,8 @@ input{font-family:inherit}
 .about-belief p{color:var(--paper-muted);font-size:.92rem;line-height:1.75;margin-bottom:1rem}
 
 /* ===== WeChat Section ===== */
-.wechat-section{display:grid;gap:clamp(3rem,7vw,6rem);grid-template-columns:minmax(0,1fr) minmax(300px,.5fr);padding-top:var(--section-space);padding-bottom:var(--section-space)}
+.wechat-section{padding-top:var(--section-space);padding-bottom:var(--section-space)}
+.wechat-grid{display:grid;gap:clamp(3rem,7vw,6rem);grid-template-columns:minmax(0,1fr) minmax(300px,.5fr)}
 .wechat-copy h2{font-size:clamp(2.2rem,4vw,4rem);font-weight:510;letter-spacing:-.05em;line-height:1.02;margin:.5rem 0 1.2rem}
 .wechat-copy p{color:var(--paper-muted);line-height:1.75;max-width:30rem}
 .wechat-card{background:var(--navy-950);border:1px solid var(--line);display:grid;gap:1rem;justify-items:center;padding:2.5rem 2rem;text-align:center}
@@ -455,8 +457,8 @@ input{font-family:inherit}
   .poster-course{grid-template-columns:1fr}
   .pbl-overview{grid-template-columns:1fr}
   .tool-section{grid-template-columns:1fr}
-  .about-section{grid-template-columns:1fr}
-  .wechat-section{grid-template-columns:1fr}
+  .about-grid{grid-template-columns:1fr}
+  .wechat-grid{grid-template-columns:1fr}
   .journey-track{grid-template-columns:repeat(2,1fr)}
   .ability-stage{grid-template-columns:1fr}
   .featured-case-project-header{grid-template-columns:1fr}
