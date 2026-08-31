@@ -82,12 +82,12 @@ export default function CampPage() {
           <span className="brand-identity">
             <img
               className="brand-identity-mark"
-              src="https://edu.xgteacher.cn/assets/xgls-avatar.jpg"
+              src="/assets/xgls-avatar.png"
               alt=""
             />
             <img
               className="brand-identity-wordmark"
-              src="https://edu.xgteacher.cn/assets/xgls-logo.png"
+              src="/assets/xgls-logo.svg"
               alt="Alan张老师"
             />
           </span>
@@ -568,10 +568,10 @@ export default function CampPage() {
           style={{ display: 'grid', gap: 'clamp(3rem,7vw,6rem)', gridTemplateColumns: 'minmax(0,.6fr) minmax(0,1fr)' }}
         >
           <div className="about-brand-identity">
-            <img src="https://edu.xgteacher.cn/assets/xgls-avatar.jpg" alt="Alan张老师" />
+            <img src="/assets/xgls-avatar.png" alt="Alan张老师" />
             <img
               className="about-brand-wordmark"
-              src="https://edu.xgteacher.cn/assets/xgls-logo.png"
+              src="/assets/xgls-logo.svg"
               alt="Alan张老师"
             />
           </div>

@@ -12,8 +12,8 @@ export default function PreparePage() {
       <header className="site-header" style={{ position: 'sticky', background: 'rgba(5,20,47,.9)' }}>
         <Link href="/camp" className="xgls-brand" aria-label="Alan张老师首页">
           <span className="brand-identity">
-            <img className="brand-identity-mark" src="https://edu.xgteacher.cn/assets/xgls-avatar.jpg" alt="" />
-            <img className="brand-identity-wordmark" src="https://edu.xgteacher.cn/assets/xgls-logo.png" alt="Alan张老师" />
+            <img className="brand-identity-mark" src="/assets/xgls-avatar.png" alt="" />
+            <img className="brand-identity-wordmark" src="/assets/xgls-logo.svg" alt="Alan张老师" />
           </span>
         </Link>
         <div className="header-actions">

@@ -162,12 +162,12 @@ export default function AdminLogin() {
             <span className="brand-identity">
               <img
                 className="brand-identity-mark"
-                src="https://edu.xgteacher.cn/assets/xgls-avatar.jpg"
+                src="/assets/xgls-avatar.png"
                 alt=""
               />
               <img
                 className="brand-identity-wordmark"
-                src="https://edu.xgteacher.cn/assets/xgls-logo.png"
+                src="/assets/xgls-logo.svg"
                 alt="Alan张老师"
               />
             </span>
