@@ -709,7 +709,8 @@ function applyMigrations(db: Database): void {
       ON camp_works (className, createdAt DESC);
     `)
   } catch (err) {
-    console.warn('[db/applyMigrations] camp tables init failed:', err)
+    console.error('[db/applyMigrations] camp tables init failed:', err)
+    throw err
   }
 }
 

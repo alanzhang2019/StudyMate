@@ -149,10 +149,10 @@ export const POST = withAdminAuth(async (req: NextRequest) => {
     const created = await db.campWork.create({ data });
 
     return NextResponse.json({ success: true, data: { id: created.id } });
-  } catch (error) {
-    console.error('[camp/works POST] error:', error);
+  } catch (error: any) {
+    console.error('[camp/works POST] error:', error)
     return NextResponse.json(
-      { success: false, error: '创建作品失败' },
+      { success: false, error: `创建作品失败：${error?.message || '未知错误'}` },
       { status: 500 },
     );
   }
