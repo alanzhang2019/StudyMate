@@ -1,13 +1,8 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { withAdminAuth } from '@/lib/admin/with-auth';
 
-// TODO(security): this endpoint is currently open. Wrap it in the
-// same `verifyAdminToken` middleware that should protect every other
-// /api/admin/* route. We surface only aggregate event counts here
-// (no PII) so the risk is limited, but it should still require a
-// logged-in admin.
-
-export async function GET() {
+export const GET = withAdminAuth(async () => {
   try {
     // The Prisma-compat shim's findMany only supports `=` in where
     // clauses, so we just pull every event and bucket in JS. The
@@ -76,4 +71,4 @@ export async function GET() {
       { status: 500 },
     );
   }
-}
+});

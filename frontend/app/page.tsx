@@ -54,6 +54,9 @@ export default function LandingPage() {
         </div>
         <div className="flex items-center gap-3">
           <Button asChild size="sm" variant="outline">
+            <Link href="/camp">🚀 少年AI创造营</Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
             <Link href="/csp-lecture">📚 学生课件</Link>
           </Button>
           <Button asChild size="sm">
@@ -125,7 +128,7 @@ export default function LandingPage() {
         </h2>
         <p className="text-slate-600 text-center max-w-2xl mx-auto mb-12">
           从错题识别到讲解视频，从同类题巩固到家长看板，
-          把"做错 → 听懂 → 不再错"这条路打通。
+          把“做错 → 听懂 → 不再错”这条路打通。
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {FEATURES.map((f) => (
@@ -172,6 +175,9 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div>© {new Date().getFullYear()} 爱讲题 · 用户可创建个人学习课件，用于教学或者学习记录</div>
             <div className="flex items-center gap-5">
+              <Link href="/camp" className="hover:text-slate-900">
+                少年AI创造营
+              </Link>
               <Link href="/csp-lecture" className="hover:text-slate-900">
                 学生课件
               </Link>

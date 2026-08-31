@@ -10,6 +10,7 @@
 import { type NextRequest } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { withAdminAuth } from '@/lib/admin/with-auth';
 import { apiError, apiSuccess, API_ERROR_CODES } from '@/lib/server/api-response';
 import {
   CLASSROOMS_DIR,
@@ -26,10 +27,10 @@ export const dynamic = 'force-dynamic';
 const NAME_MAX = 200;
 const DESCRIPTION_MAX = 2000;
 
-export async function DELETE(
+export const DELETE = withAdminAuth(async (
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
-) {
+) => {
   const { id } = await params;
   if (!isValidClassroomId(id)) {
     return apiError(API_ERROR_CODES.INVALID_REQUEST, 400, 'invalid classroom id');
@@ -62,7 +63,7 @@ export async function DELETE(
       err instanceof Error ? err.message : String(err),
     );
   }
-}
+});
 
 // PATCH /api/admin/classroom/[id]
 //
@@ -74,10 +75,10 @@ export async function DELETE(
 // Updates `stage.name` and/or `stage.description` on the persisted
 // classroom JSON. Other fields (scenes, media paths, etc.) are
 // forwarded verbatim so we never lose data.
-export async function PATCH(
+export const PATCH = withAdminAuth(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
-) {
+) => {
   const { id } = await params;
   if (!isValidClassroomId(id)) {
     return apiError(API_ERROR_CODES.INVALID_REQUEST, 400, 'invalid classroom id');
@@ -226,7 +227,7 @@ export async function PATCH(
     description: typeof stage.description === 'string' ? stage.description : null,
     changed: true,
   });
-}
+});
 
 async function pathExists(p: string): Promise<boolean> {
   try {

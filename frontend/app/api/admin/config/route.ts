@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { withAdminAuth } from '@/lib/admin/with-auth';
 
-export async function GET() {
+export const GET = withAdminAuth(async () => {
   try {
     const config = await db.systemConfig.findUnique({ where: { key: 'default_tts_config' } });
     return NextResponse.json(
@@ -10,9 +11,6 @@ export async function GET() {
         : { provider: 'siliconflow-tts', voice: 'FunAudioLLM/CosyVoice2-0.5B:alex' },
     );
   } catch (err) {
-    // Surface the underlying error in the server log so config load
-    // failures are diagnosable from `docker logs studymate-frontend`
-    // instead of a bare 500 to the admin panel.
     console.error('[admin/config GET] failed:', err);
     return NextResponse.json(
       {
@@ -23,9 +21,9 @@ export async function GET() {
       { status: 500 },
     );
   }
-}
+});
 
-export async function POST(req: Request) {
+export const POST = withAdminAuth(async (req: Request) => {
   try {
     const body = await req.json();
     await db.systemConfig.upsert({
@@ -35,9 +33,6 @@ export async function POST(req: Request) {
     });
     return NextResponse.json({ success: true });
   } catch (err) {
-    // Surface the underlying error in the server log so we can diagnose
-    // config save failures from `docker logs studymate-frontend` instead
-    // of a bare 500 to the admin panel.
     console.error('[admin/config POST] failed:', err);
     return NextResponse.json(
       {
@@ -48,4 +43,4 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-}
+});

@@ -1,4 +1,4 @@
-﻿// 2014 NOIP普及组 classroom JSON 构建器
+﻿﻿// 2014 NOIP普及组 classroom JSON 构建器
 // 全部题目用 'single' 类型(单选), 不再使用 short_answer
 // 优点: 自动判分, 不需要 AI 评分, 答案明确
 //

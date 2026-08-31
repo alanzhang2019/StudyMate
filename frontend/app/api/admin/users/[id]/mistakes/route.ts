@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withAdminAuth } from '@/lib/admin/with-auth';
 import { db } from '@/lib/db';
 
-export async function GET(
+export const GET = withAdminAuth(async (
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
-) {
+) => {
   try {
     const { id } = await params;
     const url = new URL(req.url);
@@ -75,4 +76,4 @@ export async function GET(
       { status: 500 },
     );
   }
-}
+});

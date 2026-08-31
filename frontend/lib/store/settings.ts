@@ -1636,7 +1636,7 @@ export const useSettingsStore = create<SettingsState>()(
 
         // Add default media generation toggles if missing
         if (state.imageGenerationEnabled === undefined) {
-          state.imageGenerationEnabled = false;
+          state.imageGenerationEnabled = true;
         }
         if (state.videoGenerationEnabled === undefined) {
           state.videoGenerationEnabled = false;

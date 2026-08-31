@@ -5,6 +5,7 @@
 // the middleware already enforces `admin_token` for `/api/admin/*`.
 
 import { type NextRequest, NextResponse } from 'next/server';
+import { withAdminAuth } from '@/lib/admin/with-auth';
 import { apiError, apiSuccess } from '@/lib/server/api-response';
 import { createLogger } from '@/lib/logger';
 import {
@@ -29,7 +30,7 @@ export const dynamic = 'force-dynamic';
 const MAX_UPLOAD_MB = 1024;
 const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
 
-export async function POST(request: NextRequest) {
+export const POST = withAdminAuth(async (request: NextRequest) => {
   // ── Parse multipart ────────────────────────────────────────────
   let formData: FormData;
   try {
@@ -137,7 +138,7 @@ export async function POST(request: NextRequest) {
     },
     201,
   );
-}
+});
 
 /**
  * Post-import pass: set `audioUrl` on every speech action so the

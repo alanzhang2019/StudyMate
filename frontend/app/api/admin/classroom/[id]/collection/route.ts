@@ -22,6 +22,7 @@
 import { type NextRequest } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { withAdminAuth } from '@/lib/admin/with-auth';
 import {
   apiError,
   apiSuccess,
@@ -45,10 +46,10 @@ const KNOWN_COLLECTIONS: ReadonlySet<string> = new Set(['csp-lecture']);
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function POST(
+export const POST = withAdminAuth(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
-) {
+) => {
   const { id } = await params;
   if (!isValidClassroomId(id)) {
     return apiError(API_ERROR_CODES.INVALID_REQUEST, 400, 'invalid classroom id');
@@ -151,7 +152,7 @@ export async function POST(
     collection: newCollection ?? null,
     changed: true,
   });
-}
+});
 
 async function pathExists(p: string): Promise<boolean> {
   try {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
+import { withAdminAuth } from '@/lib/admin/with-auth';
 import { db } from '@/lib/db';
 import {
   listClassroomSummaries,
@@ -82,10 +83,10 @@ function buildQuizStats(userId: string, classroomId: string, classroom: any) {
   };
 }
 
-export async function GET(
+export const GET = withAdminAuth(async (
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
-) {
+) => {
   try {
     const { id } = await params;
     const user = await db.user.findUnique({ where: { id } });
@@ -256,12 +257,12 @@ export async function GET(
       { status: 500 },
     );
   }
-}
+});
 
-export async function PATCH(
+export const PATCH = withAdminAuth(async (
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
-) {
+) => {
   try {
     const { id } = await params;
     const body = await req.json();
@@ -312,12 +313,12 @@ export async function PATCH(
       { status: 500 },
     );
   }
-}
+});
 
-export async function DELETE(
+export const DELETE = withAdminAuth(async (
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
-) {
+) => {
   try {
     const { id } = await params;
     // FK ON DELETE CASCADE on student_profiles and mistake_records
@@ -335,4 +336,4 @@ export async function DELETE(
       { status: 500 },
     );
   }
-}
+});

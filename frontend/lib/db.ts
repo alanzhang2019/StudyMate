@@ -498,6 +498,83 @@ export function getDb(): Database {
       // index already exists
     }
 
+    // Alan张老师·少年 AI 创造营：学员 / 课堂记录 / 作品 三张业务表
+    // 上线日期：2026-08-30（配合 /admin/camp/* 后台页面与 API）
+    _db.exec(`
+    -- camp_students：学员名册。一个学员一行，id 为 UUID，支持软删除。
+    CREATE TABLE IF NOT EXISTS camp_students (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      gender TEXT,                   /* '男' / '女' / NULL */
+      grade TEXT,                    /* 小学3年级 之类的可读字符串 */
+      school TEXT,
+      parentName TEXT,
+      parentPhone TEXT,
+      className TEXT,                /* 所属班级，比如 AI创造营1班 */
+      tags TEXT NOT NULL DEFAULT '[]', /* JSON 字符串数组 */
+      notes TEXT,                    /* 老师的自由文本备注 */
+      status TEXT NOT NULL DEFAULT 'active',  /* active / dropped / graduated */
+      createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+      updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_camp_students_class_status
+      ON camp_students (className, status, createdAt DESC);
+    CREATE INDEX IF NOT EXISTS idx_camp_students_name ON camp_students (name);
+
+    -- camp_class_logs：每次上课的课堂记录。跟学员是多对多（通过 JSON）。
+    CREATE TABLE IF NOT EXISTS camp_class_logs (
+      id TEXT PRIMARY KEY,
+      classDate TEXT NOT NULL,       /* YYYY-MM-DD 方便排序/筛选 */
+      className TEXT NOT NULL,       /* 冗余保存，避免连表 */
+      teacherName TEXT NOT NULL,
+      topic TEXT NOT NULL,           /* 本节课主题，比如 动物大乱斗-路径规划 */
+      durationMin INTEGER NOT NULL DEFAULT 90,
+      studentIdsJson TEXT NOT NULL DEFAULT '[]',  /* 到场学员 UUID 数组 */
+      summary TEXT,                  /* 本节课总体情况小结 */
+      highlightsJson TEXT NOT NULL DEFAULT '[]', /* 亮点 JSON 数组 */
+      issuesJson TEXT NOT NULL DEFAULT '[]',     /* 待改进 JSON 数组 */
+      nextPlan TEXT,                 /* 下节课计划 */
+      createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+      updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_camp_logs_date_desc
+      ON camp_class_logs (classDate DESC);
+    CREATE INDEX IF NOT EXISTS idx_camp_logs_class_date
+      ON camp_class_logs (className, classDate DESC);
+
+    -- camp_works：学员作品。一个作品一行，支持审核 status 与展示开关。
+    CREATE TABLE IF NOT EXISTS camp_works (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      studentId TEXT NOT NULL,
+      studentName TEXT,              /* 冗余保存，便于列表展示 */
+      className TEXT,
+      classLogId TEXT,               /* 对应 camp_class_logs.id，可空 */
+      category TEXT NOT NULL DEFAULT '作品',    /* 作品 / 项目 / 代码 / 其他 */
+      coverImage TEXT,               /* 封面图 URL */
+      linkUrl TEXT,                  /* 作品外链，比如 Scratch 项目页 */
+      description TEXT,              /* 作品介绍 */
+      techStackJson TEXT NOT NULL DEFAULT '[]', /* 技术栈 JSON 数组 */
+      status TEXT NOT NULL DEFAULT 'pending',   /* pending / approved / rejected */
+      reviewNote TEXT,               /* 审核备注 */
+      reviewedAt TEXT,
+      reviewedBy TEXT,
+      featured INTEGER NOT NULL DEFAULT 0,      /* 1 = 精选/置顶 */
+      sortOrder INTEGER NOT NULL DEFAULT 0,     /* 作品墙自定义排序 */
+      createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+      updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (studentId) REFERENCES camp_students(id) ON DELETE SET NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_camp_works_status_created
+      ON camp_works (status, createdAt DESC);
+    CREATE INDEX IF NOT EXISTS idx_camp_works_student_created
+      ON camp_works (studentId, createdAt DESC);
+    CREATE INDEX IF NOT EXISTS idx_camp_works_featured
+      ON camp_works (featured DESC, sortOrder, createdAt DESC);
+    CREATE INDEX IF NOT EXISTS idx_camp_works_class_date
+      ON camp_works (className, createdAt DESC);
+    `);
+
     // Only flip the flag once the schema actually finished applying
     // — otherwise an exception from `_db.exec` would leave us in a
     // "tried but never succeeded" state and every subsequent call
@@ -554,6 +631,85 @@ function applyMigrations(db: Database): void {
     )
   } catch {
     // index already exists
+  }
+
+  // Alan张老师·少年 AI 创造营：三张业务表。老数据库 init block 已经跑完
+  // （_dbInit=true，检查的是 parent_invite_codes 表），所以必须在这里
+  // 再跑一次 CREATE TABLE IF NOT EXISTS，否则老库打开 camp_* 表会报
+  // no such table。
+  try {
+    db.exec(`
+    CREATE TABLE IF NOT EXISTS camp_students (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      gender TEXT,
+      grade TEXT,
+      school TEXT,
+      parentName TEXT,
+      parentPhone TEXT,
+      className TEXT,
+      tags TEXT NOT NULL DEFAULT '[]',
+      notes TEXT,
+      status TEXT NOT NULL DEFAULT 'active',
+      createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+      updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_camp_students_class_status
+      ON camp_students (className, status, createdAt DESC);
+    CREATE INDEX IF NOT EXISTS idx_camp_students_name ON camp_students (name);
+
+    CREATE TABLE IF NOT EXISTS camp_class_logs (
+      id TEXT PRIMARY KEY,
+      classDate TEXT NOT NULL,
+      className TEXT NOT NULL,
+      teacherName TEXT NOT NULL,
+      topic TEXT NOT NULL,
+      durationMin INTEGER NOT NULL DEFAULT 90,
+      studentIdsJson TEXT NOT NULL DEFAULT '[]',
+      summary TEXT,
+      highlightsJson TEXT NOT NULL DEFAULT '[]',
+      issuesJson TEXT NOT NULL DEFAULT '[]',
+      nextPlan TEXT,
+      createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+      updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_camp_logs_date_desc
+      ON camp_class_logs (classDate DESC);
+    CREATE INDEX IF NOT EXISTS idx_camp_logs_class_date
+      ON camp_class_logs (className, classDate DESC);
+
+    CREATE TABLE IF NOT EXISTS camp_works (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      studentId TEXT NOT NULL,
+      studentName TEXT,
+      className TEXT,
+      classLogId TEXT,
+      category TEXT NOT NULL DEFAULT '作品',
+      coverImage TEXT,
+      linkUrl TEXT,
+      description TEXT,
+      techStackJson TEXT NOT NULL DEFAULT '[]',
+      status TEXT NOT NULL DEFAULT 'pending',
+      reviewNote TEXT,
+      reviewedAt TEXT,
+      reviewedBy TEXT,
+      featured INTEGER NOT NULL DEFAULT 0,
+      sortOrder INTEGER NOT NULL DEFAULT 0,
+      createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+      updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_camp_works_status_created
+      ON camp_works (status, createdAt DESC);
+    CREATE INDEX IF NOT EXISTS idx_camp_works_student_created
+      ON camp_works (studentId, createdAt DESC);
+    CREATE INDEX IF NOT EXISTS idx_camp_works_featured
+      ON camp_works (featured DESC, sortOrder, createdAt DESC);
+    CREATE INDEX IF NOT EXISTS idx_camp_works_class_date
+      ON camp_works (className, createdAt DESC);
+    `)
+  } catch (err) {
+    console.warn('[db/applyMigrations] camp tables init failed:', err)
   }
 }
 
@@ -771,6 +927,10 @@ class PrismaCompatClient {
   parentBinding = buildFinder('parent_bindings', 'id')
   parentAiInsight = buildFinder('parent_ai_insights', 'id')
   integrationJob = buildFinder('integration_jobs', 'id')
+  // Alan张老师·少年 AI 创造营
+  campStudent = buildFinder('camp_students', 'id')
+  campClassLog = buildFinder('camp_class_logs', 'id')
+  campWork = buildFinder('camp_works', 'id')
   // csp_progress has a composite primary key (userId, classroomId),
   // so it can't use buildFinder directly. We expose a tiny model
   // that uses raw SQL for the upsert/read operations the progress

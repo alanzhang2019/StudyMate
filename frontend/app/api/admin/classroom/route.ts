@@ -11,6 +11,7 @@
 import { type NextRequest } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { withAdminAuth } from '@/lib/admin/with-auth';
 import { apiError, apiSuccess, API_ERROR_CODES } from '@/lib/server/api-response';
 import { CLASSROOMS_DIR } from '@/lib/server/classroom-storage';
 import { createLogger } from '@/lib/logger';
@@ -20,7 +21,7 @@ const log = createLogger('AdminClassroomList');
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+export const GET = withAdminAuth(async (request: NextRequest) => {
   try {
     // Optional collection filter
     const collectionParam = request.nextUrl.searchParams.get('collection');
@@ -106,4 +107,4 @@ export async function GET(request: NextRequest) {
       err instanceof Error ? err.message : String(err),
     );
   }
-}
+});

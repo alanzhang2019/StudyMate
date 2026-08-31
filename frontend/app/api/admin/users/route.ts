@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { evaluateCompletion } from '@/lib/server/csp-completion';
 import { readClassroom } from '@/lib/server/classroom-storage';
+import { withAdminAuth } from '@/lib/admin/with-auth';
 
 /**
  * 随堂练习完成情况聚合, 单课件级别. 计算逻辑与
@@ -58,7 +59,7 @@ function buildQuizStats(userId: string, classroomId: string, classroom: any) {
   };
 }
 
-export async function GET(req: NextRequest) {
+export const GET = withAdminAuth(async (req: NextRequest) => {
   try {
     const url = new URL(req.url);
     const withCheckin = url.searchParams.get('with') === 'checkin';
@@ -205,4 +206,4 @@ export async function GET(req: NextRequest) {
     console.error('Failed to fetch users:', error);
     return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
   }
-}
+});

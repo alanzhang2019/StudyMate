@@ -30,6 +30,7 @@ import { db } from '@/lib/db';
 import { listClassroomSummaries } from '@/lib/server/classroom-storage';
 import { evaluateCompletion } from '@/lib/server/csp-completion';
 import { apiError } from '@/lib/api/error';
+import { withAdminAuth } from '@/lib/admin/with-auth';
 
 type StudentRow = {
   id: string;
@@ -51,7 +52,7 @@ type StudentRow = {
   lastClassroomTitle: string | null;
 };
 
-export async function GET() {
+export const GET = withAdminAuth(async () => {
   try {
     // 1. List every user with `role = 'student'`. The shim
     //    supports `where` filters; we just need to be explicit
@@ -219,4 +220,4 @@ export async function GET() {
       err instanceof Error ? err.message : String(err),
     );
   }
-}
+});

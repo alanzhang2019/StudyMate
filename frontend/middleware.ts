@@ -66,15 +66,80 @@ const SESSION_COOKIE_NAMES = [
 ];
 
 const LOGIN_REDIRECT_TARGET = "/auth/login?redirect=/csp-lecture&as=student";
+const ADMIN_LOGIN_TARGET = "/admin/login";
+
+function buildRedirectHtml(publicUrl: string) {
+  const safeUrl = publicUrl
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  const jsUrl = publicUrl.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+  return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="refresh" content="0; url=${safeUrl}">
+<title>\u6b63\u5728\u8df3\u8f6c\u2026</title>
+<script>window.location.replace('${jsUrl}');</script>
+</head>
+<body>
+<p>\u6b63\u5728\u8df3\u8f6c\u5230\u767b\u5f55\u9875\u2026</p>
+</body>
+</html>`;
+}
+
+function buildPublicUrl(req: NextRequest, path: string) {
+  const forwardedHost = req.headers.get("x-forwarded-host");
+  const host = forwardedHost ?? req.headers.get("host") ?? req.nextUrl.host;
+  const forwardedProto = req.headers.get("x-forwarded-proto");
+  const proto = forwardedProto ?? (req.nextUrl.protocol.replace(":", "") || "https");
+  return `${proto}://${host}${path}`;
+}
 
 export function middleware(req: NextRequest) {
+  const pathname = req.nextUrl.pathname;
+
+  // -------- Admin route guard --------
+  // Protect /admin(/*) except /admin/login itself and the /api/admin/login
+  // endpoint (otherwise you can never log in). The page layer still
+  // validates via withAdminAuth as a safety net.
+  if (pathname.startsWith("/admin")) {
+    // Whitelist: login page + login API + static assets under /admin
+    if (
+      pathname === "/admin/login" ||
+      pathname.startsWith("/admin/login/") ||
+      pathname.startsWith("/api/admin/login")
+    ) {
+      return NextResponse.next();
+    }
+    // Also allow Next.js internal URLs that start with /admin but
+    // are served by the framework (_next). These never appear in
+    // practice because _next is intercepted higher up; guarded
+    // here for belt-and-braces.
+    if (pathname.startsWith("/admin/_next/")) {
+      return NextResponse.next();
+    }
+    const hasAdminToken = req.cookies.has("admin_token");
+    if (hasAdminToken) {
+      return NextResponse.next();
+    }
+    const publicLoginUrl = buildPublicUrl(req, ADMIN_LOGIN_TARGET);
+    return new NextResponse(buildRedirectHtml(publicLoginUrl), {
+      status: 200,
+      headers: {
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+  }
+
+  // -------- CSP-lecture route guard --------
   const hasSessionCookie = SESSION_COOKIE_NAMES.some((name) =>
     req.cookies.has(name),
   );
   if (hasSessionCookie) {
-    // Pass through to the page; auth() inside the server component
-    // still enforces the redirect for users whose cookie was rejected
-    // by the JWT verification step.
     return NextResponse.next();
   }
   // No session cookie — gate the user behind the login page.
@@ -152,8 +217,9 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // Only run on /csp-lecture — every other route continues to
-  // use its own auth flow (page-level `auth()` checks,
-  // NextAuth's own signin pages, etc).
-  matcher: ["/csp-lecture"],
+  // Protect /csp-lecture and /admin/* (login endpoints excluded inside
+  // the handler). The wildcard /admin/:path* also catches /api/admin/*
+  // because middleware runs on the public request URL before Next.js
+  // dispatches to the app/api handler.
+  matcher: ["/csp-lecture", "/admin/:path*"],
 };
