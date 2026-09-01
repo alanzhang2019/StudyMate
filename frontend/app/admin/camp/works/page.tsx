@@ -27,6 +27,12 @@ type Work = {
 
 type StatusFilter = 'all' | 'pending' | 'approved' | 'rejected';
 
+type Student = {
+  id: string;
+  name: string;
+  className: string | null;
+};
+
 const STATUS_LABEL: Record<StatusFilter | string, string> = {
   all: '全部',
   pending: '待审核',
@@ -62,6 +68,7 @@ export default function AdminCampWorksPage() {
   const [works, setWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [students, setStudents] = useState<Student[]>([]);
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [classFilter, setClassFilter] = useState('');
@@ -111,6 +118,29 @@ export default function AdminCampWorksPage() {
     loadList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, classFilter, categoryFilter]);
+
+  const loadStudents = async () => {
+    try {
+      const res = await fetch('/api/admin/camp/students?status=active&pageSize=500');
+      if (!res.ok) return;
+      const json = await res.json();
+      if (json?.success && Array.isArray(json.data)) {
+        setStudents(
+          json.data.map((s: any) => ({
+            id: s.id,
+            name: s.name,
+            className: s.className ?? null,
+          })),
+        );
+      }
+    } catch {
+      // 学员列表加载失败不影响作品管理主流程
+    }
+  };
+
+  useEffect(() => {
+    loadStudents();
+  }, []);
 
   const submitWork = async (formData: Record<string, any>) => {
     try {
@@ -496,6 +526,7 @@ export default function AdminCampWorksPage() {
       {showForm && (
         <WorkFormModal
           initial={editingWork}
+          students={students}
           onClose={() => {
             setShowForm(false);
             setEditingWork(null);
@@ -625,10 +656,12 @@ function WorkFormModal({
   initial,
   onClose,
   onSubmit,
+  students,
 }: {
   initial: Work | null;
   onClose: () => void;
   onSubmit: (data: Record<string, any>) => void;
+  students: Student[];
 }) {
   const [form, setForm] = useState({
     title: initial?.title ?? '',
@@ -666,23 +699,41 @@ function WorkFormModal({
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            学员 ID <span className="text-red-500">*</span>
+            学员 <span className="text-red-500">*</span>
           </label>
-          <input
+          <select
             className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
             value={form.studentId}
-            onChange={(e) => setField('studentId', e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            学员姓名
-          </label>
-          <input
-            className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-            value={form.studentName}
-            onChange={(e) => setField('studentName', e.target.value)}
-          />
+            onChange={(e) => {
+              const id = e.target.value;
+              const picked = students.find((s) => s.id === id);
+              setForm((f) => ({
+                ...f,
+                studentId: id,
+                studentName: picked?.name ?? f.studentName,
+                // 仅当用户没手填过班级时, 自动带入
+                className: f.className?.trim() ? f.className : picked?.className ?? '',
+              }));
+            }}
+          >
+            <option value="">请选择学员</option>
+            {students.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+                {s.className ? `（${s.className}）` : ''} · {s.id}
+              </option>
+            ))}
+            {students.length === 0 && (
+              <option value="" disabled>
+                暂无在读学员，请先到「学员管理」添加
+              </option>
+            )}
+          </select>
+          {!initial && students.length === 0 && (
+            <p className="mt-1 text-xs text-amber-600">
+              学员列表为空。请到侧边栏「学员管理 → 新增学员」创建学员后再来提交作品。
+            </p>
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -805,7 +856,7 @@ function WorkFormModal({
               return;
             }
             if (!form.studentId.trim()) {
-              alert('请输入学员 ID');
+              alert('请选择学员');
               return;
             }
             onSubmit(form);

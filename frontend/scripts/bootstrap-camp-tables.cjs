@@ -3,14 +3,16 @@
 // .exec() 逐句跑, 任意一条失败立刻 throw, 不会被 try/catch 静默吞掉.
 //
 // 用法 (服务器上):
-//   docker compose cp frontend/scripts/bootstrap-camp-tables.cjs frontend:/tmp/bootstrap.cjs
-//   docker compose exec -T frontend node /tmp/bootstrap.cjs
+//   docker compose cp frontend/scripts/bootstrap-camp-tables.cjs frontend:/app/scripts/bootstrap-camp-tables.cjs
+//   docker compose exec -T frontend node /app/scripts/bootstrap-camp-tables.cjs
+//
+// 注意: 本文件全篇不含单引号 / 双引号嵌套, 直接 cat 整段贴到终端也不易出错.
 
-const Database = require('better-sqlite3');
-
-const dbPath = process.env.STUDYMATE_DB_DIR + '/studymate.db';
+const Database = require(`better-sqlite3`);
+const Q = String.fromCharCode(39); // 单引号 helper
+const dbPath = process.env.STUDYMATE_DB_DIR + `/studymate.db`;
 const db = new Database(dbPath);
-db.pragma('journal_mode = WAL');
+db.pragma(`journal_mode = WAL`);
 
 const ddl = [
   // camp_students
@@ -23,11 +25,11 @@ const ddl = [
     parentName TEXT,
     parentPhone TEXT,
     className TEXT,
-    tags TEXT NOT NULL DEFAULT '[]',
+    tags TEXT NOT NULL DEFAULT ` + Q + `[]` + Q + `,
     notes TEXT,
-    status TEXT NOT NULL DEFAULT 'active',
-    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
-    updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+    status TEXT NOT NULL DEFAULT ` + Q + `active` + Q + `,
+    createdAt TEXT NOT NULL DEFAULT (datetime(` + Q + `now` + Q + `)),
+    updatedAt TEXT NOT NULL DEFAULT (datetime(` + Q + `now` + Q + `))
   )`,
   `CREATE INDEX IF NOT EXISTS idx_camp_students_class_status
      ON camp_students (className, status, createdAt DESC)`,
@@ -42,13 +44,13 @@ const ddl = [
     teacherName TEXT NOT NULL,
     topic TEXT NOT NULL,
     durationMin INTEGER NOT NULL DEFAULT 90,
-    studentIdsJson TEXT NOT NULL DEFAULT '[]',
+    studentIdsJson TEXT NOT NULL DEFAULT ` + Q + `[]` + Q + `,
     summary TEXT,
-    highlightsJson TEXT NOT NULL DEFAULT '[]',
-    issuesJson TEXT NOT NULL DEFAULT '[]',
+    highlightsJson TEXT NOT NULL DEFAULT ` + Q + `[]` + Q + `,
+    issuesJson TEXT NOT NULL DEFAULT ` + Q + `[]` + Q + `,
     nextPlan TEXT,
-    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
-    updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+    createdAt TEXT NOT NULL DEFAULT (datetime(` + Q + `now` + Q + `)),
+    updatedAt TEXT NOT NULL DEFAULT (datetime(` + Q + `now` + Q + `))
   )`,
   `CREATE INDEX IF NOT EXISTS idx_camp_logs_date_desc
      ON camp_class_logs (classDate DESC)`,
@@ -63,19 +65,19 @@ const ddl = [
     studentName TEXT,
     className TEXT,
     classLogId TEXT,
-    category TEXT NOT NULL DEFAULT '作品',
+    category TEXT NOT NULL DEFAULT ` + Q + `\u4f5c\u54c1` + Q + `,
     coverImage TEXT,
     linkUrl TEXT,
     description TEXT,
-    techStackJson TEXT NOT NULL DEFAULT '[]',
-    status TEXT NOT NULL DEFAULT 'pending',
+    techStackJson TEXT NOT NULL DEFAULT ` + Q + `[]` + Q + `,
+    status TEXT NOT NULL DEFAULT ` + Q + `pending` + Q + `,
     reviewNote TEXT,
     reviewedAt TEXT,
     reviewedBy TEXT,
     featured INTEGER NOT NULL DEFAULT 0,
     sortOrder INTEGER NOT NULL DEFAULT 0,
-    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
-    updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+    createdAt TEXT NOT NULL DEFAULT (datetime(` + Q + `now` + Q + `)),
+    updatedAt TEXT NOT NULL DEFAULT (datetime(` + Q + `now` + Q + `))
   )`,
   `CREATE INDEX IF NOT EXISTS idx_camp_works_status_created
      ON camp_works (status, createdAt DESC)`,
@@ -91,19 +93,21 @@ for (const sql of ddl) {
   try {
     db.exec(sql);
   } catch (err) {
-    console.error('[bootstrap] DDL failed:', err.message);
-    console.error('[bootstrap] SQL was:', sql);
+    console.error(`[bootstrap] DDL failed:` + err.message);
+    console.error(`[bootstrap] SQL was:` + sql);
     process.exit(1);
   }
 }
 
-const names = ['camp_students', 'camp_class_logs', 'camp_works'];
+const names = [`camp_students`, `camp_class_logs`, `camp_works`];
 for (const n of names) {
   const info = db
-    .prepare("SELECT name FROM sqlite_master WHERE type IN ('table','index') AND (name = ? OR name LIKE ?) ORDER BY type DESC, name")
-    .all(n, n + '_%');
-  console.log(n + ':', info.map((x) => x.name).join(', ') || '(NONE)');
+    .prepare(
+      `SELECT name FROM sqlite_master WHERE type IN (` + Q + `table` + Q + `,` + Q + `index` + Q + `) AND (name = ? OR name LIKE ?) ORDER BY type DESC, name`
+    )
+    .all(n, n + `_%`);
+  console.log(n + `:` + (info.map((x) => x.name).join(`, `) || `(NONE)`));
 }
 
-console.log('[bootstrap] done at', dbPath);
+console.log(`[bootstrap] done at ` + dbPath);
 db.close();
