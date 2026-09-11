@@ -258,18 +258,6 @@ export default function AdminLogin() {
           <button type="submit" className="login-submit" disabled={submitting}>
             {submitting ? '登录中…' : '登 录'}
           </button>
-
-          <p className="login-demo-note">
-            <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor">
-              <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-44a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v36A8,8,0,0,1,144,172ZM120,92a12,12,0,1,1,12,12A12,12,0,0,1,120,92Z" />
-            </svg>
-            <span>
-              演示账号：
-              <strong style={{ color: 'var(--paper)' }}>admin</strong> /{' '}
-              <strong style={{ color: 'var(--paper)' }}>admin123</strong>
-              （可在服务端环境变量覆盖）
-            </span>
-          </p>
         </form>
       </section>
     </div>

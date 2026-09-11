@@ -246,7 +246,7 @@ export default function CampPage() {
         <div className="poster-course-grid">
           <article className="poster-course poster-course-camp">
             <figure className="poster-frame">
-              <img src="https://edu.xgteacher.cn/assets/xgls-avatar.jpg" alt="创造营课程封面" />
+              <img src="/assets/xgls-avatar.png" alt="创造营课程封面" />
               <span className="poster-zoom">放大查看</span>
             </figure>
             <div className="poster-course-copy">
@@ -258,25 +258,6 @@ export default function CampPage() {
                 <li>AI 辅助编程，7 岁也能做出真东西</li>
                 <li>小班教学，每班不超过 6 人</li>
               </ul>
-              <div className="camp-pricing">
-                <p>暑期创造营 · 含 20 课时 + 1 次作品发布</p>
-                <dl>
-                  <div>
-                    <dt>
-                      <strong>早鸟价</strong>
-                      <span>（6 月 30 日前）</span>
-                    </dt>
-                    <dd>¥ 3,980</dd>
-                  </div>
-                  <div>
-                    <dt>
-                      <strong>常规价</strong>
-                      <span>（7 月起）</span>
-                    </dt>
-                    <dd>¥ 4,680</dd>
-                  </div>
-                </dl>
-              </div>
               <div className="course-price">
                 <span>含课件、云服务、作品发布</span>
                 <a href="#consult">咨询报名 →</a>
