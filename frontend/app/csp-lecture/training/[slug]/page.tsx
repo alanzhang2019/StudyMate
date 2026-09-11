@@ -273,9 +273,15 @@ export default async function TrainingPlanPage({
   // Decode percent-encoded unicode (e.g. `%E8%B5%B5%E6%B0%B8%E6%B5%A9`)
   // so the lookup matches the disk filename. Next.js does not
   // automatically decode `params.slug` for us.
+  //
+  // **Path-segment decoding**: `decodeURIComponent` 把 `+` 当成空格
+  // 解码, 但 `+` 在 URL path 段里就是字面加号, 不能误伤.
+  // 先把字面 `+` 替换为 `%2B`, 再走 decodeURIComponent,
+  // 避免「2026-09-12加课-GESP6林展骥+林珅熠」被错误解码成
+  // 「... 林珅熠」找不到对应文件。
   let slug: string;
   try {
-    slug = decodeURIComponent(rawSlug);
+    slug = decodeURIComponent(rawSlug.replace(/\+/g, '%2B'));
   } catch {
     slug = rawSlug;
   }

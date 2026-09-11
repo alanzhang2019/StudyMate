@@ -253,9 +253,14 @@ export default async function PracticePage({
   // Decode percent-encoded unicode so the lookup matches the
   // disk filename. Next.js does not automatically decode
   // `params.slug` for us.
+  //
+  // **Path-segment decoding**: `decodeURIComponent` 把 `+` 当成空格
+  // 解码, 但 `+` 在 URL path 段里就是字面加号, 不能误伤.
+  // 先把字面 `+` 替换为 `%2B`, 再走 decodeURIComponent,
+  // 避免「gesp6-林展骥+林珅熠」被错误解码成「gesp6-林展骥 林珅熠」.
   let slug: string;
   try {
-    slug = decodeURIComponent(rawSlug);
+    slug = decodeURIComponent(rawSlug.replace(/\+/g, '%2B'));
   } catch {
     slug = rawSlug;
   }
