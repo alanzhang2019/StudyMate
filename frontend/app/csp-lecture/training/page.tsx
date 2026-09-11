@@ -176,6 +176,26 @@ const SHARED: PlanCard[] = [
     topics: ['堆 / 并查集', 'Dijkstra 最短路', '0/1 背包'],
     description: '明天 (9/13) 上午 GESP 8 级临阵 3h 加课: 客观题 12 考点串讲 + 4 个核心模板默写 (堆/并查集/Dijkstra/背包) + 真题限时模拟。祺皓当前 AC 27, 现实目标: 客观题 18+/30 + 编程题 1 题保底 35+ 分。',
   },
+  {
+    slug: 'gesp6-林展骥+林珅熠',
+    title: '练习卷 · GESP 6 级',
+    subtitle: '林展骥 + 林珅熠 · 客观题 25 + 模板 6 + 真题 2',
+    badge: '📝 练习卷',
+    tier: 'shared',
+    goal: 'GESP 6 级实战',
+    topics: ['客观题 12 考点', '4 模板', '2 真题'],
+    description: 'GESP 6 级临阵练习卷: 客观题 25 道串讲 + 队列/栈/BFS/0/1背包 4 模板默写 + 2 道真题模拟。所有洛谷题号都是直链, 点击直达。',
+  },
+  {
+    slug: 'gesp8-黄祺皓',
+    title: '练习卷 · GESP 8 级',
+    subtitle: '黄祺皓 · 客观题 25 + 模板 4 + 真题 3',
+    badge: '📝 练习卷',
+    tier: 'shared',
+    goal: 'GESP 8 级保 1 题过级',
+    topics: ['客观题 12 考点', '堆/并查集/Dijkstra/背包', '真题 3 道'],
+    description: 'GESP 8 级临阵练习卷: 客观题 25 道串讲 + 4 模板默写 + 3 道真题 (T1 主拿分, T2 部分分, T3 放弃)。所有洛谷题号都是直链。',
+  },
 ];
 
 function tierColor(tier: Tier): { bg: string; text: string; ring: string; } {
@@ -190,9 +210,14 @@ function tierColor(tier: Tier): { bg: string; text: string; ring: string; } {
 
 function PlanCardView({ plan }: { plan: PlanCard }) {
   const c = tierColor(plan.tier);
+  // 练习卷 (badge = "📝 练习卷") 跳到 /csp-lecture/practice/[slug],
+  // 其余 (训练计划 / 加课 / 共享资源) 跳到 /csp-lecture/training/[slug].
+  const href = plan.badge === '📝 练习卷'
+    ? `/csp-lecture/practice/${encodeURIComponent(plan.slug)}`
+    : `/csp-lecture/training/${encodeURIComponent(plan.slug)}`;
   return (
     <Link
-      href={`/csp-lecture/training/${encodeURIComponent(plan.slug)}`}
+      href={href}
       className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 rounded-2xl"
       aria-label={`打开 ${plan.title}`}
     >
