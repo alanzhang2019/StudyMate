@@ -166,6 +166,16 @@ const SHARED: PlanCard[] = [
     topics: ['客观题 12 考点', 'BFS/DFS 模板', '0/1 背包 + LIS'],
     description: '明天 (9/12) 上午 GESP 6 级临阵 3h 加课, 25 道客观题串讲 + 编程模板分层训练 (展骥补基础 DS, 珅熠攻 DP 套路) + 真题限时模拟。',
   },
+  {
+    slug: '2026-09-13加课-GESP8黄祺皓',
+    title: '9/13 加课 · GESP 8 级临阵',
+    subtitle: '黄祺皓 · 考前 3h 加课（与 9/12 GESP 6 级段平行）',
+    badge: '⏰ 加课',
+    tier: 'shared',
+    goal: 'GESP 8 级保过 (≥60)',
+    topics: ['堆 / 并查集', 'Dijkstra 最短路', '0/1 背包'],
+    description: '明天 (9/13) 上午 GESP 8 级临阵 3h 加课: 客观题 12 考点串讲 + 4 个核心模板默写 (堆/并查集/Dijkstra/背包) + 真题限时模拟。祺皓当前 AC 27, 现实目标: 客观题 18+/30 + 编程题 1 题保底 35+ 分。',
+  },
 ];
 
 function tierColor(tier: Tier): { bg: string; text: string; ring: string; } {
