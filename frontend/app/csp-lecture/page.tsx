@@ -29,7 +29,7 @@ import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { Printer, Trophy, ExternalLink, ArrowRight, BookOpen } from 'lucide-react';
+import { Printer, Trophy, ExternalLink, ArrowRight, BookOpen, Swords } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CLASSROOMS_DIR } from '@/lib/server/classroom-storage';
@@ -73,6 +73,45 @@ type Lecture = {
 type Bucket = 'primer' | 'paper';
 const bucketOf = (id: string): Bucket =>
   id.startsWith('cm_imp_cspj') || id.startsWith('cm_imp_csps') ? 'paper' : 'primer';
+
+// 模拟赛（教练命题 / 历年改编）专题: 不走 classroom JSON, 走
+// /public/csp-lecture/exams/*.md 静态文件, 链接到独立渲染页
+// /csp-lecture/exams/[slug]. 这里维护专题的元数据, 后续添加新
+// 模拟赛只需: (1) 把 .md 放进 public/csp-lecture/exams/
+// (2) 在 exams/[slug]/page.tsx 的 ALLOWED_SLUGS 加一行
+// (3) 在这里 MOCK_EXAMS 数组里追加一项
+type MockExam = {
+  slug: string;
+  title: string;
+  date: string;       // YYYY-MM-DD, 用于排序 + 显示
+  duration: string;   // 例如 "3.5 小时"
+  problems: number;   // 题目数量
+  topics: string[];   // 考点标签, 用于卡片展示
+  description: string;
+  difficulty: '冲奖' | '进阶' | '入门';
+};
+const MOCK_EXAMS: MockExam[] = [
+  {
+    slug: '模拟赛A-2026-10-04',
+    title: '国庆模拟赛 A · 基础+贪心+DP+图论',
+    date: '2026-10-04',
+    duration: '3.5 小时',
+    problems: 4,
+    topics: ['模拟', '贪心', '区间 DP', '分层图最短路'],
+    description: 'A 队国庆冲刺第 1 套。难度梯度 A 普及- → D 提高+，目标 1.5h 内拿 1~2 题。',
+    difficulty: '冲奖',
+  },
+  {
+    slug: '模拟赛B-2026-10-05',
+    title: '国庆模拟赛 B · CSP-S 2024 风格',
+    date: '2026-10-05',
+    duration: '3.5 小时',
+    problems: 4,
+    topics: ['单调栈', '状态 DP', '树上倍增', 'Dijkstra 浮点'],
+    description: 'A 队国庆冲刺第 2 套，仿照 CSP-S 2024 命题风格，覆盖数学 / 树上 / 综合。',
+    difficulty: '冲奖',
+  },
+];
 
 async function listCspLectures(): Promise<Lecture[]> {
   let entries: string[] = [];
@@ -468,7 +507,7 @@ export default async function CspLecturePage() {
         <p className="mt-5 text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
           {lectures.length === 0
             ? '暂无课件，敬请期待。'
-            : `${primerLectures.length} 个精讲课件 · ${paperLectures.length} 套历年真题 · 共 ${totalScenes} 个章节。先精讲后真题，按顺序学完最有效。`}
+            : `${primerLectures.length} 个精讲课件 · ${paperLectures.length} 套历年真题 · ${MOCK_EXAMS.length} 套模拟赛 · 共 ${totalScenes} 个章节。先精讲后真题，按顺序学完最有效。`}
         </p>
       </section>
 
@@ -569,6 +608,27 @@ export default async function CspLecturePage() {
                           lecture={l}
                           pdfHref={paperPdfHref[l.id]}
                         />
+                      ))}
+                    </div>
+                  </LectureGroup>
+                )}
+
+                {/* 类别 3: 模拟赛。 教练命题 / 历年改编, 走
+                    /csp-lecture/exams/[slug] 渲染页（不展开章节）。
+                    难度档以"冲奖"为主, 适合学完课件 + 真题后想
+                    冲 CSP-S 一等 / CSP-J 普及一等的学生。 */}
+                {MOCK_EXAMS.length > 0 && (
+                  <LectureGroup
+                    title="模拟赛"
+                    subtitle="教练命题 / 历年改编，3.5 小时 4 题，难度覆盖普及-到提高+。"
+                    accentClass="from-violet-500/15 to-fuchsia-500/5 border-violet-200/60"
+                    badgeClass="bg-violet-100 text-violet-700"
+                    count={MOCK_EXAMS.length}
+                    countLabel="套模拟赛"
+                  >
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                      {MOCK_EXAMS.map((exam) => (
+                        <MockExamCard key={exam.slug} exam={exam} />
                       ))}
                     </div>
                   </LectureGroup>
@@ -728,6 +788,72 @@ function PaperLectureCard({
               </span>
             </a>
           )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/**
+ * 模拟赛卡：与 PaperLectureCard 结构相似, 但不渲染章节列表
+ * (模拟赛是单文件, 一次性看完), 改为在卡片底部用单个紫色
+ * "打开模拟赛"按钮跳转到 /csp-lecture/exams/[slug] 渲染页.
+ * 主题色用 violet/fuchsia 渐变, 与 "历年真题" 的 rose 区分.
+ */
+function MockExamCard({ exam }: { exam: MockExam }) {
+  return (
+    <Card className="h-full bg-white/85 backdrop-blur border-violet-200/60 hover:shadow-md hover:-translate-y-0.5 transition-all">
+      <CardContent className="pt-6 flex flex-col h-full">
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <span className="text-[10px] uppercase tracking-wider text-violet-700 bg-violet-100 px-1.5 py-0.5 rounded">
+            模拟赛
+          </span>
+          <span className="text-[10px] uppercase tracking-wider text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">
+            {exam.difficulty}
+          </span>
+          <span className="text-xs text-slate-400">{exam.date}</span>
+        </div>
+        <h3 className="text-lg font-semibold text-slate-900 mb-2 line-clamp-2">
+          {exam.title}
+        </h3>
+        <p className="text-sm text-slate-600 line-clamp-3 mb-4">
+          {exam.description}
+        </p>
+        {/* 元信息行: 时长 / 题数 / 考点 */}
+        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600 mb-4">
+          <span className="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-md px-2 py-1">
+            <span className="font-semibold text-slate-700">时长</span>
+            <span>{exam.duration}</span>
+          </span>
+          <span className="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-md px-2 py-1">
+            <Swords className="w-3 h-3 text-slate-500" aria-hidden="true" />
+            <span className="font-semibold text-slate-700">{exam.problems} 题</span>
+          </span>
+          {exam.topics.map((t) => (
+            <span
+              key={t}
+              className="inline-flex items-center gap-1 bg-violet-50 border border-violet-200 text-violet-700 rounded-md px-2 py-1"
+            >
+              {t}
+            </span>
+          ))}
+        </div>
+        <div className="mt-auto">
+          <Link
+            href={`/csp-lecture/exams/${encodeURIComponent(exam.slug)}`}
+            className="inline-flex items-center justify-center gap-1.5 w-full text-sm
+                       font-semibold text-white bg-gradient-to-r
+                       from-violet-600 to-fuchsia-600
+                       hover:from-violet-700 hover:to-fuchsia-700
+                       rounded-lg px-3 py-2
+                       shadow-sm hover:shadow-md
+                       transition-all
+                       focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+            aria-label={`打开 ${exam.title}`}
+          >
+            打开模拟赛
+            <ArrowRight className="w-4 h-4" aria-hidden="true" />
+          </Link>
         </div>
       </CardContent>
     </Card>
