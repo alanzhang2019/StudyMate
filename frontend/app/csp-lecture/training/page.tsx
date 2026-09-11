@@ -157,7 +157,7 @@ const SHARED: PlanCard[] = [
     description: '9/14 起 4 周 + 国庆 5 天, 每天 3h 课 + 1.5h 课后, 合计 32h/学员。',
   },
   {
-    slug: '2026-09-12加课-GESP6林展骥、林珅熠',
+    slug: '2026-09-12加课-GESP6林展骥-林珅熠',
     title: '9/12 加课 · GESP 6 级临阵',
     subtitle: '林展骥 + 林珅熠 · 考前 3h 加课',
     badge: '⏰ 加课',
@@ -177,7 +177,7 @@ const SHARED: PlanCard[] = [
     description: '明天 (9/13) 上午 GESP 8 级临阵 3h 加课: 客观题 12 考点串讲 + 4 个核心模板默写 (堆/并查集/Dijkstra/背包) + 真题限时模拟。祺皓当前 AC 27, 现实目标: 客观题 18+/30 + 编程题 1 题保底 35+ 分。',
   },
   {
-    slug: 'gesp6-林展骥、林珅熠',
+    slug: 'gesp6-林展骥-林珅熠',
     title: '练习卷 · GESP 6 级',
     subtitle: '林展骥 + 林珅熠 · 客观题 25 + 模板 6 + 真题 2',
     badge: '📝 练习卷',
