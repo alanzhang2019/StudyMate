@@ -6,7 +6,7 @@
 // 直接分享链接就能打开练习卷, 题目里的所有洛谷题号都是
 // clickable 直链, 点击直达题目页。
 
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import Link from 'next/link';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -16,6 +16,18 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 const PRACTICE_DIR = path.join(process.cwd(), 'public', 'csp-lecture', 'practice');
+
+// **Slug aliases**: 老链接里的中文连接符从 '+' 改成了 '-',
+// 早期还用过 '、' (U+3001). 任何已分享出去的旧链接
+// (家长群、Notion、微信收藏) 在新容器里都直接 301 到新 slug,
+// 避免点击 → 404 的尴尬。
+//
+// 格式: 'old-slug' → 'new-slug'. 旧 → 新 只能 1 跳,
+// 别在这里写循环 (e.g. A→B, B→A) 否则会无限重定向。
+const SLUG_ALIASES: Record<string, string> = {
+  'gesp6-林展骥+林珅熠': 'gesp6-林展骥-林珅熠',
+  'gesp6-林展骥、林珅熠': 'gesp6-林展骥-林珅熠',
+};
 
 // Whitelist slugs are derived from filesystem instead of a hardcoded
 // list. Reading the actual directory on each request avoids:
@@ -266,6 +278,14 @@ export default async function PracticePage({
   }
   if (!slug || slug.includes('..') || slug.includes('/') || slug.includes('\\')) {
     notFound();
+  }
+
+  // 老 slug → 新 slug 永久重定向. 必须在白名单检查之前做,
+  // 否则 file lookup 会先 404. encodeURIComponent 让新 slug
+  // 的中文字符重新走 URL 编码 (避免浏览器对已编码 URL
+  // 再次嵌套编码).
+  if (SLUG_ALIASES[slug] && SLUG_ALIASES[slug] !== slug) {
+    permanentRedirect(`/csp-lecture/practice/${encodeURIComponent(SLUG_ALIASES[slug])}`);
   }
 
   const allowed = await listAllowedSlugs();
