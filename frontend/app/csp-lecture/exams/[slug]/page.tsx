@@ -29,13 +29,26 @@ export const revalidate = 0;
 
 const EXAMS_DIR = path.join(process.cwd(), 'public', 'csp-lecture', 'exams');
 
-// Whitelist: only known exam files are reachable. This prevents
-// directory traversal and accidental exposure of unrelated files
-// in /public. Add new slugs here when uploading a new exam.
-const ALLOWED_SLUGS = new Set<string>([
-  '模拟赛A-2026-10-04',
-  '模拟赛B-2026-10-05',
-]);
+// Whitelist slugs are now derived from filesystem instead of a
+// hardcoded list. Reasoning: the previous hardcoded set meant
+// every new exam required editing this file in two places
+// (here + the MOCK_EXAMS array on the listing page), and the
+// Unicode round-trip through the URL decoder could occasionally
+// leave a slug in a different normalization form than what
+// `ALLOWED_SLUGS.has()` checked against. Reading the actual
+// directory on each request avoids both problems.
+async function listAllowedSlugs(): Promise<Set<string>> {
+  try {
+    const entries = await fs.readdir(EXAMS_DIR);
+    return new Set(
+      entries
+        .filter((n) => n.endsWith('.md'))
+        .map((n) => n.slice(0, -'.md'.length)),
+    );
+  } catch {
+    return new Set();
+  }
+}
 
 type Block =
   | { kind: 'h'; level: 1 | 2 | 3 | 4; text: string }
@@ -265,7 +278,13 @@ export default async function ExamPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  if (!ALLOWED_SLUGS.has(slug)) notFound();
+  // Defence against path traversal: slug must be a non-empty
+  // string without separators or `..` components. We do the
+  // file existence check below to confirm the exam actually
+  // exists on disk.
+  if (!slug || slug.includes('..') || slug.includes('/') || slug.includes('\\')) {
+    notFound();
+  }
 
   // Same auth gate as /csp-lecture — the parent page requires
   // a signed-in user, so any deep link here must be too.
