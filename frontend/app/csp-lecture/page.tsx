@@ -507,7 +507,7 @@ export default async function CspLecturePage() {
         <p className="mt-5 text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
           {lectures.length === 0
             ? '暂无课件，敬请期待。'
-            : `${primerLectures.length} 个精讲课件 · ${paperLectures.length} 套历年真题 · ${MOCK_EXAMS.length} 套模拟赛 · 共 ${totalScenes} 个章节。先精讲后真题，按顺序学完最有效。`}
+            : `${primerLectures.length} 个精讲课件 · ${paperLectures.length} 套历年真题 · ${MOCK_EXAMS.length} 套模拟赛 · 12 份训练计划 · 共 ${totalScenes} 个章节。先精讲后真题，按顺序学完最有效。`}
         </p>
       </section>
 
@@ -633,6 +633,22 @@ export default async function CspLecturePage() {
                     </div>
                   </LectureGroup>
                 )}
+
+                {/* 类别 4: 训练计划。 王牌战队 2 的 10 位学员 +
+                    共享题库 / 日历, 公开访问, 按梯队分组,
+                    详细 markdown 计划在 /csp-lecture/training。*/}
+                <LectureGroup
+                  title="训练计划"
+                  subtitle="王牌战队 2 · 按 A/B/C/D 梯队分组 · 公开访问, 学员/家长可直接分享链接"
+                  accentClass="from-emerald-500/15 to-teal-500/5 border-emerald-200/60"
+                  badgeClass="bg-emerald-100 text-emerald-700"
+                  count={12}
+                  countLabel="份计划"
+                >
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                    <TrainingPlanCallCard />
+                  </div>
+                </LectureGroup>
               </div>
             )}
           </div>
@@ -852,6 +868,72 @@ function MockExamCard({ exam }: { exam: MockExam }) {
             aria-label={`打开 ${exam.title}`}
           >
             打开模拟赛
+            <ArrowRight className="w-4 h-4" aria-hidden="true" />
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/**
+ * 训练计划入口卡: 整个专题在公开页只展示一张引导卡,
+ * 点击进入 /csp-lecture/training 总览页, 再在总览页
+ * 按梯队 / 学员逐一展开 markdown 详情。这样父页面
+ * (csp-lecture) 不会被 12 份计划挤爆, 同时也能在父页面
+ * 顶层透出"训练计划"专题的存在感。
+ *
+ * 主题色: emerald/teal 渐变, 与 真题 (rose) / 模拟赛 (violet) 区分。
+ */
+function TrainingPlanCallCard() {
+  return (
+    <Card className="h-full bg-white/85 backdrop-blur border-emerald-200/60 hover:shadow-md hover:-translate-y-0.5 transition-all">
+      <CardContent className="pt-6 flex flex-col h-full">
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <span className="text-[10px] uppercase tracking-wider text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">
+            训练计划
+          </span>
+          <span className="text-[10px] uppercase tracking-wider text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">
+            王牌战队 2
+          </span>
+          <span className="text-xs text-slate-400">10 位学员 + 共享资源</span>
+        </div>
+        <h3 className="text-lg font-semibold text-slate-900 mb-2">
+          CSP-J/S 国庆集训训练计划
+        </h3>
+        <p className="text-sm text-slate-600 mb-4">
+          按 A/B/C/D 梯队分组的 10 位学员训练计划 + 共享题库/日历。
+          每份计划含学员画像、阶段目标、W0~W3 + 国庆 5 天共 32h
+          课时安排, 题目带洛谷直链, 公开访问, 可直接分享。
+        </p>
+        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600 mb-4">
+          <span className="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 text-amber-700 rounded-md px-2 py-1">
+            🥇 A 队 · 2 人
+          </span>
+          <span className="inline-flex items-center gap-1 bg-sky-50 border border-sky-200 text-sky-700 rounded-md px-2 py-1">
+            🥈 B 队 · 3 人
+          </span>
+          <span className="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-md px-2 py-1">
+            🥉 C 队 · 2 人
+          </span>
+          <span className="inline-flex items-center gap-1 bg-lime-50 border border-lime-200 text-lime-700 rounded-md px-2 py-1">
+            🌱 D 队 · 3 人
+          </span>
+        </div>
+        <div className="mt-auto">
+          <Link
+            href="/csp-lecture/training"
+            className="inline-flex items-center justify-center gap-1.5 w-full text-sm
+                       font-semibold text-white bg-gradient-to-r
+                       from-emerald-600 to-teal-600
+                       hover:from-emerald-700 hover:to-teal-700
+                       rounded-lg px-3 py-2
+                       shadow-sm hover:shadow-md
+                       transition-all
+                       focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+            aria-label="打开训练计划总览"
+          >
+            打开训练计划
             <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </Link>
         </div>
