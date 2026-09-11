@@ -156,6 +156,16 @@ const SHARED: PlanCard[] = [
     topics: ['课表', '复赛', '国庆集训'],
     description: '9/14 起 4 周 + 国庆 5 天, 每天 3h 课 + 1.5h 课后, 合计 32h/学员。',
   },
+  {
+    slug: '2026-09-12加课-GESP6林展骥+林珅熠',
+    title: '9/12 加课 · GESP 6 级临阵',
+    subtitle: '林展骥 + 林珅熠 · 考前 3h 加课',
+    badge: '⏰ 加课',
+    tier: 'shared',
+    goal: 'GESP 6 级一次过',
+    topics: ['客观题 12 考点', 'BFS/DFS 模板', '0/1 背包 + LIS'],
+    description: '明天 (9/12) 上午 GESP 6 级临阵 3h 加课, 25 道客观题串讲 + 编程模板分层训练 (展骥补基础 DS, 珅熠攻 DP 套路) + 真题限时模拟。',
+  },
 ];
 
 function tierColor(tier: Tier): { bg: string; text: string; ring: string; } {
