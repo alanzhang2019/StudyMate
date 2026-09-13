@@ -8,7 +8,8 @@ import { trackEvent } from '@/lib/usage/track';
 
 const POLL_LIMIT = Number(process.env.RATE_LIMIT_INTEGRATION_POLL_PER_MIN ?? 120);
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const ip = getClientIp(request.headers);
   try {
     checkRateLimit(`poll:${ip}`, POLL_LIMIT, 60_000);
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     throw err;
   }
 
-  const job = readIntegrationJob(params.id);
+  const job = readIntegrationJob(id);
   if (!job) return apiError('INTERNAL_ERROR', 404, 'job not found');
 
   const now = Date.now();

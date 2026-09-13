@@ -10,7 +10,8 @@ import { trackEvent } from '@/lib/usage/track';
 
 const RETRY_LIMIT = Number(process.env.RATE_LIMIT_INTEGRATION_CREATE_PER_MIN ?? 10);
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const ip = getClientIp(request.headers);
 
   try {
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     throw err;
   }
 
-  const job = readIntegrationJob(params.id);
+  const job = readIntegrationJob(id);
   if (!job) return apiError('INTERNAL_ERROR', 404, 'job not found');
 
   if (job.status !== 'failed') {
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     return apiError('INTERNAL_ERROR', 410, 'job expired');
   }
 
-  const reset = updateIntegrationJob(params.id, {
+  const reset = updateIntegrationJob(id, {
     status: 'queued',
     stage: null,
     errorCode: null,
@@ -50,10 +51,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   });
   if (!reset) return apiError('INTERNAL_ERROR', 500, 'failed to reset job');
 
-  void runIntegrationJob(params.id).catch(() => {});
+  void runIntegrationJob(id).catch(() => {});
 
   void trackEvent('integration.jobs.retry', {
-    jobId: params.id,
+    jobId: id,
     ip,
   }, { request });
 

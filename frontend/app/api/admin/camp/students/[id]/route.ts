@@ -20,9 +20,9 @@ function transformStudent(row: any): any {
 }
 
 // GET /api/admin/camp/students/:id
-export const GET = withAdminAuth(async (req: NextRequest, { params }: { params: { id: string } }) => {
+export const GET = withAdminAuth(async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
-    const { id } = params;
+    const { id } = await params;
     const student = await db.campStudent.findUnique({ where: { id } });
 
     if (!student) {
@@ -43,9 +43,9 @@ export const GET = withAdminAuth(async (req: NextRequest, { params }: { params: 
 });
 
 // PATCH /api/admin/camp/students/:id
-export const PATCH = withAdminAuth(async (req: NextRequest, { params }: { params: { id: string } }) => {
+export const PATCH = withAdminAuth(async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
-    const { id } = params;
+    const { id } = await params;
     const existing = await db.campStudent.findUnique({ where: { id } });
 
     if (!existing) {
@@ -124,9 +124,9 @@ export const PATCH = withAdminAuth(async (req: NextRequest, { params }: { params
 });
 
 // DELETE /api/admin/camp/students/:id
-export const DELETE = withAdminAuth(async (req: NextRequest, { params }: { params: { id: string } }) => {
+export const DELETE = withAdminAuth(async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
-    const { id } = params;
+    const { id } = await params;
     const existing = await db.campStudent.findUnique({ where: { id } });
 
     if (!existing) {

@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -39,7 +40,8 @@ const ANIMAL_COVER =
 const FORMATION_COVER =
   'https://works.xgteacher.cn/media/covers/57b7dea2-a05e-4f67-9ed9-19b47bc0bda5/0df250aa-775f-416f-ba77-820aa326fa56.png';
 
-const WORKS: Record<string, WorkDetail> = {
+// 两个早期示范作品（炳炳 / 小高）为静态种子，含完整创作记录与能力雷达。
+const SEED_WORKS: Record<string, WorkDetail> = {
   'animal-maze-battle': {
     slug: 'animal-maze-battle',
     title: '动物迷宫大乱斗',
@@ -172,9 +174,99 @@ const RADAR_LABELS = [
   { label: '审美', x: 35, y: 118 },
 ];
 
+function formatDate(iso?: string | null): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${mm}/${dd}`;
+}
+
+// 把后台库里的作品行映射成详情页可用的结构。
+// 库里只存基础字段（封面 / 标题 / 学员 / 介绍 / 外链 / 技术栈），
+// 创作记录与能力雷达属于早期示范作品的专有内容，库作品留空后由页面按需隐藏。
+function mapDbWorkToDetail(row: any): WorkDetail {
+  const studentLabel = [row.studentName, row.className]
+    .filter(Boolean)
+    .join(' · ');
+  return {
+    slug: row.id,
+    title: row.title || '未命名作品',
+    category: row.category || '作品',
+    date: formatDate(row.createdAt),
+    studentLabel: studentLabel || '匿名学员',
+    views: 0,
+    cover: row.coverImage || '',
+    externalUrl: row.linkUrl || '',
+    intro: row.description || '',
+    figcaption: studentLabel || '',
+    processIntro: '',
+    lessons: [],
+    abilityHeading: '',
+    abilityIntro: '',
+    abilityNote: '',
+    radarShape: '',
+    radarNodes: [],
+    radarScores: [],
+    shareTitle: row.title || '学员作品',
+    shareText: `${studentLabel || '学员'} 的作品`,
+  };
+}
+
 export default function WorkDetailPage() {
   const params = useParams<{ slug: string }>();
-  const work = WORKS[params.slug];
+  const slug = params.slug;
+
+  const [work, setWork] = useState<WorkDetail | null | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    // 种子作品（静态）优先，命中即直接展示完整内容。
+    if (slug && SEED_WORKS[slug]) {
+      setWork(SEED_WORKS[slug]);
+      setLoading(false);
+      return;
+    }
+    (async () => {
+      try {
+        const res = await fetch(`/api/camp/works/${slug}`);
+        if (res.status === 404) {
+          if (!cancelled) setWork(null);
+          return;
+        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        if (!json.success) throw new Error(json.error || '获取失败');
+        if (cancelled) return;
+        setWork(mapDbWorkToDetail(json.data));
+      } catch (e) {
+        console.error('[camp/work/:slug] load error:', e);
+        if (!cancelled) setWork(null);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="work-detail-page">
+        <div className="work-detail-hero">
+          <div className="work-detail-heading">
+            <Link href="/camp/works" className="work-back">
+              返回作品墙
+            </Link>
+            <h1>加载中…</h1>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!work) {
     return (
@@ -190,6 +282,10 @@ export default function WorkDetailPage() {
       </div>
     );
   }
+
+  const hasLessons = work.lessons && work.lessons.length > 0;
+  const hasRadar = work.radarNodes && work.radarNodes.length > 0;
+  const hasExternal = !!work.externalUrl;
 
   const handleShare = async () => {
     const shareData = {
@@ -273,17 +369,19 @@ export default function WorkDetailPage() {
             </span>
           </div>
           <div className="work-detail-actions">
-            <a
-              className="work-detail-action-primary"
-              href={work.externalUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              体验作品
-              <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor">
-                <path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z" />
-              </svg>
-            </a>
+            {hasExternal ? (
+              <a
+                className="work-detail-action-primary"
+                href={work.externalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                体验作品
+                <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor">
+                  <path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z" />
+                </svg>
+              </a>
+            ) : null}
             <button className="work-detail-action-secondary" type="button" onClick={handleShare}>
               分享作品
             </button>
@@ -291,82 +389,94 @@ export default function WorkDetailPage() {
         </div>
 
         <figure className="work-detail-cover">
-          <img src={work.cover} alt={`${work.title}项目封面`} />
-          <figcaption>{work.figcaption}</figcaption>
+          {work.cover ? (
+            <img
+              src={work.cover}
+              alt={`${work.title}项目封面`}
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          ) : null}
+          {work.figcaption ? <figcaption>{work.figcaption}</figcaption> : null}
         </figure>
       </section>
 
-      <section className="work-process-log">
-        <header className="work-process-heading">
-          <h2>创作记录</h2>
-          <p>{work.processIntro}</p>
-        </header>
-        <div className="work-log-list">
-          <ol className="work-log-track">
-            {work.lessons.map((lesson) => (
-              <li className="work-log-entry" key={`${lesson.time}-${lesson.tag}`}>
-                <article className="work-log-card">
-                  <div className="work-log-time">
-                    <time>{lesson.time}</time>
-                    <span>· {lesson.tag}</span>
-                  </div>
-                  <img src={lesson.image} alt={`${lesson.time}作品截图`} />
-                  <strong>{lesson.title}</strong>
-                  <p>{lesson.description}</p>
-                  <span className="work-log-open">
-                    查看记录
-                    <svg viewBox="0 0 256 256" fill="currentColor">
-                      <path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z" />
-                    </svg>
-                  </span>
-                </article>
-              </li>
-            ))}
-          </ol>
-          <p className="work-log-hint">← 左右滑动查看 {work.lessons.length} 节课的完整记录</p>
-        </div>
-      </section>
-
-      <section className="work-ability-profile">
-        <div className="work-ability-heading">
-          <p className="section-kicker">ABILITY / 能力评估</p>
-          <h2>{work.abilityHeading}</h2>
-          <p>{work.abilityIntro}</p>
-          <p className="work-ability-note">{work.abilityNote}</p>
-        </div>
-        <div className="work-ability-chart">
-          <div className="work-ability-radar">
-            <svg viewBox="0 0 440 320" role="img" aria-label={`${work.abilityHeading}能力雷达图`}>
-              <g className="work-ability-radar-grid">
-                <polygon points="220,40 390,120 340,280 100,280 50,120" />
-                <polygon points="220,80 350,136 315,240 125,240 90,136" />
-                <polygon points="220,120 310,152 290,200 150,200 130,152" />
-                <line x1="220" y1="160" x2="220" y2="40" />
-                <line x1="220" y1="160" x2="390" y2="120" />
-                <line x1="220" y1="160" x2="340" y2="280" />
-                <line x1="220" y1="160" x2="100" y2="280" />
-                <line x1="220" y1="160" x2="50" y2="120" />
-              </g>
-              <polygon className="work-ability-radar-shape" points={work.radarShape} />
-              <g className="work-ability-radar-node">
-                {work.radarNodes.map(([cx, cy]) => (
-                  <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r="4" />
-                ))}
-              </g>
-              <g className="work-ability-radar-label">
-                {RADAR_LABELS.map((label, i) => (
-                  <text key={label.label} x={label.x} y={label.y} textAnchor="middle">
-                    {label.label}
-                    <tspan x={label.x} dy="14">
-                      {work.radarScores[i]}
-                    </tspan>
-                  </text>
-                ))}
-              </g>
-            </svg>
+      {hasLessons ? (
+        <section className="work-process-log">
+          <header className="work-process-heading">
+            <h2>创作记录</h2>
+            <p>{work.processIntro}</p>
+          </header>
+          <div className="work-log-list">
+            <ol className="work-log-track">
+              {work.lessons.map((lesson) => (
+                <li className="work-log-entry" key={`${lesson.time}-${lesson.tag}`}>
+                  <article className="work-log-card">
+                    <div className="work-log-time">
+                      <time>{lesson.time}</time>
+                      <span>· {lesson.tag}</span>
+                    </div>
+                    <img src={lesson.image} alt={`${lesson.time}作品截图`} />
+                    <strong>{lesson.title}</strong>
+                    <p>{lesson.description}</p>
+                    <span className="work-log-open">
+                      查看记录
+                      <svg viewBox="0 0 256 256" fill="currentColor">
+                        <path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z" />
+                      </svg>
+                    </span>
+                  </article>
+                </li>
+              ))}
+            </ol>
+            <p className="work-log-hint">← 左右滑动查看 {work.lessons.length} 节课的完整记录</p>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
+
+      {hasRadar ? (
+        <section className="work-ability-profile">
+          <div className="work-ability-heading">
+            <p className="section-kicker">ABILITY / 能力评估</p>
+            <h2>{work.abilityHeading}</h2>
+            <p>{work.abilityIntro}</p>
+            <p className="work-ability-note">{work.abilityNote}</p>
+          </div>
+          <div className="work-ability-chart">
+            <div className="work-ability-radar">
+              <svg viewBox="0 0 440 320" role="img" aria-label={`${work.abilityHeading}能力雷达图`}>
+                <g className="work-ability-radar-grid">
+                  <polygon points="220,40 390,120 340,280 100,280 50,120" />
+                  <polygon points="220,80 350,136 315,240 125,240 90,136" />
+                  <polygon points="220,120 310,152 290,200 150,200 130,152" />
+                  <line x1="220" y1="160" x2="220" y2="40" />
+                  <line x1="220" y1="160" x2="390" y2="120" />
+                  <line x1="220" y1="160" x2="340" y2="280" />
+                  <line x1="220" y1="160" x2="100" y2="280" />
+                  <line x1="220" y1="160" x2="50" y2="120" />
+                </g>
+                <polygon className="work-ability-radar-shape" points={work.radarShape} />
+                <g className="work-ability-radar-node">
+                  {work.radarNodes.map(([cx, cy]) => (
+                    <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r="4" />
+                  ))}
+                </g>
+                <g className="work-ability-radar-label">
+                  {RADAR_LABELS.map((label, i) => (
+                    <text key={label.label} x={label.x} y={label.y} textAnchor="middle">
+                      {label.label}
+                      <tspan x={label.x} dy="14">
+                        {work.radarScores[i]}
+                      </tspan>
+                    </text>
+                  ))}
+                </g>
+              </svg>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <footer className="works-footer">
         <div className="works-footer-meta">

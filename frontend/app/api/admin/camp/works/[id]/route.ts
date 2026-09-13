@@ -20,9 +20,9 @@ function transformWork(row: any): any {
 }
 
 // GET /api/admin/camp/works/:id
-export const GET = withAdminAuth(async (req: NextRequest, { params }: { params: { id: string } }) => {
+export const GET = withAdminAuth(async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
-    const { id } = params;
+    const { id } = await params;
     const work = await db.campWork.findUnique({ where: { id } });
 
     if (!work) {
@@ -44,9 +44,9 @@ export const GET = withAdminAuth(async (req: NextRequest, { params }: { params: 
 
 // PATCH /api/admin/camp/works/:id
 // 额外支持审核：当传 status 时，自动写入 reviewedAt = 当前 ISO 时间戳，reviewedBy = 'admin'
-export const PATCH = withAdminAuth(async (req: NextRequest, { params }: { params: { id: string } }) => {
+export const PATCH = withAdminAuth(async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
-    const { id } = params;
+    const { id } = await params;
     const existing = await db.campWork.findUnique({ where: { id } });
 
     if (!existing) {
@@ -159,9 +159,9 @@ export const PATCH = withAdminAuth(async (req: NextRequest, { params }: { params
 });
 
 // DELETE /api/admin/camp/works/:id
-export const DELETE = withAdminAuth(async (req: NextRequest, { params }: { params: { id: string } }) => {
+export const DELETE = withAdminAuth(async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
-    const { id } = params;
+    const { id } = await params;
     const existing = await db.campWork.findUnique({ where: { id } });
 
     if (!existing) {

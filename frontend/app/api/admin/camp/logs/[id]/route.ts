@@ -22,9 +22,9 @@ function transformClassLog(row: any): any {
 }
 
 // GET /api/admin/camp/logs/:id
-export const GET = withAdminAuth(async (req: NextRequest, { params }: { params: { id: string } }) => {
+export const GET = withAdminAuth(async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
-    const { id } = params;
+    const { id } = await params;
     const log = await db.campClassLog.findUnique({ where: { id } });
 
     if (!log) {
@@ -45,9 +45,9 @@ export const GET = withAdminAuth(async (req: NextRequest, { params }: { params: 
 });
 
 // PATCH /api/admin/camp/logs/:id
-export const PATCH = withAdminAuth(async (req: NextRequest, { params }: { params: { id: string } }) => {
+export const PATCH = withAdminAuth(async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
-    const { id } = params;
+    const { id } = await params;
     const existing = await db.campClassLog.findUnique({ where: { id } });
 
     if (!existing) {
@@ -151,9 +151,9 @@ export const PATCH = withAdminAuth(async (req: NextRequest, { params }: { params
 });
 
 // DELETE /api/admin/camp/logs/:id
-export const DELETE = withAdminAuth(async (req: NextRequest, { params }: { params: { id: string } }) => {
+export const DELETE = withAdminAuth(async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
-    const { id } = params;
+    const { id } = await params;
     const existing = await db.campClassLog.findUnique({ where: { id } });
 
     if (!existing) {
