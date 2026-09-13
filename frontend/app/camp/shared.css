@@ -613,3 +613,47 @@ input{font-family:inherit}
    so the dark marketing pages render correctly inside the main app. */
 body{background-image:none}
 input,textarea,select,button{color:inherit}
+
+/* ===== Share modal（扫码分享作品） ===== */
+.share-overlay{
+  align-items:center;backdrop-filter:blur(3px);background:rgba(5,20,47,.55);
+  display:flex;inset:0;justify-content:center;padding:1.25rem;position:fixed;z-index:100;
+}
+.share-modal{
+  animation:share-pop .22s var(--ease-out);background:var(--paper);
+  border:1px solid var(--navy-950);box-shadow:12px 14px #05142f24;color:var(--navy-950);
+  max-width:380px;padding:2.3rem 1.75rem 1.75rem;position:relative;rotate:-.6deg;width:100%;
+}
+.share-modal-tape{
+  background:#f5f2e9c7;border-inline:1px solid rgba(5,20,47,.1);height:27px;left:50%;
+  position:absolute;top:-13px;transform:translate(-50%) rotate(-2deg);width:84px;z-index:3;
+}
+.share-modal-close{
+  background:transparent;border:none;color:var(--navy-950);cursor:pointer;
+  font-size:1.6rem;line-height:1;padding:.2rem .45rem;position:absolute;right:.7rem;top:.55rem;
+}
+.share-modal-close:hover{opacity:.6}
+.share-modal-title{font-size:1.25rem;font-weight:800;letter-spacing:-.01em;margin:0 0 1rem;text-align:center}
+.share-qr-card{
+  align-items:center;background:#fff;border:1px solid var(--navy-950);
+  display:flex;justify-content:center;padding:1rem;
+}
+.share-qr{display:block;height:auto;image-rendering:pixelated;max-width:220px;width:100%}
+.share-qr-loading,.share-qr-fallback{
+  align-items:center;color:#405574;display:flex;font-size:.85rem;justify-content:center;
+  margin:0;min-height:220px;text-align:center;
+}
+.share-modal-hint{font-weight:700;margin:1.1rem 0 0;text-align:center}
+.share-modal-sub{color:#405574;font-size:.82rem;line-height:1.6;margin:.4rem 0 0;text-align:center}
+.share-modal-sub strong{color:var(--navy-950)}
+.share-modal-actions{display:flex;justify-content:center;margin-top:1.25rem}
+.share-copy-btn{
+  background:var(--navy-950);border:1px solid var(--navy-950);color:var(--paper);
+  cursor:pointer;font-size:.8rem;font-weight:700;min-height:44px;padding:0 1.5rem;
+  transition:background-color .16s ease,color .16s ease;
+}
+.share-copy-btn:hover{background:var(--yellow);color:var(--navy-950)}
+@keyframes share-pop{
+  from{opacity:0;transform:scale(.94) translateY(8px)}
+  to{opacity:1;transform:scale(1) translateY(0)}
+}

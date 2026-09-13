@@ -183,6 +183,88 @@ function formatDate(iso?: string | null): string {
   return `${mm}/${dd}`;
 }
 
+// 客户端按需生成二维码（qrcode 纯 JS，动态 import 避免首屏开销）。
+function ShareQr({ value }: { value: string }) {
+  const [dataUrl, setDataUrl] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const QRCode = (await import('qrcode')).default;
+        const url = await QRCode.toDataURL(value, {
+          width: 512,
+          margin: 2,
+          errorCorrectionLevel: 'M',
+          color: { dark: '#16294a', light: '#ffffff' },
+        });
+        if (!cancelled) setDataUrl(url);
+      } catch (e) {
+        console.error('[share-qr] generate failed:', e);
+        if (!cancelled) setFailed(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [value]);
+
+  if (failed) {
+    return <p className="share-qr-fallback">二维码生成失败，请改用「复制链接」分享。</p>;
+  }
+  if (!dataUrl) {
+    return <div className="share-qr-loading">二维码生成中…</div>;
+  }
+  return <img className="share-qr" src={dataUrl} alt="作品二维码，微信扫一扫打开" />;
+}
+
+function ShareModal({
+  url,
+  title,
+  onClose,
+}: {
+  url: string;
+  title: string;
+  onClose: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* 剪贴板不可用时静默 */
+    }
+  };
+
+  return (
+    <div className="share-overlay" role="dialog" aria-modal="true" onClick={onClose}>
+      <div className="share-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="share-modal-tape" aria-hidden="true" />
+        <button className="share-modal-close" type="button" onClick={onClose} aria-label="关闭">
+          ×
+        </button>
+        <h2 className="share-modal-title">扫码分享作品</h2>
+        <div className="share-qr-card">
+          <ShareQr value={url} />
+        </div>
+        <p className="share-modal-hint">微信扫一扫，打开「{title}」</p>
+        <p className="share-modal-sub">
+          打开后点右上角 <strong>···</strong>，即可发送给朋友 / 分享到朋友圈
+        </p>
+        <div className="share-modal-actions">
+          <button className="share-copy-btn" type="button" onClick={copy}>
+            {copied ? '已复制 ✓' : '复制链接'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // 把后台库里的作品行映射成详情页可用的结构。
 // 库里只存基础字段（封面 / 标题 / 学员 / 介绍 / 外链 / 技术栈），
 // 创作记录与能力雷达属于早期示范作品的专有内容，库作品留空后由页面按需隐藏。
@@ -220,6 +302,7 @@ export default function WorkDetailPage() {
 
   const [work, setWork] = useState<WorkDetail | null | undefined>(undefined);
   const [loading, setLoading] = useState(true);
+  const [shareOpen, setShareOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -483,6 +566,14 @@ export default function WorkDetailPage() {
           <span>Alan张老师 · 少年 AI 创造营</span>
         </div>
       </footer>
+
+      {shareOpen ? (
+        <ShareModal
+          url={typeof window !== 'undefined' ? window.location.href : ''}
+          title={work.shareTitle}
+          onClose={() => setShareOpen(false)}
+        />
+      ) : null}
     </div>
   );
 }
