@@ -23,7 +23,7 @@ const GRADE_OPTIONS = [
 type SubmitState =
   | { kind: 'idle' }
   | { kind: 'submitting' }
-  | { kind: 'success'; id: string | null }
+  | { kind: 'success'; id: string | null; editUrl?: string }
   | { kind: 'error'; message: string };
 
 export default function CampSubmitPage() {
@@ -36,6 +36,7 @@ export default function CampSubmitPage() {
   const [linkUrl, setLinkUrl] = useState('');
   const [description, setDescription] = useState('');
   const [techStack, setTechStack] = useState('');
+  const [htmlFile, setHtmlFile] = useState<File | null>(null);
   const [company, setCompany] = useState(''); // 蜜罐，隐藏，留空
 
   const [state, setState] = useState<SubmitState>({ kind: 'idle' });
@@ -50,22 +51,20 @@ export default function CampSubmitPage() {
     if (!canSubmit) return;
     setState({ kind: 'submitting' });
     try {
-      const res = await fetch('/api/camp/works', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: title.trim(),
-          studentName: studentName.trim(),
-          grade,
-          className: className.trim(),
-          category,
-          coverImage: coverImage.trim(),
-          linkUrl: linkUrl.trim(),
-          description: description.trim(),
-          techStack: techStack.trim(),
-          company,
-        }),
-      });
+      const fd = new FormData();
+      fd.append('title', title.trim());
+      fd.append('studentName', studentName.trim());
+      fd.append('grade', grade);
+      fd.append('className', className.trim());
+      fd.append('category', category);
+      fd.append('coverImage', coverImage.trim());
+      fd.append('linkUrl', linkUrl.trim());
+      fd.append('description', description.trim());
+      fd.append('techStack', techStack.trim());
+      fd.append('company', company);
+      if (htmlFile) fd.append('htmlFile', htmlFile);
+
+      const res = await fetch('/api/camp/works', { method: 'POST', body: fd });
       const json = await res.json().catch(() => ({} as any));
       if (!res.ok || !json.success) {
         if (res.status === 429) {
@@ -78,7 +77,11 @@ export default function CampSubmitPage() {
         }
         return;
       }
-      setState({ kind: 'success', id: json.data?.id ?? null });
+      setState({
+        kind: 'success',
+        id: json.data?.id ?? null,
+        editUrl: json.data?.editUrl,
+      });
     } catch (err: any) {
       setState({ kind: 'error', message: err?.message || '网络错误，请重试' });
     }
@@ -94,6 +97,7 @@ export default function CampSubmitPage() {
     setLinkUrl('');
     setDescription('');
     setTechStack('');
+    setHtmlFile(null);
     setState({ kind: 'idle' });
   };
 
@@ -149,6 +153,18 @@ export default function CampSubmitPage() {
               <span className="submit-success-link"> /camp/works</span>
               。
             </p>
+            {state.editUrl ? (
+              <div className="submit-success-edit">
+                <p className="mono submit-kicker">改一改？</p>
+                <p>
+                  我们正在帮你自动写介绍、生成封面。想自己动手改，点下面进去就行——
+                  <strong>记得收藏地址栏的链接</strong>，随时回来改。
+                </p>
+                <Link href={state.editUrl} className="submit-button-secondary">
+                  去修改介绍和封面 →
+                </Link>
+              </div>
+            ) : null}
             <div className="submit-success-actions">
               <Link href="/camp/works" className="submit-button-primary">
                 去作品墙看看
@@ -225,7 +241,7 @@ export default function CampSubmitPage() {
             <div className="submit-card-head">
               <p className="mono submit-kicker">STEP 02 — 作品信息</p>
               <p className="submit-card-intro">
-                介绍一下作品。链接和介绍留空也没关系，提交后可以再回来改。
+                介绍一下作品。上传 HTML 作品后，我们会自动帮你写介绍、生成封面。
               </p>
             </div>
 
@@ -241,6 +257,23 @@ export default function CampSubmitPage() {
                   </option>
                 ))}
               </select>
+            </Field>
+
+            <Field
+              label="作品文件（HTML）"
+              hint="选填 · 上传后自动生成介绍和封面"
+            >
+              <label className="submit-file">
+                <input
+                  type="file"
+                  accept=".html,.htm,text/html"
+                  onChange={(e) => setHtmlFile(e.target.files?.[0] ?? null)}
+                  className="submit-file-input"
+                />
+                <span className="submit-file-label">
+                  {htmlFile ? htmlFile.name : '点击选择 .html 文件'}
+                </span>
+              </label>
             </Field>
 
             <Field
@@ -269,7 +302,7 @@ export default function CampSubmitPage() {
 
             <Field
               label="作品介绍"
-              hint="选填 · 讲讲你做了什么、怎么想的"
+              hint="选填 · 留空会自动帮你写"
             >
               <textarea
                 value={description}

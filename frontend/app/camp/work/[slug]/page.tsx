@@ -21,6 +21,7 @@ type WorkDetail = {
   views: number;
   cover: string;
   externalUrl: string;
+  hasHtml: boolean;
   intro: string;
   figcaption: string;
   processIntro: string;
@@ -51,6 +52,7 @@ const SEED_WORKS: Record<string, WorkDetail> = {
     views: 92,
     cover: ANIMAL_COVER,
     externalUrl: 'https://works.xgteacher.cn/work-0a64a48f2509/',
+    hasHtml: false,
     intro:
       '这是一个动物大乱斗的世界，我们要在这个世界里寻找自己的目标，通过吞噬小卡拉米，让自己强大起来！',
     figcaption: '炳炳 · 第 10 节课完成版本 · 2025/08/18',
@@ -116,6 +118,7 @@ const SEED_WORKS: Record<string, WorkDetail> = {
     views: 228,
     cover: FORMATION_COVER,
     externalUrl: 'https://works.xgteacher.cn/work-57b7dea2a05e/',
+    hasHtml: false,
     intro: '我们可以用它来编排生活中的队形——从升旗仪式到运动会方阵，拖拽即生成，简单又直观。',
     figcaption: '小高 · 第 8 节课完成版本 · 2025/07/30',
     processIntro: '8 节课，把一个生活中的小问题变成了可以用的工具。',
@@ -281,6 +284,7 @@ function mapDbWorkToDetail(row: any): WorkDetail {
     views: 0,
     cover: row.coverImage || '',
     externalUrl: row.linkUrl || '',
+    hasHtml: !!row.htmlFile,
     intro: row.description || '',
     figcaption: studentLabel || '',
     processIntro: '',
@@ -369,6 +373,7 @@ export default function WorkDetailPage() {
   const hasLessons = work.lessons && work.lessons.length > 0;
   const hasRadar = work.radarNodes && work.radarNodes.length > 0;
   const hasExternal = !!work.externalUrl;
+  const hasHtml = !!work.hasHtml;
 
   const handleShare = () => {
     setShareOpen(true);
@@ -438,6 +443,19 @@ export default function WorkDetailPage() {
             </span>
           </div>
           <div className="work-detail-actions">
+            {hasHtml ? (
+              <a
+                className="work-detail-action-primary"
+                href={`/api/camp/works/${work.slug}/html`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                打开作品
+                <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor">
+                  <path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z" />
+                </svg>
+              </a>
+            ) : null}
             {hasExternal ? (
               <a
                 className="work-detail-action-primary"

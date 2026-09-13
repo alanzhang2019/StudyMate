@@ -547,6 +547,30 @@ input{font-family:inherit}
 .submit-success p{color:#05142fd9;font-size:1rem;line-height:1.7;margin:.4rem 0}
 .submit-success-link{background:var(--navy-950);color:var(--paper);font-family:var(--font-mono);font-size:.85rem;padding:.15rem .55rem}
 .submit-success-actions{align-items:center;display:flex;flex-wrap:wrap;gap:.75rem;justify-content:center;margin-top:1.8rem}
+.submit-success-edit{background:rgba(255,255,255,.42);border:1px dashed var(--navy-950);margin-top:1.4rem;padding:1rem 1.2rem}
+.submit-success-edit p{margin:.2rem 0 .8rem}
+
+/* 编辑页：封面预览 + 操作 */
+.edit-cover-block{display:grid;gap:.9rem}
+.edit-cover-preview{
+  align-items:center;
+  aspect-ratio:4/3;
+  background:var(--paper);
+  border:1px solid var(--navy-950);
+  display:flex;
+  justify-content:center;
+  overflow:hidden;
+  position:relative;
+}
+.edit-cover-preview img{height:100%;object-fit:cover;width:100%}
+.edit-cover-empty{align-items:center;color:#66738a;display:flex;font-size:.9rem;justify-content:center}
+.edit-cover-actions{align-items:center;display:flex;flex-wrap:wrap;gap:.75rem}
+.submit-file--inline{flex:1 1 220px;min-width:200px}
+
+/* 提示条：成功 / 失败 */
+.edit-banner{font-size:.85rem;line-height:1.6;padding:.9rem 1.1rem}
+.edit-banner--error{background:#fff4ec;border:1px solid #b8421f;color:#7a2a12}
+.edit-banner--ok{background:#eef7e9;border:1px solid #3f7a2f;color:#2c5a20}
 
 /* ===== Responsive ===== */
 @media(max-width:980px){

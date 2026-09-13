@@ -776,6 +776,22 @@ function applyMigrations(db: Database): void {
   } catch {
     // column already exists
   }
+
+  // 2026-09-14：学生上传 HTML 作品 + 自动介绍/封面 + 匿名二次编辑。
+  // htmlFile 存 HTML 文件路径（相对 DB_DIR），editToken 作匿名编辑凭证，
+  // coverSource 记录封面来源（ai / upload / url / none）。三列都可空，老库平滑补齐。
+  const campWorkExtraCols: Array<[string, string]> = [
+    ['htmlFile', 'TEXT'],
+    ['editToken', 'TEXT'],
+    ['coverSource', 'TEXT'],
+  ]
+  for (const [col, type] of campWorkExtraCols) {
+    try {
+      db.exec(`ALTER TABLE camp_works ADD COLUMN ${col} ${type}`)
+    } catch {
+      // column already exists
+    }
+  }
 }
 
 const now = () => new Date().toISOString()

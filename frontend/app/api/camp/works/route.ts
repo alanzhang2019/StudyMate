@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 import { db, getDb } from '@/lib/db';
 import {
   checkRateLimit,
   getClientIp,
   RateLimitedError,
 } from '@/lib/integrations/rate-limit';
+import { saveHtmlFile, runWorkAutoGen } from '@/lib/server/camp-work-autogen';
 
 function safeJsonParse(str: string | null | undefined): any[] {
   if (!str) return [];
@@ -62,7 +64,8 @@ export const GET = async (req: NextRequest) => {
 };
 
 // POST /api/camp/works：学生自助提交作品（无需登录）
-// 入库即 status = 'pending'，等待老师在 /admin/camp/works 审核通过后上墙。
+// 支持 JSON 与 multipart/form-data（后者可带 htmlFile 文件）。
+// 入库即 status = 'pending'；返回编辑链接（editUrl）供学生二次修改。
 // 防护：单 IP 10 分钟内最多 8 次 + 隐藏蜜罐字段拦截机器人。
 export const POST = async (req: NextRequest) => {
   try {
@@ -84,16 +87,32 @@ export const POST = async (req: NextRequest) => {
       throw err;
     }
 
-    const body = await req.json().catch(() => ({} as Record<string, any>));
+    // 归一化解析：multipart 与 JSON 都解析成 fields + 可选 htmlFile
+    const contentType = req.headers.get('content-type') || '';
+    const fields: Record<string, string> = {};
+    let htmlFile: File | null = null;
+
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await req.formData();
+      for (const [k, v] of formData.entries()) {
+        if (typeof v === 'string') fields[k] = v;
+        else if (k === 'htmlFile') htmlFile = v as File;
+      }
+    } else {
+      const json = await req.json().catch(() => ({} as Record<string, any>));
+      for (const [k, v] of Object.entries(json)) {
+        if (typeof v === 'string') fields[k] = v;
+      }
+    }
 
     // 蜜罐：机器人常填的隐藏字段，命中则静默返回成功但不入库
-    if (typeof body.company === 'string' && body.company.trim() !== '') {
+    if (typeof fields.company === 'string' && fields.company.trim() !== '') {
       return NextResponse.json({ success: true, data: { id: null } });
     }
 
-    const title = typeof body.title === 'string' ? body.title.trim() : '';
+    const title = typeof fields.title === 'string' ? fields.title.trim() : '';
     const studentName =
-      typeof body.studentName === 'string' ? body.studentName.trim() : '';
+      typeof fields.studentName === 'string' ? fields.studentName.trim() : '';
 
     if (!title) {
       return NextResponse.json(
@@ -124,13 +143,12 @@ export const POST = async (req: NextRequest) => {
       typeof v === 'string' ? v.trim().slice(0, max) : '';
     const isUrl = (v: string) => /^https?:\/\/.+/i.test(v);
 
-    const className = safeStr(body.className, 40);
-    const categoryRaw = safeStr(body.category, 20);
+    const className = safeStr(fields.className, 40);
+    const categoryRaw = safeStr(fields.category, 20);
     const ALLOWED_CAT = ['作品', '项目', '代码', '其他'];
     const category = ALLOWED_CAT.includes(categoryRaw) ? categoryRaw : '作品';
 
     // 年级：可选。一/二/三/四/五/六年级 + 「不便透露」作默认。
-    // 没填或不在白名单一律存「不便透露」，既不报错也不泄露空值。
     const GRADE_OPTIONS = [
       '一年级',
       '二年级',
@@ -140,12 +158,12 @@ export const POST = async (req: NextRequest) => {
       '六年级',
       '不便透露',
     ];
-    const gradeRaw = safeStr(body.grade, 20);
+    const gradeRaw = safeStr(fields.grade, 20);
     const grade = GRADE_OPTIONS.includes(gradeRaw) ? gradeRaw : '不便透露';
 
-    const coverImage = safeStr(body.coverImage, 500);
-    const linkUrl = safeStr(body.linkUrl, 500);
-    const description = safeStr(body.description, 2000);
+    const coverImage = safeStr(fields.coverImage, 500);
+    const linkUrl = safeStr(fields.linkUrl, 500);
+    const description = safeStr(fields.description, 2000);
 
     if (coverImage && !isUrl(coverImage)) {
       return NextResponse.json(
@@ -161,24 +179,43 @@ export const POST = async (req: NextRequest) => {
     }
 
     let techStack: string[] = [];
-    if (Array.isArray(body.techStack)) {
-      techStack = (body.techStack as any[])
-        .filter((t) => typeof t === 'string')
+    const tsRaw = fields.techStack;
+    if (typeof tsRaw === 'string') {
+      techStack = tsRaw
+        .split(/[,，\s]+/)
         .map((t) => t.trim())
         .filter(Boolean)
         .slice(0, 10)
         .map((t) => t.slice(0, 40));
-    } else if (typeof body.techStack === 'string') {
-      techStack = body.techStack
-        .split(/[,，\s]+/)
-        .map((t: string) => t.trim())
-        .filter(Boolean)
-        .slice(0, 10)
-        .map((t: string) => t.slice(0, 40));
+    }
+
+    // 先定 id 与 editToken，再落盘 HTML（文件名依赖 id）
+    const id = randomUUID();
+    const editToken = randomUUID();
+
+    let htmlFileRel: string | null = null;
+    if (htmlFile) {
+      const name = htmlFile.name || '';
+      const ext = (name.split('.').pop() || '').toLowerCase();
+      if (!['html', 'htm'].includes(ext)) {
+        return NextResponse.json(
+          { success: false, error: '请上传 .html 格式的作品文件' },
+          { status: 400 },
+        );
+      }
+      if (htmlFile.size > 5 * 1024 * 1024) {
+        return NextResponse.json(
+          { success: false, error: 'HTML 文件不能超过 5MB' },
+          { status: 400 },
+        );
+      }
+      const buf = Buffer.from(await htmlFile.arrayBuffer());
+      htmlFileRel = saveHtmlFile(id, buf);
     }
 
     const created = await db.campWork.create({
       data: {
+        id,
         title,
         studentId: null,
         studentName,
@@ -189,11 +226,28 @@ export const POST = async (req: NextRequest) => {
         linkUrl: linkUrl || null,
         description: description || null,
         techStackJson: JSON.stringify(techStack),
+        htmlFile: htmlFileRel,
+        editToken,
+        coverSource: coverImage ? 'url' : 'none',
         status: 'pending',
       },
     });
 
-    return NextResponse.json({ success: true, data: { id: created.id } });
+    // 后台自动生成介绍 + 封面（fire-and-forget，不阻塞响应）
+    if (htmlFileRel) {
+      void runWorkAutoGen(id).catch((e) =>
+        console.error('[camp/works autogen] unexpected error:', e),
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        id: created.id,
+        editToken,
+        editUrl: `/camp/works/edit/${editToken}`,
+      },
+    });
   } catch (error: any) {
     console.error('[camp/works public POST] error:', error);
     return NextResponse.json(
