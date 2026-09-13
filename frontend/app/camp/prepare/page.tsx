@@ -130,7 +130,7 @@ export default function PreparePage() {
           }}
         >
           <div className="site-footer-meta">
-            <p>Alan张老师 · 少年 AI 创造营</p>
+            <p>Alan张老师 · AI 原生教育</p>
             <p>让每个孩子都有属于自己的数字产品</p>
           </div>
         </div>

@@ -54,7 +54,7 @@ export default function LandingPage() {
         </div>
         <div className="flex items-center gap-3">
           <Button asChild size="sm" variant="outline">
-            <Link href="/camp">🚀 少年AI创造营</Link>
+            <Link href="/camp">🚀 AI 原生教育</Link>
           </Button>
           <Button asChild size="sm" variant="outline">
             <Link href="/csp-lecture">📚 学生课件</Link>
@@ -176,7 +176,7 @@ export default function LandingPage() {
             <div>© {new Date().getFullYear()} 爱讲题 · 用户可创建个人学习课件，用于教学或者学习记录</div>
             <div className="flex items-center gap-5">
               <Link href="/camp" className="hover:text-slate-900">
-                少年AI创造营
+                AI 原生教育
               </Link>
               <Link href="/csp-lecture" className="hover:text-slate-900">
                 学生课件

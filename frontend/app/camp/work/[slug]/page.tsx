@@ -469,7 +469,7 @@ export default function WorkDetailPage() {
                 </svg>
               </a>
             ) : null}
-            <button className="work-detail-action-secondary" type="button" onClick={handleShare}>
+            <button className="work-detail-action-share" type="button" onClick={handleShare}>
               分享作品
             </button>
           </div>
@@ -484,7 +484,12 @@ export default function WorkDetailPage() {
                 (e.currentTarget as HTMLImageElement).style.display = 'none';
               }}
             />
-          ) : null}
+          ) : (
+            <div className="work-detail-cover-empty">
+              <span className="mono">暂无封面</span>
+              <p>{work.studentLabel} 的作品还没设置封面图</p>
+            </div>
+          )}
           {work.figcaption ? <figcaption>{work.figcaption}</figcaption> : null}
         </figure>
       </section>
@@ -567,7 +572,7 @@ export default function WorkDetailPage() {
 
       <footer className="works-footer">
         <div className="works-footer-meta">
-          <span>Alan张老师 · 少年 AI 创造营</span>
+          <span>Alan张老师 · AI 原生教育</span>
         </div>
       </footer>
 

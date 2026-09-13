@@ -357,6 +357,29 @@ input{font-family:inherit}
 .work-detail-cover{border:1px solid var(--navy-950);box-shadow:12px 14px #05142f24;margin:0;padding:clamp(1rem,2vw,1.6rem);position:relative;rotate:1.2deg}
 .work-detail-cover img{aspect-ratio:4/3;display:block;object-fit:cover;width:100%}
 .work-detail-cover figcaption{font-size:.7rem;margin-top:1rem;opacity:.7}
+.work-detail-cover-empty{
+  align-items:center;
+  aspect-ratio:4/3;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(5,20,47,.045) 0,
+      rgba(5,20,47,.045) 8px,
+      transparent 8px,
+      transparent 18px
+    ),
+    var(--paper);
+  border:1.5px dashed var(--navy-950);
+  color:#5b6a85;
+  display:flex;
+  flex-direction:column;
+  font-size:.85rem;
+  gap:.4rem;
+  justify-content:center;
+  text-align:center;
+}
+.work-detail-cover-empty .mono{font-size:.7rem;letter-spacing:.08em;opacity:.7}
+.work-detail-cover-empty p{margin:0;font-size:.8rem}
 
 /* Work Process Log */
 .work-process-log{padding:clamp(5rem,9vw,8rem) var(--page-padding);border-top:1px solid rgba(5,20,47,.12)}

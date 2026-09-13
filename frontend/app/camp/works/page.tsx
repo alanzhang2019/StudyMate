@@ -347,7 +347,7 @@ export default function WorksPage() {
 
       <footer className="works-footer">
         <div className="works-footer-meta">
-          <span>Alan张老师 · 少年 AI 创造营</span>
+          <span>Alan张老师 · AI 原生教育</span>
         </div>
       </footer>
     </div>

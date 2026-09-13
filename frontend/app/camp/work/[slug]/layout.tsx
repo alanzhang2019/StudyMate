@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-// 对外站点域名（少年 AI 创造营 = edu.xgteacher.cn）。用于生成微信/朋友圈分享卡片
+// 对外站点域名（AI 原生教育 = edu.xgteacher.cn）。用于生成微信/朋友圈分享卡片
 // 所需的绝对 og:url / og:image 地址。若部署域名变化，改这里即可。
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://edu.xgteacher.cn';
 
@@ -87,7 +87,7 @@ export async function generateMetadata({
   }
 
   // 3. 兜底
-  return buildMeta('学员作品', '来自 Alan张老师 · 少年 AI 创造营', '', url);
+  return buildMeta('学员作品', '来自 Alan张老师 · AI 原生教育', '', url);
 }
 
 export default function WorkDetailLayout({

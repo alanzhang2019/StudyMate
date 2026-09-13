@@ -458,7 +458,7 @@ export default function CampSubmitPage() {
             </div>
 
             <p className="submit-fineprint">
-              提交即表示同意老师将本作品在「少年 AI 创造营」作品墙公开展示。
+              提交即表示同意老师将本作品在「AI 原生教育」作品墙公开展示。
             </p>
           </form>
         )}
@@ -466,7 +466,7 @@ export default function CampSubmitPage() {
 
       <footer className="works-footer">
         <div className="works-footer-meta">
-          <span>Alan张老师 · 少年 AI 创造营</span>
+          <span>Alan张老师 · AI 原生教育</span>
         </div>
       </footer>
     </div>

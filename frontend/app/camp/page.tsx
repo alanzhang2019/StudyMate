@@ -108,7 +108,7 @@ export default function CampPage() {
         </div>
         <div className="hero-copy">
           <p className="hero-eyebrow">
-            <span>少年 AI 创造营</span>
+            <span>AI 原生教育</span>
             <span>适合 7-12 岁孩子</span>
           </p>
           <h1 id="hero-title">
@@ -616,7 +616,7 @@ export default function CampPage() {
           style={{ display: 'grid', gap: '2rem', gridTemplateColumns: '1fr', alignItems: 'end', width: '100%' }}
         >
           <div className="site-footer-meta">
-            <p>Alan张老师 · 少年 AI 创造营</p>
+            <p>Alan张老师 · AI 原生教育</p>
             <p>让每个孩子都有属于自己的数字产品</p>
           </div>
         </div>
