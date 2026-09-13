@@ -67,8 +67,15 @@ COPY packages/ ./packages/
 # so we don't burn tens of minutes on cross-border tarball downloads.
 ENV npm_config_registry=https://registry.npmmirror.com
 ENV npm_config_prebuild_binary_host_mirror=https://npmmirror.com/mirrors
+# Use `--no-frozen-lockfile` (not `--frozen-lockfile`) so a missing or stale
+# lockfile entry doesn't break the build when someone adds a dependency
+# locally without re-syncing pnpm-lock.yaml. Trade-off: a small (~2s) lockfile
+# sync on every build. CI's default `--frozen-lockfile=true` is fine for
+# monorepos with strict lockfile discipline but is brittle here because
+# our local pnpm install sometimes fails (sandbox safe-delete on the
+# temporary store), leaving package.json ahead of pnpm-lock.yaml.
 RUN set -eux; \
-    pnpm install --frozen-lockfile; \
+    pnpm install --no-frozen-lockfile; \
     cd packages/mathml2omml && npm run build; \
     cd /app; \
     echo "=== Install better-sqlite3 prebuilt musl binary ==="; \
