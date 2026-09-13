@@ -575,6 +575,60 @@ export function getDb(): Database {
       ON camp_works (className, createdAt DESC);
     `);
 
+    // 2026-09-13：支持学生自助提交作品（无需预置学员档案）。
+    // 将 camp_works.studentId 由 NOT NULL 改为可空。
+    // SQLite 不支持 ALTER COLUMN DROP NOT NULL，故在检测到
+    // studentId 仍为 NOT NULL 时，用「改名→新建→复制→删旧」重建表。
+    // 幂等：仅在 notnull=1 时执行；已迁移过的库会跳过。
+    try {
+      const cols = _db
+        .prepare('PRAGMA table_info(camp_works)')
+        .all() as Array<{ name: string; notnull: number }>;
+      const studentIdCol = cols.find((c) => c.name === 'studentId');
+      if (studentIdCol && studentIdCol.notnull === 1) {
+        _db.exec(`
+          BEGIN TRANSACTION;
+          ALTER TABLE camp_works RENAME TO camp_works_old;
+          CREATE TABLE camp_works (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            studentId TEXT,
+            studentName TEXT,
+            className TEXT,
+            classLogId TEXT,
+            category TEXT NOT NULL DEFAULT '作品',
+            coverImage TEXT,
+            linkUrl TEXT,
+            description TEXT,
+            techStackJson TEXT NOT NULL DEFAULT '[]',
+            status TEXT NOT NULL DEFAULT 'pending',
+            reviewNote TEXT,
+            reviewedAt TEXT,
+            reviewedBy TEXT,
+            featured INTEGER NOT NULL DEFAULT 0,
+            sortOrder INTEGER NOT NULL DEFAULT 0,
+            createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+            updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+            FOREIGN KEY (studentId) REFERENCES camp_students(id) ON DELETE SET NULL
+          );
+          INSERT INTO camp_works (
+            id, title, studentId, studentName, className, classLogId, category,
+            coverImage, linkUrl, description, techStackJson, status, reviewNote,
+            reviewedAt, reviewedBy, featured, sortOrder, createdAt, updatedAt
+          )
+          SELECT
+            id, title, studentId, studentName, className, classLogId, category,
+            coverImage, linkUrl, description, techStackJson, status, reviewNote,
+            reviewedAt, reviewedBy, featured, sortOrder, createdAt, updatedAt
+          FROM camp_works_old;
+          DROP TABLE camp_works_old;
+          COMMIT;
+        `);
+      }
+    } catch {
+      // 表不存在或已迁移；忽略
+    }
+
     // Only flip the flag once the schema actually finished applying
     // — otherwise an exception from `_db.exec` would leave us in a
     // "tried but never succeeded" state and every subsequent call

@@ -169,6 +169,9 @@ export default function WorksPage() {
           <Link href="/camp" className="page-switch-link">
             首页
           </Link>
+          <Link href="/camp/submit" className="page-switch-link">
+            我也来上传作品
+          </Link>
           <Link href="/admin/login" className="site-login-link">
             教师登录
           </Link>
