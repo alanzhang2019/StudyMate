@@ -128,6 +128,21 @@ export const POST = async (req: NextRequest) => {
     const categoryRaw = safeStr(body.category, 20);
     const ALLOWED_CAT = ['作品', '项目', '代码', '其他'];
     const category = ALLOWED_CAT.includes(categoryRaw) ? categoryRaw : '作品';
+
+    // 年级：可选。一/二/三/四/五/六年级 + 「不便透露」作默认。
+    // 没填或不在白名单一律存「不便透露」，既不报错也不泄露空值。
+    const GRADE_OPTIONS = [
+      '一年级',
+      '二年级',
+      '三年级',
+      '四年级',
+      '五年级',
+      '六年级',
+      '不便透露',
+    ];
+    const gradeRaw = safeStr(body.grade, 20);
+    const grade = GRADE_OPTIONS.includes(gradeRaw) ? gradeRaw : '不便透露';
+
     const coverImage = safeStr(body.coverImage, 500);
     const linkUrl = safeStr(body.linkUrl, 500);
     const description = safeStr(body.description, 2000);
@@ -168,6 +183,7 @@ export const POST = async (req: NextRequest) => {
         studentId: null,
         studentName,
         className: className || null,
+        grade,
         category,
         coverImage: coverImage || null,
         linkUrl: linkUrl || null,

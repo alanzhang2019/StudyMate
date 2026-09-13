@@ -68,6 +68,7 @@ type DbWork = {
   title: string;
   studentName: string | null;
   className: string | null;
+  grade: string | null;
   category: string | null;
   coverImage: string | null;
   description: string | null;
@@ -77,7 +78,7 @@ type DbWork = {
 };
 
 function mapDbWork(w: DbWork, index: number): Work {
-  const studentLabel = [w.studentName, w.className]
+  const studentLabel = [w.studentName, w.grade]
     .filter(Boolean)
     .join(' · ');
   return {

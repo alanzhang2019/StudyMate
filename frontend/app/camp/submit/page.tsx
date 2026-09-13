@@ -10,6 +10,16 @@ const CATEGORY_OPTIONS = [
   { value: '其他', label: '其他' },
 ];
 
+const GRADE_OPTIONS = [
+  '一年级',
+  '二年级',
+  '三年级',
+  '四年级',
+  '五年级',
+  '六年级',
+  '不便透露',
+];
+
 type SubmitState =
   | { kind: 'idle' }
   | { kind: 'submitting' }
@@ -19,6 +29,7 @@ type SubmitState =
 export default function CampSubmitPage() {
   const [title, setTitle] = useState('');
   const [studentName, setStudentName] = useState('');
+  const [grade, setGrade] = useState('不便透露');
   const [className, setClassName] = useState('');
   const [category, setCategory] = useState('作品');
   const [coverImage, setCoverImage] = useState('');
@@ -45,6 +56,7 @@ export default function CampSubmitPage() {
         body: JSON.stringify({
           title: title.trim(),
           studentName: studentName.trim(),
+          grade,
           className: className.trim(),
           category,
           coverImage: coverImage.trim(),
@@ -72,92 +84,107 @@ export default function CampSubmitPage() {
     }
   };
 
+  const resetForm = () => {
+    setTitle('');
+    setStudentName('');
+    setGrade('不便透露');
+    setClassName('');
+    setCategory('作品');
+    setCoverImage('');
+    setLinkUrl('');
+    setDescription('');
+    setTechStack('');
+    setState({ kind: 'idle' });
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50">
-      <header className="border-b border-amber-100 bg-white/70 backdrop-blur sticky top-0 z-10">
-        <div className="mx-auto max-w-3xl px-5 h-16 flex items-center justify-between">
-          <Link href="/camp" className="flex items-center gap-2">
+    <div className="works-page">
+      <header className="works-header">
+        <Link href="/camp" className="works-brand" aria-label="返回Alan张老师首页">
+          <span className="brand-identity">
             <img
+              className="brand-identity-mark"
               src="/assets/alan-avatar.png"
               alt=""
-              className="w-8 h-8 rounded-full"
             />
-            <span className="font-semibold text-gray-800">Alan张老师 · 少年 AI 创造营</span>
-          </Link>
-          <Link
-            href="/camp/works"
-            className="text-sm text-amber-700 hover:text-amber-800"
-          >
+            <img
+              className="brand-identity-wordmark"
+              src="/assets/alan-logo.svg"
+              alt="Alan张老师"
+            />
+          </span>
+        </Link>
+        <nav className="works-header-actions" aria-label="提交页导航">
+          <Link href="/camp/works" className="page-switch-link">
             看作品墙 →
           </Link>
-        </div>
+        </nav>
       </header>
 
-      <main className="mx-auto max-w-3xl px-5 py-10">
+      <section className="submit-intro">
+        <p className="mono submit-kicker">SUBMIT YOUR WORK / 03</p>
+        <h1>
+          把作品
+          <br />
+          <span>贴到这里。</span>
+        </h1>
+        <p>
+          填好下面的信息，老师审核通过后，你的作品就会出现在「作品墙」上，
+          跟炳炳、小高他们的作品一起被看见。
+        </p>
+      </section>
+
+      <section className="submit-shell">
         {state.kind === 'success' ? (
-          <div className="bg-white rounded-2xl shadow-sm border border-amber-100 p-10 text-center">
-            <div className="text-5xl mb-4">🎉</div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">提交成功！</h1>
-            <p className="text-gray-600 mb-1">
+          <div className="submit-success">
+            <span className="work-note-tape" aria-hidden="true" />
+            <p className="mono submit-kicker submit-kicker--success">
+              已收到 ✓
+            </p>
+            <h2>提交成功！</h2>
+            <p>
               你的作品已经进入老师的审核队列。
+              <br />
+              审核通过后，会自动出现在
+              <span className="submit-success-link"> /camp/works</span>
+              。
             </p>
-            <p className="text-gray-500 text-sm mb-6">
-              审核通过后，作品会自动出现在公开作品墙
-              <span className="text-amber-700"> /camp/works</span> 上。
-            </p>
-            <div className="flex items-center justify-center gap-3">
-              <Link
-                href="/camp/works"
-                className="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition"
-              >
+            <div className="submit-success-actions">
+              <Link href="/camp/works" className="submit-button-primary">
                 去作品墙看看
               </Link>
               <button
-                onClick={() => {
-                  setTitle('');
-                  setStudentName('');
-                  setClassName('');
-                  setCategory('作品');
-                  setCoverImage('');
-                  setLinkUrl('');
-                  setDescription('');
-                  setTechStack('');
-                  setState({ kind: 'idle' });
-                }}
-                className="border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition"
+                type="button"
+                onClick={resetForm}
+                className="submit-button-secondary"
               >
                 再传一个
               </button>
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <p className="text-amber-700 font-mono text-xs tracking-widest uppercase mb-2">
-                Submit your work
-              </p>
-              <h1 className="text-3xl font-bold text-gray-900">
-                上传我的作品
-              </h1>
-              <p className="text-gray-500 mt-2 text-sm">
-                填好下面的信息，提交后老师审核通过就会出现在作品墙啦。
+          <form onSubmit={handleSubmit} className="submit-card" noValidate>
+            <span className="work-note-tape" aria-hidden="true" />
+
+            <div className="submit-card-head">
+              <p className="mono submit-kicker">STEP 01 — 学生信息</p>
+              <p className="submit-card-intro">
+                先告诉我你是谁、几年级。这两个信息会跟作品一起展示在作品墙上。
               </p>
             </div>
 
-            {state.kind === 'error' && (
-              <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
-                {state.message}
-              </div>
-            )}
+            {state.kind === 'error' ? (
+              <div className="submit-error">{state.message}</div>
+            ) : null}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="submit-grid">
               <Field label="作品标题" required>
                 <input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   maxLength={120}
                   placeholder="例如：动物迷宫大乱斗"
-                  className={inputCls}
+                  className="submit-input"
                 />
               </Field>
               <Field label="你的名字" required>
@@ -166,76 +193,111 @@ export default function CampSubmitPage() {
                   onChange={(e) => setStudentName(e.target.value)}
                   maxLength={40}
                   placeholder="例如：炳炳"
-                  className={inputCls}
+                  className="submit-input"
                 />
               </Field>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="班级（选填）">
-                <input
-                  value={className}
-                  onChange={(e) => setClassName(e.target.value)}
-                  maxLength={40}
-                  placeholder="例如：AI创造营1班"
-                  className={inputCls}
-                />
-              </Field>
-              <Field label="作品类型">
+              <Field label="年级" hint="不写也行">
                 <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className={inputCls}
+                  value={grade}
+                  onChange={(e) => setGrade(e.target.value)}
+                  className="submit-select"
                 >
-                  {CATEGORY_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
+                  {GRADE_OPTIONS.map((g) => (
+                    <option key={g} value={g}>
+                      {g}
                     </option>
                   ))}
                 </select>
               </Field>
+              <Field label="班级" hint="选填">
+                <input
+                  value={className}
+                  onChange={(e) => setClassName(e.target.value)}
+                  maxLength={40}
+                  placeholder="例如：AI 创造营 1 班"
+                  className="submit-input"
+                />
+              </Field>
             </div>
 
-            <Field label="封面图链接（选填）" hint="http(s) 开头的图片地址">
+            <div className="submit-divider" aria-hidden="true" />
+
+            <div className="submit-card-head">
+              <p className="mono submit-kicker">STEP 02 — 作品信息</p>
+              <p className="submit-card-intro">
+                介绍一下作品。链接和介绍留空也没关系，提交后可以再回来改。
+              </p>
+            </div>
+
+            <Field label="作品类型">
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="submit-select"
+              >
+                {CATEGORY_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field
+              label="封面图链接"
+              hint="选填 · http(s) 开头的图片地址"
+            >
               <input
                 value={coverImage}
                 onChange={(e) => setCoverImage(e.target.value)}
                 placeholder="https://..."
-                className={inputCls}
+                className="submit-input"
               />
             </Field>
 
-            <Field label="作品链接（选填）" hint="例如 Scratch / 可运行demo 的网址">
+            <Field
+              label="作品链接"
+              hint="选填 · 例如 Scratch / 可运行 demo 的网址"
+            >
               <input
                 value={linkUrl}
                 onChange={(e) => setLinkUrl(e.target.value)}
                 placeholder="https://..."
-                className={inputCls}
+                className="submit-input"
               />
             </Field>
 
-            <Field label="作品介绍（选填）" hint="讲讲你做了什么、怎么想的">
+            <Field
+              label="作品介绍"
+              hint="选填 · 讲讲你做了什么、怎么想的"
+            >
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 maxLength={2000}
-                rows={4}
+                rows={5}
                 placeholder="我在作品里实现了……最有趣的部分是……"
-                className={`${inputCls} resize-none`}
+                className="submit-textarea"
               />
             </Field>
 
-            <Field label="用到的小技能（选填）" hint="用空格或逗号分隔，例如：Trae WorkBuddy 动画">
+            <Field
+              label="用到的小技能"
+              hint="选填 · 用空格或逗号分隔"
+            >
               <input
                 value={techStack}
                 onChange={(e) => setTechStack(e.target.value)}
-                placeholder="Trae WorkBuddy"
-                className={inputCls}
+                placeholder="Trae · WorkBuddy"
+                className="submit-input"
               />
             </Field>
 
-            {/* 蜜罐：真实用户看不见、不填；机器人若填了会被静默丢弃 */}
-            <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, overflow: 'hidden' }}>
+            {/* 蜜罐：真实用户看不见、不填；机器人若填了会被静端丢弃。 */}
+            <div
+              aria-hidden="true"
+              className="submit-honeypot"
+            >
               <label>
                 公司（请勿填写）
                 <input
@@ -247,36 +309,34 @@ export default function CampSubmitPage() {
               </label>
             </div>
 
-            <div className="flex items-center gap-3 pt-2">
+            <div className="submit-actions">
               <button
                 type="submit"
                 disabled={!canSubmit}
-                className="bg-amber-500 hover:bg-amber-600 disabled:bg-amber-200 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-lg text-sm font-medium transition"
+                className="submit-button-primary"
               >
-                {state.kind === 'submitting' ? '提交中…' : '提交作品'}
+                {state.kind === 'submitting' ? '提交中…' : '提交作品 →'}
               </button>
-              <Link
-                href="/camp/works"
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
+              <Link href="/camp/works" className="submit-button-secondary">
                 取消
               </Link>
             </div>
 
-            <p className="text-xs text-gray-400">
+            <p className="submit-fineprint">
               提交即表示同意老师将本作品在「少年 AI 创造营」作品墙公开展示。
             </p>
           </form>
         )}
-      </main>
+      </section>
+
+      <footer className="works-footer">
+        <div className="works-footer-meta">
+          <span>Alan张老师 · 少年 AI 创造营</span>
+        </div>
+      </footer>
     </div>
   );
 }
-
-const inputCls =
-  'w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm text-gray-800 ' +
-  'focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-400 ' +
-  'bg-white placeholder:text-gray-400';
 
 function Field({
   label,
@@ -290,13 +350,13 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <label className="block">
-      <div className="flex items-baseline justify-between mb-1.5">
-        <span className="text-sm font-medium text-gray-700">
+    <label className="submit-field">
+      <div className="submit-field-label">
+        <span>
           {label}
-          {required && <span className="text-red-500 ml-0.5">*</span>}
+          {required ? <span className="submit-field-req">*</span> : null}
         </span>
-        {hint && <span className="text-xs text-gray-400">{hint}</span>}
+        {hint ? <span className="submit-field-hint">{hint}</span> : null}
       </div>
       {children}
     </label>

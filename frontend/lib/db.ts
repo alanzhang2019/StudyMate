@@ -549,6 +549,7 @@ export function getDb(): Database {
       studentId TEXT NOT NULL,
       studentName TEXT,              /* 冗余保存，便于列表展示 */
       className TEXT,
+      grade TEXT,                    /* 年级（如「三年级」），学生自助提交时填写；老库通过下方迁移补齐 */
       classLogId TEXT,               /* 对应 camp_class_logs.id，可空 */
       category TEXT NOT NULL DEFAULT '作品',    /* 作品 / 项目 / 代码 / 其他 */
       coverImage TEXT,               /* 封面图 URL */
@@ -738,6 +739,7 @@ function applyMigrations(db: Database): void {
       studentId TEXT NOT NULL,
       studentName TEXT,
       className TEXT,
+      grade TEXT,
       classLogId TEXT,
       category TEXT NOT NULL DEFAULT '作品',
       coverImage TEXT,
@@ -765,6 +767,14 @@ function applyMigrations(db: Database): void {
   } catch (err) {
     console.error('[db/applyMigrations] camp tables init failed:', err)
     throw err
+  }
+
+  // 2026-09-13：学生自助提交作品时填写「年级」（一年级-六年级 / 不便透露）。
+  // 新部署走上方 CREATE TABLE 里的 grade 列；老库平滑迁移，列已存在会被吞掉。
+  try {
+    db.exec('ALTER TABLE camp_works ADD COLUMN grade TEXT')
+  } catch {
+    // column already exists
   }
 }
 

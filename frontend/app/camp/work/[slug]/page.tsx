@@ -187,7 +187,7 @@ function formatDate(iso?: string | null): string {
 // 库里只存基础字段（封面 / 标题 / 学员 / 介绍 / 外链 / 技术栈），
 // 创作记录与能力雷达属于早期示范作品的专有内容，库作品留空后由页面按需隐藏。
 function mapDbWorkToDetail(row: any): WorkDetail {
-  const studentLabel = [row.studentName, row.className]
+  const studentLabel = [row.studentName, row.grade]
     .filter(Boolean)
     .join(' · ');
   return {
