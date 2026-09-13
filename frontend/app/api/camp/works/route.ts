@@ -25,6 +25,9 @@ function transformWork(row: any): any {
   };
 }
 
+// 同步生成介绍 + 封面（LLM + chromium 截图）可能耗时数十秒，放宽超时
+export const maxDuration = 90;
+
 // GET /api/camp/works：公开作品墙数据（无需登录）
 // 仅返回 status = 'approved' 的作品，顺序：精选置顶 → sortOrder → 创建时间倒序。
 // query：category?(作品/项目/代码/其他)、featured?(1)
@@ -233,11 +236,24 @@ export const POST = async (req: NextRequest) => {
       },
     });
 
-    // 后台自动生成介绍 + 封面（fire-and-forget，不阻塞响应）
+    // 同步自动生成介绍 + 封面（学生上传 HTML 后，当场拿到结果填回表单）
+    let autoDescription: string | null = null;
+    let autoCoverImage: string | null = null;
+    let autoCoverSource: string | null = null;
     if (htmlFileRel) {
-      void runWorkAutoGen(id).catch((e) =>
+      await runWorkAutoGen(id).catch((e) =>
         console.error('[camp/works autogen] unexpected error:', e),
       );
+      const fresh = getDb()
+        .prepare(
+          'SELECT description, coverImage, coverSource FROM camp_works WHERE id = ?',
+        )
+        .get(id) as any;
+      if (fresh) {
+        autoDescription = fresh.description || null;
+        autoCoverImage = fresh.coverImage || null;
+        autoCoverSource = fresh.coverSource || null;
+      }
     }
 
     return NextResponse.json({
@@ -246,6 +262,9 @@ export const POST = async (req: NextRequest) => {
         id: created.id,
         editToken,
         editUrl: `/camp/works/edit/${editToken}`,
+        description: autoDescription,
+        coverImage: autoCoverImage,
+        coverSource: autoCoverSource,
       },
     });
   } catch (error: any) {

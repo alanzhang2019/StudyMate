@@ -22,8 +22,16 @@ const GRADE_OPTIONS = [
 
 type SubmitState =
   | { kind: 'idle' }
+  | { kind: 'generating' }
   | { kind: 'submitting' }
-  | { kind: 'success'; id: string | null; editUrl?: string }
+  | {
+      kind: 'success';
+      id: string | null;
+      editUrl?: string;
+      description?: string;
+      coverImage?: string;
+      coverSource?: string;
+    }
   | { kind: 'error'; message: string };
 
 export default function CampSubmitPage() {
@@ -37,34 +45,39 @@ export default function CampSubmitPage() {
   const [description, setDescription] = useState('');
   const [techStack, setTechStack] = useState('');
   const [htmlFile, setHtmlFile] = useState<File | null>(null);
+  const [dragOver, setDragOver] = useState(false);
   const [company, setCompany] = useState(''); // 蜜罐，隐藏，留空
 
   const [state, setState] = useState<SubmitState>({ kind: 'idle' });
 
+  const busy = state.kind === 'generating' || state.kind === 'submitting';
+
   const canSubmit =
-    title.trim().length > 0 &&
-    studentName.trim().length > 0 &&
-    state.kind !== 'submitting';
+    title.trim().length > 0 && studentName.trim().length > 0 && !busy;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!canSubmit) return;
-    setState({ kind: 'submitting' });
+  const buildFormData = (file?: File): FormData => {
+    const fd = new FormData();
+    fd.append('title', title.trim());
+    fd.append('studentName', studentName.trim());
+    fd.append('grade', grade);
+    fd.append('className', className.trim());
+    fd.append('category', category);
+    fd.append('coverImage', coverImage.trim());
+    fd.append('linkUrl', linkUrl.trim());
+    fd.append('description', description.trim());
+    fd.append('techStack', techStack.trim());
+    fd.append('company', company);
+    if (file) fd.append('htmlFile', file);
+    return fd;
+  };
+
+  const doSubmit = async (file?: File) => {
+    setState(file ? { kind: 'generating' } : { kind: 'submitting' });
     try {
-      const fd = new FormData();
-      fd.append('title', title.trim());
-      fd.append('studentName', studentName.trim());
-      fd.append('grade', grade);
-      fd.append('className', className.trim());
-      fd.append('category', category);
-      fd.append('coverImage', coverImage.trim());
-      fd.append('linkUrl', linkUrl.trim());
-      fd.append('description', description.trim());
-      fd.append('techStack', techStack.trim());
-      fd.append('company', company);
-      if (htmlFile) fd.append('htmlFile', htmlFile);
-
-      const res = await fetch('/api/camp/works', { method: 'POST', body: fd });
+      const res = await fetch('/api/camp/works', {
+        method: 'POST',
+        body: buildFormData(file),
+      });
       const json = await res.json().catch(() => ({} as any));
       if (!res.ok || !json.success) {
         if (res.status === 429) {
@@ -81,10 +94,66 @@ export default function CampSubmitPage() {
         kind: 'success',
         id: json.data?.id ?? null,
         editUrl: json.data?.editUrl,
+        description: json.data?.description,
+        coverImage: json.data?.coverImage,
+        coverSource: json.data?.coverSource,
       });
     } catch (err: any) {
       setState({ kind: 'error', message: err?.message || '网络错误，请重试' });
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canSubmit) return;
+    doSubmit(htmlFile ?? undefined);
+  };
+
+  // 上传 HTML：立即触发「创建 + 自动生成」，无需再点提交
+  const handleHtmlChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    if (!file) return;
+    setHtmlFile(file);
+    if (!/\.html?$/i.test(file.name)) {
+      setState({ kind: 'error', message: '作品文件请用 .html 格式' });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setState({ kind: 'error', message: 'HTML 文件不能超过 5MB' });
+      return;
+    }
+    if (!title.trim() || !studentName.trim()) {
+      setState({
+        kind: 'error',
+        message: '请先填写「作品标题」和「你的名字」，再上传 HTML 作品',
+      });
+      return;
+    }
+    await doSubmit(file);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer?.files?.[0] ?? null;
+    if (!file) return;
+    if (!/\.html?$/i.test(file.name)) {
+      setState({ kind: 'error', message: '只支持 .html 格式的作品文件' });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setState({ kind: 'error', message: 'HTML 文件不能超过 5MB' });
+      return;
+    }
+    setHtmlFile(file);
+    if (!title.trim() || !studentName.trim()) {
+      setState({
+        kind: 'error',
+        message: '请先填写「作品标题」和「你的名字」，再上传 HTML 作品',
+      });
+      return;
+    }
+    void doSubmit(file);
   };
 
   const resetForm = () => {
@@ -98,6 +167,7 @@ export default function CampSubmitPage() {
     setDescription('');
     setTechStack('');
     setHtmlFile(null);
+    setDragOver(false);
     setState({ kind: 'idle' });
   };
 
@@ -133,8 +203,8 @@ export default function CampSubmitPage() {
           <span>贴到这里。</span>
         </h1>
         <p>
-          填好下面的信息，老师审核通过后，你的作品就会出现在「作品墙」上，
-          跟炳炳、小高他们的作品一起被看见。
+          上传一个 HTML 作品，我们会自动帮你写介绍、生成封面；
+          也可以只填文字。老师审核通过后，作品就会出现在「作品墙」上。
         </p>
       </section>
 
@@ -146,6 +216,28 @@ export default function CampSubmitPage() {
               已收到 ✓
             </p>
             <h2>提交成功！</h2>
+
+            {state.coverImage ? (
+              <div className="submit-success-cover">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={state.coverImage} alt={title || '作品封面'} />
+                <p className="submit-success-cover-note">
+                  {state.coverSource === 'screenshot'
+                    ? '封面已用你的作品真实截图生成'
+                    : state.coverSource === 'ai'
+                    ? '封面已用 AI 插画生成'
+                    : '封面已生成'}
+                </p>
+              </div>
+            ) : null}
+
+            {state.description ? (
+              <div className="submit-success-desc">
+                <p className="mono submit-kicker">自动生成的介绍</p>
+                <p className="submit-success-desc-body">{state.description}</p>
+              </div>
+            ) : null}
+
             <p>
               你的作品已经进入老师的审核队列。
               <br />
@@ -153,11 +245,12 @@ export default function CampSubmitPage() {
               <span className="submit-success-link"> /camp/works</span>
               。
             </p>
+
             {state.editUrl ? (
               <div className="submit-success-edit">
                 <p className="mono submit-kicker">改一改？</p>
                 <p>
-                  我们正在帮你自动写介绍、生成封面。想自己动手改，点下面进去就行——
+                  想自己调整介绍、换封面？点下面进去就行——
                   <strong>记得收藏地址栏的链接</strong>，随时回来改。
                 </p>
                 <Link href={state.editUrl} className="submit-button-secondary">
@@ -165,6 +258,7 @@ export default function CampSubmitPage() {
                 </Link>
               </div>
             ) : null}
+
             <div className="submit-success-actions">
               <Link href="/camp/works" className="submit-button-primary">
                 去作品墙看看
@@ -241,9 +335,49 @@ export default function CampSubmitPage() {
             <div className="submit-card-head">
               <p className="mono submit-kicker">STEP 02 — 作品信息</p>
               <p className="submit-card-intro">
-                介绍一下作品。上传 HTML 作品后，我们会自动帮你写介绍、生成封面。
+                上传 HTML 作品后，我们会当场帮你写介绍、生成封面，你什么都不用再点。
               </p>
             </div>
+
+            <Field
+              label="作品文件（HTML）"
+              hint="上传后自动生成介绍和封面，无需再点提交"
+            >
+              <label
+                className={`upload-zone ${dragOver ? 'upload-zone--over' : ''} ${
+                  state.kind === 'generating' ? 'upload-zone--busy' : ''
+                } ${htmlFile ? 'upload-zone--has-file' : ''}`}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragOver(true);
+                }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={handleDrop}
+              >
+                <input
+                  type="file"
+                  accept=".html,.htm,text/html"
+                  onChange={handleHtmlChange}
+                  disabled={busy}
+                  className="submit-file-input"
+                />
+                <span className="upload-zone-icon" aria-hidden="true">
+                  {state.kind === 'generating' ? '⏳' : '📄'}
+                </span>
+                <span className="upload-zone-title">
+                  {state.kind === 'generating'
+                    ? '正在读你的作品，自动写介绍和封面…'
+                    : htmlFile
+                    ? `已选：${htmlFile.name}`
+                    : '点击或拖拽 .html 文件到这里'}
+                </span>
+                <span className="upload-zone-hint">
+                  {state.kind === 'generating'
+                    ? '生成可能要等 10-30 秒，请稍候'
+                    : '上传后无需再点提交，介绍和封面会自动填好'}
+                </span>
+              </label>
+            </Field>
 
             <Field label="作品类型">
               <select
@@ -259,27 +393,7 @@ export default function CampSubmitPage() {
               </select>
             </Field>
 
-            <Field
-              label="作品文件（HTML）"
-              hint="选填 · 上传后自动生成介绍和封面"
-            >
-              <label className="submit-file">
-                <input
-                  type="file"
-                  accept=".html,.htm,text/html"
-                  onChange={(e) => setHtmlFile(e.target.files?.[0] ?? null)}
-                  className="submit-file-input"
-                />
-                <span className="submit-file-label">
-                  {htmlFile ? htmlFile.name : '点击选择 .html 文件'}
-                </span>
-              </label>
-            </Field>
-
-            <Field
-              label="封面图链接"
-              hint="选填 · http(s) 开头的图片地址"
-            >
+            <Field label="封面图链接" hint="选填 · 不传 HTML 时可填 http(s) 图片地址">
               <input
                 value={coverImage}
                 onChange={(e) => setCoverImage(e.target.value)}
@@ -288,10 +402,7 @@ export default function CampSubmitPage() {
               />
             </Field>
 
-            <Field
-              label="作品链接"
-              hint="选填 · 例如 Scratch / 可运行 demo 的网址"
-            >
+            <Field label="作品链接" hint="选填 · 例如 Scratch / 可运行 demo 的网址">
               <input
                 value={linkUrl}
                 onChange={(e) => setLinkUrl(e.target.value)}
@@ -300,10 +411,7 @@ export default function CampSubmitPage() {
               />
             </Field>
 
-            <Field
-              label="作品介绍"
-              hint="选填 · 留空会自动帮你写"
-            >
+            <Field label="作品介绍" hint="选填 · 上传 HTML 会自动帮你写">
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -314,10 +422,7 @@ export default function CampSubmitPage() {
               />
             </Field>
 
-            <Field
-              label="用到的小技能"
-              hint="选填 · 用空格或逗号分隔"
-            >
+            <Field label="用到的小技能" hint="选填 · 用空格或逗号分隔">
               <input
                 value={techStack}
                 onChange={(e) => setTechStack(e.target.value)}
@@ -327,10 +432,7 @@ export default function CampSubmitPage() {
             </Field>
 
             {/* 蜜罐：真实用户看不见、不填；机器人若填了会被静端丢弃。 */}
-            <div
-              aria-hidden="true"
-              className="submit-honeypot"
-            >
+            <div aria-hidden="true" className="submit-honeypot">
               <label>
                 公司（请勿填写）
                 <input

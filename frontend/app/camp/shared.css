@@ -550,6 +550,32 @@ input{font-family:inherit}
 .submit-success-edit{background:rgba(255,255,255,.42);border:1px dashed var(--navy-950);margin-top:1.4rem;padding:1rem 1.2rem}
 .submit-success-edit p{margin:.2rem 0 .8rem}
 
+/* 提交成功态：自动生成的封面预览 + 介绍展示 */
+.submit-success-cover{margin:1.2rem auto 0;max-width:360px}
+.submit-success-cover img{
+  aspect-ratio:4/3;
+  background:var(--paper);
+  border:1px solid var(--navy-950);
+  box-shadow:7px 8px #05142f24;
+  display:block;
+  object-fit:cover;
+  width:100%;
+}
+.submit-success-cover-note{
+  font-size:.78rem!important;
+  margin:.6rem 0 0!important;
+  opacity:.75;
+}
+.submit-success-desc{
+  background:rgba(255,255,255,.5);
+  border:1px dashed var(--navy-950);
+  margin:1.2rem auto 0;
+  max-width:520px;
+  padding:1rem 1.2rem;
+  text-align:left;
+}
+.submit-success-desc-body{font-size:.95rem!important;margin:.2rem 0 0!important}
+
 /* 编辑页：封面预览 + 操作 */
 .edit-cover-block{display:grid;gap:.9rem}
 .edit-cover-preview{
