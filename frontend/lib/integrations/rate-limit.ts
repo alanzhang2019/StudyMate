@@ -1,4 +1,5 @@
 import { RateLimitedError } from './errors';
+export { RateLimitedError };
 
 type Bucket = { timestamps: number[] };
 
