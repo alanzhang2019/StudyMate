@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { screenshotHtmlFile } from '@/lib/client/html-screenshot';
 
 const CATEGORY_OPTIONS = [
   { value: '作品', label: '作品' },
@@ -55,7 +56,7 @@ export default function CampSubmitPage() {
   const canSubmit =
     title.trim().length > 0 && studentName.trim().length > 0 && !busy;
 
-  const buildFormData = (file?: File): FormData => {
+  const buildFormData = (file?: File, coverDataUrl?: string | null): FormData => {
     const fd = new FormData();
     fd.append('title', title.trim());
     fd.append('studentName', studentName.trim());
@@ -68,15 +69,16 @@ export default function CampSubmitPage() {
     fd.append('techStack', techStack.trim());
     fd.append('company', company);
     if (file) fd.append('htmlFile', file);
+    if (coverDataUrl) fd.append('coverDataUrl', coverDataUrl);
     return fd;
   };
 
-  const doSubmit = async (file?: File) => {
+  const doSubmit = async (file?: File, coverDataUrl?: string | null) => {
     setState(file ? { kind: 'generating' } : { kind: 'submitting' });
     try {
       const res = await fetch('/api/camp/works', {
         method: 'POST',
-        body: buildFormData(file),
+        body: buildFormData(file, coverDataUrl),
       });
       const json = await res.json().catch(() => ({} as any));
       if (!res.ok || !json.success) {
@@ -109,11 +111,33 @@ export default function CampSubmitPage() {
     doSubmit(htmlFile ?? undefined);
   };
 
-  // 上传 HTML：立即触发「创建 + 自动生成」，无需再点提交
+  // 上传 HTML：立即触发「客户端截图 + 自动生成介绍」，无需再点提交
+  const captureAndSubmit = async (file: File) => {
+    setHtmlFile(file);
+    if (!title.trim() || !studentName.trim()) {
+      setState({
+        kind: 'error',
+        message: '请先填写「作品标题」和「你的名字」，再上传 HTML 作品',
+      });
+      return;
+    }
+
+    // 客户端截图（html2canvas）—— 不依赖服务端 chromium / AI 配 key
+    let coverDataUrl: string | null = null;
+    try {
+      setState({ kind: 'generating' });
+      coverDataUrl = await screenshotHtmlFile(file);
+    } catch (err: any) {
+      console.warn('[submit] 客户端截图失败，继续走服务端兜底：', err);
+      coverDataUrl = null;
+    }
+
+    await doSubmit(file, coverDataUrl);
+  };
+
   const handleHtmlChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
     if (!file) return;
-    setHtmlFile(file);
     if (!/\.html?$/i.test(file.name)) {
       setState({ kind: 'error', message: '作品文件请用 .html 格式' });
       return;
@@ -122,17 +146,10 @@ export default function CampSubmitPage() {
       setState({ kind: 'error', message: 'HTML 文件不能超过 5MB' });
       return;
     }
-    if (!title.trim() || !studentName.trim()) {
-      setState({
-        kind: 'error',
-        message: '请先填写「作品标题」和「你的名字」，再上传 HTML 作品',
-      });
-      return;
-    }
-    await doSubmit(file);
+    await captureAndSubmit(file);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
     const file = e.dataTransfer?.files?.[0] ?? null;
@@ -145,15 +162,7 @@ export default function CampSubmitPage() {
       setState({ kind: 'error', message: 'HTML 文件不能超过 5MB' });
       return;
     }
-    setHtmlFile(file);
-    if (!title.trim() || !studentName.trim()) {
-      setState({
-        kind: 'error',
-        message: '请先填写「作品标题」和「你的名字」，再上传 HTML 作品',
-      });
-      return;
-    }
-    void doSubmit(file);
+    await captureAndSubmit(file);
   };
 
   const resetForm = () => {
@@ -226,6 +235,8 @@ export default function CampSubmitPage() {
                     ? '封面已用你的作品真实截图生成'
                     : state.coverSource === 'ai'
                     ? '封面已用 AI 插画生成'
+                    : state.coverSource === 'client'
+                    ? '封面已用你的作品截图生成'
                     : '封面已生成'}
                 </p>
               </div>

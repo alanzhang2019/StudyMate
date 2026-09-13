@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
+import { writeFileSync, mkdirSync } from 'fs';
+import path from 'path';
 import { db, getDb } from '@/lib/db';
 import {
   checkRateLimit,
@@ -7,6 +9,27 @@ import {
   RateLimitedError,
 } from '@/lib/integrations/rate-limit';
 import { saveHtmlFile, runWorkAutoGen } from '@/lib/server/camp-work-autogen';
+
+/**
+ * 把客户端 html2canvas 截图产生的 dataURL 落盘成 PNG 文件。
+ * dataURL 形如 `data:image/png;base64,xxxxx`。
+ */
+function saveCoverFromDataUrl(workId: string, dataUrl: string): string | null {
+  const match = /^data:image\/png;base64,(.+)$/i.exec(dataUrl);
+  if (!match) return null;
+  const base64 = match[1];
+  if (base64.length > 8 * 1024 * 1024) return null; // ~6MB 二进制上限保护
+  const buf = Buffer.from(base64, 'base64');
+  if (buf.length === 0) return null;
+
+  const dir =
+    process.env.STUDYMATE_DB_DIR ||
+    path.join(process.cwd(), 'data', 'camp-covers');
+  mkdirSync(dir, { recursive: true });
+  const filename = `${workId}.png`;
+  writeFileSync(path.join(dir, filename), buf);
+  return `/api/camp/covers/${filename}`;
+}
 
 function safeJsonParse(str: string | null | undefined): any[] {
   if (!str) return [];
@@ -90,10 +113,11 @@ export const POST = async (req: NextRequest) => {
       throw err;
     }
 
-    // 归一化解析：multipart 与 JSON 都解析成 fields + 可选 htmlFile
+    // 归一化解析：multipart 与 JSON 都解析成 fields + 可选 htmlFile + 可选 coverDataUrl
     const contentType = req.headers.get('content-type') || '';
     const fields: Record<string, string> = {};
     let htmlFile: File | null = null;
+    let coverDataUrl: string | null = null;
 
     if (contentType.includes('multipart/form-data')) {
       const formData = await req.formData();
@@ -101,10 +125,19 @@ export const POST = async (req: NextRequest) => {
         if (typeof v === 'string') fields[k] = v;
         else if (k === 'htmlFile') htmlFile = v as File;
       }
+      // coverDataUrl 体积大（base64 ~1-3MB），通常走 multipart
+      const cdu = fields.coverDataUrl;
+      if (typeof cdu === 'string' && cdu.startsWith('data:image/')) {
+        coverDataUrl = cdu;
+      }
     } else {
       const json = await req.json().catch(() => ({} as Record<string, any>));
       for (const [k, v] of Object.entries(json)) {
         if (typeof v === 'string') fields[k] = v;
+      }
+      const cdu = fields.coverDataUrl;
+      if (typeof cdu === 'string' && cdu.startsWith('data:image/')) {
+        coverDataUrl = cdu;
       }
     }
 
@@ -231,12 +264,27 @@ export const POST = async (req: NextRequest) => {
         techStackJson: JSON.stringify(techStack),
         htmlFile: htmlFileRel,
         editToken,
-        coverSource: coverImage ? 'url' : 'none',
+        coverSource: coverImage ? 'url' : coverDataUrl ? 'client' : 'none',
         status: 'pending',
       },
     });
 
-    // 同步自动生成介绍 + 封面（学生上传 HTML 后，当场拿到结果填回表单）
+    // 客户端先发来了封面截图（html2canvas 兜底）→ 立刻落盘，写回 coverImage
+    let clientCoverImage: string | null = null;
+    if (coverDataUrl && !coverImage) {
+      const url = saveCoverFromDataUrl(id, coverDataUrl);
+      if (url) {
+        clientCoverImage = url;
+        getDb()
+          .prepare(
+            'UPDATE camp_works SET coverImage = ?, coverSource = ? WHERE id = ?',
+          )
+          .run(url, 'client', id);
+      }
+    }
+
+    // 同步自动生成介绍（封面由客户端 html2canvas 兜底已落盘，
+    // runWorkAutoGen 内部检测到 coverImage 非空，会自动跳过封面生成）。
     let autoDescription: string | null = null;
     let autoCoverImage: string | null = null;
     let autoCoverSource: string | null = null;
