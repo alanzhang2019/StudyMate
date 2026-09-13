@@ -44,9 +44,12 @@ export default function CampWorkEditPage() {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [htmlFile, setHtmlFile] = useState<File | null>(null);
   const [hasHtml, setHasHtml] = useState(false);
+  const [htmlFileName, setHtmlFileName] = useState('');
+  const [htmlBusy, setHtmlBusy] = useState(false);
+  const [htmlDragOver, setHtmlDragOver] = useState(false);
 
   const [saving, setSaving] = useState(false);
-  const [busy, setBusy] = useState<'' | 'cover' | 'description'>('');
+  const [busy, setBusy] = useState<'' | 'cover' | 'description' | 'html'>('');
   const [banner, setBanner] = useState<Banner>(null);
 
   useEffect(() => {
@@ -111,6 +114,58 @@ export default function CampWorkEditPage() {
     }
   };
 
+  const handleUploadHtml = async (file: File | null) => {
+    if (!file) return;
+    if (!/\.html?$/i.test(file.name)) {
+      setBanner({ kind: 'error', text: '作品文件请用 .html 格式' });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setBanner({ kind: 'error', text: 'HTML 文件不能超过 5MB' });
+      return;
+    }
+    setHtmlBusy(true);
+    setBusy('html');
+    setBanner(null);
+    const fd = new FormData();
+    fd.append('htmlFile', file);
+    try {
+      const res = await fetch(`/api/camp/works/edit/${token}/upload-html`, {
+        method: 'POST',
+        body: fd,
+      });
+      const json = await res.json().catch(() => ({} as any));
+      if (!res.ok || !json.success) {
+        setBanner({ kind: 'error', text: json.error || `上传失败（HTTP ${res.status}）` });
+        return;
+      }
+      const d = json.data || {};
+      if (d.description) setDescription(d.description);
+      if (d.coverImage) setCoverImage(d.coverImage);
+      if (d.coverSource) setCoverSource(d.coverSource);
+      if (d.hasHtml) setHasHtml(true);
+      setHtmlFileName(file.name);
+      const bits: string[] = [];
+      if (d.descriptionGenerated) bits.push('介绍已自动生成');
+      if (d.coverGenerated) bits.push('封面已自动生成');
+      if (d.coverError) {
+        setBanner({
+          kind: 'error',
+          text: `${bits.join('，') || '上传成功'}；${d.coverError}`,
+        });
+      } else if (bits.length > 0) {
+        setBanner({ kind: 'ok', text: `${bits.join('，')}（按需修改后保存即可）` });
+      } else {
+        setBanner({ kind: 'ok', text: '已替换作品文件' });
+      }
+    } catch (e: any) {
+      setBanner({ kind: 'error', text: e?.message || '上传失败' });
+    } finally {
+      setHtmlBusy(false);
+      setBusy('');
+    }
+  };
+
   const handleRegenerate = async (kind: 'cover' | 'description') => {
     setBusy(kind);
     setBanner(null);
@@ -122,7 +177,11 @@ export default function CampWorkEditPage() {
       });
       const json = await res.json().catch(() => ({} as any));
       if (!res.ok || !json.success) {
-        setBanner({ kind: 'error', text: json.error || '生成失败，请稍后重试' });
+        const msg =
+          kind === 'cover'
+            ? 'AI 封面暂时生成不了（可能未配置图片服务）。你可以上传一张自己画的封面 ↓'
+            : json.error || '生成失败，请稍后重试';
+        setBanner({ kind: 'error', text: msg });
         return;
       }
       if (kind === 'cover') {
@@ -319,16 +378,46 @@ export default function CampWorkEditPage() {
 
           <div className="submit-divider" aria-hidden="true" />
 
-          <Field label="作品文件（HTML）" hint={hasHtml ? '已上传，可替换' : '选填'}>
-            <label className="submit-file">
+          <Field
+            label="作品文件（HTML）"
+            hint={hasHtml ? '已上传，可拖入或点击替换' : '选填 · 上传后 AI 会自动写介绍'}
+          >
+            <label
+              className={`upload-zone ${htmlDragOver ? 'upload-zone--over' : ''} ${
+                htmlBusy ? 'upload-zone--busy' : ''
+              } ${htmlFileName || hasHtml ? 'upload-zone--has-file' : ''}`}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setHtmlDragOver(true);
+              }}
+              onDragLeave={() => setHtmlDragOver(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setHtmlDragOver(false);
+                const f = e.dataTransfer?.files?.[0];
+                if (f) handleUploadHtml(f);
+              }}
+            >
               <input
                 type="file"
                 accept=".html,.htm,text/html"
-                onChange={(e) => setHtmlFile(e.target.files?.[0] ?? null)}
+                onChange={(e) => handleUploadHtml(e.target.files?.[0] ?? null)}
                 className="submit-file-input"
               />
-              <span className="submit-file-label">
-                {htmlFile ? htmlFile.name : hasHtml ? '替换 .html 文件' : '上传 .html 文件'}
+              <span className="upload-zone-icon" aria-hidden="true">
+                {htmlBusy ? '⏳' : '📄'}
+              </span>
+              <span className="upload-zone-title">
+                {htmlBusy
+                  ? '正在读你的作品，自动写介绍和封面…'
+                  : htmlFileName || (hasHtml ? '已上传作品文件' : '点击或拖拽 .html 文件到这里')}
+              </span>
+              <span className="upload-zone-hint">
+                {htmlFileName
+                  ? `已选：${htmlFileName}`
+                  : hasHtml
+                  ? '想换一份？点这里重新上传'
+                  : '上传后无需再点按钮，介绍和封面会自动出现在上面'}
               </span>
             </label>
           </Field>
