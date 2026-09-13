@@ -78,16 +78,16 @@ export default function CampPage() {
   return (
     <div className="site-shell">
       <header className="site-header">
-        <Link href="/camp" className="xgls-brand" aria-label="Alan张老师首页">
+        <Link href="/camp" className="alan-brand" aria-label="Alan张老师首页">
           <span className="brand-identity">
             <img
               className="brand-identity-mark"
-              src="/assets/xgls-avatar.png"
+              src="/assets/alan-avatar.png"
               alt=""
             />
             <img
               className="brand-identity-wordmark"
-              src="/assets/xgls-logo.svg"
+              src="/assets/alan-logo.svg"
               alt="Alan张老师"
             />
           </span>
@@ -246,7 +246,7 @@ export default function CampPage() {
         <div className="poster-course-grid">
           <article className="poster-course poster-course-camp">
             <figure className="poster-frame">
-              <img src="/assets/xgls-avatar.png" alt="创造营课程封面" />
+              <img src="/assets/alan-avatar.png" alt="创造营课程封面" />
               <span className="poster-zoom">放大查看</span>
             </figure>
             <div className="poster-course-copy">
@@ -509,6 +509,10 @@ export default function CampPage() {
               <div className="trae-brand">
                 <span>Trae</span>
               </div>
+              <span className="tool-plus" aria-hidden="true">+</span>
+              <div className="workbuddy-brand">
+                <span>WorkBuddy</span>
+              </div>
               <div className="tool-pulse" aria-hidden="true">
                 <i />
                 <i />
@@ -517,8 +521,8 @@ export default function CampPage() {
             </div>
             <div className="tool-copy">
               <p className="section-kicker">TOOL / 我们用什么</p>
-              <h2>和孩子一起用 Trae</h2>
-              <p>Trae 是面向下一代开发者的 AI 原生 IDE。孩子用它，可以用自然语言和 AI 一起写代码——把想法变成可以运行的产品。</p>
+              <h2>和孩子一起用 Trae 和 WorkBuddy</h2>
+              <p>Trae 是面向下一代开发者的 AI 原生 IDE，孩子可以用自然语言和 AI 一起写代码；WorkBuddy 是 Alan张老师的 AI 助手工作台，把课程、作品与一键部署串成一条线。两者配合，把想法变成可以运行、可以分享的产品。</p>
               <ul className="trae-abilities">
                 <li>对话式编程</li>
                 <li>实时预览</li>
@@ -546,10 +550,10 @@ export default function CampPage() {
       <section className="about-section">
         <div className="section-shell about-grid">
           <div className="about-brand-identity">
-            <img src="/assets/xgls-avatar.png" alt="Alan张老师" />
+            <img src="/assets/alan-avatar.png" alt="Alan张老师" />
             <img
               className="about-brand-wordmark"
-              src="/assets/xgls-logo.svg"
+              src="/assets/alan-logo.svg"
               alt="Alan张老师"
             />
           </div>
@@ -557,14 +561,14 @@ export default function CampPage() {
             <p className="section-kicker">ABOUT / 关于</p>
             <h2>我是Alan张老师</h2>
             <p>我教孩子用 AI 做真实的产品。不是画画、不是搭积木，是真的能跑、能分享、能用的数字产品。</p>
-            <p>过去 5 年，我在一线带过 200+ 孩子做项目。我发现：当孩子有一个真实想做的事情，他们的学习能力和创造力会远超大人的想象。</p>
+            <p>过去 15 年，我在一线带过 2000+ 孩子做项目。我发现：当孩子有一个真实想做的事情，他们的学习能力和创造力会远超大人的想象。</p>
             <dl className="about-facts">
               <div>
-                <dt>200+</dt>
+                <dt>2000+</dt>
                 <dd>学员作品</dd>
               </div>
               <div>
-                <dt>5 年</dt>
+                <dt>15 年</dt>
                 <dd>项目教学经验</dd>
               </div>
               <div>
@@ -596,7 +600,7 @@ export default function CampPage() {
           </div>
           <div className="wechat-card">
             <img
-              src="https://edu.xgteacher.cn/assets/xgls-avatar.jpg"
+              src="https://edu.xgteacher.cn/assets/alan-avatar.jpg"
               alt="Alan张老师微信二维码"
               style={{ width: '160px', height: '160px', borderRadius: '8px' }}
             />
@@ -609,33 +613,12 @@ export default function CampPage() {
       <footer className="site-footer">
         <div
           className="section-shell"
-          style={{ display: 'grid', gap: '2rem', gridTemplateColumns: '1fr auto 1fr', alignItems: 'end', width: '100%' }}
+          style={{ display: 'grid', gap: '2rem', gridTemplateColumns: '1fr', alignItems: 'end', width: '100%' }}
         >
           <div className="site-footer-meta">
             <p>Alan张老师 · 少年 AI 创造营</p>
             <p>让每个孩子都有属于自己的数字产品</p>
           </div>
-          <div className="site-filing" aria-label="网站备案信息">
-            <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">
-              苏ICP备2025178103号-2
-            </a>
-            <span aria-hidden="true">|</span>
-            <a
-              className="site-filing-police"
-              href="https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=32041202003961"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img
-                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z'/%3E%3C/svg%3E"
-                alt=""
-              />
-              <span>苏公网安备32041202003961号</span>
-            </a>
-          </div>
-          <p className="mono" style={{ justifySelf: 'end' }}>
-            © 2025 XIAOGAO LAB
-          </p>
         </div>
       </footer>
     </div>

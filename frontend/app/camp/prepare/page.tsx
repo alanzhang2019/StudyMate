@@ -10,10 +10,10 @@ export default function PreparePage() {
   return (
     <div className="prepare-page">
       <header className="site-header" style={{ position: 'sticky', background: 'rgba(5,20,47,.9)' }}>
-        <Link href="/camp" className="xgls-brand" aria-label="Alan张老师首页">
+        <Link href="/camp" className="alan-brand" aria-label="Alan张老师首页">
           <span className="brand-identity">
-            <img className="brand-identity-mark" src="/assets/xgls-avatar.png" alt="" />
-            <img className="brand-identity-wordmark" src="/assets/xgls-logo.svg" alt="Alan张老师" />
+            <img className="brand-identity-mark" src="/assets/alan-avatar.png" alt="" />
+            <img className="brand-identity-wordmark" src="/assets/alan-logo.svg" alt="Alan张老师" />
           </span>
         </Link>
         <div className="header-actions">
@@ -125,7 +125,7 @@ export default function PreparePage() {
             width: '100%',
             display: 'grid',
             gap: '2rem',
-            gridTemplateColumns: '1fr auto 1fr',
+            gridTemplateColumns: '1fr',
             alignItems: 'end',
           }}
         >
@@ -133,27 +133,6 @@ export default function PreparePage() {
             <p>Alan张老师 · 少年 AI 创造营</p>
             <p>让每个孩子都有属于自己的数字产品</p>
           </div>
-          <div className="site-filing" aria-label="网站备案信息">
-            <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">
-              苏ICP备2025178103号-2
-            </a>
-            <span aria-hidden="true">|</span>
-            <a
-              className="site-filing-police"
-              href="https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=32041202003961"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img
-                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z'/%3E%3C/svg%3E"
-                alt=""
-              />
-              <span>苏公网安备32041202003961号</span>
-            </a>
-          </div>
-          <p className="mono" style={{ justifySelf: 'end' }}>
-            © 2025 XIAOGAO LAB
-          </p>
         </div>
       </footer>
     </div>

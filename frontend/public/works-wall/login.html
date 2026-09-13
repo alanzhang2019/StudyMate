@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>教师登录 | Alan张老师少年 AI 创造营</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+<div class="login-page">
+
+<a href="index.html" class="login-back">
+  <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+    <path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z" transform="rotate(180 128 128)"/>
+  </svg>
+  <span class="login-back-label">返回首页</span>
+</a>
+
+<!-- ===== Story ===== -->
+<section class="login-story">
+  <p class="section-kicker">TEACHER / 教师入口</p>
+  <h1>登录后，<br><span class="login-label">管理你的学员。</span></h1>
+  <h2>记录每一节课的发现</h2>
+  <p>这里是教师的工作台。登录后可以管理学员、记录课堂、审核作品。</p>
+  <div class="login-capabilities">
+    <span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      学员管理
+    </span>
+    <span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+      课堂记录
+    </span>
+    <span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+      作品审核
+    </span>
+  </div>
+</section>
+
+<!-- ===== Mobile Intro ===== -->
+<div class="login-mobile-intro">
+  <p class="section-kicker">TEACHER / 教师入口</p>
+  <h2>登录后管理你的学员</h2>
+</div>
+
+<!-- ===== Login Panel ===== -->
+<section class="login-panel">
+  <form class="login-form" id="loginForm" novalidate>
+    <div class="login-form-brand">
+      <span class="brand-identity">
+        <img class="brand-identity-mark" src="/assets/alan-avatar.png" alt="">
+        <img class="brand-identity-wordmark" src="/assets/alan-logo.svg" alt="Alan张老师">
+      </span>
+    </div>
+    <div class="login-form-heading">
+      <h2>教师登录</h2>
+      <p>输入账号密码进入工作台</p>
+    </div>
+
+    <div class="app-field">
+      <span>账号</span>
+      <input type="text" name="username" id="username" autocomplete="username" placeholder="手机号或工号" required>
+    </div>
+
+    <div class="app-field">
+      <span>密码</span>
+      <div class="password-field">
+        <input type="password" name="password" id="password" autocomplete="current-password" placeholder="请输入密码" required>
+        <button type="button" id="togglePassword" aria-label="显示或隐藏密码">
+          <svg id="eyeOpen" width="20" height="20" viewBox="0 0 256 256" fill="currentColor"><path d="M251,123.13c-.37-.81-9.13-20.26-28.48-39.61C196.63,57.67,164,44,128,44S59.37,57.67,33.51,83.52C14.16,102.87,5.4,122.32,5,123.13a12.08,12.08,0,0,0,0,9.75c.37.82,9.13,20.26,28.49,39.61C59.37,198.34,92,212,128,212s68.63-13.66,94.48-39.51c19.36-19.35,28.12-38.79,28.49-39.61A12.08,12.08,0,0,0,251,123.13Zm-46.06,33C183.47,177.27,157.59,188,128,188s-55.47-10.73-76.91-31.88A130.36,130.36,0,0,1,29.52,128,130.45,130.45,0,0,1,51.09,99.89C72.54,78.73,98.41,68,128,68s55.46,10.73,76.91,31.89A130.36,130.36,0,0,1,226.48,128,130.45,130.45,0,0,1,204.91,156.12ZM128,84a44,44,0,1,0,44,44A44.05,44.05,0,0,0,128,84Z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="app-field">
+      <span>验证码</span>
+      <div class="login-captcha-control">
+        <input type="text" name="captcha" id="captcha" autocomplete="off" placeholder="输入右侧验证码" required maxlength="4">
+        <button type="button" id="captchaImage" aria-label="点击刷新验证码">
+          <canvas id="captchaCanvas" width="120" height="48"></canvas>
+        </button>
+      </div>
+    </div>
+
+    <label class="login-remember-option">
+      <input type="checkbox" name="remember" id="remember">
+      <span>
+        <strong>记住我</strong>
+        <small>7 天内免登录（公共电脑请勿勾选）</small>
+      </span>
+    </label>
+
+    <button type="submit" class="login-submit">登 录</button>
+
+    <p class="login-demo-note">
+      <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-44a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v36A8,8,0,0,1,144,172ZM120,92a12,12,0,1,1,12,12A12,12,0,0,1,120,92Z"/></svg>
+      <span>演示账号：<strong style="color:var(--paper)">admin</strong> / <strong style="color:var(--paper)">admin123</strong>（可在服务端环境变量覆盖）</span>
+    </p>
+  </form>
+</section>
+
+</div>
+
+<script>
+// Password toggle
+const togglePassword = document.getElementById('togglePassword');
+const passwordInput = document.getElementById('password');
+togglePassword?.addEventListener('click', () => {
+  const isPwd = passwordInput.type === 'password';
+  passwordInput.type = isPwd ? 'text' : 'password';
+  togglePassword.setAttribute('aria-label', isPwd ? '隐藏密码' : '显示密码');
+});
+
+// Captcha generator (client-side gatekeeping only; real auth on server)
+const captchaCanvas = document.getElementById('captchaCanvas');
+const captchaImage = document.getElementById('captchaImage');
+const captchaInput = document.getElementById('captcha');
+let currentCaptcha = '';
+
+function drawCaptcha(){
+  const ctx = captchaCanvas.getContext('2d');
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  currentCaptcha = '';
+  for(let i=0; i<4; i++){
+    currentCaptcha += chars[Math.floor(Math.random()*chars.length)];
+  }
+  ctx.clearRect(0,0,120,48);
+  for(let i=0; i<6; i++){
+    ctx.strokeStyle = `rgba(${Math.random()*100},${Math.random()*100},${Math.random()*150},0.3)`;
+    ctx.beginPath();
+    ctx.moveTo(Math.random()*120, Math.random()*48);
+    ctx.lineTo(Math.random()*120, Math.random()*48);
+    ctx.stroke();
+  }
+  ctx.font = 'bold 26px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const colors = ['#ffd447','#f5f2e9','#b8c1d3','#1b56c5'];
+  for(let i=0; i<4; i++){
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.save();
+    const x = 20 + i*26;
+    const y = 24 + (Math.random()*8-4);
+    ctx.translate(x, y);
+    ctx.rotate((Math.random()*0.4-0.2));
+    ctx.fillText(currentCaptcha[i], 0, 0);
+    ctx.restore();
+  }
+}
+drawCaptcha();
+captchaImage?.addEventListener('click', drawCaptcha);
+
+// Real submit → /api/admin/login
+const loginForm = document.getElementById('loginForm');
+const submitBtn = loginForm?.querySelector('.login-submit');
+loginForm?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const username = document.getElementById('username').value.trim();
+  const password = passwordInput.value;
+  const captcha = captchaInput.value.trim().toUpperCase();
+
+  if(!username || !password){
+    alert('请输入账号和密码');
+    return;
+  }
+  if(captcha !== currentCaptcha){
+    alert('验证码错误，请重新输入');
+    drawCaptcha();
+    captchaInput.value = '';
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = '登录中…';
+  try {
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    if (res.ok) {
+      // 登录成功，跳转到管理后台（works-wall 管理员统一入口）
+      window.location.href = '/admin/camp/works';
+    } else {
+      let msg = '登录失败，请检查账号密码';
+      try {
+        const data = await res.json();
+        if (data?.error) msg = data.error;
+      } catch {}
+      alert(msg);
+      drawCaptcha();
+      captchaInput.value = '';
+    }
+  } catch (err) {
+    alert('网络错误，请稍后重试');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = '登 录';
+  }
+});
+</script>
+</body>
+</html>

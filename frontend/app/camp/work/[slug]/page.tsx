@@ -312,12 +312,12 @@ export default function WorkDetailPage() {
           <span className="brand-identity">
             <img
               className="brand-identity-mark"
-              src="/assets/xgls-avatar.png"
+              src="/assets/alan-avatar.png"
               alt=""
             />
             <img
               className="brand-identity-wordmark"
-              src="/assets/xgls-logo.svg"
+              src="/assets/alan-logo.svg"
               alt="Alan张老师"
             />
           </span>
@@ -481,24 +481,6 @@ export default function WorkDetailPage() {
       <footer className="works-footer">
         <div className="works-footer-meta">
           <span>Alan张老师 · 少年 AI 创造营</span>
-          <div className="site-filing" aria-label="网站备案信息">
-            <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">
-              苏ICP备2025178103号-2
-            </a>
-            <span aria-hidden="true">|</span>
-            <a
-              className="site-filing-police"
-              href="https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=32041202003961"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img
-                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z'/%3E%3C/svg%3E"
-                alt=""
-              />
-              <span>苏公网安备32041202003961号</span>
-            </a>
-          </div>
         </div>
       </footer>
     </div>

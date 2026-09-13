@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>作品墙 | Alan张老师少年 AI 创造营</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+<div class="works-page">
+
+<!-- ===== Header ===== -->
+<header class="works-header">
+  <a href="index.html" class="works-brand" aria-label="返回Alan张老师首页">
+    <span class="brand-identity">
+      <img class="brand-identity-mark" src="/assets/alan-avatar.png" alt="">
+      <img class="brand-identity-wordmark" src="/assets/alan-logo.svg" alt="Alan张老师" style="position: relative;">
+    </span>
+  </a>
+  <nav class="works-header-actions" aria-label="作品墙导航">
+    <a href="index.html" class="page-switch-link">首页</a>
+    <a href="/admin/login" class="site-login-link">教师登录</a>
+  </nav>
+</header>
+
+<!-- ===== Intro / Hero ===== -->
+<section class="works-intro" aria-labelledby="works-title">
+  <div class="works-intro-copy">
+    <p class="works-index mono">WORK WALL / 02</p>
+    <h1 id="works-title"> 孩子们的想法，<br><span>贴在这里。</span></h1>
+    <p>每一张便签，记录一个从想法到作品的过程。</p>
+  </div>
+  <aside class="works-wall-note" aria-label="作品墙说明">
+    <span class="works-tape" aria-hidden="true"></span>
+    <p class="mono">ABOUT THIS WALL</p>
+    <strong>
+      <span>不跟着模板做题，</span>
+      <span>完成真正属于</span>
+      <span>自己的项目。</span>
+    </strong>
+    <small>这里只展示已经审核并公开发布的真实学生作品。</small>
+  </aside>
+</section>
+
+<!-- ===== Search + Sort ===== -->
+<section class="works-tools" aria-label="搜索与排序">
+  <label class="works-search">
+    <span class="sr-only">搜索作品名、学生小名或真实姓名</span>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+      <path d="M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z"></path>
+    </svg>
+    <input type="search" placeholder="搜索作品名、小名或姓名" autocomplete="off" id="searchInput">
+  </label>
+  <div class="works-sort" aria-label="作品排序方式">
+    <button type="button" class="active" aria-pressed="true" id="sortLatest"> 最新贴上 </button>
+    <button type="button" aria-pressed="false" id="sortHot"> 最近最热 </button>
+  </div>
+</section>
+
+<!-- ===== Wall Grid ===== -->
+<section class="works-wall" aria-live="polite">
+  <div class="works-wall-grid" id="wallGrid">
+
+    <!-- Work 1: 动物迷宫大乱斗 -->
+    <a href="work-detail-1.html" class="work-note work-note--yellow work-note--hero" style="--note-order:0;" aria-label="查看作品：动物迷宫大乱斗">
+      <span class="work-note-tape" aria-hidden="true"></span>
+      <figure class="work-note-image">
+        <img src="https://works.xgteacher.cn/media/covers/0a64a48f-2509-4698-9656-27adcbcbc565/c9bf4e08-ce07-426a-9c38-8f2e5af29a0a.png" alt="动物迷宫大乱斗项目封面" loading="lazy">
+      </figure>
+      <div class="work-note-copy">
+        <div class="work-note-topline mono">
+          <span>互动游戏</span>
+          <span>08/18</span>
+        </div>
+        <h2>动物迷宫大乱斗</h2>
+        <p>这是一个动物大乱斗的世界，我们要在这个世界里寻找自己的目标，通过吞噬小卡拉米，让自己强大起来！</p>
+        <div class="work-note-meta">
+          <span>炳炳 · 7 岁</span>
+          <span>
+            <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+              <path d="M251,123.13c-.37-.81-9.13-20.26-28.48-39.61C196.63,57.67,164,44,128,44S59.37,57.67,33.51,83.52C14.16,102.87,5.4,122.32,5,123.13a12.08,12.08,0,0,0,0,9.75c.37.82,9.13,20.26,28.49,39.61C59.37,198.34,92,212,128,212s68.63-13.66,94.48-39.51c19.36-19.35,28.12-38.79,28.49-39.61A12.08,12.08,0,0,0,251,123.13Zm-46.06,33C183.47,177.27,157.59,188,128,188s-55.47-10.73-76.91-31.88A130.36,130.36,0,0,1,29.52,128,130.45,130.45,0,0,1,51.09,99.89C72.54,78.73,98.41,68,128,68s55.46,10.73,76.91,31.89A130.36,130.36,0,0,1,226.48,128,130.45,130.45,0,0,1,204.91,156.12ZM128,84a44,44,0,1,0,44,44A44.05,44.05,0,0,0,128,84Zm0,64a20,20,0,1,1,20-20A20,20,0,0,1,128,148Z"></path>
+            </svg>
+            92
+          </span>
+          <span class="work-note-arrow" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="20" height="20" fill="currentColor">
+              <path d="M204,64V168a12,12,0,0,1-24,0V93L72.49,200.49a12,12,0,0,1-17-17L163,76H88a12,12,0,0,1,0-24H192A12,12,0,0,1,204,64Z"></path>
+            </svg>
+          </span>
+        </div>
+      </div>
+    </a>
+
+    <!-- Work 2: Formation 队形编辑器 -->
+    <a href="work-detail-2.html" class="work-note work-note--blue work-note--side" style="--note-order:1;" aria-label="查看作品：Formation 队形编辑器">
+      <span class="work-note-tape" aria-hidden="true"></span>
+      <figure class="work-note-image">
+        <img src="https://works.xgteacher.cn/media/covers/57b7dea2-a05e-4f67-9ed9-19b47bc0bda5/0df250aa-775f-416f-ba77-820aa326fa56.png" alt="Formation 队形编辑器项目封面" loading="lazy">
+      </figure>
+      <div class="work-note-copy">
+        <div class="work-note-topline mono">
+          <span>生活工具</span>
+          <span>07/30</span>
+        </div>
+        <h2>Formation 队形编辑器</h2>
+        <p>我们可以用它来编排生活中的队形</p>
+        <div class="work-note-meta">
+          <span>小高 · 6 岁</span>
+          <span>
+            <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+              <path d="M251,123.13c-.37-.81-9.13-20.26-28.48-39.61C196.63,57.67,164,44,128,44S59.37,57.67,33.51,83.52C14.16,102.87,5.4,122.32,5,123.13a12.08,12.08,0,0,0,0,9.75c.37.82,9.13,20.26,28.49,39.61C59.37,198.34,92,212,128,212s68.63-13.66,94.48-39.51c19.36-19.35,28.12-38.79,28.49-39.61A12.08,12.08,0,0,0,251,123.13Zm-46.06,33C183.47,177.27,157.59,188,128,188s-55.47-10.73-76.91-31.88A130.36,130.36,0,0,1,29.52,128,130.45,130.45,0,0,1,51.09,99.89C72.54,78.73,98.41,68,128,68s55.46,10.73,76.91,31.89A130.36,130.36,0,0,1,226.48,128,130.45,130.45,0,0,1,204.91,156.12ZM128,84a44,44,0,1,0,44,44A44.05,44.05,0,0,0,128,84Zm0,64a20,20,0,1,1,20-20A20,20,0,0,1,128,148Z"></path>
+            </svg>
+            228
+          </span>
+          <span class="work-note-arrow" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="20" height="20" fill="currentColor">
+              <path d="M204,64V168a12,12,0,0,1-24,0V93L72.49,200.49a12,12,0,0,1-17-17L163,76H88a12,12,0,0,1,0-24H192A12,12,0,0,1,204,64Z"></path>
+            </svg>
+          </span>
+        </div>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<!-- ===== Footer ===== -->
+<footer class="works-footer">
+  <div class="works-footer-meta">
+    <span>Alan张老师 · 少年 AI 创造营</span>
+  </div>
+</footer>
+
+</div>
+
+<script>
+// Search & sort interactions
+const searchInput = document.getElementById('searchInput');
+const sortLatest = document.getElementById('sortLatest');
+const sortHot = document.getElementById('sortHot');
+const wallGrid = document.getElementById('wallGrid');
+
+sortLatest.addEventListener('click', () => {
+  sortLatest.classList.add('active');
+  sortLatest.setAttribute('aria-pressed','true');
+  sortHot.classList.remove('active');
+  sortHot.setAttribute('aria-pressed','false');
+});
+
+sortHot.addEventListener('click', () => {
+  sortHot.classList.add('active');
+  sortHot.setAttribute('aria-pressed','true');
+  sortLatest.classList.remove('active');
+  sortLatest.setAttribute('aria-pressed','false');
+});
+
+searchInput.addEventListener('input', (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  document.querySelectorAll('.work-note').forEach(note => {
+    const title = note.querySelector('h2')?.textContent.toLowerCase() || '';
+    const desc = note.querySelector('p')?.textContent.toLowerCase() || '';
+    const meta = note.querySelector('.work-note-meta span')?.textContent.toLowerCase() || '';
+    const match = !q || title.includes(q) || desc.includes(q) || meta.includes(q);
+    note.style.display = match ? '' : 'none';
+  });
+});
+</script>
+
+
+</body></html>
