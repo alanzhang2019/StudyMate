@@ -11,7 +11,7 @@
  */
 
 import { execFile } from 'child_process';
-import { existsSync, statSync } from 'fs';
+import { existsSync, statSync, mkdirSync } from 'fs';
 import path from 'path';
 import { htmlFilePath, coverFilePath } from '@/lib/server/camp-work-autogen';
 
@@ -66,6 +66,9 @@ export async function screenshotHtmlToPng(workId: string): Promise<string | null
   }
 
   const output = coverFilePath(`${workId}.png`);
+  // 提前确保父目录存在，chromium CLI --screenshot 不会自动创建目录
+  // (Docker named volume 第一次写入时尤其需要)
+  mkdirSync(path.dirname(output), { recursive: true });
   // 封面统一 4:3（960×720），与作品墙卡片一致
   const args = [
     '--headless=new',

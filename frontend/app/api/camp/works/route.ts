@@ -8,11 +8,21 @@ import {
   getClientIp,
   RateLimitedError,
 } from '@/lib/integrations/rate-limit';
-import { saveHtmlFile, runWorkAutoGen } from '@/lib/server/camp-work-autogen';
+import {
+  saveHtmlFile,
+  runWorkAutoGen,
+  coverFilePath,
+} from '@/lib/server/camp-work-autogen';
 
 /**
  * 把客户端 html2canvas 截图产生的 dataURL 落盘成 PNG 文件。
  * dataURL 形如 `data:image/png;base64,xxxxx`。
+ *
+ * 关键校验（防止客户端 html2canvas 渲染失败时把空白 PNG 当封面存进 DB）：
+ *   1. PNG signature (8 字节) —— 不是合法 PNG 直接拒；
+ *   2. 最小尺寸 > 4KB —— 空白画布的 PNG 通常只有几百字节；
+ *   3. 路径统一走 coverFilePath —— 跟 covers 路由、chromium 截图、Seedream 插画
+ *      共享同一个 DB_DIR/camp-covers，避免 fallback 不一致导致 404。
  */
 function saveCoverFromDataUrl(workId: string, dataUrl: string): string | null {
   const match = /^data:image\/png;base64,(.+)$/i.exec(dataUrl);
@@ -22,13 +32,36 @@ function saveCoverFromDataUrl(workId: string, dataUrl: string): string | null {
   const buf = Buffer.from(base64, 'base64');
   if (buf.length === 0) return null;
 
-  const dir =
-    process.env.STUDYMATE_DB_DIR ||
-    path.join(process.cwd(), 'data', 'camp-covers');
-  mkdirSync(dir, { recursive: true });
-  const filename = `${workId}.png`;
-  writeFileSync(path.join(dir, filename), buf);
-  return `/api/camp/covers/${filename}`;
+  // PNG signature: 89 50 4E 47 0D 0A 1A 0A
+  if (
+    buf.length < 8 ||
+    buf[0] !== 0x89 ||
+    buf[1] !== 0x50 ||
+    buf[2] !== 0x4e ||
+    buf[3] !== 0x47 ||
+    buf[4] !== 0x0d ||
+    buf[5] !== 0x0a ||
+    buf[6] !== 0x1a ||
+    buf[7] !== 0x0a
+  ) {
+    console.warn(`[camp/works] saveCoverFromDataUrl: invalid PNG signature for ${workId}`);
+    return null;
+  }
+
+  // 文件太小 → 大概率是空白 PNG（html2canvas 渲染失败但仍返回合法 dataURL）
+  if (buf.length < 4096) {
+    console.warn(
+      `[camp/works] saveCoverFromDataUrl: PNG too small (${buf.length} bytes) for ${workId}, refuse`,
+    );
+    return null;
+  }
+
+  // 路径走 coverFilePath，保证跟 chromium / Seedream / covers 路由用同一份 DATA_DIR
+  // 落盘前先确保目录存在（coverFilePath 不创建目录）
+  const filePath = coverFilePath(`${workId}.png`);
+  mkdirSync(path.dirname(filePath), { recursive: true });
+  writeFileSync(filePath, buf);
+  return `/api/camp/covers/${workId}.png`;
 }
 
 function safeJsonParse(str: string | null | undefined): any[] {
