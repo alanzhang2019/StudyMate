@@ -370,22 +370,8 @@ export default function WorkDetailPage() {
   const hasRadar = work.radarNodes && work.radarNodes.length > 0;
   const hasExternal = !!work.externalUrl;
 
-  const handleShare = async () => {
-    const shareData = {
-      title: work.shareTitle,
-      text: work.shareText,
-      url: window.location.href,
-    };
-    try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
-        await navigator.clipboard.writeText(window.location.href);
-        alert('链接已复制，可以粘贴给朋友。');
-      }
-    } catch {
-      /* 用户取消分享等场景，静默处理 */
-    }
+  const handleShare = () => {
+    setShareOpen(true);
   };
 
   return (
