@@ -195,6 +195,11 @@ ENV PORT=3001
 # better-sqlite3 needs runtime libs (Alpine musl) for any dynamically loaded deps
 RUN apk add --no-cache libc6-compat cairo pango jpeg giflib librsvg python3
 
+# Chromium headless for「作品截图封面」(camp-work-screenshot.ts 用 CLI --screenshot)。
+# 中文字体(wqy-zenhei)避免学生作品里的中文渲染成豆腐块。
+# chromium 装在 runner(运行期)而非 deps，因为截图发生在运行时。
+RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont wqy-zenhei
+
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 

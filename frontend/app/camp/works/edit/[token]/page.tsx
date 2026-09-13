@@ -292,7 +292,7 @@ export default function CampWorkEditPage() {
                 disabled={busy !== ''}
                 onClick={() => handleRegenerate('cover')}
               >
-                {busy === 'cover' ? '生成中…' : '重新生成 AI 封面'}
+                {busy === 'cover' ? '生成中…' : '重新生成封面'}
               </button>
               <label className="submit-file submit-file--inline">
                 <input
@@ -302,12 +302,12 @@ export default function CampWorkEditPage() {
                   className="submit-file-input"
                 />
                 <span className="submit-file-label">
-                  {coverFile ? coverFile.name : '上传自己的封面'}
+                  {coverFile ? coverFile.name : '上传自己的封面（可选）'}
                 </span>
               </label>
             </div>
             <p className="submit-field-hint">
-              当前封面：{coverSource === 'ai' ? 'AI 生成' : coverSource === 'upload' ? '已上传' : coverSource === 'url' ? '外链' : '暂无'}
+              当前封面：{coverSource === 'screenshot' ? '作品截图' : coverSource === 'ai' ? 'AI 生成' : coverSource === 'upload' ? '已上传' : coverSource === 'url' ? '外链' : '暂无'}
             </p>
           </div>
 

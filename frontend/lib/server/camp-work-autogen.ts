@@ -21,6 +21,7 @@ import {
   resolveImageBaseUrl,
 } from '@/lib/server/provider-config';
 import { createLogger } from '@/lib/logger';
+import { screenshotHtmlToPng } from '@/lib/server/camp-work-screenshot';
 
 const log = createLogger('CampWorkAutoGen');
 
@@ -142,6 +143,40 @@ export async function generateAndSaveCover(
   return { coverImage: `/api/camp/covers/${filename}`, coverSource: 'ai' };
 }
 
+/**
+ * 生成作品封面（统一入口）：优先用作品真实截图（chromium），
+ * 截图不可用时回退 AI 插画（Seedream）。都失败返回 null。
+ * 返回 { coverImage, coverSource }，coverSource ∈ 'screenshot' | 'ai'。
+ */
+export async function generateCover(
+  workId: string,
+  title: string,
+  description: string,
+  htmlFileRel?: string | null,
+): Promise<{ coverImage: string; coverSource: string } | null> {
+  // 1. 作品截图（默认首选，真实还原 HTML）
+  if (htmlFileRel) {
+    try {
+      const shot = await screenshotHtmlToPng(workId);
+      if (shot) {
+        return { coverImage: `/api/camp/covers/${workId}.png`, coverSource: 'screenshot' };
+      }
+    } catch (e) {
+      log.warn(`[camp-work-autogen] screenshot failed for ${workId}`, e);
+    }
+  }
+
+  // 2. AI 插画兜底
+  try {
+    const gen = await generateAndSaveCover(workId, title, description);
+    if (gen) return gen;
+  } catch (e) {
+    log.warn(`[camp-work-autogen] AI cover failed for ${workId}`, e);
+  }
+
+  return null;
+}
+
 /** 编排：抽文本 → 生成介绍 → 生成封面 → 写回 DB。整体 try/catch，永不抛。 */
 export async function runWorkAutoGen(workId: string): Promise<void> {
   try {
@@ -173,17 +208,17 @@ export async function runWorkAutoGen(workId: string): Promise<void> {
       }
     }
 
-    // 2. 封面：学生没填封面才自动生成
+    // 2. 封面：学生没填封面才自动生成（默认作品截图，回退 AI 插画）
     if (!coverImage) {
       try {
-        const gen = await generateAndSaveCover(workId, title, description);
+        const gen = await generateCover(workId, title, description, row.htmlFile);
         if (gen) {
           coverImage = gen.coverImage;
           coverSource = gen.coverSource;
           getDb()
             .prepare('UPDATE camp_works SET coverImage = ?, coverSource = ? WHERE id = ?')
             .run(coverImage, coverSource, workId);
-          log.info(`[camp-work-autogen] cover generated for ${workId}`);
+          log.info(`[camp-work-autogen] cover generated for ${workId} (${coverSource})`);
         }
       } catch (e) {
         log.warn(`[camp-work-autogen] cover failed for ${workId}`, e);

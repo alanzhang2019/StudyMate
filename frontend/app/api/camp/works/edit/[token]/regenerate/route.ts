@@ -4,7 +4,7 @@ import {
   readHtmlContent,
   extractTextFromHtml,
   generateDescription,
-  generateAndSaveCover,
+  generateCover,
 } from '@/lib/server/camp-work-autogen';
 
 export const maxDuration = 60;
@@ -46,14 +46,15 @@ export const POST = async (
     }
 
     if (kind === 'cover') {
-      const gen = await generateAndSaveCover(
+      const gen = await generateCover(
         work.id,
         work.title || '我的作品',
         work.description || '',
+        work.htmlFile,
       );
       if (!gen) {
         return NextResponse.json(
-          { success: false, error: '封面生成失败（可能未配置图片生成服务）' },
+          { success: false, error: '封面生成失败（可能未安装截图服务）' },
           { status: 500 },
         );
       }

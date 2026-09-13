@@ -5,7 +5,7 @@ import {
   readHtmlContent,
   extractTextFromHtml,
   generateDescription,
-  generateAndSaveCover,
+  generateCover,
 } from '@/lib/server/camp-work-autogen';
 
 export const maxDuration = 90;
@@ -94,19 +94,19 @@ export const POST = async (
       }
     }
 
-    // 3. 生成封面（学生已有 coverImage 时不动）
+    // 3. 生成封面（学生已有 coverImage 时不动；默认作品截图，回退 AI 插画）
     let coverImage = work.coverImage || '';
     let coverSource = work.coverSource || 'none';
     let coverGenerated = false;
     let coverError: string | null = null;
     if (!coverImage) {
-      const gen = await generateAndSaveCover(work.id, title, description);
+      const gen = await generateCover(work.id, title, description, htmlFileRel);
       if (gen) {
         coverImage = gen.coverImage;
         coverSource = gen.coverSource;
         coverGenerated = true;
       } else {
-        coverError = '封面生成失败（可能未配置图片生成服务），你可以上传自己画的封面';
+        coverError = '封面生成失败（可能未安装截图服务），你可以上传自己画的封面';
       }
     }
 
