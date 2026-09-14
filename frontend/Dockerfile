@@ -205,7 +205,9 @@ RUN apk add --no-cache libc6-compat cairo pango jpeg giflib librsvg python3
 # Chromium headless for「作品截图封面」(camp-work-screenshot.ts 用 CLI --screenshot)。
 # 中文字体(wqy-zenhei)避免学生作品里的中文渲染成豆腐块。
 # chromium 装在 runner(运行期)而非 deps，因为截图发生在运行时。
-RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont wqy-zenhei
+# ffmpeg 用于后台上传作品介绍视频后自动压缩（H.264 + AAC，720p），
+# 减小文件体积与带宽占用，避免 nginx/client body 限制导致大视频上传失败。
+RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont wqy-zenhei ffmpeg
 
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs

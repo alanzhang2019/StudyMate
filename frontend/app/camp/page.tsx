@@ -157,7 +157,7 @@ export default function CampPage() {
                 <div className="featured-case-project">
                   <span className="mono">互动游戏 / STUDENT PROJECT</span>
                   <h3 className="featured-case-h3-single">七岁炳炳的《动物迷宫大乱斗》</h3>
-                  <p>一个项目不是一次就完成的。2 次课中，我们不断发现问题、调整规则、完善体验。</p>
+                  <p>一个项目不是一次就完成的。2 个阶段中，我们不断发现问题、调整规则、完善体验。</p>
                 </div>
                 <nav className="featured-case-outcomes" aria-label="查看炳炳的完整成果">
                   <Link href="/camp/work/animal-maze-battle" className="featured-case-outcome">
@@ -196,7 +196,7 @@ export default function CampPage() {
                 <li className="work-log-entry">
                   <article className="work-log-card">
                     <div className="work-log-time">
-                      <time>第 1 次课</time>
+                      <time>第一阶段</time>
                       <span>· 想法定义</span>
                     </div>
                     <img
@@ -210,7 +210,7 @@ export default function CampPage() {
                 <li className="work-log-entry">
                   <article className="work-log-card">
                     <div className="work-log-time">
-                      <time>第 1 次课</time>
+                      <time>第一阶段</time>
                       <span>· 规则调整</span>
                     </div>
                     <img
@@ -224,7 +224,7 @@ export default function CampPage() {
                 <li className="work-log-entry">
                   <article className="work-log-card">
                     <div className="work-log-time">
-                      <time>第 2 次课</time>
+                      <time>第二阶段</time>
                       <span>· 完善发布</span>
                     </div>
                     <img
@@ -236,7 +236,7 @@ export default function CampPage() {
                   </article>
                 </li>
               </ol>
-              <p className="work-log-hint">← 左右滑动查看 2 次课的完整记录</p>
+              <p className="work-log-hint">← 左右滑动查看 2 个阶段的完整记录</p>
             </div>
           </div>
         </div>
@@ -619,7 +619,7 @@ export default function CampPage() {
                 <span>不要小看孩子，</span>
                 <span>给他们真实的工具。</span>
               </h3>
-              <p>7 岁的炳炳用 2 次课做出了《动物迷宫大乱斗》——有规则、有 AI、有交互。这不是玩具，是真正的产品。</p>
+              <p>7 岁的炳炳用 2 个阶段做出了《动物迷宫大乱斗》——有规则、有 AI、有交互。这不是玩具，是真正的产品。</p>
             </div>
           </div>
         </div>

@@ -735,8 +735,8 @@ function WorkFormModal({
       alert('仅支持 mp4 / webm / mov / m4v 格式');
       return;
     }
-    if (file.size > 200 * 1024 * 1024) {
-      alert('视频不能超过 200MB');
+    if (file.size > 500 * 1024 * 1024) {
+      alert('视频不能超过 500MB');
       return;
     }
     setUploading(true);
@@ -747,9 +747,15 @@ function WorkFormModal({
         method: 'POST',
         body: fd,
       });
-      const json = await res.json();
-      if (!json.success) {
-        alert(json.error || '上传失败');
+      let json: any = {};
+      try {
+        json = await res.json();
+      } catch {
+        // 非 JSON 响应（如 nginx 413/504 返回 HTML）
+      }
+      if (!res.ok || !json.success) {
+        const msg = json.error || `上传失败（${res.status} ${res.statusText}）`;
+        alert(msg);
         return;
       }
       setForm((f) => ({ ...f, introVideoFile: json.data.url, introVideoUrl: '' }));
@@ -787,9 +793,13 @@ function WorkFormModal({
         method: 'POST',
         body: fd,
       });
-      const json = await res.json();
-      if (!json.success) {
-        alert(json.error || '上传失败');
+      let json: any = {};
+      try {
+        json = await res.json();
+      } catch {}
+      if (!res.ok || !json.success) {
+        const msg = json.error || `上传失败（${res.status} ${res.statusText}）`;
+        alert(msg);
         return;
       }
       updateProcessLog(i, 'image', json.data.url);
@@ -1050,7 +1060,7 @@ function WorkFormModal({
             </label>
             <input
               className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-              placeholder="例：* 评估基于 2 次课的过程记录，非标准化测试。"
+              placeholder="例：* 评估基于 2 个阶段的过程记录，非标准化测试。"
               value={form.ability.note}
               onChange={(e) =>
                 setForm((f) => ({

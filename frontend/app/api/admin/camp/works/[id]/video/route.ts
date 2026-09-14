@@ -7,18 +7,20 @@ import {
   videoDir,
   videoFilePath,
   videoServeUrl,
+  compressVideo,
 } from '@/lib/server/camp-work-autogen';
 
-const MAX_BYTES = 200 * 1024 * 1024; // 200MB
+const MAX_BYTES = 500 * 1024 * 1024; // 500MB（上传后会自动压缩到 720p，最终文件通常远小于此）
 const ALLOWED_EXT = ['mp4', 'webm', 'mov', 'm4v'];
 
-// 大文件上传可能耗时较久，放宽超时。
-export const maxDuration = 120;
+// 大文件上传 + ffmpeg 压缩可能耗时较久，放宽超时。
+export const maxDuration = 300;
 
 // POST /api/admin/camp/works/:id/video
 // 老师后台上传作品介绍视频（multipart，字段名 video）。
-// 流式落盘到 camp-videos/<id>.<ext>，并把 introVideoFile 写成服务 URL。
-// 优先用流式写入，避免把 200MB 整文件读进内存。
+// 流式落盘到 camp-videos/<id>.<ext>，保存成功后自动用 ffmpeg 压缩到
+// H.264 + AAC / 720p / 2.5Mbps，压缩成功则替换原片，失败仍保留原片。
+// 优先用流式写入，避免把大文件整片读进内存。
 export const POST = withAdminAuth(
   async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
     try {
@@ -42,7 +44,7 @@ export const POST = withAdminAuth(
         return NextResponse.json({ success: false, error: '视频文件为空' }, { status: 400 });
       }
       if (file.size > MAX_BYTES) {
-        return NextResponse.json({ success: false, error: '视频不能超过 200MB' }, { status: 400 });
+        return NextResponse.json({ success: false, error: '视频不能超过 500MB' }, { status: 400 });
       }
       const ext = (file.name.split('.').pop() || '').toLowerCase();
       if (!ALLOWED_EXT.includes(ext)) {
@@ -63,7 +65,28 @@ export const POST = withAdminAuth(
         ws.on('error', reject);
       });
 
-      const url = videoServeUrl(id, ext);
+      // 自动压缩：保存原片后调用 ffmpeg，压缩成功且更小则替换原片。
+      // 压缩失败仅记录日志，仍保留原片，避免上传完全失败。
+      let finalExt = ext;
+      const compressed = await compressVideo(dest, ext);
+      if (compressed && compressed !== dest) {
+        const { statSync, renameSync, unlinkSync } = await import('fs');
+        try {
+          const originalSize = statSync(dest).size;
+          const compressedSize = statSync(compressed).size;
+          if (compressedSize > 1024 && compressedSize < originalSize * 0.95) {
+            unlinkSync(dest);
+            renameSync(compressed, dest);
+          } else {
+            // 压缩后没明显变小或异常小，丢弃压缩产物，保留原片
+            unlinkSync(compressed);
+          }
+        } catch (cleanupErr: any) {
+          console.warn('[camp/works/:id/video] cleanup compressed file:', cleanupErr.message);
+        }
+      }
+
+      const url = videoServeUrl(id, finalExt);
       await db.campWork.update({
         where: { id },
         data: { introVideoFile: url, updatedAt: new Date().toISOString() },

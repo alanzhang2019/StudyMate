@@ -63,6 +63,62 @@ export function videoServeUrl(workId: string, ext: string): string {
   return `/api/camp/videos/${workId}.${ext}`;
 }
 
+/** 用 ffmpeg 压缩视频到 H.264 + AAC（720p，2.5Mbps 视频 / 128k 音频）。
+ *  压缩成功返回新文件路径，失败返回 null（调用方保留原片）。
+ */
+export async function compressVideo(
+  inputPath: string,
+  outputExt: string,
+): Promise<string | null> {
+  const { spawn } = await import('child_process');
+  const fs = await import('fs');
+  const outPath = inputPath.replace(/\.[^.]+$/, `-compressed.${outputExt}`);
+  return new Promise((resolve) => {
+    const args = [
+      '-y',
+      '-i', inputPath,
+      '-vf', 'scale=-2:720:force_original_aspect_ratio=decrease',
+      '-c:v', 'libx264',
+      '-preset', 'veryfast',
+      '-crf', '23',
+      '-maxrate', '2500k',
+      '-bufsize', '5000k',
+      '-c:a', 'aac',
+      '-b:a', '128k',
+      '-movflags', '+faststart',
+      outPath,
+    ];
+    const proc = spawn('ffmpeg', args, { stdio: 'pipe' });
+    let stderr = '';
+    proc.stderr.on('data', (d: Buffer) => {
+      stderr += d.toString();
+    });
+    proc.on('error', (err) => {
+      log.warn(`[compressVideo] ffmpeg spawn error: ${err.message}`);
+      resolve(null);
+    });
+    proc.on('close', (code) => {
+      if (code === 0 && fs.existsSync(outPath) && fs.statSync(outPath).size > 1024) {
+        const inSize = fs.statSync(inputPath).size;
+        const outSize = fs.statSync(outPath).size;
+        log.info(
+          `[compressVideo] ${inputPath} -> ${outPath} (${(inSize / 1024 / 1024).toFixed(
+            2,
+          )}MB -> ${(outSize / 1024 / 1024).toFixed(2)}MB)`,
+        );
+        resolve(outPath);
+      } else {
+        log.warn(`[compressVideo] ffmpeg exit ${code} for ${inputPath}. stderr: ${stderr.slice(-200)}`);
+        // 清理可能产生的不完整输出
+        try {
+          fs.unlinkSync(outPath);
+        } catch {}
+        resolve(null);
+      }
+    });
+  });
+}
+
 /** 落盘学生上传的 HTML，返回存库用的相对路径（相对 DB_DIR） */
 export function saveHtmlFile(workId: string, content: Buffer): string {
   ensureDir(UPLOADS_DIR);

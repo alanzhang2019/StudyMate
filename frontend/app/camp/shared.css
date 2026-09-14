@@ -348,8 +348,8 @@ input{font-family:inherit}
 .work-detail-hero{align-items:center;display:grid;gap:clamp(3rem,8vw,9rem);grid-template-columns:minmax(0,.82fr) minmax(430px,1.18fr);min-height:calc(100dvh - 72px);padding:clamp(4rem,8vw,8rem) var(--page-padding)}
 .work-back{align-items:center;border-bottom:1px solid currentColor;display:inline-flex;font-size:.76rem;gap:.55rem;margin-bottom:clamp(3rem,6vw,6rem);padding-bottom:.35rem;width:fit-content}
 .work-detail-heading>p:first-of-type{color:#34537d;font-size:.68rem;margin:0}
-.work-detail-heading h1{font-size:clamp(4rem,7.5vw,8.1rem);font-weight:520;letter-spacing:-.09em;line-height:.88;margin:1.2rem 0 0;max-width:8ch}
-.work-detail-heading h1.work-detail-title-single{font-size:clamp(2.6rem,4.6vw,4.6rem);letter-spacing:-.04em;line-height:1.15;max-width:none;white-space:nowrap;font-weight:560}
+.work-detail-heading h1{font-size:clamp(4rem,7.5vw,8.1rem);font-weight:520;letter-spacing:-.09em;line-height:1.05;margin:1.2rem 0 0;max-width:none;word-wrap:break-word;overflow-wrap:anywhere}
+.work-detail-heading h1.work-detail-title-single{font-size:clamp(2.6rem,4.6vw,4.6rem);letter-spacing:-.04em;line-height:1.15;max-width:none;font-weight:560}
 .work-detail-heading>p:nth-of-type(2){color:#405574;font-size:1rem;line-height:1.8;margin:2rem 0 0;max-width:34rem}
 .work-detail-meta{border-top:1px solid rgba(5,20,47,.3);display:flex;flex-wrap:wrap;font-size:.74rem;gap:.8rem 1.6rem;margin-top:2.2rem;padding-top:1.2rem}
 .work-detail-meta span{align-items:center;display:inline-flex;gap:.4rem}
@@ -765,7 +765,7 @@ input{font-family:inherit}
   .works-footer{align-items:flex-start;flex-direction:column;justify-content:center;min-height:150px}
   .work-detail-hero{padding-top:4rem}
   .work-back{margin-bottom:3rem}
-  .work-detail-heading h1{font-size:clamp(3.1rem,14vw,4.3rem);max-width:100%}
+  .work-detail-heading h1{font-size:clamp(3.1rem,14vw,4.3rem);max-width:none;word-wrap:break-word;overflow-wrap:anywhere}
   .work-detail-cover{rotate:0deg}
   .work-ability-profile{padding-bottom:4.5rem;padding-top:4.5rem}
   .work-detail-actions{display:grid;grid-template-columns:1fr}
