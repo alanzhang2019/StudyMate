@@ -3,16 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { GRADE_OPTIONS } from '@/lib/camp/grades';
 
-const GRADE_OPTIONS = [
-  '一年级',
-  '二年级',
-  '三年级',
-  '四年级',
-  '五年级',
-  '六年级',
-  '不便透露',
-];
 
 const CATEGORY_OPTIONS = [
   { value: '作品', label: '作品' },

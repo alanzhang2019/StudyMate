@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFileSync } from 'fs';
 import { db } from '@/lib/db';
+import { GRADE_OPTIONS } from '@/lib/camp/grades';
 import {
   coverFilePath,
   saveHtmlFile,
@@ -86,9 +87,8 @@ export const PATCH = async (
     const categoryRaw = safeStr(get('category'), 20);
     const ALLOWED_CAT = ['作品', '项目', '代码', '其他'];
     const category = ALLOWED_CAT.includes(categoryRaw) ? categoryRaw : (work.category || '作品');
-    const GRADE_OPTIONS = ['一年级', '二年级', '三年级', '四年级', '五年级', '六年级', '不便透露'];
     const gradeRaw = safeStr(get('grade'), 20);
-    const grade = GRADE_OPTIONS.includes(gradeRaw) ? gradeRaw : (work.grade || '不便透露');
+    const grade = GRADE_OPTIONS.includes(gradeRaw as any) ? gradeRaw : (work.grade || '不便透露');
 
     if (!title) {
       return NextResponse.json(

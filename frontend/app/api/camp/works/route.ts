@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto';
 import { writeFileSync, mkdirSync } from 'fs';
 import path from 'path';
 import { db, getDb } from '@/lib/db';
+import { GRADE_OPTIONS } from '@/lib/camp/grades';
 import {
   checkRateLimit,
   getClientIp,
@@ -217,18 +218,9 @@ export const POST = async (req: NextRequest) => {
     const ALLOWED_CAT = ['作品', '项目', '代码', '其他'];
     const category = ALLOWED_CAT.includes(categoryRaw) ? categoryRaw : '作品';
 
-    // 年级：可选。一/二/三/四/五/六年级 + 「不便透露」作默认。
-    const GRADE_OPTIONS = [
-      '一年级',
-      '二年级',
-      '三年级',
-      '四年级',
-      '五年级',
-      '六年级',
-      '不便透露',
-    ];
+    // 年级：可选。一年级到十二年级 + 「不便透露」作默认。
     const gradeRaw = safeStr(fields.grade, 20);
-    const grade = GRADE_OPTIONS.includes(gradeRaw) ? gradeRaw : '不便透露';
+    const grade = GRADE_OPTIONS.includes(gradeRaw as any) ? gradeRaw : '不便透露';
 
     const coverImage = safeStr(fields.coverImage, 500);
     const linkUrl = safeStr(fields.linkUrl, 500);

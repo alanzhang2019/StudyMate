@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { screenshotHtmlFile } from '@/lib/client/html-screenshot';
+import { GRADE_OPTIONS } from '@/lib/camp/grades';
 
 const CATEGORY_OPTIONS = [
   { value: '作品', label: '作品' },
@@ -11,15 +12,6 @@ const CATEGORY_OPTIONS = [
   { value: '其他', label: '其他' },
 ];
 
-const GRADE_OPTIONS = [
-  '一年级',
-  '二年级',
-  '三年级',
-  '四年级',
-  '五年级',
-  '六年级',
-  '不便透露',
-];
 
 type SubmitState =
   | { kind: 'idle' }
