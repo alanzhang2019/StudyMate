@@ -44,20 +44,32 @@ export default function ConundrumsPage() {
       </header>
 
       <section className="conundrum-hero">
-        <div className="section-shell">
-          <p className="section-kicker">REAL-WORLD PROBLEMS / 真实世界的问题</p>
-          <h1>
-            <span className="hero-thought">没有标准答案，</span>
-            <span className="hero-action">才是真实的问题</span>
-          </h1>
-          <p className="conundrum-hero-intro">
-            这里收集了马斯克星球学校的 28 个真实世界难题——没人能替你拍板的那种。我们用 AI 把它们变成你能动手做的项目：想清楚、做出来、发出去。
-          </p>
-          <div className="hero-facts mono" aria-label="课题概要">
-            <span>28 个难题</span>
-            <span>6 大主题</span>
-            <span>0 个标准答案</span>
+        <div className="section-shell conundrum-hero-grid">
+          <div className="conundrum-hero-copy">
+            <p className="section-kicker">REAL-WORLD PROBLEMS / 真实世界的问题</p>
+            <h1>
+              <span className="hero-thought">没有标准答案，</span>
+              <span className="hero-action">才是真实的问题</span>
+            </h1>
+            <p className="conundrum-hero-intro">
+              这里收集了马斯克星球学校的 28 个真实世界难题——没人能替你拍板的那种。我们用 AI 把它们变成你能动手做的项目：想清楚、做出来、发出去。
+            </p>
+            <div className="hero-facts mono" aria-label="课题概要">
+              <span>28 个难题</span>
+              <span>6 大主题</span>
+              <span>0 个标准答案</span>
+            </div>
           </div>
+          <figure className="conundrum-hero-figure">
+            <img
+              src="/assets/musk-conundrum-hero.png"
+              alt="马斯克让孩子坐在肩上"
+              loading="lazy"
+            />
+            <figcaption className="mono">
+              Astra Nova 学校创办人 · 这些难题来自他办的学校
+            </figcaption>
+          </figure>
         </div>
       </section>
 
