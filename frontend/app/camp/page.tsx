@@ -93,6 +93,9 @@ export default function CampPage() {
           </span>
         </Link>
         <div className="header-actions">
+          <Link href="/camp/conundrums" className="page-switch-link">
+            真实问题库
+          </Link>
           <Link href="/camp/works" className="page-switch-link">
             作品墙
           </Link>

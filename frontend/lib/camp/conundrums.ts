@@ -16,6 +16,8 @@ export interface Conundrum {
   discussion: string[];
   aiProject: string;
   bilibiliVideos?: { title: string; bvid: string; url: string }[];
+  /** 国内平台找不到时，回落到官网原片（ClassDojo 官方页，页内嵌入 iframe） */
+  officialVideo?: { title: string; url: string; source: string };
   bilibiliSearch: string;
 }
 
@@ -103,6 +105,21 @@ export const CONUNDRA: Conundrum[] = [
     aiProject: '做「岛屿生存模拟器」，孩子设定规则看社区能撑多久。',
     bilibiliVideos: [{ title: 'The Island Conundrum', bvid: 'BV1var5YkEvR', url: 'https://www.bilibili.com/video/BV1var5YkEvR/' }],
     bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Island%20Conundrum',
+  },
+  {
+    id: 'boat',
+    title: '小船难题',
+    original: 'The Boat Conundrum',
+    category: '逻辑·资源',
+    situation: '一艘小船装不下所有人，必须有人留下。',
+    question: '当位置有限时，谁上船、谁留下——凭什么定这个标准？',
+    discussion: [
+      '年龄、技能、亲疏、贡献，哪一个该排在前面？',
+      '如果你是被留下的人，你会怎么想？',
+    ],
+    aiProject: '做一个「登船名单」决策网页：列出候选人与理由，AI 帮你检验标准是否自相矛盾。',
+    bilibiliVideos: [{ title: '马斯克网校考题 #13 The Boat Conundrum', bvid: 'BV1Yqr5YuEhv', url: 'https://www.bilibili.com/video/BV1Yqr5YuEhv/' }, { title: '13. The Boat Conundrum (ASTRA NOVA SCHOOL)', bvid: 'BV1w8K46FEss', url: 'https://www.bilibili.com/video/BV1w8K46FEss/' }],
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Boat%20Conundrum',
   },
   {
     id: 'moonshot',
@@ -232,6 +249,25 @@ export const CONUNDRA: Conundrum[] = [
     aiProject: '做「火星任务组队」模拟，孩子选队员并定领导规则。',
     bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Martian%20Conundrum',
     bilibiliVideos: [{ title: 'The Martian Conundrum', bvid: 'BV17t6hY4EZA', url: 'https://www.bilibili.com/video/BV17t6hY4EZA/' }, { title: 'The Martian Conundrum', bvid: 'BV1KAKt6qEcg', url: 'https://www.bilibili.com/video/BV1KAKt6qEcg/' }],
+  },
+  {
+    id: 'presidential',
+    title: '总统年龄难题',
+    original: 'The Presidential Conundrum',
+    category: '伦理·公平',
+    situation: '一个国家要决定：领导人有没有年龄上限？',
+    question: '该不该给总统设年龄限制？多少岁才合理？',
+    discussion: [
+      '经验与精力、年龄与能力，哪个更该被考虑？',
+      '如果是你的家人被这条规则排除在外，你还支持吗？',
+    ],
+    aiProject: '做「领导人资格」辩论网页：正方反方各写三条理由，AI 帮你找逻辑漏洞。',
+    officialVideo: {
+      title: 'The Presidential Conundrum（官网原片）',
+      url: 'https://ideas.classdojo.com/i/the-presidential-conundrum/',
+      source: 'ClassDojo × Astra Nova',
+    },
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Presidential%20Conundrum',
   },
   {
     id: 'dinosaur',

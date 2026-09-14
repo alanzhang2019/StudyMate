@@ -31,6 +31,9 @@ export default function ConundrumsPage() {
           </span>
         </Link>
         <div className="header-actions">
+          <Link href="/camp" className="page-switch-link">
+            首页
+          </Link>
           <Link href="/camp/works" className="page-switch-link">
             作品墙
           </Link>
@@ -48,10 +51,10 @@ export default function ConundrumsPage() {
             <span className="hero-action">才是真实的问题</span>
           </h1>
           <p className="conundrum-hero-intro">
-            这里收集了马斯克星球学校的 26 个真实世界难题——没人能替你拍板的那种。我们用 AI 把它们变成你能动手做的项目：想清楚、做出来、发出去。
+            这里收集了马斯克星球学校的 28 个真实世界难题——没人能替你拍板的那种。我们用 AI 把它们变成你能动手做的项目：想清楚、做出来、发出去。
           </p>
           <div className="hero-facts mono" aria-label="课题概要">
-            <span>26 个难题</span>
+            <span>28 个难题</span>
             <span>6 大主题</span>
             <span>0 个标准答案</span>
           </div>
@@ -159,6 +162,22 @@ export default function ConundrumsPage() {
                               );
                             })}
                           </ul>
+                        ) : c.officialVideo ? (
+                          <div className="conundrum-official">
+                            <p className="conundrum-video-empty">
+                              国内平台暂时没有中文搬运，直接看官网原片：
+                            </p>
+                            <a
+                              className="conundrum-official-link"
+                              href={c.officialVideo.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <span className="conundrum-video-play" aria-hidden="true">▶</span>
+                              <span>{c.officialVideo.title}</span>
+                              <span className="conundrum-video-mono mono">{c.officialVideo.source}</span>
+                            </a>
+                          </div>
                         ) : (
                           <p className="conundrum-video-empty">
                             这个课题暂时还没有中文视频，可以先去 B 站找找看。

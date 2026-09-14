@@ -761,6 +761,8 @@ input{font-family:inherit}
 @media(max-width:640px){
   .works-header{height:64px}
   .works-header-actions{gap:.45rem}
+  .header-actions{gap:.4rem}
+  .header-actions .page-switch-link{padding:.55rem .62rem}
   .page-switch-link,.site-login-link{min-height:38px;min-width:0;padding:.55rem .72rem}
   .works-intro{padding-top:5rem}
   .works-intro h1{font-size:clamp(3.15rem,14vw,4.2rem)}
@@ -888,3 +890,8 @@ input,textarea,select,button{color:inherit}
 .conundrum-player iframe{aspect-ratio:16/9;border:0;display:block;height:auto;width:100%}
 .conundrum-player-back{background:rgba(0,0,0,.35);color:var(--paper);font-size:.78rem;font-weight:650;padding:.5rem .8rem;text-align:left;width:100%}
 .conundrum-player-back:hover{color:var(--yellow)}
+
+.conundrum-official{display:grid;gap:.5rem}
+.conundrum-official-link{align-items:center;border:1px dashed var(--line-strong);color:var(--paper);display:flex;font-size:.85rem;gap:.6rem;padding:.6rem .8rem;text-align:left;transition:border-color .16s ease,background-color .16s ease;width:100%}
+.conundrum-official-link:hover{border-color:var(--yellow);background:rgba(255,212,71,.06)}
+.conundrum-official-link span:nth-child(2){flex:1 1 auto;line-height:1.4}
