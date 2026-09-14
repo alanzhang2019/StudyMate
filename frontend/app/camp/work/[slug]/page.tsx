@@ -340,7 +340,7 @@ function mapDbWorkToDetail(row: any): WorkDetail {
     category: row.category || '作品',
     date: formatDate(row.createdAt),
     studentLabel: studentLabel || '匿名学员',
-    views: 0,
+    views: typeof row.viewCount === 'number' ? row.viewCount : 0,
     cover: row.coverImage || '',
     externalUrl: row.linkUrl || '',
     hasHtml: !!row.htmlFile,
@@ -403,6 +403,11 @@ export default function WorkDetailPage() {
         if (!json.success) throw new Error(json.error || '获取失败');
         if (cancelled) return;
         setWork(mapDbWorkToDetail(json.data));
+        // 浏览计数：不 await，失败也不影响阅读。
+        // 服务端有 6 小时去重窗口 + 每 IP 每分钟节流，重复刷新不会灌水。
+        void fetch(`/api/camp/works/${json.data.id}/view`, { method: 'POST' }).catch(
+          () => {},
+        );
       } catch (e) {
         console.error('[camp/work/:slug] load error:', e);
         if (!cancelled) setWork(null);

@@ -93,6 +93,7 @@ export const GET = async (req: NextRequest) => {
     const url = new URL(req.url);
     const category = url.searchParams.get('category')?.trim();
     const featured = url.searchParams.get('featured')?.trim();
+    const sort = url.searchParams.get('sort')?.trim();
 
     const whereSql: string[] = ['status = ?'];
     const params: any[] = ['approved'];
@@ -106,9 +107,15 @@ export const GET = async (req: NextRequest) => {
       params.push(1);
     }
 
-    const sql =
-      `SELECT * FROM camp_works WHERE ${whereSql.join(' AND ')} ` +
-      'ORDER BY featured DESC, sortOrder ASC, createdAt DESC';
+    // 排序：精选永远置顶（这是「精选」的意义所在），同一档内再按请求的方式排。
+    // hot  -> 浏览量高者先（viewCount 由详情页 POST /view 累加）
+    // 其他 -> 创建时间倒序（默认）
+    const orderBy =
+      sort === 'hot'
+        ? 'featured DESC, sortOrder ASC, viewCount DESC, createdAt DESC'
+        : 'featured DESC, sortOrder ASC, createdAt DESC';
+
+    const sql = `SELECT * FROM camp_works WHERE ${whereSql.join(' AND ')} ORDER BY ${orderBy}`;
 
     const rawRows = getDb().prepare(sql).all(...params) as any[];
     const works = rawRows.map(transformWork);

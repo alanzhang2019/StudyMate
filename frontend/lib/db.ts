@@ -562,6 +562,7 @@ export function getDb(): Database {
       reviewedBy TEXT,
       featured INTEGER NOT NULL DEFAULT 0,      /* 1 = 精选/置顶 */
       sortOrder INTEGER NOT NULL DEFAULT 0,     /* 作品墙自定义排序 */
+      viewCount INTEGER NOT NULL DEFAULT 0,     /* 详情页浏览次数，"最热"排序依据 */
       createdAt TEXT NOT NULL DEFAULT (datetime('now')),
       updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY (studentId) REFERENCES camp_students(id) ON DELETE SET NULL
@@ -574,6 +575,8 @@ export function getDb(): Database {
       ON camp_works (featured DESC, sortOrder, createdAt DESC);
     CREATE INDEX IF NOT EXISTS idx_camp_works_class_date
       ON camp_works (className, createdAt DESC);
+    CREATE INDEX IF NOT EXISTS idx_camp_works_hot
+      ON camp_works (status, viewCount DESC, createdAt DESC);
     `);
 
     // 2026-09-13：支持学生自助提交作品（无需预置学员档案）。
@@ -752,6 +755,7 @@ function applyMigrations(db: Database): void {
       reviewedBy TEXT,
       featured INTEGER NOT NULL DEFAULT 0,
       sortOrder INTEGER NOT NULL DEFAULT 0,
+      viewCount INTEGER NOT NULL DEFAULT 0,
       createdAt TEXT NOT NULL DEFAULT (datetime('now')),
       updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
     );
@@ -763,6 +767,8 @@ function applyMigrations(db: Database): void {
       ON camp_works (featured DESC, sortOrder, createdAt DESC);
     CREATE INDEX IF NOT EXISTS idx_camp_works_class_date
       ON camp_works (className, createdAt DESC);
+    CREATE INDEX IF NOT EXISTS idx_camp_works_hot
+      ON camp_works (status, viewCount DESC, createdAt DESC);
     `)
   } catch (err) {
     console.error('[db/applyMigrations] camp tables init failed:', err)
@@ -791,6 +797,21 @@ function applyMigrations(db: Database): void {
     } catch {
       // column already exists
     }
+  }
+
+  // 2026-09-15：作品详情页浏览计数，「最热」排序依据。
+  // 老库平滑补列（NOT NULL 需带 DEFAULT，SQLite 才允许 ADD COLUMN）。
+  try {
+    db.exec('ALTER TABLE camp_works ADD COLUMN viewCount INTEGER NOT NULL DEFAULT 0')
+  } catch {
+    // column already exists
+  }
+  try {
+    db.exec(
+      'CREATE INDEX IF NOT EXISTS idx_camp_works_hot ON camp_works (status, viewCount DESC, createdAt DESC)',
+    )
+  } catch {
+    // index already exists
   }
 
   // 2026-09-14：作品「创作记录 + 能力评估 + 老师点评」三块富内容。

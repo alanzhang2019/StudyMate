@@ -14,6 +14,8 @@ type Work = {
   cover: string;
   className: string; // 仅用于 note 卡片的视觉 class，非学员班级
   ts: number; // 排序用时间戳
+  featured: boolean; // 后台「精选」—— 置顶 + 进精选专区
+  sortOrder: number; // 后台自定义排序，越小越靠前
 };
 
 // 两个早期示范作品（炳炳 / 小高）为静态种子，保留在作品墙顶部；
@@ -32,6 +34,8 @@ const SEED_WORKS: Work[] = [
       'https://works.xgteacher.cn/media/covers/0a64a48f-2509-4698-9656-27adcbcbc565/c9bf4e08-ce07-426a-9c38-8f2e5af29a0a.png',
     className: 'work-note work-note--yellow work-note--hero',
     ts: Date.parse('2025-08-18'),
+    featured: false,
+    sortOrder: 0,
   },
   {
     slug: 'formation-editor',
@@ -45,6 +49,8 @@ const SEED_WORKS: Work[] = [
       'https://works.xgteacher.cn/media/covers/57b7dea2-a05e-4f67-9ed9-19b47bc0bda5/0df250aa-775f-416f-ba77-820aa326fa56.png',
     className: 'work-note work-note--blue work-note--side',
     ts: Date.parse('2025-07-30'),
+    featured: false,
+    sortOrder: 0,
   },
 ];
 
@@ -74,6 +80,7 @@ type DbWork = {
   description: string | null;
   featured?: number;
   sortOrder?: number;
+  viewCount?: number;
   createdAt?: string | null;
 };
 
@@ -87,13 +94,15 @@ function mapDbWork(w: DbWork, index: number): Work {
     category: w.category || '作品',
     date: formatDate(w.createdAt),
     student: studentLabel || '匿名学员',
-    views: 0,
+    views: typeof w.viewCount === 'number' ? w.viewCount : 0,
     description: w.description || '',
     cover: w.coverImage || '',
     className: w.featured
       ? 'work-note work-note--yellow work-note--hero'
       : VISUAL_CLASSES[index % VISUAL_CLASSES.length],
     ts: w.createdAt ? Date.parse(w.createdAt) : 0,
+    featured: !!w.featured,
+    sortOrder: typeof w.sortOrder === 'number' ? w.sortOrder : 0,
   };
 }
 
@@ -133,6 +142,15 @@ export default function WorksPage() {
     [liveWorks],
   );
 
+  // 精选作品单独成区，不再混在下方全部作品里重复出现。
+  const featuredWorks = useMemo(
+    () =>
+      allWorks
+        .filter((w) => w.featured)
+        .sort((a, b) => a.sortOrder - b.sortOrder || b.ts - a.ts),
+    [allWorks],
+  );
+
   const visibleWorks = useMemo(() => {
     const q = query.trim().toLowerCase();
     const filtered = allWorks.filter((work) => {
@@ -144,9 +162,20 @@ export default function WorksPage() {
       );
     });
 
-    return [...filtered].sort((a, b) =>
-      sort === 'latest' ? b.ts - a.ts : b.views - a.views,
-    );
+    // 关键：精选必须置顶。
+    // 之前这里直接按 ts/views 重排，把 API 已经算好的 featured DESC
+    // 顺序整个丢掉了 —— 后台点「精选」页面上毫无变化就是这个原因。
+    // 现在排序规则：精选优先 → sortOrder → 当前排序方式。
+    // 注意：有搜索词时不做精选特殊化，让结果纯粹按相关度呈现。
+    const cmp = q
+      ? (a: Work, b: Work) => b.ts - a.ts
+      : (a: Work, b: Work) => {
+          if (a.featured !== b.featured) return a.featured ? -1 : 1;
+          if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+          return sort === 'hot' ? b.views - a.views : b.ts - a.ts;
+        };
+
+    return [...filtered].sort(cmp);
   }, [query, sort, allWorks]);
 
   return (
@@ -243,6 +272,55 @@ export default function WorksPage() {
           </button>
         </div>
       </section>
+
+      {/* 精选专区：后台勾选「精选」的作品会出现在这里。
+          精选作品同时仍按 featured 置顶排序保留在下方作品墙中，
+          保证「精选」既醒目、又不脱离完整列表。 */}
+      {!loading && !loadError && featuredWorks.length > 0 && !query.trim() ? (
+        <section className="works-featured" aria-labelledby="featured-title">
+          <header className="works-featured-head">
+            <div>
+              <p className="mono works-featured-kicker">SELECTED / 精选</p>
+              <h2 id="featured-title">老师挑出来的这几个</h2>
+            </div>
+            <p className="works-featured-note">
+              共 {featuredWorks.length} 个 · 在真实问题里做出的完整作品
+            </p>
+          </header>
+          <div className="works-featured-rail">
+            {featuredWorks.map((work) => (
+              <Link
+                key={`featured-${work.slug}`}
+                href={`/camp/work/${work.slug}`}
+                className="works-featured-card"
+                aria-label={`查看精选作品：${work.title}`}
+              >
+                <figure className="works-featured-image">
+                  {work.cover ? (
+                    <img
+                      src={work.cover}
+                      alt={`${work.title}项目封面`}
+                      loading="lazy"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.display =
+                          'none';
+                      }}
+                    />
+                  ) : null}
+                </figure>
+                <div className="works-featured-copy">
+                  <div className="work-note-topline mono">
+                    <span>{work.category}</span>
+                    <span>{work.student}</span>
+                  </div>
+                  <h3>{work.title}</h3>
+                  <p>{work.description}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="works-wall" aria-live="polite">
         {loading ? (
