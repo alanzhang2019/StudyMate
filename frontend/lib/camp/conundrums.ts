@@ -234,17 +234,6 @@ export const CONUNDRA: Conundrum[] = [
     bilibiliVideos: [{ title: 'The Martian Conundrum', bvid: 'BV17t6hY4EZA', url: 'https://www.bilibili.com/video/BV17t6hY4EZA/' }, { title: 'The Martian Conundrum', bvid: 'BV1KAKt6qEcg', url: 'https://www.bilibili.com/video/BV1KAKt6qEcg/' }],
   },
   {
-    id: 'presidential',
-    title: '总统年龄难题',
-    original: 'The Presidential Conundrum',
-    category: '伦理·公平',
-    situation: '选民把票写给了 Nova Sweet 当总统，可她不够法定年龄。',
-    question: '国家接下来该怎么做？',
-    discussion: ['规则与民意冲突时听谁的？', '年龄门槛合理吗？'],
-    aiProject: '做「年龄与权利」科普页，孩子查不同权利的法定年龄。',
-    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Presidential%20Conundrum',
-  },
-  {
     id: 'dinosaur',
     title: '恐龙复活难题',
     original: 'The Dinosaur Conundrum',
