@@ -131,7 +131,9 @@ export default function ConundrumsPage() {
                             ))}
                           </ul>
                         ) : (
-                          <p className="conundrum-video-empty">这个课题暂无中文视频。</p>
+                          <p className="conundrum-video-empty">
+                            这个课题暂时还没有中文视频，可以先去 B 站找找看。
+                          </p>
                         )}
                         <a
                           className="conundrum-video-search"
