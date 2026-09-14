@@ -9,7 +9,7 @@ StudyMate（作业通，aijiangti.cn）— K12 AI 学习闭环的 monorepo。**�
 |---|---|---|---|
 | 小学 4-6 年级数学错题讲解 | 学生+家长 | `/mistake`、`/generation-preview` | MVP，backend 启发式诊断 + 前端 OpenMAIC 改造；端口 backend 3000 / frontend 3001 |
 | CSP 真题训练 / 王牌战队2 | 信奥学生 | `/csp-lecture`、`/classroom/[id]` | 10 个学员按 A/B/C/D 梯队分组；第三方 Vjudge-AI-report C++ 接入已落地（subject='cpp', verdict ∈ AC/WA/TLE/RE/CE/MLE/PE） |
-| 少年 AI 创造营 | 7-12 岁孩子 | `/camp`、`/camp/works`、`/camp/prepare` | `edu.xgteacher.cn`，Alan张老师个人品牌，工具栈 **Trae IDE + WorkBuddy**；2026-08-30 上线三张业务表（camp_students/camp_class_logs/camp_works）；作品走 `works.xgteacher.cn`；历史成绩 **2000+ 学员作品 / 15 年项目教学经验** |
+| 少年 AI 创造营 | 7-12 岁孩子 | `/camp`、`/camp/works`、`/camp/prepare`、`/camp/submit` | `edu.xgteacher.cn`，Alan张老师个人品牌，工具栈 **Trae IDE + WorkBuddy**；2026-08-30 上线三张业务表（camp_students/camp_class_logs/camp_works）；作品走 `works.xgteacher.cn`；历史成绩 **2000+ 学员作品 / 15 年项目教学经验** |
 
 ## 关键事实
 
@@ -21,6 +21,9 @@ StudyMate（作业通，aijiangti.cn）— K12 AI 学习闭环的 monorepo。**�
 - 启发式规则 vs LLM：偏好 `规则 + 结构化抽取 + LLM` 混合链路
 - CSP 真题卷走 QuizView 状态机：`not_started → answering → submitting → finalized`，含跨 6 scene 总分 + 重置
 - 第三方接入：`POST /api/integrations/mistake` + `GET /api/integrations/jobs/{id}`，IP 限流（创建 10/min、轮询 120/min、重试 10/min）
+- 少年 AI 创造营「学生自助提交 → 老师审核」闭环：学生在 `/camp/submit` 填表 → `POST /api/camp/works`（公开、无需登录、入库即 `status=pending`，单 IP 10 分钟 8 次限流 + 蜜罐防垃圾）→ 老师 `/admin/camp/works` 点「通过」→ 公开墙 `/camp/works` 展示。`camp_works.studentId` 已为可空（学生无学员档案时存 `studentName`）。
+- 少年 AI 创造营「上传 HTML 作品 → 自动介绍/封面 → 匿名二次编辑」：`camp_works` 含 `htmlFile/editToken/coverSource` 三列；HTML 落盘 `DB_DIR/camp-uploads/`、封面落盘 `DB_DIR/camp-covers/`；自动介绍走 `callLLM`、自动封面走 `generateImage(seedream)`（`lib/server/camp-work-autogen.ts`）；学生凭 `editToken` 访问 `/camp/works/edit/<token>` 编辑页二次修改。
+- **服务器部署路径 `/home/ubuntu/studymate`**，实际生效命令：`cd /home/ubuntu/studymate && git pull origin master && docker compose up -d --build frontend`（只动 frontend 时够用；传课件需补 `sudo frontend/scripts/fix-bind-mount-perms.sh`）。
 
 ## 易漏点（踩过的坑）
 
@@ -30,6 +33,8 @@ StudyMate（作业通，aijiangti.cn）— K12 AI 学习闭环的 monorepo。**�
 - "少年 AI 创造营"完全独立于"涌现智训 / Emergix"（涌现智训是 B 端企业培训，是另一个人设；少年 AI 创造营是 C 端 7-12 岁启蒙）
 - **Next.js 15+ 动态路由 `params` 是 Promise**：App Router 的 `page.tsx` 和 `route.ts` handler 都必须 `await params`，否则 `[id]` 路由取到的 `id` 是 undefined，导致 findUnique 404。本项目已因此在 `admin/camp/works/[id]` 审核时报"作品不存在"。
 - 少年 AI 创造营对外品牌统一为 **Alan张老师**（C 端 7-12 岁启蒙），代码里资产/类名已统一为 `alan-` 前缀；**勿再新增 `xgls-` 引用**，也勿在页面恢复 XIAOGAO LAB / 苏ICP备 / 苏公网安备 字样（用户已要求移除）。
+- **同一条消息里对同一文件发多个 Edit 会静默丢失部分改动**（返回"Successfully edited"但没落盘），已踩 2 次（handleShare、HTML 上传功能）。**同文件多改动用 Read 完整 + Write 重写，或逐个 Edit 分开发消息；提交前 grep/git diff 逐点核对。**
+- 自动封面依赖 `resolveImageApiKey('seedream')`（读 server-providers.yml 或 env）；生产 docker-compose 只显式配了 KIMI_API_KEY，**未配 seedream 图生 key** → 自动封面会静默跳过（coverSource='none'，学生可手动上传）。需在服务器确认 SEEDREAM key 是否已配。
 
 ## 记忆盲区提醒
 
