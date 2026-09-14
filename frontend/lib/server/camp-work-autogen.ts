@@ -28,6 +28,7 @@ const log = createLogger('CampWorkAutoGen');
 const DATA_DIR = process.env.STUDYMATE_DB_DIR ?? '/tmp/studymate';
 const UPLOADS_DIR = path.join(DATA_DIR, 'camp-uploads');
 const COVERS_DIR = path.join(DATA_DIR, 'camp-covers');
+const VIDEOS_DIR = path.join(DATA_DIR, 'camp-videos');
 
 function ensureDir(dir: string): void {
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
@@ -41,6 +42,25 @@ export function htmlFilePath(workId: string): string {
 /** 封面文件绝对路径；filename 形如 `<id>.png`，调用方须保证无路径穿越 */
 export function coverFilePath(filename: string): string {
   return path.join(COVERS_DIR, filename);
+}
+
+/** 作品介绍视频落盘目录（camp-videos/） */
+export function videoDir(): string {
+  return VIDEOS_DIR;
+}
+
+/**
+ * 介绍视频文件绝对路径。
+ * @param workId 作品 id
+ * @param ext    扩展名（不含点，如 mp4 / webm / mov）
+ */
+export function videoFilePath(workId: string, ext: string): string {
+  return path.join(VIDEOS_DIR, `${workId}.${ext}`);
+}
+
+/** 介绍视频对外服务 URL（与 /api/camp/videos/[filename] 路由一致） */
+export function videoServeUrl(workId: string, ext: string): string {
+  return `/api/camp/videos/${workId}.${ext}`;
 }
 
 /** 落盘学生上传的 HTML，返回存库用的相对路径（相对 DB_DIR） */

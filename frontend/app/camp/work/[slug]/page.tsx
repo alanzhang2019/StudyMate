@@ -35,6 +35,7 @@ type WorkDetail = {
   teacherComment: string;
   shareTitle: string;
   shareText: string;
+  video: string;
 };
 
 const ANIMAL_COVER =
@@ -111,6 +112,7 @@ const SEED_WORKS: Record<string, WorkDetail> = {
       '炳炳对「游戏规则」有天然的敏感——从动物乱斗到迷宫寻路，是他自己想清楚了什么好玩、什么公平。最打动我的是他不怕改：规则不对就推翻重来，这比任何技巧都珍贵。',
     shareTitle: '动物迷宫大乱斗',
     shareText: '7 岁炳炳用 AI 做的游戏',
+    video: '',
   },
   'formation-editor': {
     slug: 'formation-editor',
@@ -171,6 +173,7 @@ const SEED_WORKS: Record<string, WorkDetail> = {
       '小高是典型的「问题发现者」——排队形这件小事，他盯住了就不放。从画场地到拖拽、保存、导出，每一步都在解决一个真实需求。工具感很强，是我很欣赏的产品直觉。',
     shareTitle: 'Formation 队形编辑器',
     shareText: '6 岁小高用 AI 做的工具',
+    video: '',
   },
 };
 
@@ -361,6 +364,12 @@ function mapDbWorkToDetail(row: any): WorkDetail {
     radarNodes: radar.nodes,
     radarScores: hasRadar ? scores : [],
     teacherComment: row.teacherComment || '',
+    // 介绍视频：优先用后台上传的本地文件（/api/camp/videos/...），
+    // 其次用外部直链（仅允许 http(s)，避免注入非法协议）。
+    video:
+      row.introVideoFile ||
+      (/^https?:\/\//i.test(row.introVideoUrl || '') ? row.introVideoUrl : '') ||
+      '',
     shareTitle: row.title || '学员作品',
     shareText: `${studentLabel || '学员'} 的作品`,
   };
@@ -439,6 +448,7 @@ export default function WorkDetailPage() {
   const hasLessons = work.lessons && work.lessons.length > 0;
   const hasRadar = work.radarNodes && work.radarNodes.length > 0;
   const hasTeacherComment = !!work.teacherComment && work.teacherComment.trim().length > 0;
+  const hasVideo = !!work.video && work.video.trim().length > 0;
   const hasExternal = !!work.externalUrl;
   const hasHtml = !!work.hasHtml;
 
@@ -560,6 +570,18 @@ export default function WorkDetailPage() {
           {work.figcaption ? <figcaption>{work.figcaption}</figcaption> : null}
         </figure>
       </section>
+
+      {hasVideo ? (
+        <section className="work-video">
+          <header className="work-video-heading">
+            <p className="section-kicker">VIDEO / 作品介绍</p>
+            <h2>看看孩子怎么讲自己的作品</h2>
+          </header>
+          <div className="work-video-frame">
+            <video src={work.video} controls preload="metadata" playsInline />
+          </div>
+        </section>
+      ) : null}
 
       {hasLessons ? (
         <section className="work-process-log">

@@ -113,6 +113,8 @@ export const POST = withAdminAuth(async (req: NextRequest) => {
       processLog,
       ability,
       teacherComment,
+      introVideoFile,
+      introVideoUrl,
     } = body;
 
     if (!title || !studentId) {
@@ -168,6 +170,13 @@ export const POST = withAdminAuth(async (req: NextRequest) => {
     }
     if (teacherComment !== undefined && teacherComment !== null && teacherComment !== '') {
       data.teacherComment = teacherComment;
+    }
+    // 作品介绍视频：本地上传文件 URL 或外部直链。
+    if (introVideoFile !== undefined && introVideoFile !== null && introVideoFile !== '') {
+      data.introVideoFile = introVideoFile;
+    }
+    if (introVideoUrl !== undefined && introVideoUrl !== null && introVideoUrl !== '') {
+      data.introVideoUrl = introVideoUrl;
     }
 
     const created = await db.campWork.create({ data });

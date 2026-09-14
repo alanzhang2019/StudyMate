@@ -75,6 +75,8 @@ export const PATCH = withAdminAuth(async (req: NextRequest, { params }: { params
       processLog,
       ability,
       teacherComment,
+      introVideoFile,
+      introVideoUrl,
     } = body;
 
     const data: any = {
@@ -159,6 +161,13 @@ export const PATCH = withAdminAuth(async (req: NextRequest, { params }: { params
     }
     if (teacherComment !== undefined) {
       data.teacherComment = teacherComment === '' ? null : teacherComment;
+    }
+    // 作品介绍视频：本地上传文件 URL（/api/camp/videos/...）或外部直链。
+    if (introVideoFile !== undefined) {
+      data.introVideoFile = introVideoFile === '' ? null : introVideoFile;
+    }
+    if (introVideoUrl !== undefined) {
+      data.introVideoUrl = introVideoUrl === '' ? null : introVideoUrl;
     }
 
     await db.campWork.update({ where: { id }, data });

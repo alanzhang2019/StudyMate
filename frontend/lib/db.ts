@@ -812,6 +812,21 @@ function applyMigrations(db: Database): void {
       // column already exists
     }
   }
+
+  // 2026-09-14：作品「介绍视频」。老师后台可上传本地视频文件（introVideoFile
+  // 存服务 URL 形如 /api/camp/videos/<id>.mp4），也可填外部直链（introVideoUrl）。
+  // 两列都可空，老库平滑补齐。详情页优先用上传文件，其次用直链。
+  const campWorkVideoCols: Array<[string, string]> = [
+    ['introVideoFile', 'TEXT'],
+    ['introVideoUrl', 'TEXT'],
+  ]
+  for (const [col, type] of campWorkVideoCols) {
+    try {
+      db.exec(`ALTER TABLE camp_works ADD COLUMN ${col} ${type}`)
+    } catch {
+      // column already exists
+    }
+  }
 }
 
 const now = () => new Date().toISOString()

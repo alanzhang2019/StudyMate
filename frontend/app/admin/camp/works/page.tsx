@@ -24,6 +24,8 @@ type Work = {
   processLog: ProcessLogEntry[];
   ability: AbilityAssessment | null;
   teacherComment: string | null;
+  introVideoFile: string | null;
+  introVideoUrl: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -188,6 +190,8 @@ export default function AdminCampWorksPage() {
         processLog: formData.processLog ?? [],
         ability: formData.ability ?? null,
         teacherComment: formData.teacherComment ?? '',
+        introVideoFile: formData.introVideoFile || null,
+        introVideoUrl: formData.introVideoUrl || null,
       };
 
       let res: Response;
@@ -701,6 +705,8 @@ function WorkFormModal({
     featured: !!initial?.featured,
     sortOrder: initial?.sortOrder ?? 0,
     teacherComment: initial?.teacherComment ?? '',
+    introVideoFile: initial?.introVideoFile ?? '',
+    introVideoUrl: initial?.introVideoUrl ?? '',
     ability: {
       heading: initial?.ability?.heading ?? '',
       intro: initial?.ability?.intro ?? '',
@@ -714,6 +720,46 @@ function WorkFormModal({
 
   const setField = (k: string, v: any) =>
     setForm((f) => ({ ...(f as any), [k]: v }));
+
+  // 上传作品介绍视频到服务器（仅编辑已有作品时可用，需 work.id）。
+  const [uploading, setUploading] = useState(false);
+  const uploadVideo = async (file: File) => {
+    if (!initial?.id) {
+      alert('请先保存作品，再上传视频');
+      return;
+    }
+    if (
+      !/^video\//.test(file.type) &&
+      !/\.(mp4|webm|mov|m4v)$/i.test(file.name)
+    ) {
+      alert('仅支持 mp4 / webm / mov / m4v 格式');
+      return;
+    }
+    if (file.size > 200 * 1024 * 1024) {
+      alert('视频不能超过 200MB');
+      return;
+    }
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('video', file);
+      const res = await fetch(`/api/admin/camp/works/${initial.id}/video`, {
+        method: 'POST',
+        body: fd,
+      });
+      const json = await res.json();
+      if (!json.success) {
+        alert(json.error || '上传失败');
+        return;
+      }
+      setForm((f) => ({ ...f, introVideoFile: json.data.url, introVideoUrl: '' }));
+      alert('视频上传成功');
+    } catch (e: any) {
+      alert(e?.message || '上传失败');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   // 更新创作记录第 i 条的某个字段。
   const updateProcessLog = (
@@ -1060,6 +1106,69 @@ function WorkFormModal({
               </p>
             )}
           </div>
+        </div>
+
+        {/* ===== 作品介绍视频 ===== */}
+        <div className="sm:col-span-2 border-t pt-4 mt-2">
+          <h3 className="text-base font-semibold text-gray-900 mb-1">
+            作品介绍视频
+          </h3>
+          <p className="text-xs text-gray-500 mb-3">
+            老师可上传本地视频（≤200MB，mp4/webm/mov），或填一个视频直链。
+          </p>
+          {(form.introVideoFile || form.introVideoUrl) && (
+            <div className="mb-3">
+              <video
+                src={form.introVideoFile || form.introVideoUrl}
+                controls
+                className="w-full max-h-64 rounded-md bg-black"
+              />
+            </div>
+          )}
+          <div className="flex flex-wrap items-center gap-3">
+            <input
+              type="file"
+              accept="video/mp4,video/webm,video/quicktime"
+              disabled={uploading || !initial?.id}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) uploadVideo(f);
+                e.currentTarget.value = '';
+              }}
+              className="text-sm"
+            />
+            {uploading && (
+              <span className="text-xs text-gray-500">上传中…</span>
+            )}
+            {!initial?.id && (
+              <span className="text-xs text-amber-600">
+                保存作品后即可上传视频
+              </span>
+            )}
+          </div>
+          <input
+            className="w-full border rounded-md px-3 py-2 text-sm mt-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            placeholder="或填视频直链 https://..."
+            value={form.introVideoUrl}
+            onChange={(e) =>
+              setForm((f) => ({
+                ...f,
+                introVideoUrl: e.target.value,
+                introVideoFile: e.target.value ? '' : f.introVideoFile,
+              }))
+            }
+          />
+          {(form.introVideoFile || form.introVideoUrl) && (
+            <button
+              type="button"
+              onClick={() =>
+                setForm((f) => ({ ...f, introVideoFile: '', introVideoUrl: '' }))
+              }
+              className="mt-2 px-3 py-1 text-sm rounded-md border border-red-200 text-red-600 hover:bg-red-50 transition"
+            >
+              清除视频
+            </button>
+          )}
         </div>
 
         <div className="sm:col-span-2 flex items-center gap-2">
