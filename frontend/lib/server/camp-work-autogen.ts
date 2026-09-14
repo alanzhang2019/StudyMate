@@ -21,7 +21,7 @@ import {
   resolveImageBaseUrl,
 } from '@/lib/server/provider-config';
 import { createLogger } from '@/lib/logger';
-import { screenshotHtmlToPng } from '@/lib/server/camp-work-screenshot';
+import { screenshotHtmlToPng, screenshotHtmlVariants } from '@/lib/server/camp-work-screenshot';
 
 const log = createLogger('CampWorkAutoGen');
 
@@ -187,9 +187,9 @@ export async function generateWorkReviews(params: {
     '    "scores": [创造力, 逻辑, 表达, 协作, 审美] 五个 0-10 的整数，基于孩子年龄和作品难度合理打分，不要全给满分\n' +
     '  },\n' +
     '  "processLog": [\n' +
-    '    {"time":"第1次课","tag":"阶段标签","title":"小标题","description":"1-2句描述"},\n' +
-    '    {"time":"第2次课","tag":"阶段标签","title":"小标题","description":"1-2句描述"},\n' +
-    '    {"time":"第3次课","tag":"阶段标签","title":"小标题","description":"1-2句描述"}\n' +
+    '    {"time":"第一阶段","tag":"阶段标签","title":"小标题","description":"1-2句描述"},\n' +
+    '    {"time":"第二阶段","tag":"阶段标签","title":"小标题","description":"1-2句描述"},\n' +
+    '    {"time":"第三阶段","tag":"阶段标签","title":"小标题","description":"1-2句描述"}\n' +
     '  ]\n' +
     '}\n' +
     'processLog 给 3 条，按「想法 → 实现 → 打磨发布」的节奏写。';
@@ -383,11 +383,23 @@ export async function runWorkAutoGen(workId: string): Promise<void> {
           description,
         });
         if (reviews) {
-          // 创作记录每节课截图：LLM 通常不返回有效图片，统一用作品封面兜底。
+          // 创作记录每阶段截图：优先从 HTML 作品截取 3 张不同时间点的真实画面，
+          // 截不到再用封面兜底，最后才是空图（详情页会显示占位）。
+          let stageImages: string[] = [];
+          if (row.htmlFile) {
+            try {
+              stageImages = await screenshotHtmlVariants(workId);
+            } catch (e) {
+              log.warn(`[camp-work-autogen] stage screenshots failed for ${workId}`, e);
+            }
+          }
           const cover = coverImage;
-          const processLog = (reviews.processLog || []).map((p) => ({
+          const processLog = (reviews.processLog || []).map((p, idx) => ({
             ...p,
-            image: p.image && p.image.trim() ? p.image : cover || '',
+            image:
+              p.image && p.image.trim()
+                ? p.image
+                : stageImages[idx] || cover || '',
           }));
           getDb()
             .prepare(

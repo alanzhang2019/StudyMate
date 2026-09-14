@@ -48,11 +48,21 @@ function runChromium(chrome: string, args: string[]): Promise<void> {
   });
 }
 
+interface ScreenshotOptions {
+  /** 虚拟时间预算（毫秒），越大页面动画推进越久，截到的画面越靠后 */
+  budget?: number;
+  /** 截图落盘绝对路径；默认 coverFilePath(`${workId}.png`) */
+  output?: string;
+}
+
 /**
- * 把作品 HTML 截图成封面 PNG。
- * @returns 成功时返回封面落盘的绝对路径，失败返回 null。
+ * 把作品 HTML 截图成 PNG。
+ * @returns 成功时返回截图落盘的绝对路径，失败返回 null。
  */
-export async function screenshotHtmlToPng(workId: string): Promise<string | null> {
+export async function screenshotHtmlToPng(
+  workId: string,
+  options?: ScreenshotOptions,
+): Promise<string | null> {
   const chrome = findChromium();
   if (!chrome) {
     log('chromium not found, skip screenshot');
@@ -65,11 +75,12 @@ export async function screenshotHtmlToPng(workId: string): Promise<string | null
     return null;
   }
 
-  const output = coverFilePath(`${workId}.png`);
+  const output = options?.output ?? coverFilePath(`${workId}.png`);
   // 提前确保父目录存在，chromium CLI --screenshot 不会自动创建目录
   // (Docker named volume 第一次写入时尤其需要)
   mkdirSync(path.dirname(output), { recursive: true });
   // 封面统一 4:3（960×720），与作品墙卡片一致
+  const budget = options?.budget ?? 5000;
   const args = [
     '--headless=new',
     '--no-sandbox',
@@ -80,7 +91,7 @@ export async function screenshotHtmlToPng(workId: string): Promise<string | null
     '--force-device-scale-factor=1',
     '--window-size=960,720',
     // 让 chromium 前进虚拟时间，等待 JS 初始化 / canvas 动画渲染出画面
-    '--virtual-time-budget=5000',
+    `--virtual-time-budget=${budget}`,
     `--screenshot=${output}`,
     `file://${pathToFileUrl(input)}`,
   ];
@@ -101,6 +112,44 @@ export async function screenshotHtmlToPng(workId: string): Promise<string | null
   } catch {
     return null;
   }
+}
+
+/**
+ * 为作品 HTML 截取 3 张不同时间点的过程截图。
+ * 用不同 virtual-time-budget 让 canvas/动画/游戏作品呈现不同画面；
+ * 静态作品可能差异较小，但仍优于 3 张完全相同封面。
+ * @returns 3 张截图的服务 URL 数组（可能少于 3 张，由调用方用封面兜底）
+ */
+export async function screenshotHtmlVariants(workId: string): Promise<string[]> {
+  const chrome = findChromium();
+  if (!chrome) {
+    log('chromium not found, skip variants');
+    return [];
+  }
+
+  const input = htmlFilePath(workId);
+  if (!existsSync(input)) {
+    log(`html not found for variants ${workId}`);
+    return [];
+  }
+
+  // 3 秒 / 8 秒 / 15 秒，分别对应「初始界面 → 进行中 → 后期/结束」
+  const budgets = [3000, 8000, 15000];
+  const urls: string[] = [];
+
+  for (let i = 0; i < budgets.length; i++) {
+    const filename = `${workId}-log-${i}.png`;
+    const output = coverFilePath(filename);
+    const shot = await screenshotHtmlToPng(workId, {
+      budget: budgets[i],
+      output,
+    });
+    if (shot) {
+      urls.push(`/api/camp/covers/${filename}`);
+    }
+  }
+
+  return urls;
 }
 
 function pathToFileUrl(p: string): string {

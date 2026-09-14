@@ -25,6 +25,8 @@
 
 import Database from 'better-sqlite3';
 import path from 'path';
+import { execFile } from 'child_process';
+import { existsSync, statSync, mkdirSync } from 'fs';
 
 // ---------- 配置 ----------
 const DB_DIR = process.env.STUDYMATE_DB_DIR || '/tmp/studymate';
@@ -41,6 +43,87 @@ const modelIdx = args.indexOf('--model');
 const MODEL = modelIdx >= 0 ? args[modelIdx + 1] : 'deepseek/deepseek-v4-flash-20260731';
 
 const log = (msg) => console.log(`[backfill] ${msg}`);
+
+// ---------- 截图工具（内联，避免 import TS 模块） ----------
+const CHROMIUM_CANDIDATES = [
+  process.env.CHROMIUM_PATH || '',
+  '/usr/bin/chromium',
+  '/usr/bin/chromium-browser',
+  '/usr/bin/google-chrome',
+  '/usr/bin/chromium-headless',
+].filter(Boolean);
+
+function findChromium() {
+  for (const p of CHROMIUM_CANDIDATES) {
+    if (existsSync(p)) return p;
+  }
+  return null;
+}
+
+function runChromium(chrome, args) {
+  return new Promise((resolve, reject) => {
+    execFile(chrome, args, { timeout: 30000, maxBuffer: 10 * 1024 * 1024 }, (err) => {
+      if (err) reject(err);
+      else resolve();
+    });
+  });
+}
+
+function htmlFilePath(workId) {
+  return path.join(DB_DIR, 'camp-uploads', `${workId}.html`);
+}
+
+function coverFilePath(filename) {
+  return path.join(DB_DIR, 'camp-covers', filename);
+}
+
+async function screenshotHtmlVariant(workId, budget, output) {
+  const chrome = findChromium();
+  if (!chrome) return null;
+  const input = htmlFilePath(workId);
+  if (!existsSync(input)) return null;
+  mkdirSync(path.dirname(output), { recursive: true });
+  const args = [
+    '--headless=new',
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-gpu',
+    '--disable-dev-shm-usage',
+    '--hide-scrollbars',
+    '--force-device-scale-factor=1',
+    '--window-size=960,720',
+    `--virtual-time-budget=${budget}`,
+    `--screenshot=${output}`,
+    `file://${input.replace(/\\/g, '/')}`,
+  ];
+  try {
+    await runChromium(chrome, args);
+  } catch (e) {
+    return null;
+  }
+  try {
+    if (existsSync(output) && statSync(output).size > 0) return output;
+  } catch {
+    /* noop */
+  }
+  return null;
+}
+
+async function screenshotHtmlVariants(workId) {
+  const chrome = findChromium();
+  if (!chrome) return [];
+  const input = htmlFilePath(workId);
+  if (!existsSync(input)) return [];
+  const budgets = [3000, 8000, 15000];
+  const urls = [];
+  for (let i = 0; i < budgets.length; i++) {
+    const filename = `${workId}-log-${i}.png`;
+    const output = coverFilePath(filename);
+    const shot = await screenshotHtmlVariant(workId, budgets[i], output);
+    if (shot) urls.push(`/api/camp/covers/${filename}`);
+  }
+  return urls;
+}
 
 // ---------- 工具 ----------
 function parseJsonFromText(text) {
@@ -131,9 +214,9 @@ const SYSTEM_PROMPT =
   '    "scores": [创造力, 逻辑, 表达, 协作, 审美] 五个 0-10 的整数，基于孩子年龄和作品难度合理打分，不要全给满分\n' +
   '  },\n' +
   '  "processLog": [\n' +
-  '    {"time":"第1次课","tag":"阶段标签","title":"小标题","description":"1-2句描述"},\n' +
-  '    {"time":"第2次课","tag":"阶段标签","title":"小标题","description":"1-2句描述"},\n' +
-  '    {"time":"第3次课","tag":"阶段标签","title":"小标题","description":"1-2句描述"}\n' +
+  '    {"time":"第一阶段","tag":"阶段标签","title":"小标题","description":"1-2句描述"},\n' +
+  '    {"time":"第二阶段","tag":"阶段标签","title":"小标题","description":"1-2句描述"},\n' +
+  '    {"time":"第三阶段","tag":"阶段标签","title":"小标题","description":"1-2句描述"}\n' +
   '  ]\n' +
   '}\n' +
   'processLog 给 3 条，按「想法 → 实现 → 打磨发布」的节奏写。';
@@ -166,7 +249,7 @@ function main() {
   const gradeExpr = hasGrade ? 'grade' : "NULL AS grade";
 
   // 目标：approved 且（三块都空 或 强制覆盖）
-  let sql = `SELECT id, title, studentName, ${gradeExpr}, category, description, teacherComment, processLogJson, abilityJson
+  let sql = `SELECT id, title, studentName, ${gradeExpr}, category, description, htmlFile, coverImage, teacherComment, processLogJson, abilityJson
              FROM camp_works WHERE status = 'approved'`;
   if (!FORCE) {
     sql += ` AND (teacherComment IS NULL OR teacherComment = '')`;
@@ -218,15 +301,26 @@ function main() {
         note: typeof ability.note === 'string' ? ability.note : '',
         scores: clampScores(ability.scores),
       };
+      // 创作记录每阶段截图：优先从 HTML 作品截取 3 张不同时间点的真实画面
+      let stageImages = [];
+      if (row.htmlFile && !DRY_RUN) {
+        try {
+          stageImages = await screenshotHtmlVariants(row.id);
+        } catch (e) {
+          log(`  阶段截图失败：${e.message}`);
+        }
+      }
       const cover = row.coverImage || '';
       const processLog = Array.isArray(parsed.processLog)
         ? parsed.processLog
             .filter((it) => it && typeof it === 'object')
-            .map((it) => ({
+            .map((it, idx) => ({
               time: typeof it.time === 'string' ? it.time : '',
               tag: typeof it.tag === 'string' ? it.tag : '',
               image:
-                typeof it.image === 'string' && it.image.trim() ? it.image : cover,
+                typeof it.image === 'string' && it.image.trim()
+                  ? it.image
+                  : stageImages[idx] || cover,
               title: typeof it.title === 'string' ? it.title : '',
               description: typeof it.description === 'string' ? it.description : '',
             }))

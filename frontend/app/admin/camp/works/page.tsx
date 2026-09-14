@@ -761,6 +761,46 @@ function WorkFormModal({
     }
   };
 
+  // 上传创作记录第 i 条的过程截图。
+  const [uploadingImageIdx, setUploadingImageIdx] = useState<number | null>(null);
+  const uploadProcessImage = async (i: number, file: File) => {
+    if (!initial?.id) {
+      alert('请先保存作品，再上传图片');
+      return;
+    }
+    if (
+      !/^image\//.test(file.type) &&
+      !/\.(png|jpe?g|webp|gif)$/i.test(file.name)
+    ) {
+      alert('仅支持 png / jpg / jpeg / webp / gif 格式');
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      alert('图片不能超过 20MB');
+      return;
+    }
+    setUploadingImageIdx(i);
+    try {
+      const fd = new FormData();
+      fd.append('image', file);
+      const res = await fetch(`/api/admin/camp/works/${initial.id}/image`, {
+        method: 'POST',
+        body: fd,
+      });
+      const json = await res.json();
+      if (!json.success) {
+        alert(json.error || '上传失败');
+        return;
+      }
+      updateProcessLog(i, 'image', json.data.url);
+      alert('图片上传成功');
+    } catch (e: any) {
+      alert(e?.message || '上传失败');
+    } finally {
+      setUploadingImageIdx(null);
+    }
+  };
+
   // 更新创作记录第 i 条的某个字段。
   const updateProcessLog = (
     i: number,
@@ -1056,7 +1096,7 @@ function WorkFormModal({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <input
                     className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                    placeholder="时间（例：第 1 次课）"
+                    placeholder="阶段（例：第一阶段）"
                     value={entry.time}
                     onChange={(e) => updateProcessLog(i, 'time', e.target.value)}
                   />
@@ -1080,9 +1120,42 @@ function WorkFormModal({
                   value={entry.description}
                   onChange={(e) => updateProcessLog(i, 'description', e.target.value)}
                 />
+                {entry.image ? (
+                  <div className="mb-2">
+                    <img
+                      src={entry.image}
+                      alt="预览"
+                      className="h-24 rounded border object-cover bg-gray-100"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                ) : null}
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    disabled={uploadingImageIdx === i || !initial?.id}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) uploadProcessImage(i, f);
+                      e.currentTarget.value = '';
+                    }}
+                    className="text-sm"
+                  />
+                  {uploadingImageIdx === i && (
+                    <span className="text-xs text-gray-500">上传中…</span>
+                  )}
+                  {!initial?.id && (
+                    <span className="text-xs text-amber-600">
+                      保存作品后即可上传图片
+                    </span>
+                  )}
+                </div>
                 <input
                   className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                  placeholder="图片 URL（可选，留空用封面）"
+                  placeholder="或填图片 URL（留空用封面）"
                   value={entry.image}
                   onChange={(e) => updateProcessLog(i, 'image', e.target.value)}
                 />
