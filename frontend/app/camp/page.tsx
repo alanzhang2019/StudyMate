@@ -585,11 +585,6 @@ export default function CampPage() {
         <div className="section-shell about-grid">
           <div className="about-brand-identity">
             <img src="/assets/alan-avatar.png" alt="Alan张老师" />
-            <img
-              className="about-brand-wordmark"
-              src="/assets/alan-logo.svg"
-              alt="Alan张老师"
-            />
           </div>
           <div className="about-copy">
             <p className="section-kicker">ABOUT / 关于</p>
