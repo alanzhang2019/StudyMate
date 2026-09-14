@@ -841,3 +841,36 @@ input,textarea,select,button{color:inherit}
   from{opacity:0;transform:scale(.94) translateY(8px)}
   to{opacity:1;transform:scale(1) translateY(0)}
 }
+
+/* ===== Conundrum Library (Real-World Problems) ===== */
+.conundrum-hero{padding:clamp(7rem,12vh,9rem) 0 clamp(3rem,6vw,4rem)}
+.conundrum-hero h1{font-size:clamp(2.8rem,6vw,5.5rem);font-weight:510;letter-spacing:-.06em;line-height:1;margin:0}
+.conundrum-hero h1 .hero-thought{display:block}
+.conundrum-hero h1 .hero-action{display:block;color:var(--yellow)}
+.conundrum-hero-intro{color:var(--paper-muted);font-size:1.05rem;line-height:1.65;margin:1.4rem 0 0;max-width:34rem}
+
+.conundrum-list{padding-bottom:var(--section-space)}
+.conundrum-filters{display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:2.5rem}
+.conundrum-filter{border:1px solid var(--line);color:var(--paper-muted);font-size:.82rem;font-weight:650;padding:.55rem 1.1rem;transition:color .16s ease,background-color .16s ease,border-color .16s ease}
+.conundrum-filter:hover{color:var(--paper);border-color:var(--line-strong)}
+.conundrum-filter.is-active{background:var(--yellow);border-color:var(--yellow);color:var(--navy-950)}
+
+.conundrum-grid{display:grid;gap:1.25rem;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.conundrum-card{background:var(--navy-950);border:1px solid var(--line);display:flex;flex-direction:column;transition:border-color .18s ease,box-shadow .18s ease}
+.conundrum-card:hover{border-color:var(--line-strong);box-shadow:6px 8px rgba(0,0,0,.25)}
+.conundrum-card.is-open{border-color:var(--yellow)}
+.conundrum-card-head{align-items:flex-start;display:flex;flex-direction:column;gap:.5rem;padding:1.5rem 1.4rem;text-align:left;width:100%}
+.conundrum-card-cat{color:var(--yellow);font-family:var(--font-mono);font-size:.68rem;letter-spacing:.06em}
+.conundrum-card-head h3{font-size:1.4rem;font-weight:520;letter-spacing:-.03em;line-height:1.1;margin:0}
+.conundrum-card-q{color:var(--paper-muted);font-size:.88rem;line-height:1.55;margin:.2rem 0 0}
+.conundrum-card-toggle{color:var(--yellow);font-size:.78rem;font-weight:650;margin-top:.4rem}
+.conundrum-card-body{border-top:1px solid var(--line);display:grid;gap:1.1rem;padding:1.4rem}
+.conundrum-block-label{color:var(--yellow);font-family:var(--font-mono);font-size:.68rem;letter-spacing:.06em;display:block;margin-bottom:.4rem}
+.conundrum-block p{color:var(--paper);font-size:.9rem;line-height:1.65;margin:0}
+.conundrum-block ul{color:var(--paper-muted);font-size:.88rem;line-height:1.6;list-style:none;padding:0;display:grid;gap:.4rem}
+.conundrum-block ul li{padding-left:1.1rem;position:relative}
+.conundrum-block ul li:before{content:"·";color:var(--yellow);left:0;position:absolute}
+.conundrum-block-project{background:rgba(255,212,71,.06);border:1px solid rgba(255,212,71,.3);padding:1rem}
+.conundrum-block-project p{color:var(--paper)}
+.conundrum-block-hint{color:var(--yellow)!important;font-size:.78rem!important;margin-top:.5rem!important;opacity:.85}
+.conundrum-card-cta{margin-top:.4rem;width:100%}

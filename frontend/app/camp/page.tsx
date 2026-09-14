@@ -106,13 +106,13 @@ export default function CampPage() {
         <div className="hero-copy">
           <p className="hero-eyebrow">
             <span>AI 原生教育</span>
-            <span>适合 7 岁+的大小朋友</span>
+            <span>真实世界的问题</span>
           </p>
           <h1 id="hero-title">
-            <span className="hero-thought">有想法，</span>
-            <span className="hero-action">去实现！</span>
+            <span className="hero-thought">真实的问题，</span>
+            <span className="hero-action">去解决！</span>
           </h1>
-          <p className="hero-intro">与 AI 完成一个属于自己的数字产品。</p>
+          <p className="hero-intro">用 AI 一起面对真实世界的问题，做出能用的方案。</p>
           <div className="hero-actions">
             <Link href="/camp/works" className="button button-primary">
               看看作品
@@ -125,6 +125,9 @@ export default function CampPage() {
               >
                 <path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z" />
               </svg>
+            </Link>
+            <Link href="/camp/conundrums" className="button button-ghost">
+              真实问题库
             </Link>
             <a className="button button-ghost" href="#courses">
               了解课程
@@ -147,7 +150,7 @@ export default function CampPage() {
       <section id="featured-case" className="featured-case-section">
         <div className="section-shell">
           <header className="featured-case-heading">
-            <h2 className="featured-case-h2-single">一个案例，看懂AI原生教育</h2>
+            <h2 className="featured-case-h2-single">一个案例，看懂怎么解决真实问题</h2>
             <p>我们将用一期的时间和孩子一起打磨他的产品。能力在这个过程中自然而然地发芽、生长。</p>
           </header>
 
@@ -273,7 +276,7 @@ export default function CampPage() {
               <span className="heading-phrase">不是学完再做，</span>
               <span className="heading-phrase">是在做中学。</span>
             </h2>
-            <p>项目制学习（PBL）的核心是：孩子先有一个真实想做的项目，再在实现它的过程中学习需要的知识。</p>
+            <p>项目制学习（PBL）的核心是：孩子先有一个真实想解决的问题，再在解决它的过程中学习需要的知识。</p>
           </header>
 
           <div className="pbl-overview">
@@ -328,9 +331,9 @@ export default function CampPage() {
           <header className="journey-heading">
             <div>
               <p className="section-kicker">JOURNEY / 学习旅程</p>
-              <h2>一个项目，五个阶段</h2>
+              <h2>一个真实问题，五个阶段</h2>
             </div>
-            <p>从想法到发布，孩子会经历完整的创造旅程。</p>
+            <p>从问题到方案，孩子会经历完整的创造旅程。</p>
           </header>
           <div className="journey-progress">
             <i ref={journeyBarRef} id="journeyBar" />
@@ -589,7 +592,7 @@ export default function CampPage() {
           <div className="about-copy">
             <p className="section-kicker">ABOUT / 关于</p>
             <h2>我是Alan张老师</h2>
-            <p>我教孩子用 AI 做真实的产品。不是画画、不是搭积木，是真的能跑、能分享、能用的数字产品。</p>
+            <p>我教孩子用 AI 解决真实的问题。不是刷题、不是背概念，是真的能跑、能分享、能用的方案。</p>
             <p>过去 15 年，我在一线带过 2000+ 孩子做项目。我发现：当孩子有一个真实想做的事情，他们的学习能力和创造力会远超大人的想象。</p>
             <dl className="about-facts">
               <div>
@@ -614,7 +617,7 @@ export default function CampPage() {
                 <span>不要小看孩子，</span>
                 <span>给他们真实的工具。</span>
               </h3>
-              <p>7 岁的炳炳用 2 个阶段做出了《动物迷宫大乱斗》——有规则、有 AI、有交互。这不是玩具，是真正的产品。</p>
+              <p>7 岁的炳炳用 2 个阶段做出了《动物迷宫大乱斗》——有规则、有 AI、有交互。这不是玩具，是真正解决问题的作品。</p>
             </div>
           </div>
         </div>
@@ -646,7 +649,7 @@ export default function CampPage() {
         >
           <div className="site-footer-meta">
             <p>Alan张老师 · AI 原生教育</p>
-            <p>让每个孩子都有属于自己的数字产品</p>
+            <p>让每个孩子都能解决真实世界的问题</p>
           </div>
         </div>
       </footer>
