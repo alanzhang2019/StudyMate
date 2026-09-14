@@ -317,7 +317,10 @@ function mapDbWorkToDetail(row: any): WorkDetail {
     .map((it: any) => ({
       time: typeof it.time === 'string' ? it.time : '',
       tag: typeof it.tag === 'string' ? it.tag : '',
-      image: typeof it.image === 'string' ? it.image : row.coverImage || '',
+      image:
+        typeof it.image === 'string' && it.image.trim()
+          ? it.image
+          : row.coverImage || '',
       title: typeof it.title === 'string' ? it.title : '',
       description: typeof it.description === 'string' ? it.description : '',
     }));
@@ -573,7 +576,28 @@ export default function WorkDetailPage() {
                       <time>{lesson.time}</time>
                       <span>· {lesson.tag}</span>
                     </div>
-                    <img src={lesson.image} alt={`${lesson.time}作品截图`} />
+                    <div className="work-log-image">
+                      {lesson.image ? (
+                        <img
+                          src={lesson.image}
+                          alt={`${lesson.time}作品截图`}
+                          onError={(e) => {
+                            const img = e.currentTarget as HTMLImageElement;
+                            img.style.display = 'none';
+                            const ph = img.nextElementSibling as HTMLElement | null;
+                            if (ph) ph.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        className="work-log-image-placeholder"
+                        style={lesson.image ? undefined : { display: 'flex' }}
+                      >
+                        <span>
+                          {lesson.image ? '截图加载失败' : '暂未上传过程截图'}
+                        </span>
+                      </div>
+                    </div>
                     <strong>{lesson.title}</strong>
                     <p>{lesson.description}</p>
                     <span className="work-log-open">

@@ -218,13 +218,15 @@ function main() {
         note: typeof ability.note === 'string' ? ability.note : '',
         scores: clampScores(ability.scores),
       };
+      const cover = row.coverImage || '';
       const processLog = Array.isArray(parsed.processLog)
         ? parsed.processLog
             .filter((it) => it && typeof it === 'object')
             .map((it) => ({
               time: typeof it.time === 'string' ? it.time : '',
               tag: typeof it.tag === 'string' ? it.tag : '',
-              image: typeof it.image === 'string' ? it.image : '',
+              image:
+                typeof it.image === 'string' && it.image.trim() ? it.image : cover,
               title: typeof it.title === 'string' ? it.title : '',
               description: typeof it.description === 'string' ? it.description : '',
             }))

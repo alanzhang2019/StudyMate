@@ -363,12 +363,18 @@ export async function runWorkAutoGen(workId: string): Promise<void> {
           description,
         });
         if (reviews) {
+          // 创作记录每节课截图：LLM 通常不返回有效图片，统一用作品封面兜底。
+          const cover = coverImage;
+          const processLog = (reviews.processLog || []).map((p) => ({
+            ...p,
+            image: p.image && p.image.trim() ? p.image : cover || '',
+          }));
           getDb()
             .prepare(
               'UPDATE camp_works SET processLogJson = ?, abilityJson = ?, teacherComment = ?, updatedAt = ? WHERE id = ?',
             )
             .run(
-              JSON.stringify(reviews.processLog),
+              JSON.stringify(processLog),
               JSON.stringify(reviews.ability),
               reviews.teacherComment,
               new Date().toISOString(),
