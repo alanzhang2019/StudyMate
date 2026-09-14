@@ -182,10 +182,8 @@ export default function WorksPage() {
       <section className="works-intro" aria-labelledby="works-title">
         <div className="works-intro-copy">
           <p className="works-index mono">WORK WALL / 02</p>
-          <h1 id="works-title">
-            孩子们的想法，
-            <br />
-            <span>贴在这里。</span>
+          <h1 id="works-title" className="works-title-single">
+            孩子们的想法，贴在这里。
           </h1>
           <p>每一张便签，记录一个从想法到作品的过程。</p>
         </div>

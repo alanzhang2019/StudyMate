@@ -109,7 +109,7 @@ export default function CampPage() {
         <div className="hero-copy">
           <p className="hero-eyebrow">
             <span>AI 原生教育</span>
-            <span>适合 7-12 岁孩子</span>
+            <span>适合 7 岁+的大小朋友</span>
           </p>
           <h1 id="hero-title">
             <span className="hero-thought">有想法，</span>
@@ -138,7 +138,7 @@ export default function CampPage() {
           </div>
         </div>
         <div className="hero-facts mono" aria-label="课程概要">
-          <span>20 课时</span>
+          <span>每天</span>
           <span>1 个项目</span>
           <span>1 次发布</span>
         </div>
@@ -147,7 +147,7 @@ export default function CampPage() {
       <section id="featured-case" className="featured-case-section">
         <div className="section-shell">
           <header className="featured-case-heading">
-            <h2>一个案例，看懂创造营</h2>
+            <h2 className="featured-case-h2-single">一个案例，看懂创造营</h2>
             <p>我们将用一期的时间和孩子一起打磨他的产品。能力在这个过程中自然而然地发芽、生长。</p>
           </header>
 
@@ -156,8 +156,8 @@ export default function CampPage() {
               <div className="featured-case-project-header">
                 <div className="featured-case-project">
                   <span className="mono">互动游戏 / STUDENT PROJECT</span>
-                  <h3>七岁炳炳的《动物迷宫大乱斗》</h3>
-                  <p>一个项目不是一次就完成的。10 节课中，我们不断发现问题、调整规则、完善体验。</p>
+                  <h3 className="featured-case-h3-single">七岁炳炳的《动物迷宫大乱斗》</h3>
+                  <p>一个项目不是一次就完成的。2 次课中，我们不断发现问题、调整规则、完善体验。</p>
                 </div>
                 <nav className="featured-case-outcomes" aria-label="查看炳炳的完整成果">
                   <Link href="/camp/work/animal-maze-battle" className="featured-case-outcome">
@@ -196,26 +196,26 @@ export default function CampPage() {
                 <li className="work-log-entry">
                   <article className="work-log-card">
                     <div className="work-log-time">
-                      <time>第 1 节</time>
+                      <time>第 1 次课</time>
                       <span>· 想法定义</span>
                     </div>
                     <img
                       src="https://works.xgteacher.cn/media/covers/0a64a48f-2509-4698-9656-27adcbcbc565/c9bf4e08-ce07-426a-9c38-8f2e5af29a0a.png"
-                      alt="第1节作品截图"
+                      alt="第1节课作品截图"
                     />
-                    <strong>从“动物大乱斗”到迷宫</strong>
+                    <strong>从"动物大乱斗"到迷宫</strong>
                     <span className="work-log-open">查看记录 →</span>
                   </article>
                 </li>
                 <li className="work-log-entry">
                   <article className="work-log-card">
                     <div className="work-log-time">
-                      <time>第 5 节</time>
+                      <time>第 1 次课</time>
                       <span>· 规则调整</span>
                     </div>
                     <img
                       src="https://works.xgteacher.cn/media/covers/0a64a48f-2509-4698-9656-27adcbcbc565/c9bf4e08-ce07-426a-9c38-8f2e5af29a0a.png"
-                      alt="第5节作品截图"
+                      alt="第1节课作品截图"
                     />
                     <strong>让小动物能吃能跑</strong>
                     <span className="work-log-open">查看记录 →</span>
@@ -224,19 +224,19 @@ export default function CampPage() {
                 <li className="work-log-entry">
                   <article className="work-log-card">
                     <div className="work-log-time">
-                      <time>第 10 节</time>
+                      <time>第 2 次课</time>
                       <span>· 完善发布</span>
                     </div>
                     <img
                       src="https://works.xgteacher.cn/media/covers/0a64a48f-2509-4698-9656-27adcbcbc565/c9bf4e08-ce07-426a-9c38-8f2e5af29a0a.png"
-                      alt="第10节作品截图"
+                      alt="第2节课作品截图"
                     />
                     <strong>终于可以分享了</strong>
                     <span className="work-log-open">查看记录 →</span>
                   </article>
                 </li>
               </ol>
-              <p className="work-log-hint">← 左右滑动查看 10 节课的完整记录</p>
+              <p className="work-log-hint">← 左右滑动查看 2 次课的完整记录</p>
             </div>
           </div>
         </div>
@@ -247,16 +247,14 @@ export default function CampPage() {
           <article className="poster-course poster-course-camp">
             <figure className="poster-frame">
               <img src="/assets/alan-avatar.png" alt="创造营课程封面" />
-              <span className="poster-zoom">放大查看</span>
             </figure>
             <div className="poster-course-copy">
-              <span className="section-kicker">SUMMER CAMP / 暑期创造营</span>
-              <h3>20 课时，完成一个真实产品</h3>
+              <h3>每天，做出一个真实产品</h3>
               <ul>
                 <li>项目制学习，每个孩子一个独立项目</li>
                 <li>从想法到上线，经历完整产品流程</li>
                 <li>AI 辅助编程，7 岁也能做出真东西</li>
-                <li>小班教学，每班不超过 6 人</li>
+                <li>8 人小班，每天一次</li>
               </ul>
               <div className="course-price">
                 <span>含课件、云服务、作品发布</span>
@@ -538,6 +536,9 @@ export default function CampPage() {
                 <a className="tool-link" href="https://www.trae.cn" target="_blank" rel="noopener noreferrer">
                   了解 Trae →
                 </a>
+                <a className="tool-link" href="https://workbuddy.cn" target="_blank" rel="noopener noreferrer">
+                  了解 WorkBuddy →
+                </a>
                 <a className="tool-link" href="#consult">
                   咨询课程 →
                 </a>
@@ -572,11 +573,11 @@ export default function CampPage() {
                 <dd>项目教学经验</dd>
               </div>
               <div>
-                <dt>7-12</dt>
-                <dd>岁适合年龄</dd>
+                <dt>7 岁+</dt>
+                <dd>适合年龄</dd>
               </div>
               <div>
-                <dt>6 人</dt>
+                <dt>8 人</dt>
                 <dd>小班上限</dd>
               </div>
             </dl>
@@ -585,7 +586,7 @@ export default function CampPage() {
                 <span>不要小看孩子，</span>
                 <span>给他们真实的工具。</span>
               </h3>
-              <p>7 岁的炳炳用 10 节课做出了《动物迷宫大乱斗》——有规则、有 AI、有交互。这不是玩具，是真正的产品。</p>
+              <p>7 岁的炳炳用 2 次课做出了《动物迷宫大乱斗》——有规则、有 AI、有交互。这不是玩具，是真正的产品。</p>
             </div>
           </div>
         </div>
@@ -600,12 +601,12 @@ export default function CampPage() {
           </div>
           <div className="wechat-card">
             <img
-              src="https://edu.xgteacher.cn/assets/alan-avatar.jpg"
+              src="/assets/alan-wechat-qr.jpg"
               alt="Alan张老师微信二维码"
-              style={{ width: '160px', height: '160px', borderRadius: '8px' }}
+              style={{ width: '180px', height: '180px', borderRadius: '8px' }}
             />
             <strong>扫码加微信</strong>
-            <span>备注「创造营」</span>
+            <span>备注「AI 原生教育」</span>
           </div>
         </div>
       </section>

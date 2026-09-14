@@ -119,12 +119,14 @@ input{font-family:inherit}
 /* ===== Featured Case ===== */
 .featured-case-section{margin-top:var(--section-space)}
 .featured-case-heading h2{font-size:clamp(2.6rem,5vw,5rem);font-weight:510;letter-spacing:-.06em;line-height:1;margin:0;max-width:14ch}
+.featured-case-heading h2.featured-case-h2-single{max-width:none;white-space:nowrap}
 .featured-case-heading p{color:var(--paper-muted);font-size:1rem;line-height:1.7;margin:1.2rem 0 0;max-width:32rem}
 .featured-case-overview{margin-top:clamp(3rem,6vw,5rem)}
 .featured-case-log{background:var(--navy-950);border:1px solid var(--line);padding:clamp(2rem,4vw,3rem)}
 .featured-case-project-header{align-items:flex-end;display:grid;gap:2rem;grid-template-columns:minmax(0,1fr) auto;margin-bottom:3rem}
 .featured-case-project>span{color:var(--yellow);font-family:var(--font-mono);font-size:.72rem}
 .featured-case-project h3{font-size:clamp(2rem,3.5vw,3rem);font-weight:520;letter-spacing:-.05em;margin:.6rem 0 1rem;max-width:14ch}
+.featured-case-project h3.featured-case-h3-single{max-width:none;white-space:nowrap}
 .featured-case-project p{color:var(--paper-muted);line-height:1.7;max-width:34rem}
 .featured-case-outcomes{display:flex;flex-wrap:wrap;gap:.75rem}
 .featured-case-outcome{align-items:center;border:1px solid var(--paper);color:var(--paper);display:inline-flex;font-size:.82rem;font-weight:650;gap:.4rem;padding:.6rem 1rem;transition:background-color .16s ease,color .16s ease,border-color .16s ease}
@@ -213,7 +215,7 @@ input{font-family:inherit}
 .ability-radar-active{fill:var(--yellow);stroke:var(--yellow);stroke-width:.4;opacity:.3}
 .ability-radar-node{fill:var(--yellow);stroke:var(--yellow);stroke-width:.3}
 .ability-radar-origin{fill:var(--paper-muted)}
-.ability-radar-label{font-size:3px;font-weight:700;fill:var(--paper);text-anchor:middle}
+.ability-radar-label{font-size:5.5px;font-weight:700;fill:var(--paper);text-anchor:middle;letter-spacing:.5px}
 .ability-radar-scale{position:absolute;font-size:.7rem;color:var(--paper-muted)}
 .ability-radar-scale-zero{bottom:46%;left:48%}
 .ability-radar-scale-ten{top:2%;left:48%}
@@ -281,6 +283,7 @@ input{font-family:inherit}
 .works-index{color:#34537d;font-size:.72rem;margin:0 0 1.4rem}
 .works-intro h1{font-size:clamp(4.6rem,8.9vw,9.6rem);font-weight:500;letter-spacing:-.095em;line-height:.86;margin:0;max-width:10ch}
 .works-intro h1 span{color:#1b56c5}
+.works-intro h1.works-title-single{font-size:clamp(2.6rem,4.4vw,4.2rem);font-weight:560;letter-spacing:-.04em;line-height:1.15;max-width:none;white-space:nowrap}
 .works-intro-copy>p:last-child{color:#405574;font-size:clamp(1rem,1.45vw,1.25rem);line-height:1.7;margin:2rem 0 0;max-width:30rem}
 
 /* Works Wall Note */

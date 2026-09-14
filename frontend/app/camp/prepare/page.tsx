@@ -96,7 +96,7 @@ export default function PreparePage() {
             <article className="prepare-step">
               <span className="prepare-step-num mono">Q1</span>
               <h3>孩子没有编程基础可以参加吗？</h3>
-              <p>完全可以。创造营面向 7-12 岁零基础孩子，我们会从“怎么和 AI 说话”开始教起。</p>
+              <p>完全可以。创造营面向 7 岁+的大小朋友，我们会从“怎么和 AI 说话”开始教起。</p>
             </article>
             <article className="prepare-step">
               <span className="prepare-step-num mono">Q2</span>
