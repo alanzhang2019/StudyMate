@@ -792,6 +792,26 @@ function applyMigrations(db: Database): void {
       // column already exists
     }
   }
+
+  // 2026-09-14：作品「创作记录 + 能力评估 + 老师点评」三块富内容。
+  // 早期只有两个前端硬编码的种子作品有创作记录和能力雷达；数据库作品
+  // 详情页此前一直隐藏这两块。现在把三块内容结构化落库，老师后台可填，
+  // 家长分享打开详情页即可看到完整成长档案。
+  //   processLogJson  TEXT  创作记录 JSON 数组 [{time,tag,image,title,description}]
+  //   abilityJson     TEXT  能力评估对象 {heading,intro,note,scores:[5]}（5 维：创造力/逻辑/表达/协作/审美）
+  //   teacherComment  TEXT  老师点评（自由文本，公开展示给家长）
+  const campWorkRichCols: Array<[string, string]> = [
+    ['processLogJson', 'TEXT'],
+    ['abilityJson', 'TEXT'],
+    ['teacherComment', 'TEXT'],
+  ]
+  for (const [col, type] of campWorkRichCols) {
+    try {
+      db.exec(`ALTER TABLE camp_works ADD COLUMN ${col} ${type}`)
+    } catch {
+      // column already exists
+    }
+  }
 }
 
 const now = () => new Date().toISOString()

@@ -17,6 +17,17 @@ function transformWork(row: any): any {
   return {
     ...row,
     techStack: safeJsonParse(row.techStackJson),
+    // 富内容三块：结构化返回，编辑表单直接读取初始值。
+    processLog: safeJsonParse(row.processLogJson),
+    ability: (() => {
+      if (!row.abilityJson) return null;
+      try {
+        return JSON.parse(row.abilityJson);
+      } catch {
+        return null;
+      }
+    })(),
+    teacherComment: row.teacherComment || '',
   };
 }
 
@@ -99,6 +110,9 @@ export const POST = withAdminAuth(async (req: NextRequest) => {
       techStack,
       featured,
       sortOrder,
+      processLog,
+      ability,
+      teacherComment,
     } = body;
 
     if (!title || !studentId) {
@@ -144,6 +158,16 @@ export const POST = withAdminAuth(async (req: NextRequest) => {
     if (sortOrder !== undefined && sortOrder !== null && sortOrder !== '') {
       const n = Number(sortOrder);
       if (!Number.isNaN(n)) data.sortOrder = n;
+    }
+    // 富内容三块：结构化对象序列化成 JSON 落库。
+    if (processLog !== undefined) {
+      data.processLogJson = JSON.stringify(Array.isArray(processLog) ? processLog : []);
+    }
+    if (ability !== undefined) {
+      data.abilityJson = ability === null ? null : JSON.stringify(ability);
+    }
+    if (teacherComment !== undefined && teacherComment !== null && teacherComment !== '') {
+      data.teacherComment = teacherComment;
     }
 
     const created = await db.campWork.create({ data });

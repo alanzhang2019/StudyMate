@@ -72,6 +72,9 @@ export const PATCH = withAdminAuth(async (req: NextRequest, { params }: { params
       sortOrder,
       status,
       reviewNote,
+      processLog,
+      ability,
+      teacherComment,
     } = body;
 
     const data: any = {
@@ -144,6 +147,18 @@ export const PATCH = withAdminAuth(async (req: NextRequest, { params }: { params
     }
     if (reviewNote !== undefined) {
       data.reviewNote = reviewNote === '' ? null : reviewNote;
+    }
+    // 创作记录 / 能力评估 / 老师点评 —— 富内容三块。
+    // 前端传结构化的 processLog 数组 + ability 对象，这里序列化成 JSON 字符串落库。
+    if (processLog !== undefined) {
+      data.processLogJson = JSON.stringify(Array.isArray(processLog) ? processLog : []);
+    }
+    if (ability !== undefined) {
+      // 允许传 null 清空能力评估
+      data.abilityJson = ability === null ? null : JSON.stringify(ability);
+    }
+    if (teacherComment !== undefined) {
+      data.teacherComment = teacherComment === '' ? null : teacherComment;
     }
 
     await db.campWork.update({ where: { id }, data });

@@ -32,6 +32,7 @@ type WorkDetail = {
   radarShape: string;
   radarNodes: [number, number][];
   radarScores: number[];
+  teacherComment: string;
   shareTitle: string;
   shareText: string;
 };
@@ -106,6 +107,8 @@ const SEED_WORKS: Record<string, WorkDetail> = {
       [65, 130],
     ],
     radarScores: [9, 8, 7, 8, 7],
+    teacherComment:
+      '炳炳对「游戏规则」有天然的敏感——从动物乱斗到迷宫寻路，是他自己想清楚了什么好玩、什么公平。最打动我的是他不怕改：规则不对就推翻重来，这比任何技巧都珍贵。',
     shareTitle: '动物迷宫大乱斗',
     shareText: '7 岁炳炳用 AI 做的游戏',
   },
@@ -164,6 +167,8 @@ const SEED_WORKS: Record<string, WorkDetail> = {
       [58, 128],
     ],
     radarScores: [9, 9, 8, 7, 8],
+    teacherComment:
+      '小高是典型的「问题发现者」——排队形这件小事，他盯住了就不放。从画场地到拖拽、保存、导出，每一步都在解决一个真实需求。工具感很强，是我很欣赏的产品直觉。',
     shareTitle: 'Formation 队形编辑器',
     shareText: '6 岁小高用 AI 做的工具',
   },
@@ -176,6 +181,35 @@ const RADAR_LABELS = [
   { label: '协作', x: 95, y: 305 },
   { label: '审美', x: 35, y: 118 },
 ];
+
+// 雷达图几何：viewBox 0 0 440 320，中心 (220,160)。
+// 五个满分顶点（score=10）与网格外层 polygon 一致。
+const RADAR_CENTER = { x: 220, y: 160 };
+const RADAR_VERTICES = [
+  { x: 220, y: 40 }, // 创造力（顶）
+  { x: 390, y: 120 }, // 逻辑（右上）
+  { x: 340, y: 280 }, // 表达（右下）
+  { x: 100, y: 280 }, // 协作（左下）
+  { x: 50, y: 120 }, // 审美（左上）
+];
+
+// 把 5 个 0-10 的分数线性插值成雷达图节点坐标。
+// score=10 落在顶点，score=0 收拢到中心。
+function computeRadarFromScores(scores: number[]): {
+  shape: string;
+  nodes: [number, number][];
+} {
+  const nodes: [number, number][] = RADAR_VERTICES.map((v, i) => {
+    const s = Math.max(0, Math.min(10, Number(scores[i]) || 0)) / 10;
+    const x = RADAR_CENTER.x + (v.x - RADAR_CENTER.x) * s;
+    const y = RADAR_CENTER.y + (v.y - RADAR_CENTER.y) * s;
+    return [Math.round(x), Math.round(y)];
+  });
+  return {
+    shape: nodes.map(([x, y]) => `${x},${y}`).join(' '),
+    nodes,
+  };
+}
 
 function formatDate(iso?: string | null): string {
   if (!iso) return '';
@@ -269,12 +303,31 @@ function ShareModal({
 }
 
 // 把后台库里的作品行映射成详情页可用的结构。
-// 库里只存基础字段（封面 / 标题 / 学员 / 介绍 / 外链 / 技术栈），
-// 创作记录与能力雷达属于早期示范作品的专有内容，库作品留空后由页面按需隐藏。
+// 库里现在存了完整的富内容（创作记录 / 能力评估 / 老师点评），
+// 结构化后直接渲染，与早期种子作品的展示保持同一套 UI。
 function mapDbWorkToDetail(row: any): WorkDetail {
   const studentLabel = [row.studentName, row.grade]
     .filter(Boolean)
     .join(' · ');
+
+  // 创作记录：processLog 数组 → lessons
+  const processLog = Array.isArray(row.processLog) ? row.processLog : [];
+  const lessons: Lesson[] = processLog
+    .filter((it: any) => it && typeof it === 'object')
+    .map((it: any) => ({
+      time: typeof it.time === 'string' ? it.time : '',
+      tag: typeof it.tag === 'string' ? it.tag : '',
+      image: typeof it.image === 'string' ? it.image : row.coverImage || '',
+      title: typeof it.title === 'string' ? it.title : '',
+      description: typeof it.description === 'string' ? it.description : '',
+    }));
+
+  // 能力评估：ability 对象 → radar 几何
+  const ability = row.ability && typeof row.ability === 'object' ? row.ability : null;
+  const scores = ability && Array.isArray(ability.scores) ? ability.scores : [];
+  const hasRadar = scores.length === 5;
+  const radar = hasRadar ? computeRadarFromScores(scores) : { shape: '', nodes: [] as [number, number][] };
+
   return {
     slug: row.id,
     title: row.title || '未命名作品',
@@ -287,14 +340,24 @@ function mapDbWorkToDetail(row: any): WorkDetail {
     hasHtml: !!row.htmlFile,
     intro: row.description || '',
     figcaption: studentLabel || '',
-    processIntro: '',
-    lessons: [],
-    abilityHeading: '',
-    abilityIntro: '',
-    abilityNote: '',
-    radarShape: '',
-    radarNodes: [],
-    radarScores: [],
+    processIntro:
+      lessons.length > 0
+        ? `${lessons.length} 次课，从想法到上线。每一段都有新的发现和调整。`
+        : '',
+    lessons,
+    abilityHeading: hasRadar
+      ? (ability.heading || `${studentLabel || '学员'}学到了什么`)
+      : '',
+    abilityIntro: hasRadar
+      ? (ability.intro || '不只是完成了作品，更是在过程中长出了这些能力。')
+      : '',
+    abilityNote: hasRadar
+      ? (ability.note || '* 评估基于课堂过程记录，非标准化测试。')
+      : '',
+    radarShape: radar.shape,
+    radarNodes: radar.nodes,
+    radarScores: hasRadar ? scores : [],
+    teacherComment: row.teacherComment || '',
     shareTitle: row.title || '学员作品',
     shareText: `${studentLabel || '学员'} 的作品`,
   };
@@ -372,6 +435,7 @@ export default function WorkDetailPage() {
 
   const hasLessons = work.lessons && work.lessons.length > 0;
   const hasRadar = work.radarNodes && work.radarNodes.length > 0;
+  const hasTeacherComment = !!work.teacherComment && work.teacherComment.trim().length > 0;
   const hasExternal = !!work.externalUrl;
   const hasHtml = !!work.hasHtml;
 
@@ -567,6 +631,19 @@ export default function WorkDetailPage() {
               </svg>
             </div>
           </div>
+        </section>
+      ) : null}
+
+      {hasTeacherComment ? (
+        <section className="work-teacher-comment">
+          <header className="work-teacher-comment-heading">
+            <p className="section-kicker">TEACHER / 老师点评</p>
+            <h2>Alan张老师这样说</h2>
+          </header>
+          <blockquote className="work-teacher-comment-quote">
+            <p>{work.teacherComment}</p>
+            <cite>— Alan张老师</cite>
+          </blockquote>
         </section>
       ) : null}
 

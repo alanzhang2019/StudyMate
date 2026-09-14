@@ -21,8 +21,26 @@ type Work = {
   reviewNote: string | null;
   reviewedAt: string | null;
   reviewedBy: string | null;
+  processLog: ProcessLogEntry[];
+  ability: AbilityAssessment | null;
+  teacherComment: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+type ProcessLogEntry = {
+  time: string;
+  tag: string;
+  image: string;
+  title: string;
+  description: string;
+};
+
+type AbilityAssessment = {
+  heading: string;
+  intro: string;
+  note: string;
+  scores: number[];
 };
 
 type StatusFilter = 'all' | 'pending' | 'approved' | 'rejected';
@@ -53,6 +71,9 @@ const CATEGORY_OPTIONS = [
   { value: '代码', label: '代码' },
   { value: '其他', label: '其他' },
 ];
+
+// 能力评估五维（与作品详情页雷达图标签顺序一致）。
+const ABILITY_LABELS = ['创造力', '逻辑', '表达', '协作', '审美'];
 
 function fmt(iso?: string | null) {
   if (!iso) return '—';
@@ -164,6 +185,9 @@ export default function AdminCampWorksPage() {
         techStack,
         featured: formData.featured ? 1 : 0,
         sortOrder: Number(formData.sortOrder) || 0,
+        processLog: formData.processLog ?? [],
+        ability: formData.ability ?? null,
+        teacherComment: formData.teacherComment ?? '',
       };
 
       let res: Response;
@@ -676,10 +700,34 @@ function WorkFormModal({
     techStackText: (initial?.techStack ?? []).join(', '),
     featured: !!initial?.featured,
     sortOrder: initial?.sortOrder ?? 0,
+    teacherComment: initial?.teacherComment ?? '',
+    ability: {
+      heading: initial?.ability?.heading ?? '',
+      intro: initial?.ability?.intro ?? '',
+      note: initial?.ability?.note ?? '',
+      scores: initial?.ability?.scores?.length === 5
+        ? initial.ability.scores
+        : [7, 7, 7, 7, 7],
+    },
+    processLog: (initial?.processLog ?? []) as ProcessLogEntry[],
   });
 
   const setField = (k: string, v: any) =>
     setForm((f) => ({ ...(f as any), [k]: v }));
+
+  // 更新创作记录第 i 条的某个字段。
+  const updateProcessLog = (
+    i: number,
+    field: keyof ProcessLogEntry,
+    value: string,
+  ) => {
+    setForm((f) => {
+      const next = f.processLog.map((entry, idx) =>
+        idx === i ? { ...entry, [field]: value } : entry,
+      );
+      return { ...f, processLog: next };
+    });
+  };
 
   return (
     <Overlay onClose={onClose}>
@@ -826,6 +874,194 @@ function WorkFormModal({
             onChange={(e) => setField('techStackText', e.target.value)}
           />
         </div>
+
+        {/* ===== 老师点评 ===== */}
+        <div className="sm:col-span-2 border-t pt-4 mt-2">
+          <h3 className="text-base font-semibold text-gray-900 mb-1">
+            老师点评
+          </h3>
+          <p className="text-xs text-gray-500 mb-3">
+            家长分享打开作品详情页后能看到这段点评，写给孩子和家长的暖心话。
+          </p>
+          <textarea
+            className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+            rows={3}
+            placeholder="例：炳炳对游戏规则有天然的敏感，最打动我的是他不怕改……"
+            value={form.teacherComment}
+            onChange={(e) => setField('teacherComment', e.target.value)}
+          />
+        </div>
+
+        {/* ===== 能力评估 ===== */}
+        <div className="sm:col-span-2 border-t pt-4 mt-2">
+          <h3 className="text-base font-semibold text-gray-900 mb-1">
+            能力评估（雷达图）
+          </h3>
+          <p className="text-xs text-gray-500 mb-3">
+            五项能力各打 0–10 分，留空则不展示能力评估区块。
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                评估标题
+              </label>
+              <input
+                className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                placeholder="例：炳炳学到了什么"
+                value={form.ability.heading}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    ability: { ...f.ability, heading: e.target.value },
+                  }))
+                }
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                评估引言
+              </label>
+              <input
+                className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                placeholder="例：不只是做完了游戏，更在过程中长出了这些能力。"
+                value={form.ability.intro}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    ability: { ...f.ability, intro: e.target.value },
+                  }))
+                }
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-5 gap-2 mb-3">
+            {ABILITY_LABELS.map((label, i) => (
+              <div key={label}>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  {label}
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  max={10}
+                  className="w-full border rounded-md px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  value={form.ability.scores[i] ?? 7}
+                  onChange={(e) => {
+                    const v = Math.max(0, Math.min(10, Number(e.target.value) || 0));
+                    setForm((f) => {
+                      const scores = [...f.ability.scores];
+                      scores[i] = v;
+                      return { ...f, ability: { ...f.ability, scores } };
+                    });
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              评估备注
+            </label>
+            <input
+              className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+              placeholder="例：* 评估基于 2 次课的过程记录，非标准化测试。"
+              value={form.ability.note}
+              onChange={(e) =>
+                setForm((f) => ({
+                  ...f,
+                  ability: { ...f.ability, note: e.target.value },
+                }))
+              }
+            />
+          </div>
+        </div>
+
+        {/* ===== 创作记录 ===== */}
+        <div className="sm:col-span-2 border-t pt-4 mt-2">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-base font-semibold text-gray-900">
+              创作记录
+            </h3>
+            <button
+              type="button"
+              onClick={() =>
+                setForm((f) => ({
+                  ...f,
+                  processLog: [
+                    ...f.processLog,
+                    { time: '', tag: '', image: '', title: '', description: '' },
+                  ],
+                }))
+              }
+              className="px-3 py-1 text-sm rounded-md bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 transition"
+            >
+              ＋ 加一条
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 mb-3">
+            记录孩子从想法到完成的过程，每一条是一个时间点。图片留空则默认用作品封面。
+          </p>
+          <div className="space-y-3">
+            {form.processLog.map((entry, i) => (
+              <div
+                key={i}
+                className="border border-gray-200 rounded-md p-3 space-y-2 bg-gray-50"
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <input
+                    className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    placeholder="时间（例：第 1 次课）"
+                    value={entry.time}
+                    onChange={(e) => updateProcessLog(i, 'time', e.target.value)}
+                  />
+                  <input
+                    className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    placeholder="标签（例：想法定义）"
+                    value={entry.tag}
+                    onChange={(e) => updateProcessLog(i, 'tag', e.target.value)}
+                  />
+                </div>
+                <input
+                  className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  placeholder="标题（例：从动物大乱斗到迷宫）"
+                  value={entry.title}
+                  onChange={(e) => updateProcessLog(i, 'title', e.target.value)}
+                />
+                <textarea
+                  className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  rows={2}
+                  placeholder="描述"
+                  value={entry.description}
+                  onChange={(e) => updateProcessLog(i, 'description', e.target.value)}
+                />
+                <input
+                  className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  placeholder="图片 URL（可选，留空用封面）"
+                  value={entry.image}
+                  onChange={(e) => updateProcessLog(i, 'image', e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm((f) => ({
+                      ...f,
+                      processLog: f.processLog.filter((_, idx) => idx !== i),
+                    }))
+                  }
+                  className="px-3 py-1 text-sm rounded-md border border-red-200 text-red-600 hover:bg-red-50 transition"
+                >
+                  删除这条
+                </button>
+              </div>
+            ))}
+            {form.processLog.length === 0 && (
+              <p className="text-sm text-gray-400 py-2">
+                暂无创作记录，点右上角「＋ 加一条」添加。
+              </p>
+            )}
+          </div>
+        </div>
+
         <div className="sm:col-span-2 flex items-center gap-2">
           <input
             type="checkbox"
