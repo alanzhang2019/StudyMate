@@ -22,6 +22,10 @@ export default function ConundrumsPage() {
       ? CONUNDRA
       : CONUNDRA.filter((c) => c.category === filter);
 
+  // 课题数、主题数一律从数据推导，避免增删课题后文案里的数字对不上。
+  const total = CONUNDRA.length;
+  const topicCount = CONUNDRUM_CATEGORIES.length;
+
   return (
     <div className="site-shell">
       <header className="site-header">
@@ -53,11 +57,11 @@ export default function ConundrumsPage() {
               <span className="hero-action">才是真实的问题</span>
             </h1>
             <p className="conundrum-hero-intro">
-              这里收集了马斯克星球学校的 28 个真实世界难题——没人能替你拍板的那种。我们用 AI 把它们变成你能动手做的项目：想清楚、做出来、发出去。
+              这里收集了马斯克星球学校的 {total} 个真实世界难题——没人能替你拍板的那种。我们用 AI 把它们变成你能动手做的项目：想清楚、做出来、发出去。
             </p>
             <div className="hero-facts mono" aria-label="课题概要">
-              <span>28 个难题</span>
-              <span>6 大主题</span>
+              <span>{total} 个难题</span>
+              <span>{topicCount} 大主题</span>
               <span>0 个标准答案</span>
             </div>
           </div>

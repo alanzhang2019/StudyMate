@@ -286,25 +286,6 @@ export const CONUNDRA: Conundrum[] = [
     bilibiliVideos: [{ title: 'The Martian Conundrum', bvid: 'BV17t6hY4EZA', url: 'https://www.bilibili.com/video/BV17t6hY4EZA/' }, { title: 'The Martian Conundrum', bvid: 'BV1KAKt6qEcg', url: 'https://www.bilibili.com/video/BV1KAKt6qEcg/' }],
   },
   {
-    id: 'presidential',
-    title: '总统年龄难题',
-    original: 'The Presidential Conundrum',
-    category: '伦理·公平',
-    situation: '一个国家要决定：领导人有没有年龄上限？',
-    question: '该不该给总统设年龄限制？多少岁才合理？',
-    discussion: [
-      '经验与精力、年龄与能力，哪个更该被考虑？',
-      '如果是你的家人被这条规则排除在外，你还支持吗？',
-    ],
-    aiProject: '做「领导人资格」辩论网页：正方反方各写三条理由，AI 帮你找逻辑漏洞。',
-    officialVideo: {
-      title: 'The Presidential Conundrum（官网原片）',
-      url: 'https://ideas.classdojo.com/i/the-presidential-conundrum/',
-      source: 'ClassDojo × Astra Nova',
-    },
-    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Presidential%20Conundrum',
-  },
-  {
     id: 'dinosaur',
     title: '恐龙复活难题',
     original: 'The Dinosaur Conundrum',
