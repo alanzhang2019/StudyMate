@@ -103,9 +103,6 @@ export default function CampPage() {
       </header>
 
       <section className="hero hero-refined" aria-labelledby="hero-title">
-        <div className="hero-visual">
-          <canvas ref={orbitCanvasRef} aria-hidden="true" id="orbitCanvas" width="445" height="723" />
-        </div>
         <div className="hero-copy">
           <p className="hero-eyebrow">
             <span>AI 原生教育</span>
@@ -136,11 +133,14 @@ export default function CampPage() {
               微信咨询
             </a>
           </div>
+          <div className="hero-facts mono" aria-label="课程概要">
+            <span>每天</span>
+            <span>1 个项目</span>
+            <span>1 次发布</span>
+          </div>
         </div>
-        <div className="hero-facts mono" aria-label="课程概要">
-          <span>每天</span>
-          <span>1 个项目</span>
-          <span>1 次发布</span>
+        <div className="hero-visual">
+          <canvas ref={orbitCanvasRef} aria-hidden="true" id="orbitCanvas" width="360" height="540" />
         </div>
       </section>
 
