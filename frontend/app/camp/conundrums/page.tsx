@@ -116,6 +116,32 @@ export default function ConundrumsPage() {
                           走创造营五阶段：定义 → 设计 → 建构 → 修改 → 发布
                         </p>
                       </div>
+                      <div className="conundrum-block">
+                        <span className="conundrum-block-label">看视频</span>
+                        {c.bilibiliVideos && c.bilibiliVideos.length > 0 ? (
+                          <ul className="conundrum-videos">
+                            {c.bilibiliVideos.map((v) => (
+                              <li key={v.bvid}>
+                                <a href={v.url} target="_blank" rel="noopener noreferrer">
+                                  <span className="conundrum-video-play" aria-hidden="true">▶</span>
+                                  <span>{v.title}</span>
+                                  <span className="conundrum-video-mono mono">{v.bvid}</span>
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="conundrum-video-empty">这个课题暂无中文视频。</p>
+                        )}
+                        <a
+                          className="conundrum-video-search"
+                          href={c.bilibiliSearch}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          在 B 站搜索相关视频 →
+                        </a>
+                      </div>
                       <Link href="/camp/works" className="button button-primary conundrum-card-cta">
                         看看做成了什么
                       </Link>

@@ -15,6 +15,8 @@ export interface Conundrum {
   question: string;
   discussion: string[];
   aiProject: string;
+  bilibiliVideos?: { title: string; bvid: string; url: string }[];
+  bilibiliSearch: string;
 }
 
 export const CONUNDRUM_CATEGORIES: ConundrumCategory[] = [
@@ -26,7 +28,7 @@ export const CONUNDRUM_CATEGORIES: ConundrumCategory[] = [
   '元认知',
 ];
 
-export const CONUNDRA = [
+export const CONUNDRA: Conundrum[] = [
   {
     id: 'conundrum-conundrum',
     title: '难题的难题',
@@ -39,6 +41,7 @@ export const CONUNDRA = [
       '为什么这类问题没有标准答案？',
     ],
     aiProject: '做一个「我的领导力品质」测评小网页，孩子给自己打分并生成一张卡片。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Conundrum%20Conundrum',
   },
   {
     id: 'arctic',
@@ -52,6 +55,7 @@ export const CONUNDRA = [
       '短期收益与长期代价，谁说了算？',
     ],
     aiProject: '做一张「北极生态科普」互动页，点开看不同物种的处境。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Arctic%20Conundrum',
   },
   {
     id: 'light',
@@ -65,6 +69,8 @@ export const CONUNDRA = [
       '能不能用设计同时顾全几边？',
     ],
     aiProject: '做一个「暗夜地图」可视化，标出家里附近的光污染程度。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Light%20Conundrum',
+    bilibiliVideos: [{ title: 'The Light Conundrum', bvid: 'BV1ver5Y3EGQ', url: 'https://www.bilibili.com/video/BV1ver5Y3EGQ/' }],
   },
   {
     id: 'ferry',
@@ -78,6 +84,8 @@ export const CONUNDRA = [
       '不同人群诉求冲突时，听谁的？',
     ],
     aiProject: '做「交通方案对比」小工具，孩子输入条件，AI 给出三种方案利弊。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Ferry%20Conundrum',
+    bilibiliVideos: [{ title: 'The Ferry Conundrum', bvid: 'BV1ver5Y3EKs', url: 'https://www.bilibili.com/video/BV1ver5Y3EKs/' }],
   },
   {
     id: 'island',
@@ -91,6 +99,7 @@ export const CONUNDRA = [
       '谁来保证规则被遵守？',
     ],
     aiProject: '做「岛屿生存模拟器」，孩子设定规则看社区能撑多久。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Island%20Conundrum',
   },
   {
     id: 'moonshot',
@@ -104,6 +113,7 @@ export const CONUNDRA = [
       '今天的投入，算不算给未来的投资？',
     ],
     aiProject: '做「太空计划预算分配」小游戏，在有限预算里做选择。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Moonshot%20Conundrum',
   },
   {
     id: 'nasa',
@@ -117,6 +127,8 @@ export const CONUNDRA = [
       '纳税人的钱该怎么花？',
     ],
     aiProject: '做「任务优先级投票」页，孩子投票并看到理由汇总。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20NASA%20Conundrum',
+    bilibiliVideos: [{ title: 'The NASA Conundrum', bvid: 'BV1var5YkECP', url: 'https://www.bilibili.com/video/BV1var5YkECP/' }],
   },
   {
     id: 'speed',
@@ -130,6 +142,8 @@ export const CONUNDRA = [
       '技术能消除风险吗，还是只是转移了风险？',
     ],
     aiProject: '做「速度与安全」计算器，调速度看事故概率变化。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Speed%20Conundrum',
+    bilibiliVideos: [{ title: 'The Speed Conundrum', bvid: 'BV1ver5Y3EFh', url: 'https://www.bilibili.com/video/BV1ver5Y3EFh/' }],
   },
   {
     id: 'masterpiece',
@@ -140,6 +154,8 @@ export const CONUNDRA = [
     question: '谁来判断一件作品是杰作？AI 算不算艺术家？',
     discussion: ['原创、评价、AI 艺术，边界在哪？', '价值是谁赋予的？'],
     aiProject: '用 AI 画画，再做「我的杰作画廊」，孩子自己写"为什么这是杰作"。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Masterpiece%20Conundrum',
+    bilibiliVideos: [{ title: 'The Masterpiece Conundrum', bvid: 'BV1ver5Y3EVn', url: 'https://www.bilibili.com/video/BV1ver5Y3EVn/' }],
   },
   {
     id: 'blue-comet',
@@ -150,6 +166,8 @@ export const CONUNDRA = [
     question: '有限的观测机会怎么分配？',
     discussion: ['科学、公众、商业，谁该优先看到？', '错过这次，要再等上百年，值得吗？'],
     aiProject: '做「彗星观测倒计时」页，附观测指南。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Blue%20Comet%20Conundrum',
+    bilibiliVideos: [{ title: 'The Blue Comet Conundrum', bvid: 'BV1VxKt6DEvy', url: 'https://www.bilibili.com/video/BV1VxKt6DEvy/' }],
   },
   {
     id: 'treasure',
@@ -160,6 +178,8 @@ export const CONUNDRA = [
     question: '宝藏归发现者、国家，还是原本的主人？',
     discussion: ['产权、历史、公平，三方冲突怎么解？', '时间过去越久，归属越清楚还是越模糊？'],
     aiProject: '做「寻宝地图」小游戏，埋藏与发现的规则由孩子定。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Treasure%20Conundrum',
+    bilibiliVideos: [{ title: 'The Treasure Conundrum', bvid: 'BV1yf6hYNEFj', url: 'https://www.bilibili.com/video/BV1yf6hYNEFj/' }, { title: 'The Treasure Conundrum', bvid: 'BV13XK465EwC', url: 'https://www.bilibili.com/video/BV13XK465EwC/' }],
   },
   {
     id: 'fox',
@@ -170,6 +190,8 @@ export const CONUNDRA = [
     question: '谁对这次发现最重要——科学家、本地人、政府，还是运气？',
     discussion: ['"贡献"怎么定义？', '团队合作里，谁不可替代？'],
     aiProject: '做「物种发现故事」页，孩子编排不同角色的贡献。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Fox%20Conundrum',
+    bilibiliVideos: [{ title: 'The Fox Conundrum', bvid: 'BV17t6hY4EfV', url: 'https://www.bilibili.com/video/BV17t6hY4EfV/' }, { title: 'The Fox Conundrum', bvid: 'BV13B67YGEZD', url: 'https://www.bilibili.com/video/BV13B67YGEZD/' }, { title: 'The Fox Conundrum', bvid: 'BV1DXK46VEhE', url: 'https://www.bilibili.com/video/BV1DXK46VEhE/' }],
   },
   {
     id: 'chocolate',
@@ -180,6 +202,8 @@ export const CONUNDRA = [
     question: '发明者能不能在自己的配方里用这个秘密原料？',
     discussion: ['知识产权、公平、创新激励，边界在哪？', '没有秘密，还会有创新吗？'],
     aiProject: '做「我的秘密配方」品牌页，孩子设计自己的"秘密"并讲所有权。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Chocolate%20Conundrum',
+    bilibiliVideos: [{ title: 'The Chocolate Conundrum', bvid: 'BV1Et6hY4Exn', url: 'https://www.bilibili.com/video/BV1Et6hY4Exn/' }, { title: 'The Chocolate Conundrum', bvid: 'BV1UdK463Emx', url: 'https://www.bilibili.com/video/BV1UdK463Emx/' }],
   },
   {
     id: 'pizza',
@@ -190,6 +214,8 @@ export const CONUNDRA = [
     question: '怎么分才公平？',
     discussion: ['"公平"是平均分，还是按需分？', '算法能解决公平吗？'],
     aiProject: '做「公平分披萨」计算器，输入人数与偏好出切法。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Pizza%20Conundrum',
+    bilibiliVideos: [{ title: 'The Pizza Conundrum', bvid: 'BV1ft6hYxE3n', url: 'https://www.bilibili.com/video/BV1ft6hYxE3n/' }, { title: 'The Pizza Conundrum', bvid: 'BV1YmK462E5U', url: 'https://www.bilibili.com/video/BV1YmK462E5U/' }],
   },
   {
     id: 'martian',
@@ -200,6 +226,8 @@ export const CONUNDRA = [
     question: '谁应该当领导？',
     discussion: ['领导力品质有哪些？', '民主选举，还是能力优先？'],
     aiProject: '做「火星任务组队」模拟，孩子选队员并定领导规则。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Martian%20Conundrum',
+    bilibiliVideos: [{ title: 'The Martian Conundrum', bvid: 'BV17t6hY4EZA', url: 'https://www.bilibili.com/video/BV17t6hY4EZA/' }, { title: 'The Martian Conundrum', bvid: 'BV1KAKt6qEcg', url: 'https://www.bilibili.com/video/BV1KAKt6qEcg/' }],
   },
   {
     id: 'presidential',
@@ -210,6 +238,7 @@ export const CONUNDRA = [
     question: '国家接下来该怎么做？',
     discussion: ['规则与民意冲突时听谁的？', '年龄门槛合理吗？'],
     aiProject: '做「年龄与权利」科普页，孩子查不同权利的法定年龄。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Presidential%20Conundrum',
   },
   {
     id: 'dinosaur',
@@ -220,6 +249,8 @@ export const CONUNDRA = [
     question: '该不该复活灭绝物种？',
     discussion: ['伦理、生态、科学价值，谁优先？', '复活之后，谁来负责？'],
     aiProject: '做「恐龙图鉴」，孩子给每种恐龙写"该不该复活"的理由。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Dinosaur%20Conundrum',
+    bilibiliVideos: [{ title: 'The Dinosaur Conundrum', bvid: 'BV1pMKt6AE18', url: 'https://www.bilibili.com/video/BV1pMKt6AE18/' }, { title: 'The Dinosaur Conundrum', bvid: 'BV1X56EY2Emx', url: 'https://www.bilibili.com/video/BV1X56EY2Emx/' }],
   },
   {
     id: 'flying-bike',
@@ -230,6 +261,7 @@ export const CONUNDRA = [
     question: '该允许满街飞吗？',
     discussion: ['安全、监管、个人自由，怎么平衡？', '新技术的规则，该事先定还是出了事再定？'],
     aiProject: '做「未来交通工具」设计页，孩子画规则并模拟交通。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Flying%20Bike%20Conundrum',
   },
   {
     id: 'alien',
@@ -240,6 +272,7 @@ export const CONUNDRA = [
     question: '第一句话该说什么？要不要主动联系？',
     discussion: ['风险、沟通、谁代表人类，怎么定？', '沉默更安全，还是更危险？'],
     aiProject: '做「外星问候语」生成器，孩子写并解释自己的选择。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Alien%20Conundrum',
   },
   {
     id: 'airport',
@@ -250,6 +283,7 @@ export const CONUNDRA = [
     question: '建在哪、怎么平衡居民与效率？',
     discussion: ['征地、噪声、便利，冲突如何调和？', '受益的人和受损的人，不是同一群人时怎么办？'],
     aiProject: '做「机场选址」模拟，调参数看不同群体反应。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Airport%20Conundrum',
   },
   {
     id: 'neighbor',
@@ -260,6 +294,7 @@ export const CONUNDRA = [
     question: '怎么解决？谁来调解？',
     discussion: ['沟通、规则、共情，哪种方式更管用？', '和解之后，关系怎么修复？'],
     aiProject: '做「邻里公约」生成器，孩子写一条大家都能接受的约定。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Neighbor%20Conundrum',
   },
   {
     id: 'lake',
@@ -270,6 +305,8 @@ export const CONUNDRA = [
     question: '湖该怎么管？',
     discussion: ['"公有地悲剧"怎么破？', '个人自由与集体责任怎么分？'],
     aiProject: '做「湖泊保护倡议」页，孩子提出并解释自己的管理方案。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Lake%20Conundrum',
+    bilibiliVideos: [{ title: 'The Lake Conundrum', bvid: 'BV1Zt6hYxEoA', url: 'https://www.bilibili.com/video/BV1Zt6hYxEoA/' }, { title: 'The Lake Conundrum', bvid: 'BV1EiCgY3Eih', url: 'https://www.bilibili.com/video/BV1EiCgY3Eih/' }, { title: '湖泊难题', bvid: 'BV1YK411Q79T', url: 'https://www.bilibili.com/video/BV1YK411Q79T/' }],
   },
   {
     id: 'lake-returns',
@@ -280,6 +317,7 @@ export const CONUNDRA = [
     question: '恢复后怎么用，才不再重蹈覆辙？',
     discussion: ['短期享受与长期责任，怎么同时守住？', '规则谁来监督？'],
     aiProject: '（接续上一题）做"使用公约"续作，孩子定长期规则。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Lake%20Returns%20Conundrum',
   },
   {
     id: 'halloween',
@@ -290,6 +328,8 @@ export const CONUNDRA = [
     question: '糖果怎么分、安全与乐趣怎么平衡？',
     discussion: ['公平、安全、文化习惯，怎么兼顾？', '热闹和安静，谁该让步？'],
     aiProject: '做「万圣节糖果规划」小工具，按人数与过敏算分配。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Halloween%20Conundrum',
+    bilibiliVideos: [{ title: 'The Halloween Conundrum', bvid: 'BV15Sr3YeEVy', url: 'https://www.bilibili.com/video/BV15Sr3YeEVy/' }],
   },
   {
     id: 'weather',
@@ -300,6 +340,7 @@ export const CONUNDRA = [
     question: '怎么应对、责任在谁？',
     discussion: ['防灾、个人责任、科技作用，怎么分工？', '预警发出后，谁来行动？'],
     aiProject: '做「天气应急清单」生成器，输入场景出准备清单。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Weather%20Conundrum',
   },
   {
     id: 'art',
@@ -310,6 +351,7 @@ export const CONUNDRA = [
     question: '什么算艺术？AI 生成的作品算吗？',
     discussion: ['定义、价值、原创，边界在哪？', '人人都能做，艺术还珍贵吗？'],
     aiProject: '做「我的数字艺术展」，孩子策展并写策展词。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Art%20Conundrum',
   },
   {
     id: 'tree',
@@ -320,5 +362,6 @@ export const CONUNDRA = [
     question: '砍，还是留？',
     discussion: ['记忆、生态、发展，谁为重？', '一棵树的价值，怎么算？'],
     aiProject: '做「树木故事地图」，孩子给身边的树写"它见证了什么"。',
+    bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Tree%20Conundrum',
   },
-] as const;
+];
