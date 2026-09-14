@@ -29,8 +29,16 @@ export const POST = async (
     const kind = body.kind;
 
     if (kind === 'description') {
-      const html = work.htmlFile ? readHtmlContent(work.htmlFile) : '';
-      const text = extractTextFromHtml(html);
+      let text = '';
+      if (work.htmlFile) {
+        try {
+          text = extractTextFromHtml(readHtmlContent(work.htmlFile));
+        } catch (e: any) {
+          console.warn('[regenerate] readHtml failed:', e?.message);
+        }
+      } else if (work.linkUrl) {
+        text = `作品外链地址：${work.linkUrl}`;
+      }
       const desc = await generateDescription(work.title || '我的作品', text);
       if (!desc) {
         return NextResponse.json(
@@ -51,6 +59,7 @@ export const POST = async (
         work.title || '我的作品',
         work.description || '',
         work.htmlFile,
+        work.linkUrl,
       );
       if (!gen) {
         return NextResponse.json(

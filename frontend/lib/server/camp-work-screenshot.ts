@@ -156,3 +156,91 @@ function pathToFileUrl(p: string): string {
   // Windows 盘符与反斜杠 → file:/// 形式；Linux 直接拼接
   return p.replace(/\\/g, '/');
 }
+
+/** 判断主机名是否指向本机/内网（防 SSRF） */
+function isPrivateHost(hostname: string): boolean {
+  const h = hostname.toLowerCase().trim();
+  if (h === 'localhost' || h === '0.0.0.0' || h === '::1' || h === '[::1]') return true;
+  const m = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(h);
+  if (m) {
+    const a = +m[1];
+    const b = +m[2];
+    if (a === 10) return true;
+    if (a === 127) return true;
+    if (a === 169 && b === 254) return true; // link-local
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+  }
+  return false;
+}
+
+/**
+ * 把外链作品（http(s) 网页）截图成 PNG 作为封面。
+ * 用于「外链提交」但无本地 HTML 文件的作品：让 chromium 直接渲染外链页面。
+ * 仅允许 http(s)、且拒绝指向本机/内网的地址（防 SSRF）。
+ * @returns 成功返回服务 URL（/api/camp/covers/<workId>.png），失败返回 null。
+ */
+export async function screenshotUrlToPng(
+  url: string,
+  workId: string,
+  options?: ScreenshotOptions,
+): Promise<string | null> {
+  const chrome = findChromium();
+  if (!chrome) {
+    log('chromium not found, skip url screenshot');
+    return null;
+  }
+  // 仅允许 http(s)，杜绝 file:// 等本地协议滥用
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    log(`invalid url for ${workId}: ${url}`);
+    return null;
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    log(`refuse non-http(s) url for ${workId}: ${url}`);
+    return null;
+  }
+  // 防 SSRF：拒绝本机/内网地址
+  if (isPrivateHost(parsed.hostname)) {
+    log(`refuse private host for ${workId}: ${parsed.hostname}`);
+    return null;
+  }
+
+  const output = options?.output ?? coverFilePath(`${workId}.png`);
+  // 提前确保父目录存在（同 screenshotHtmlToPng）
+  mkdirSync(path.dirname(output), { recursive: true });
+  // 外链页面通常比本地 HTML 更重，给足虚拟时间预算让首屏渲染出来
+  const budget = options?.budget ?? 8000;
+  const args = [
+    '--headless=new',
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-gpu',
+    '--disable-dev-shm-usage',
+    '--hide-scrollbars',
+    '--force-device-scale-factor=1',
+    '--window-size=960,720',
+    `--virtual-time-budget=${budget}`,
+    `--screenshot=${output}`,
+    url,
+  ];
+
+  try {
+    await runChromium(chrome, args);
+  } catch (e: any) {
+    log(`chromium url screenshot failed for ${workId}:`, e?.message);
+    return null;
+  }
+
+  try {
+    if (existsSync(output) && statSync(output).size > 0) {
+      return `/api/camp/covers/${workId}.png`;
+    }
+    log(`empty url screenshot for ${workId}`);
+    return null;
+  } catch {
+    return null;
+  }
+}

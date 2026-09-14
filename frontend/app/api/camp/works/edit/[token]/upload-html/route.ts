@@ -101,7 +101,7 @@ export const POST = async (
     let coverGenerated = false;
     let coverError: string | null = null;
     if (!coverImage) {
-      const gen = await generateCover(work.id, title, description, htmlFileRel);
+      const gen = await generateCover(work.id, title, description, htmlFileRel, work.linkUrl);
       if (gen) {
         coverImage = gen.coverImage;
         coverSource = gen.coverSource;

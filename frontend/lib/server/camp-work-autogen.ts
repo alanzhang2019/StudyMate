@@ -21,7 +21,7 @@ import {
   resolveImageBaseUrl,
 } from '@/lib/server/provider-config';
 import { createLogger } from '@/lib/logger';
-import { screenshotHtmlToPng, screenshotHtmlVariants } from '@/lib/server/camp-work-screenshot';
+import { screenshotHtmlToPng, screenshotHtmlVariants, screenshotUrlToPng } from '@/lib/server/camp-work-screenshot';
 
 const log = createLogger('CampWorkAutoGen');
 
@@ -355,6 +355,7 @@ export async function generateCover(
   title: string,
   description: string,
   htmlFileRel?: string | null,
+  linkUrl?: string | null,
 ): Promise<{ coverImage: string; coverSource: string } | null> {
   // 1. 作品截图（默认首选，真实还原 HTML）
   if (htmlFileRel) {
@@ -365,6 +366,18 @@ export async function generateCover(
       }
     } catch (e) {
       log.warn(`[camp-work-autogen] screenshot failed for ${workId}`, e);
+    }
+  }
+
+  // 1b. 外链网页截图（无本地 HTML 时）：直接渲染外链 URL 作为封面
+  if (!htmlFileRel && linkUrl) {
+    try {
+      const shot = await screenshotUrlToPng(linkUrl, workId);
+      if (shot) {
+        return { coverImage: shot, coverSource: 'screenshot' };
+      }
+    } catch (e) {
+      log.warn(`[camp-work-autogen] url screenshot failed for ${workId}`, e);
     }
   }
 
@@ -392,11 +405,21 @@ export async function runWorkAutoGen(workId: string): Promise<void> {
     let coverImage = row.coverImage || '';
     let coverSource = row.coverSource || (coverImage ? 'url' : 'none');
 
-    // 1. 介绍：学生没填才自动生成
-    if (!description && row.htmlFile) {
+    // 1. 介绍：学生没填才自动生成。
+    //    本地 HTML 作品 → 抽文本；外链作品 → 用标题+外链提示词（无 HTML 也能生成）。
+    if (!description) {
       try {
-        const html = readHtmlContent(row.htmlFile);
-        const text = extractTextFromHtml(html);
+        let text = '';
+        if (row.htmlFile) {
+          try {
+            const html = readHtmlContent(row.htmlFile);
+            text = extractTextFromHtml(html);
+          } catch (e) {
+            log.warn(`[camp-work-autogen] read html failed for ${workId}`, e);
+          }
+        } else if (row.linkUrl) {
+          text = `作品外链地址：${row.linkUrl}`;
+        }
         const gen = await generateDescription(title, text);
         if (gen) {
           description = gen;
@@ -410,10 +433,10 @@ export async function runWorkAutoGen(workId: string): Promise<void> {
       }
     }
 
-    // 2. 封面：学生没填封面才自动生成（默认作品截图，回退 AI 插画）
+    // 2. 封面：学生没填封面才自动生成（默认作品截图，外链截网页，回退 AI 插画）
     if (!coverImage) {
       try {
-        const gen = await generateCover(workId, title, description, row.htmlFile);
+        const gen = await generateCover(workId, title, description, row.htmlFile, row.linkUrl);
         if (gen) {
           coverImage = gen.coverImage;
           coverSource = gen.coverSource;
