@@ -67,8 +67,13 @@ export default function ConundrumsPage() {
               alt="马斯克让孩子坐在肩上"
               loading="lazy"
             />
-            <figcaption className="mono">
-              Astra Nova 学校创办人 · 这些难题来自他办的学校
+            <figcaption className="conundrum-hero-caption mono">
+              <span className="conundrum-hero-caption-name">
+                埃隆·马斯克
+              </span>
+              <span className="conundrum-hero-caption-role">
+                Astra Nova 星球学校创办人
+              </span>
             </figcaption>
           </figure>
         </div>

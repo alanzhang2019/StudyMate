@@ -900,6 +900,13 @@ input,textarea,select,button{color:inherit}
 .conundrum-hero-figure figcaption{
   color:var(--paper-muted);font-size:.72rem;letter-spacing:.04em;line-height:1.5;margin-top:.9rem;opacity:.72;position:relative;text-align:center;z-index:1;
 }
+/* 图注拆两行：人名 / 身份。
+   之前是「Astra Nova 学校创办人 · 这些难题来自他办的学校」一行，中文排版会把
+   「·」当作可断点，窄屏下断在「创办人」之后，「·」孤零零掉到第二行行首。
+   改成两个 block 各占一行，彻底不存在中间那个断点。 */
+.conundrum-hero-caption{display:flex;flex-direction:column;gap:.15rem}
+.conundrum-hero-caption-name{color:var(--paper);font-weight:600;letter-spacing:.06em}
+.conundrum-hero-caption-role{font-size:.94em}
 
 .conundrum-list{padding-bottom:var(--section-space)}
 .conundrum-filters{display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:2.5rem}
