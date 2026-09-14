@@ -6,6 +6,7 @@ import {
   extractTextFromHtml,
   generateDescription,
   generateCover,
+  generateWorkReviews,
 } from '@/lib/server/camp-work-autogen';
 
 export const maxDuration = 90;
@@ -117,6 +118,29 @@ export const POST = async (
       data.coverImage = coverImage;
       data.coverSource = coverSource;
     }
+
+    // 4.5 三块内容（点评/能力/创作记录）：学生没填点评才自动生成草稿
+    let reviewsGenerated = false;
+    if (!work.teacherComment) {
+      try {
+        const studentLabel = [work.studentName, work.grade].filter(Boolean).join(' · ');
+        const reviews = await generateWorkReviews({
+          title,
+          studentLabel,
+          category: work.category || '作品',
+          description,
+        });
+        if (reviews) {
+          data.processLogJson = JSON.stringify(reviews.processLog);
+          data.abilityJson = JSON.stringify(reviews.ability);
+          data.teacherComment = reviews.teacherComment;
+          reviewsGenerated = true;
+        }
+      } catch (e) {
+        console.warn('[upload-html] reviews failed:', e);
+      }
+    }
+
     if (Object.keys(data).length > 1) {
       await db.campWork.update({ where: { id: work.id }, data });
     }
@@ -131,6 +155,7 @@ export const POST = async (
         hasHtml: !!updated?.htmlFile,
         descriptionGenerated,
         coverGenerated,
+        reviewsGenerated,
         coverError,
       },
     });

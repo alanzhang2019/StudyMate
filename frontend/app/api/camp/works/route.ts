@@ -316,25 +316,24 @@ export const POST = async (req: NextRequest) => {
       }
     }
 
-    // 同步自动生成介绍（封面由客户端 html2canvas 兜底已落盘，
-    // runWorkAutoGen 内部检测到 coverImage 非空，会自动跳过封面生成）。
+    // 同步自动生成：介绍（仅在有 HTML 时）、封面（截图回退 AI）、
+    // 三块内容「点评/能力/创作记录」（始终尝试，学生没填点评才生成草稿）。
+    // runWorkAutoGen 内部会检测已有字段，自动跳过对应步骤，永不抛。
     let autoDescription: string | null = null;
     let autoCoverImage: string | null = null;
     let autoCoverSource: string | null = null;
-    if (htmlFileRel) {
-      await runWorkAutoGen(id).catch((e) =>
-        console.error('[camp/works autogen] unexpected error:', e),
-      );
-      const fresh = getDb()
-        .prepare(
-          'SELECT description, coverImage, coverSource FROM camp_works WHERE id = ?',
-        )
-        .get(id) as any;
-      if (fresh) {
-        autoDescription = fresh.description || null;
-        autoCoverImage = fresh.coverImage || null;
-        autoCoverSource = fresh.coverSource || null;
-      }
+    await runWorkAutoGen(id).catch((e) =>
+      console.error('[camp/works autogen] unexpected error:', e),
+    );
+    const fresh = getDb()
+      .prepare(
+        'SELECT description, coverImage, coverSource FROM camp_works WHERE id = ?',
+      )
+      .get(id) as any;
+    if (fresh) {
+      autoDescription = fresh.description || null;
+      autoCoverImage = fresh.coverImage || null;
+      autoCoverSource = fresh.coverSource || null;
     }
 
     return NextResponse.json({

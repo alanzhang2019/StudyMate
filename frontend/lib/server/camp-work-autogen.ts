@@ -98,6 +98,132 @@ export async function generateDescription(
   return (result.text || '').trim();
 }
 
+/** 从 LLM 文本里鲁棒地解析出 JSON（剥离可能的 ```json 代码块 / 首尾引号 / 截取花括号区间） */
+function parseJsonFromText(text: string): any | null {
+  if (!text) return null;
+  let t = text.trim();
+  const fence = t.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fence) t = fence[1].trim();
+  if (t.startsWith('"') && t.endsWith('"')) {
+    t = t.slice(1, -1).replace(/\\"/g, '"');
+  }
+  try {
+    return JSON.parse(t);
+  } catch {
+    const start = t.indexOf('{');
+    const end = t.lastIndexOf('}');
+    if (start >= 0 && end > start) {
+      try {
+        return JSON.parse(t.slice(start, end + 1));
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+}
+
+/** 把 5 维能力分数钳制到 0-10 的整数，缺项补 7 */
+function clampScores(scores: unknown): number[] {
+  const arr = Array.isArray(scores) ? scores : [];
+  const out: number[] = [];
+  for (let i = 0; i < 5; i++) {
+    const n = Number(arr[i]);
+    out.push(Number.isFinite(n) ? Math.max(0, Math.min(10, Math.round(n))) : 7);
+  }
+  return out;
+}
+
+/**
+ * LLM 生成三块内容草稿：老师点评 + 能力评估 + 创作记录。
+ * 返回结构化对象；失败或解析失败时返回 null（由调用方降级跳过）。
+ */
+export async function generateWorkReviews(params: {
+  title: string;
+  studentLabel: string;
+  category: string;
+  description: string;
+}): Promise<{
+  teacherComment: string;
+  ability: { heading: string; intro: string; note: string; scores: number[] };
+  processLog: Array<{
+    time: string;
+    tag: string;
+    image: string;
+    title: string;
+    description: string;
+  }>;
+} | null> {
+  const resolved = await resolveModel({});
+  const system =
+    '你是少年AI创造营的老师Alan张老师。请根据学生作品信息，生成三块内容，' +
+    '严格输出一个 JSON 对象（不要 markdown 代码块、不要多余文字、不要解释）：\n' +
+    '{\n' +
+    '  "teacherComment": "老师点评，80-120字，面向家长，具体、暖心、有画面感，点出孩子最亮眼的特质",\n' +
+    '  "ability": {\n' +
+    '    "heading": "能力评估标题（例：小小游戏设计师）",\n' +
+    '    "intro": "一句引言（例：用游戏点燃数学热情）",\n' +
+    '    "note": "评估备注（例：* 评估基于课堂过程记录，非标准化测试。）",\n' +
+    '    "scores": [创造力, 逻辑, 表达, 协作, 审美] 五个 0-10 的整数，基于孩子年龄和作品难度合理打分，不要全给满分\n' +
+    '  },\n' +
+    '  "processLog": [\n' +
+    '    {"time":"第1次课","tag":"阶段标签","title":"小标题","description":"1-2句描述"},\n' +
+    '    {"time":"第2次课","tag":"阶段标签","title":"小标题","description":"1-2句描述"},\n' +
+    '    {"time":"第3次课","tag":"阶段标签","title":"小标题","description":"1-2句描述"}\n' +
+    '  ]\n' +
+    '}\n' +
+    'processLog 给 3 条，按「想法 → 实现 → 打磨发布」的节奏写。';
+
+  const prompt =
+    `作品标题：${params.title || '未命名'}\n` +
+    `作品分类：${params.category || '作品'}\n` +
+    `学员：${params.studentLabel || '孩子'}\n` +
+    `作品介绍：${params.description || '（无介绍）'}\n\n` +
+    `请根据以上信息生成三块内容。`;
+
+  const result = await callLLM(
+    {
+      model: resolved.model,
+      system,
+      prompt,
+      maxOutputTokens: 4000,
+      temperature: 0.7,
+    },
+    'camp-work-reviews',
+  );
+
+  const parsed = parseJsonFromText(result.text || '');
+  if (!parsed || typeof parsed !== 'object') return null;
+
+  const teacherComment =
+    typeof parsed.teacherComment === 'string' ? parsed.teacherComment.trim() : '';
+  if (!teacherComment) return null;
+
+  const ability = parsed.ability && typeof parsed.ability === 'object' ? parsed.ability : {};
+  const processLog = Array.isArray(parsed.processLog)
+    ? parsed.processLog
+        .filter((it: any) => it && typeof it === 'object')
+        .map((it: any) => ({
+          time: typeof it.time === 'string' ? it.time : '',
+          tag: typeof it.tag === 'string' ? it.tag : '',
+          image: typeof it.image === 'string' ? it.image : '',
+          title: typeof it.title === 'string' ? it.title : '',
+          description: typeof it.description === 'string' ? it.description : '',
+        }))
+    : [];
+
+  return {
+    teacherComment,
+    ability: {
+      heading: typeof ability.heading === 'string' ? ability.heading : '',
+      intro: typeof ability.intro === 'string' ? ability.intro : '',
+      note: typeof ability.note === 'string' ? ability.note : '',
+      scores: clampScores(ability.scores),
+    },
+    processLog,
+  };
+}
+
 /**
  * 用 Seedream 生成封面插画并落盘。
  * 返回 { coverImage, coverSource }；没有配置 API key 或生成失败时返回 null。
@@ -222,6 +348,36 @@ export async function runWorkAutoGen(workId: string): Promise<void> {
         }
       } catch (e) {
         log.warn(`[camp-work-autogen] cover failed for ${workId}`, e);
+      }
+    }
+
+    // 3. 三块内容（老师点评 + 能力评估 + 创作记录）：学生没填点评才自动生成草稿。
+    //    草稿性质，老师后台 /admin/camp/works 可随时微调覆盖。
+    if (!row.teacherComment) {
+      try {
+        const studentLabel = [row.studentName, row.grade].filter(Boolean).join(' · ');
+        const reviews = await generateWorkReviews({
+          title,
+          studentLabel,
+          category: row.category || '作品',
+          description,
+        });
+        if (reviews) {
+          getDb()
+            .prepare(
+              'UPDATE camp_works SET processLogJson = ?, abilityJson = ?, teacherComment = ?, updatedAt = ? WHERE id = ?',
+            )
+            .run(
+              JSON.stringify(reviews.processLog),
+              JSON.stringify(reviews.ability),
+              reviews.teacherComment,
+              new Date().toISOString(),
+              workId,
+            );
+          log.info(`[camp-work-autogen] reviews generated for ${workId}`);
+        }
+      } catch (e) {
+        log.warn(`[camp-work-autogen] reviews failed for ${workId}`, e);
       }
     }
   } catch (e) {
