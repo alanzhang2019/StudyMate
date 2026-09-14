@@ -575,7 +575,12 @@ export default function CampPage() {
                 <a className="tool-link" href="https://www.trae.cn" target="_blank" rel="noopener noreferrer">
                   了解 Trae →
                 </a>
-                <a className="tool-link" href="https://workbuddy.cn" target="_blank" rel="noopener noreferrer">
+                <a
+                  className="tool-link"
+                  href="https://www.workbuddy.cn/events/invite?inviteCode=yf5tggru0fb0etj"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   了解 WorkBuddy →
                 </a>
                 <a className="tool-link" href="#consult">
