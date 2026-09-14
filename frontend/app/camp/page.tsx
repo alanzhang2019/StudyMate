@@ -147,7 +147,7 @@ export default function CampPage() {
       <section id="featured-case" className="featured-case-section">
         <div className="section-shell">
           <header className="featured-case-heading">
-            <h2 className="featured-case-h2-single">一个案例，看懂创造营</h2>
+            <h2 className="featured-case-h2-single">一个案例，看懂AI原生教育</h2>
             <p>我们将用一期的时间和孩子一起打磨他的产品。能力在这个过程中自然而然地发芽、生长。</p>
           </header>
 
@@ -249,7 +249,7 @@ export default function CampPage() {
               <img src="/assets/alan-avatar.png" alt="创造营课程封面" />
             </figure>
             <div className="poster-course-copy">
-              <h3>每天，做出一个真实产品</h3>
+              <h3 className="poster-course-h3-single">每天，做出一个真实产品</h3>
               <ul>
                 <li>项目制学习，每个孩子一个独立项目</li>
                 <li>从想法到上线，经历完整产品流程</li>
@@ -495,6 +495,39 @@ export default function CampPage() {
                   <span style={{ color: 'var(--paper-muted)', fontSize: '.88rem' }}>作品发布时的讲述</span>
                 </div>
               </article>
+              <article className="ability-detail">
+                <div className="ability-detail-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                </div>
+                <h3>协作能力</h3>
+                <p>和同学、老师、AI 一起把事情做完，过程中表达与倾听。</p>
+                <div>
+                  <strong>评估方式</strong>
+                  <span style={{ color: 'var(--paper-muted)', fontSize: '.88rem' }}>课程中的合作记录</span>
+                </div>
+              </article>
+              <article className="ability-detail">
+                <div className="ability-detail-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="13.5" cy="6.5" r=".5" />
+                    <circle cx="17.5" cy="10.5" r=".5" />
+                    <circle cx="8.5" cy="7.5" r=".5" />
+                    <circle cx="6.5" cy="12.5" r=".5" />
+                    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z" />
+                  </svg>
+                </div>
+                <h3>审美与美感</h3>
+                <p>在作品的颜色、节奏、动效上用心，让用户愿意多看一眼。</p>
+                <div>
+                  <strong>评估方式</strong>
+                  <span style={{ color: 'var(--paper-muted)', fontSize: '.88rem' }}>作品的视觉与体验</span>
+                </div>
+              </article>
             </div>
           </div>
         </div>
@@ -519,7 +552,7 @@ export default function CampPage() {
             </div>
             <div className="tool-copy">
               <p className="section-kicker">TOOL / 我们用什么</p>
-              <h2>和孩子一起用 Trae 和 WorkBuddy</h2>
+              <h2 className="tool-h2-single">和孩子一起用 Trae 和 WorkBuddy</h2>
               <p>Trae 是面向下一代开发者的 AI 原生 IDE，孩子可以用自然语言和 AI 一起写代码；WorkBuddy 是 Alan张老师的 AI 助手工作台，把课程、作品与一键部署串成一条线。两者配合，把想法变成可以运行、可以分享的产品。</p>
               <ul className="trae-abilities">
                 <li>对话式编程</li>

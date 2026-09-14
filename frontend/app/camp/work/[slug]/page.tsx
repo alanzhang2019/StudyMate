@@ -420,7 +420,7 @@ export default function WorkDetailPage() {
           <p className="mono">
             {work.category} / STUDENT PROJECT · {work.date}
           </p>
-          <h1>{work.title}</h1>
+          <h1 className="work-detail-title-single">{work.title}</h1>
           <p>{work.intro}</p>
           <div className="work-detail-meta">
             <span>

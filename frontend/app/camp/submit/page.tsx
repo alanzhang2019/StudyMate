@@ -206,10 +206,8 @@ export default function CampSubmitPage() {
 
       <section className="submit-intro">
         <p className="mono submit-kicker">SUBMIT YOUR WORK / 03</p>
-        <h1>
-          把作品
-          <br />
-          <span>贴到这里。</span>
+        <h1 className="submit-h1-single">
+          <span>把作品贴到这里。</span>
         </h1>
         <p>
           上传一个 HTML 作品，我们会自动帮你写介绍、生成封面；

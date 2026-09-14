@@ -34,7 +34,7 @@ input{font-family:inherit}
 /* ===== Brand Identity ===== */
 .brand-identity{align-items:center;display:inline-flex;gap:.6rem;white-space:nowrap}
 .brand-identity-mark{background:#fff;border-radius:6px;flex:0 0 auto;height:34px;width:34px;object-fit:cover;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;color:var(--navy-950)}
-.brand-identity-wordmark{flex:0 0 auto;height:auto;width:92px;object-fit:contain;font-weight:700;font-size:1.1rem;letter-spacing:-.02em}
+.brand-identity-wordmark{flex:0 0 auto;height:30px;width:120px;object-fit:contain;font-weight:700;font-size:1.1rem;letter-spacing:-.02em}
 
 /* ===== Buttons ===== */
 .button{align-items:center;border:1px solid var(--paper);display:inline-flex;font-size:.88rem;font-weight:650;gap:.65rem;justify-content:center;min-height:50px;padding:0 1.15rem;transition:color .16s ease,background-color .16s ease,transform .16s ease;white-space:nowrap}
@@ -119,7 +119,7 @@ input{font-family:inherit}
 /* ===== Featured Case ===== */
 .featured-case-section{margin-top:var(--section-space)}
 .featured-case-heading h2{font-size:clamp(2.6rem,5vw,5rem);font-weight:510;letter-spacing:-.06em;line-height:1;margin:0;max-width:14ch}
-.featured-case-heading h2.featured-case-h2-single{max-width:none;white-space:nowrap}
+.featured-case-heading h2.featured-case-h2-single{font-size:clamp(2.2rem,4vw,4rem);max-width:none;white-space:nowrap;letter-spacing:-.05em}
 .featured-case-heading p{color:var(--paper-muted);font-size:1rem;line-height:1.7;margin:1.2rem 0 0;max-width:32rem}
 .featured-case-overview{margin-top:clamp(3rem,6vw,5rem)}
 .featured-case-log{background:var(--navy-950);border:1px solid var(--line);padding:clamp(2rem,4vw,3rem)}
@@ -151,6 +151,7 @@ input{font-family:inherit}
 .poster-frame img{width:100%;height:100%;object-fit:cover}
 .poster-zoom{background:var(--navy-950);border:1px solid var(--yellow);color:var(--yellow);font-size:.7rem;font-weight:650;padding:.5rem .8rem;position:absolute;bottom:1rem;right:1rem;display:inline-flex;align-items:center;gap:.4rem}
 .poster-course-copy h3{font-size:clamp(2rem,3.5vw,3rem);font-weight:520;letter-spacing:-.05em;margin:0 0 1.2rem}
+.poster-course-copy h3.poster-course-h3-single{font-size:clamp(1.7rem,2.6vw,2.4rem);max-width:none;white-space:nowrap;letter-spacing:-.04em;line-height:1.2}
 .poster-course-copy ul{list-style:none;padding:0}
 .poster-course-copy li{color:var(--paper-muted);font-size:.92rem;line-height:1.8;padding-left:1.4rem;position:relative}
 .poster-course-copy li:before{content:"·";color:var(--yellow);font-weight:700;left:0;position:absolute}
@@ -207,7 +208,7 @@ input{font-family:inherit}
 .ability-scroll-heading h2{font-size:clamp(2.6rem,5vw,5rem);font-weight:510;letter-spacing:-.06em;line-height:1;margin:0;max-width:14ch}
 .ability-scroll-heading p{color:var(--paper-muted);font-size:1rem;margin-top:1rem}
 .ability-stage{display:grid;gap:clamp(2rem,5vw,4rem);grid-template-columns:minmax(300px,.7fr) minmax(0,1fr);align-items:center}
-.ability-radar{position:relative;aspect-ratio:1;max-width:400px;margin:0 auto}
+.ability-radar{position:relative;aspect-ratio:1;max-width:520px;margin:0 auto}
 .ability-radar-chart{width:100%;height:100%}
 .ability-radar-grid{fill:none;stroke:var(--line-strong);stroke-width:.2}
 .ability-radar-axis{stroke:var(--line);stroke-width:.2}
@@ -243,6 +244,7 @@ input{font-family:inherit}
 .tool-pulse i:nth-child(3){animation-delay:.4s}
 @keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
 .tool-copy h2{font-size:clamp(2.4rem,4.5vw,4.5rem);font-weight:510;letter-spacing:-.06em;line-height:.95;margin:.5rem 0 1.2rem}
+.tool-copy h2.tool-h2-single{font-size:clamp(1.8rem,3vw,2.8rem);max-width:none;white-space:nowrap;letter-spacing:-.04em}
 .tool-copy>p{color:var(--paper-muted);line-height:1.75;max-width:34rem}
 .trae-abilities{display:flex;flex-wrap:wrap;gap:.6rem;list-style:none;margin:1.5rem 0;padding:0}
 .trae-abilities li{background:var(--navy-900);border:1px solid var(--line);font-size:.82rem;padding:.5rem .8rem}
@@ -257,7 +259,7 @@ input{font-family:inherit}
 .about-grid{display:grid;gap:clamp(3rem,7vw,6rem);grid-template-columns:minmax(0,.6fr) minmax(0,1fr)}
 .about-brand-identity{text-align:center}
 .about-brand-identity img{border-radius:8px;margin:0 auto .5rem;width:120px;height:120px;object-fit:cover}
-.about-brand-wordmark{width:auto;max-width:200px}
+.about-brand-wordmark{width:200px;height:58px;display:block;margin:0 auto;object-fit:contain}
 .about-copy h2{font-size:clamp(2.2rem,4vw,4rem);font-weight:510;letter-spacing:-.05em;line-height:1.02;margin:.5rem 0 1.5rem}
 .about-copy p{color:var(--paper-muted);line-height:1.75;margin-bottom:1.5rem;max-width:38rem}
 .about-facts{display:grid;gap:1rem;grid-template-columns:repeat(2,1fr);margin:2rem 0}
@@ -347,6 +349,7 @@ input{font-family:inherit}
 .work-back{align-items:center;border-bottom:1px solid currentColor;display:inline-flex;font-size:.76rem;gap:.55rem;margin-bottom:clamp(3rem,6vw,6rem);padding-bottom:.35rem;width:fit-content}
 .work-detail-heading>p:first-of-type{color:#34537d;font-size:.68rem;margin:0}
 .work-detail-heading h1{font-size:clamp(4rem,7.5vw,8.1rem);font-weight:520;letter-spacing:-.09em;line-height:.88;margin:1.2rem 0 0;max-width:8ch}
+.work-detail-heading h1.work-detail-title-single{font-size:clamp(2.6rem,4.6vw,4.6rem);letter-spacing:-.04em;line-height:1.15;max-width:none;white-space:nowrap;font-weight:560}
 .work-detail-heading>p:nth-of-type(2){color:#405574;font-size:1rem;line-height:1.8;margin:2rem 0 0;max-width:34rem}
 .work-detail-meta{border-top:1px solid rgba(5,20,47,.3);display:flex;flex-wrap:wrap;font-size:.74rem;gap:.8rem 1.6rem;margin-top:2.2rem;padding-top:1.2rem}
 .work-detail-meta span{align-items:center;display:inline-flex;gap:.4rem}
@@ -481,6 +484,8 @@ input{font-family:inherit}
 .submit-kicker--success{color:#05142fcc}
 .submit-intro h1{font-size:clamp(3.8rem,7.6vw,7.4rem);font-weight:520;letter-spacing:-.09em;line-height:.88;margin:0;max-width:12ch}
 .submit-intro h1 span{color:#1b56c5;display:block}
+.submit-intro h1.submit-h1-single{font-size:clamp(2.8rem,5.4vw,4.6rem);max-width:none;white-space:nowrap;letter-spacing:-.05em}
+.submit-intro h1.submit-h1-single span{display:inline;color:#1b56c5}
 .submit-intro>p{color:#405574;font-size:clamp(1rem,1.4vw,1.2rem);line-height:1.7;margin:2rem 0 0;max-width:32rem}
 
 .submit-shell{display:grid;justify-items:center;padding:0 var(--page-padding) clamp(5rem,9vw,8rem)}
