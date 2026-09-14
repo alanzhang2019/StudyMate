@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   CONUNDRA,
   CONUNDRUM_CATEGORIES,
+  LOCAL_VIDEO_IDS,
   type ConundrumCategory,
 } from '../../../lib/camp/conundrums';
 
@@ -92,6 +93,7 @@ export default function ConundrumsPage() {
           <div className="conundrum-grid">
             {list.map((c) => {
               const open = expanded === c.id;
+              const hasLocalVideo = LOCAL_VIDEO_IDS.includes(c.id);
               return (
                 <article key={c.id} className={`conundrum-card${open ? ' is-open' : ''}`}>
                   <button
@@ -134,46 +136,36 @@ export default function ConundrumsPage() {
                       </div>
                       <div className="conundrum-block">
                         <span className="conundrum-block-label">看视频</span>
-                        {c.bilibiliVideos && c.bilibiliVideos.length > 0 ? (
-                          <ul className="conundrum-videos">
-                            {c.bilibiliVideos.map((v) => {
-                              const playKey = `${c.id}:${v.bvid}`;
-                              const isPlaying = playingKey === playKey;
-                              return (
-                                <li key={v.bvid} className={isPlaying ? 'is-playing' : ''}>
-                                  {isPlaying ? (
-                                    <div className="conundrum-player">
-                                      <iframe
-                                        src={`https://player.bilibili.com/player.html?bvid=${v.bvid}&high_quality=1&danmaku=0&autoplay=1`}
-                                        title={v.title}
-                                        scrolling="no"
-                                        frameBorder="0"
-                                        allowFullScreen
-                                        referrerPolicy="no-referrer"
-                                      />
-                                      <button
-                                        type="button"
-                                        className="conundrum-player-back"
-                                        onClick={() => setPlayingKey(null)}
-                                      >
-                                        ← 收起播放
-                                      </button>
-                                    </div>
-                                  ) : (
-                                    <button
-                                      type="button"
-                                      className="conundrum-video-item"
-                                      onClick={() => setPlayingKey(playKey)}
-                                    >
-                                      <span className="conundrum-video-play" aria-hidden="true">▶</span>
-                                      <span>{v.title}</span>
-                                      <span className="conundrum-video-mono mono">{v.bvid}</span>
-                                    </button>
-                                  )}
-                                </li>
-                              );
-                            })}
-                          </ul>
+                        {hasLocalVideo ? (
+                          <div className="conundrum-videos">
+                            {playingKey === c.id ? (
+                              <div className="conundrum-player">
+                                <video
+                                  src={`/videos/conundrums/${c.id}.mp4`}
+                                  controls
+                                  playsInline
+                                  preload="metadata"
+                                />
+                                <button
+                                  type="button"
+                                  className="conundrum-player-back"
+                                  onClick={() => setPlayingKey(null)}
+                                >
+                                  ← 收起播放
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                className="conundrum-video-item"
+                                onClick={() => setPlayingKey(c.id)}
+                              >
+                                <span className="conundrum-video-play" aria-hidden="true">▶</span>
+                                <span>{c.bilibiliVideos?.[0]?.title ?? c.title}</span>
+                                <span className="conundrum-video-mono mono">本片已收录</span>
+                              </button>
+                            )}
+                          </div>
                         ) : c.officialVideo ? (
                           <div className="conundrum-official">
                             <p className="conundrum-video-empty">

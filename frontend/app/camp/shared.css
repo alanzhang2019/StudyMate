@@ -912,7 +912,8 @@ input,textarea,select,button{color:inherit}
 .conundrum-video-search{color:var(--yellow);display:inline-block;font-size:.8rem;font-weight:650;margin-top:.7rem}
 
 .conundrum-player{border:1px solid var(--yellow);overflow:hidden}
-.conundrum-player iframe{aspect-ratio:16/9;border:0;display:block;height:auto;width:100%}
+.conundrum-player iframe,
+.conundrum-player video{aspect-ratio:16/9;background:#000;border:0;display:block;height:auto;width:100%}
 .conundrum-player-back{background:rgba(0,0,0,.35);color:var(--paper);font-size:.78rem;font-weight:650;padding:.5rem .8rem;text-align:left;width:100%}
 .conundrum-player-back:hover{color:var(--yellow)}
 

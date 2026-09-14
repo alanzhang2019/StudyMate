@@ -30,6 +30,41 @@ export const CONUNDRUM_CATEGORIES: ConundrumCategory[] = [
   '元认知',
 ];
 
+/**
+ * 已自托管到 frontend/public/videos/conundrums/<id>.mp4 的课题 id。
+ * 这些课题用本地 <video> 播放，不依赖 B 站 iframe（跨域会被 COEP/防盗链拦掉）。
+ * 新增视频时同步更新此列表，并确保同名 mp4 已落盘。
+ */
+export const LOCAL_VIDEO_IDS: string[] = [
+  'conundrum-conundrum',
+  'arctic',
+  'light',
+  'ferry',
+  'island',
+  'boat',
+  'moonshot',
+  'nasa',
+  'speed',
+  'masterpiece',
+  'blue-comet',
+  'treasure',
+  'fox',
+  'chocolate',
+  'pizza',
+  'martian',
+  'dinosaur',
+  'flying-bike',
+  'alien',
+  'airport',
+  'neighbor',
+  'lake',
+  'lake-returns',
+  'halloween',
+  'weather',
+  'art',
+  'tree',
+];
+
 export const CONUNDRA: Conundrum[] = [
   {
     id: 'conundrum-conundrum',
