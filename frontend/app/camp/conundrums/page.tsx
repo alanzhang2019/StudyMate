@@ -13,6 +13,7 @@ type Filter = '全部' | ConundrumCategory;
 export default function ConundrumsPage() {
   const [filter, setFilter] = useState<Filter>('全部');
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [playingKey, setPlayingKey] = useState<string | null>(null);
 
   const filters: Filter[] = ['全部', ...CONUNDRUM_CATEGORIES];
   const list =
@@ -47,10 +48,10 @@ export default function ConundrumsPage() {
             <span className="hero-action">才是真实的问题</span>
           </h1>
           <p className="conundrum-hero-intro">
-            这里收集了 27 个真实世界里没人能替你拍板的问题。我们用 AI 把它们变成你能动手做的项目——想清楚、做出来、发出去。
+            这里收集了马斯克星球学校的 26 个真实世界难题——没人能替你拍板的那种。我们用 AI 把它们变成你能动手做的项目：想清楚、做出来、发出去。
           </p>
           <div className="hero-facts mono" aria-label="课题概要">
-            <span>27 个难题</span>
+            <span>26 个难题</span>
             <span>6 大主题</span>
             <span>0 个标准答案</span>
           </div>
@@ -120,15 +121,43 @@ export default function ConundrumsPage() {
                         <span className="conundrum-block-label">看视频</span>
                         {c.bilibiliVideos && c.bilibiliVideos.length > 0 ? (
                           <ul className="conundrum-videos">
-                            {c.bilibiliVideos.map((v) => (
-                              <li key={v.bvid}>
-                                <a href={v.url} target="_blank" rel="noopener noreferrer">
-                                  <span className="conundrum-video-play" aria-hidden="true">▶</span>
-                                  <span>{v.title}</span>
-                                  <span className="conundrum-video-mono mono">{v.bvid}</span>
-                                </a>
-                              </li>
-                            ))}
+                            {c.bilibiliVideos.map((v) => {
+                              const playKey = `${c.id}:${v.bvid}`;
+                              const isPlaying = playingKey === playKey;
+                              return (
+                                <li key={v.bvid} className={isPlaying ? 'is-playing' : ''}>
+                                  {isPlaying ? (
+                                    <div className="conundrum-player">
+                                      <iframe
+                                        src={`https://player.bilibili.com/player.html?bvid=${v.bvid}&high_quality=1&danmaku=0&autoplay=1`}
+                                        title={v.title}
+                                        scrolling="no"
+                                        frameBorder="0"
+                                        allowFullScreen
+                                        referrerPolicy="no-referrer"
+                                      />
+                                      <button
+                                        type="button"
+                                        className="conundrum-player-back"
+                                        onClick={() => setPlayingKey(null)}
+                                      >
+                                        ← 收起播放
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      className="conundrum-video-item"
+                                      onClick={() => setPlayingKey(playKey)}
+                                    >
+                                      <span className="conundrum-video-play" aria-hidden="true">▶</span>
+                                      <span>{v.title}</span>
+                                      <span className="conundrum-video-mono mono">{v.bvid}</span>
+                                    </button>
+                                  )}
+                                </li>
+                              );
+                            })}
                           </ul>
                         ) : (
                           <p className="conundrum-video-empty">

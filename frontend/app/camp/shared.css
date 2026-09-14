@@ -876,10 +876,15 @@ input,textarea,select,button{color:inherit}
 .conundrum-card-cta{margin-top:.4rem;width:100%}
 
 .conundrum-videos{display:grid;gap:.5rem;list-style:none;margin:0;padding:0}
-.conundrum-videos li a{align-items:center;border:1px solid var(--line);color:var(--paper);display:flex;font-size:.85rem;gap:.6rem;padding:.6rem .8rem;text-align:left;transition:border-color .16s ease,background-color .16s ease}
-.conundrum-videos li a:hover{border-color:var(--yellow);background:rgba(255,212,71,.06)}
+.conundrum-video-item{align-items:center;border:1px solid var(--line);color:var(--paper);display:flex;font-size:.85rem;gap:.6rem;padding:.6rem .8rem;text-align:left;transition:border-color .16s ease,background-color .16s ease;width:100%}
+.conundrum-video-item:hover{border-color:var(--yellow);background:rgba(255,212,71,.06)}
 .conundrum-video-play{color:var(--yellow);flex:0 0 auto;font-size:.7rem}
-.conundrum-videos li a span:nth-child(2){flex:1 1 auto;line-height:1.4}
+.conundrum-video-item span:nth-child(2){flex:1 1 auto;line-height:1.4}
 .conundrum-video-mono{color:var(--paper-muted);flex:0 0 auto;font-size:.7rem;opacity:.7}
 .conundrum-video-empty{color:var(--paper-muted)!important;font-size:.85rem!important}
 .conundrum-video-search{color:var(--yellow);display:inline-block;font-size:.8rem;font-weight:650;margin-top:.7rem}
+
+.conundrum-player{border:1px solid var(--yellow);overflow:hidden}
+.conundrum-player iframe{aspect-ratio:16/9;border:0;display:block;height:auto;width:100%}
+.conundrum-player-back{background:rgba(0,0,0,.35);color:var(--paper);font-size:.78rem;font-weight:650;padding:.5rem .8rem;text-align:left;width:100%}
+.conundrum-player-back:hover{color:var(--yellow)}
