@@ -575,7 +575,7 @@ export default function WorkDetailPage() {
         <section className="work-video">
           <header className="work-video-heading">
             <p className="section-kicker">VIDEO / 作品介绍</p>
-            <h2>看看孩子怎么讲自己的作品</h2>
+            <h2>看看创作者怎么讲自己的作品</h2>
           </header>
           <div className="work-video-frame">
             <video src={work.video} controls preload="metadata" playsInline />
