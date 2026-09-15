@@ -24,6 +24,7 @@ StudyMate（作业通，aijiangti.cn）— K12 AI 学习闭环的 monorepo。**�
 - 少年 AI 创造营「学生自助提交 → 老师审核」闭环：学生在 `/camp/submit` 填表 → `POST /api/camp/works`（公开、无需登录、入库即 `status=pending`，单 IP 10 分钟 8 次限流 + 蜜罐防垃圾）→ 老师 `/admin/camp/works` 点「通过」→ 公开墙 `/camp/works` 展示。`camp_works.studentId` 已为可空（学生无学员档案时存 `studentName`）。
 - 少年 AI 创造营「上传 HTML 作品 → 自动介绍/封面 → 匿名二次编辑」：`camp_works` 含 `htmlFile/editToken/coverSource` 三列；HTML 落盘 `DB_DIR/camp-uploads/`、封面落盘 `DB_DIR/camp-covers/`；自动介绍走 `callLLM`、自动封面走 `generateImage(seedream)`（`lib/server/camp-work-autogen.ts`）；学生凭 `editToken` 访问 `/camp/works/edit/<token>` 编辑页二次修改。
 - **服务器部署路径 `/home/ubuntu/studymate`**，实际生效命令：`cd /home/ubuntu/studymate && git pull origin master && docker compose up -d --build frontend`（只动 frontend 时够用；传课件需补 `sudo frontend/scripts/fix-bind-mount-perms.sh`）。
+- **深圳教材模块**（2026-09-15 上线）：入口 `/textbooks`（首页 nav「📖 深圳教材」），89 册 1.7GB PDF 落服务器 `frontend/data/textbooks/`（gitignore + dockerignore，**git pull / docker build 不动它**），nginx `/textbooks/` 直出（`$request_uri` 白名单 `[a-z0-9-]+\.pdf$` + 1y immutable + COOP/COEP）。元数据 `frontend/lib/textbooks.ts`（10 科、深圳在用版本标注：数学北师大/英语沪教牛津/科学教科/地理湘教）。**文件名必须全 ASCII slug**（`chinese-bj-g1a.pdf` 式），中文原名不能进白名单。元数据/上传脚本在 `.workbuddy/gen_textbooks_meta.py` + `upload_textbooks.sh` + `textbook-upload-map.tsv`；部署脚本 `scripts/deploy-textbooks.sh`。页面带版权声明（原出版机构所有）与官方平台 basic.smartedu.cn 指引。
 
 ## 易漏点（踩过的坑）
 
@@ -62,9 +63,16 @@ StudyMate（作业通，aijiangti.cn）— K12 AI 学习闭环的 monorepo。**�
 改配置的生效方式：`sudo cp nginx/studymate.conf /etc/nginx/sites-enabled/` + `sudo nginx -t && sudo nginx -s reload`。
 **不是** `docker compose exec nginx ...`（会报服务不存在）。
 
+**⚠️ 头号坑（2026-09-15 实锤）：conflicting server name 会静默吞掉整个配置文件。**
+`sites-enabled/default`（certbot 生成）与 `studymate.conf` 曾同时声明 `aijiangti.cn:80`，
+nginx 按字母序加载 → default 先到 → **studymate.conf 的 server 块被整体忽略**，
+`nginx -t` 只给 warning。**后果：/videos/ 与 /api/camp/videos/ 直出配置写了很久却从未生效，全部走了 Next.js 代理。**
+已修复：移除 default 符号链接（备份 `default.bak-20260915`）+ studymate.conf 重写为 80（仅 301 跳 https）/443（全部业务）完整布局。
+**新增 location「不生效」且行为像走了 upstream 时，先查是否有第二个文件声明了相同 `server_name:port`；reload 后确认无 conflicting server name 警告。**
+
 **`/videos/` location 直出**（课题视频，绕过 Next.js）：
 - 原因：**Next.js 对 `public/` 静态资源默认返回 `Cache-Control: max-age=0`**，每次播放都回源；叠加 `proxy_buffering off`，拖动反复触发缓冲
-- 改后：nginx `alias` 直接读宿主机 `frontend/public/videos/`
+- 改后：nginx `alias` 直接读宿主机 `frontend/public/videos/`（conflicting server name 修复后已真正生效）
 
 **`/api/camp/videos/` location 直出**（作品介绍视频，见下节）
 
