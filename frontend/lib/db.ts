@@ -31,6 +31,39 @@ function tableExists(db: Database, name: string): boolean {
   }
 }
 
+/**
+ * 执行一条幂等迁移语句（ALTER TABLE ADD COLUMN / CREATE INDEX IF NOT EXISTS）。
+ *
+ * 背景：本项目历史上所有迁移都写成裸 `try { ... } catch {}`。这会把
+ * 「列已存在」（预期内，正常）和「SQL 真的写错了 / 表不存在 / 权限不足」
+ * （必须暴露）两类错误一起吞掉。
+ *
+ * 后果是真实的：2026-09-15 `camp_works.viewCount` 缺失导致
+ * `/api/camp/works` 生产环境 500，但服务端日志一片空白 —— 因为
+ * 补列语句抛的错被空 catch 吃掉了。前端只看到一句「加载失败：HTTP 500」。
+ *
+ * 现在只吞「已存在」类错误，其余一律打 error 日志（附 SQL 原文），
+ * 让迁移问题在启动日志里一眼可见。
+ */
+function migrate(db: Database, sql: string, label: string): void {
+  try {
+    db.exec(sql)
+  } catch (err: any) {
+    const msg = String(err?.message ?? err)
+    // 预期内的幂等冲突：语句已生效过，静默跳过
+    if (
+      /already exists/i.test(msg) ||
+      /duplicate column name/i.test(msg)
+    ) {
+      return
+    }
+    // 其余都是真问题，必须暴露
+    console.error(
+      `[db/migrate] FAILED (${label}): ${msg}\n  SQL: ${sql}`,
+    )
+  }
+}
+
 export function getDb(): Database {
   if (!_db) {
     // During Next.js's `next build` (page data collection), each worker
@@ -421,27 +454,15 @@ export function getDb(): Database {
     // every boot — older better-sqlite3 throws if the column is
     // already present, which is the common case after the first
     // deploy with this migration.
-    try {
-      _db.exec('ALTER TABLE usage_events ADD COLUMN visitorId TEXT')
-    } catch {
-      // column already exists
-    }
+    migrate(_db, 'ALTER TABLE usage_events ADD COLUMN visitorId TEXT', 'usage_events.visitorId')
 
     // Idempotent column migration for users: add `name` and `role`
     // to existing databases. The CREATE TABLE above already includes
     // them for fresh installs. The role column stays nullable so
     // existing accounts don't need a backfill — application code
     // falls back to 'parent' for NULL values (see getRole helper).
-    try {
-      _db.exec("ALTER TABLE users ADD COLUMN name TEXT")
-    } catch {
-      // column already exists
-    }
-    try {
-      _db.exec("ALTER TABLE users ADD COLUMN role TEXT")
-    } catch {
-      // column already exists
-    }
+    migrate(_db, 'ALTER TABLE users ADD COLUMN name TEXT', 'users.name')
+    migrate(_db, 'ALTER TABLE users ADD COLUMN role TEXT', 'users.role')
 
     // Idempotent column migration for csp_progress: add
     // viewedSceneSeconds + auditFlags. These two power the
@@ -452,20 +473,16 @@ export function getDb(): Database {
     // auditFlags array will start populating on the next
     // suspicious write so the teacher dashboard can still
     // surface anomalies for legacy progress rows.
-    try {
-      _db.exec(
-        "ALTER TABLE csp_progress ADD COLUMN viewedSceneSeconds TEXT NOT NULL DEFAULT '{}'",
-      )
-    } catch {
-      // column already exists
-    }
-    try {
-      _db.exec(
-        "ALTER TABLE csp_progress ADD COLUMN auditFlags TEXT NOT NULL DEFAULT '[]'",
-      )
-    } catch {
-      // column already exists
-    }
+    migrate(
+      _db,
+      "ALTER TABLE csp_progress ADD COLUMN viewedSceneSeconds TEXT NOT NULL DEFAULT '{}'",
+      'csp_progress.viewedSceneSeconds',
+    )
+    migrate(
+      _db,
+      "ALTER TABLE csp_progress ADD COLUMN auditFlags TEXT NOT NULL DEFAULT '[]'",
+      'csp_progress.auditFlags',
+    )
 
     // 2026-07-02 错题三段复盘 (errorCause / correctSolution / variant*).
     // 新部署会走上面 CREATE TABLE 的新列定义; 老库需要用 try/catch
@@ -484,19 +501,13 @@ export function getDb(): Database {
       ['reviewedAt', 'TEXT'],
     ];
     for (const [col, type] of mistakeBookReviewCols) {
-      try {
-        _db.exec(`ALTER TABLE mistake_book ADD COLUMN ${col} ${type}`)
-      } catch {
-        // column already exists (idempotent migration)
-      }
+      migrate(_db, `ALTER TABLE mistake_book ADD COLUMN ${col} ${type}`, `mistake_book.${col}`)
     }
-    try {
-      _db.exec(
-        'CREATE INDEX IF NOT EXISTS idx_mistake_book_visitor_reviewed ON mistake_book (visitorId, reviewedAt)',
-      )
-    } catch {
-      // index already exists
-    }
+    migrate(
+      _db,
+      'CREATE INDEX IF NOT EXISTS idx_mistake_book_visitor_reviewed ON mistake_book (visitorId, reviewedAt)',
+      'idx_mistake_book_visitor_reviewed',
+    )
 
     // Alan张老师·少年 AI 创造营：学员 / 课堂记录 / 作品 三张业务表
     // 上线日期：2026-08-30（配合 /admin/camp/* 后台页面与 API）
@@ -543,10 +554,13 @@ export function getDb(): Database {
       ON camp_class_logs (className, classDate DESC);
 
     -- camp_works：学员作品。一个作品一行，支持审核 status 与展示开关。
+    -- 注意：studentId 必须可空 —— 学生可匿名自助提交（无学员档案），
+    -- 此时只存 studentName。早期这里写成 NOT NULL，逼出了下方那段
+    -- 「改名→新建→复制→删旧」的重建迁移，也是 viewCount 丢失的根源。
     CREATE TABLE IF NOT EXISTS camp_works (
       id TEXT PRIMARY KEY,
       title TEXT NOT NULL,
-      studentId TEXT NOT NULL,
+      studentId TEXT,
       studentName TEXT,              /* 冗余保存，便于列表展示 */
       className TEXT,
       grade TEXT,                    /* 年级（如「三年级」），学生自助提交时填写；老库通过下方迁移补齐 */
@@ -575,8 +589,13 @@ export function getDb(): Database {
       ON camp_works (featured DESC, sortOrder, createdAt DESC);
     CREATE INDEX IF NOT EXISTS idx_camp_works_class_date
       ON camp_works (className, createdAt DESC);
-    CREATE INDEX IF NOT EXISTS idx_camp_works_hot
-      ON camp_works (status, viewCount DESC, createdAt DESC);
+    -- 注意：idx_camp_works_hot 依赖 viewCount 列，而老库的 camp_works 可能
+    -- 还没有这一列（CREATE TABLE IF NOT EXISTS 会整表跳过，不会补列）。
+    -- 早期版本把这条索引写在这里 —— 老库开到这一步直接抛
+    --   SqliteError: no such column: viewCount
+    -- 而且整个 _db.exec 是「一个批次」，异常会让后面所有迁移全部不执行，
+    -- 最终表现为 /api/camp/works 生产环境 500 且日志只字不提。
+    -- 所以这条索引必须晚于「补 viewCount 列」之后建，见 applyMigrations 里的 migrate()。
     `);
 
     // 2026-09-13：支持学生自助提交作品（无需预置学员档案）。
@@ -590,6 +609,39 @@ export function getDb(): Database {
         .all() as Array<{ name: string; notnull: number }>;
       const studentIdCol = cols.find((c) => c.name === 'studentId');
       if (studentIdCol && studentIdCol.notnull === 1) {
+        // 关键：SELECT 列表必须按「源表实际有哪些列」动态构造。
+        // 早期版本把 viewCount 等新列硬编码进 SELECT，一旦源表还没有该列
+        // （真正很老的库），整条 INSERT...SELECT 会炸，而外层 catch 又把
+        // 错误吞掉 —— 表已 RENAME 但重建失败，camp_works 直接消失。
+        // 这里先取交集，源表没有的列交给 CREATE TABLE 的 DEFAULT 兜底。
+        //
+        // 注意：必须在 RENAME 之前读 camp_works 的列（此时它还是原名），
+        // 不能去读 camp_works_old —— 那张表要等 RENAME 之后才存在。
+        const oldNames = new Set(
+          (
+            _db.prepare('PRAGMA table_info(camp_works)').all() as Array<{
+              name: string
+            }>
+          ).map((c) => c.name),
+        )
+        const targetCols = [
+          'id', 'title', 'studentId', 'studentName', 'className', 'classLogId',
+          'category', 'coverImage', 'linkUrl', 'description', 'techStackJson',
+          'status', 'reviewNote', 'reviewedAt', 'reviewedBy', 'featured',
+          'sortOrder', 'viewCount', 'createdAt', 'updatedAt',
+        ]
+        const copyCols = targetCols.filter((c) => oldNames.has(c))
+        const selectExprs = copyCols.map((c) =>
+          c === 'viewCount' ? 'COALESCE(viewCount, 0)' : c,
+        )
+        const colList = copyCols.join(', ')
+        const exprList = selectExprs.join(', ')
+        if (copyCols.length === 0) {
+          // 理论上不会发生（至少 id 一定在）；真发生了直接跳过重建，
+          // 免得拼出 `INSERT INTO camp_works ()` 这种语法错误
+          throw new Error('camp_works rebuild: could not read source columns')
+        }
+
         _db.exec(`
           BEGIN TRANSACTION;
           ALTER TABLE camp_works RENAME TO camp_works_old;
@@ -611,26 +663,29 @@ export function getDb(): Database {
             reviewedBy TEXT,
             featured INTEGER NOT NULL DEFAULT 0,
             sortOrder INTEGER NOT NULL DEFAULT 0,
+            viewCount INTEGER NOT NULL DEFAULT 0,
             createdAt TEXT NOT NULL DEFAULT (datetime('now')),
             updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
             FOREIGN KEY (studentId) REFERENCES camp_students(id) ON DELETE SET NULL
           );
-          INSERT INTO camp_works (
-            id, title, studentId, studentName, className, classLogId, category,
-            coverImage, linkUrl, description, techStackJson, status, reviewNote,
-            reviewedAt, reviewedBy, featured, sortOrder, createdAt, updatedAt
-          )
-          SELECT
-            id, title, studentId, studentName, className, classLogId, category,
-            coverImage, linkUrl, description, techStackJson, status, reviewNote,
-            reviewedAt, reviewedBy, featured, sortOrder, createdAt, updatedAt
+          INSERT INTO camp_works (${colList})
+          SELECT ${exprList}
           FROM camp_works_old;
           DROP TABLE camp_works_old;
           COMMIT;
         `);
       }
-    } catch {
-      // 表不存在或已迁移；忽略
+    } catch (err: any) {
+      // 表不存在（全新库，由上方 CREATE TABLE 建）→ 正常跳过。
+      // 其余一律打日志：重建中途失败会让 camp_works 停在被 RENAME 的状态，
+      // 是「整个作品墙消失」级别的事故，绝不能再静默。
+      const msg = String(err?.message ?? err)
+      if (!/no such table/i.test(msg)) {
+        console.error(
+          `[db/migrate] camp_works rebuild FAILED: ${msg}\n` +
+            '  若表仍名为 camp_works_old，请手动改回：ALTER TABLE camp_works_old RENAME TO camp_works',
+        )
+      }
     }
 
     // Only flip the flag once the schema actually finished applying
@@ -677,19 +732,13 @@ function applyMigrations(db: Database): void {
     ['reviewedAt', 'TEXT'],
   ]
   for (const [col, type] of mistakeBookReviewCols) {
-    try {
-      db.exec(`ALTER TABLE mistake_book ADD COLUMN ${col} ${type}`)
-    } catch {
-      // column already exists
-    }
+    migrate(db, `ALTER TABLE mistake_book ADD COLUMN ${col} ${type}`, `mistake_book.${col}`)
   }
-  try {
-    db.exec(
-      'CREATE INDEX IF NOT EXISTS idx_mistake_book_visitor_reviewed ON mistake_book (visitorId, reviewedAt)',
-    )
-  } catch {
-    // index already exists
-  }
+  migrate(
+    db,
+    'CREATE INDEX IF NOT EXISTS idx_mistake_book_visitor_reviewed ON mistake_book (visitorId, reviewedAt)',
+    'idx_mistake_book_visitor_reviewed',
+  )
 
   // Alan张老师·少年 AI 创造营：三张业务表。老数据库 init block 已经跑完
   // （_dbInit=true，检查的是 parent_invite_codes 表），所以必须在这里
@@ -739,7 +788,7 @@ function applyMigrations(db: Database): void {
     CREATE TABLE IF NOT EXISTS camp_works (
       id TEXT PRIMARY KEY,
       title TEXT NOT NULL,
-      studentId TEXT NOT NULL,
+      studentId TEXT,
       studentName TEXT,
       className TEXT,
       grade TEXT,
@@ -767,21 +816,20 @@ function applyMigrations(db: Database): void {
       ON camp_works (featured DESC, sortOrder, createdAt DESC);
     CREATE INDEX IF NOT EXISTS idx_camp_works_class_date
       ON camp_works (className, createdAt DESC);
-    CREATE INDEX IF NOT EXISTS idx_camp_works_hot
-      ON camp_works (status, viewCount DESC, createdAt DESC);
+    -- idx_camp_works_hot 见下方 applyMigrations：必须等 viewCount 补列之后
+    -- 再建，放在这里会让老库整批迁移中断（no such column: viewCount）。
     `)
   } catch (err) {
+    // 这里**不能** rethrow：这一批 CREATE TABLE/INDEX 失败时，后面的
+    // ALTER 补列仍然可能成功，把整个 getDb() 炸掉只会让问题更难定位
+    // （2026-09-15 的 viewCount 事故就是「一批失败 → 后续迁移全不跑」）。
+    // 记录成 error 让它可见，但继续往下走。
     console.error('[db/applyMigrations] camp tables init failed:', err)
-    throw err
   }
 
   // 2026-09-13：学生自助提交作品时填写「年级」（一年级-六年级 / 不便透露）。
   // 新部署走上方 CREATE TABLE 里的 grade 列；老库平滑迁移，列已存在会被吞掉。
-  try {
-    db.exec('ALTER TABLE camp_works ADD COLUMN grade TEXT')
-  } catch {
-    // column already exists
-  }
+  migrate(db, 'ALTER TABLE camp_works ADD COLUMN grade TEXT', 'camp_works.grade')
 
   // 2026-09-14：学生上传 HTML 作品 + 自动介绍/封面 + 匿名二次编辑。
   // htmlFile 存 HTML 文件路径（相对 DB_DIR），editToken 作匿名编辑凭证，
@@ -792,27 +840,21 @@ function applyMigrations(db: Database): void {
     ['coverSource', 'TEXT'],
   ]
   for (const [col, type] of campWorkExtraCols) {
-    try {
-      db.exec(`ALTER TABLE camp_works ADD COLUMN ${col} ${type}`)
-    } catch {
-      // column already exists
-    }
+    migrate(db, `ALTER TABLE camp_works ADD COLUMN ${col} ${type}`, `camp_works.${col}`)
   }
 
   // 2026-09-15：作品详情页浏览计数，「最热」排序依据。
   // 老库平滑补列（NOT NULL 需带 DEFAULT，SQLite 才允许 ADD COLUMN）。
-  try {
-    db.exec('ALTER TABLE camp_works ADD COLUMN viewCount INTEGER NOT NULL DEFAULT 0')
-  } catch {
-    // column already exists
-  }
-  try {
-    db.exec(
-      'CREATE INDEX IF NOT EXISTS idx_camp_works_hot ON camp_works (status, viewCount DESC, createdAt DESC)',
-    )
-  } catch {
-    // index already exists
-  }
+  migrate(
+    db,
+    'ALTER TABLE camp_works ADD COLUMN viewCount INTEGER NOT NULL DEFAULT 0',
+    'camp_works.viewCount',
+  )
+  migrate(
+    db,
+    'CREATE INDEX IF NOT EXISTS idx_camp_works_hot ON camp_works (status, viewCount DESC, createdAt DESC)',
+    'idx_camp_works_hot',
+  )
 
   // 2026-09-14：作品「创作记录 + 能力评估 + 老师点评」三块富内容。
   // 早期只有两个前端硬编码的种子作品有创作记录和能力雷达；数据库作品
@@ -827,11 +869,7 @@ function applyMigrations(db: Database): void {
     ['teacherComment', 'TEXT'],
   ]
   for (const [col, type] of campWorkRichCols) {
-    try {
-      db.exec(`ALTER TABLE camp_works ADD COLUMN ${col} ${type}`)
-    } catch {
-      // column already exists
-    }
+    migrate(db, `ALTER TABLE camp_works ADD COLUMN ${col} ${type}`, `camp_works.${col}`)
   }
 
   // 2026-09-14：作品「介绍视频」。老师后台可上传本地视频文件（introVideoFile
@@ -842,11 +880,26 @@ function applyMigrations(db: Database): void {
     ['introVideoUrl', 'TEXT'],
   ]
   for (const [col, type] of campWorkVideoCols) {
-    try {
-      db.exec(`ALTER TABLE camp_works ADD COLUMN ${col} ${type}`)
-    } catch {
-      // column already exists
+    migrate(db, `ALTER TABLE camp_works ADD COLUMN ${col} ${type}`, `camp_works.${col}`)
+  }
+
+  // 2026-09-15：启动自检 —— 确认 camp_works 的关键列都在。
+  // viewCount 曾因迁移静默失败而缺失，导致作品墙接口 500 且日志无痕。
+  // 这里显式体检并打日志，让同类问题在下一次部署时立刻可见。
+  try {
+    const cols = db
+      .prepare('PRAGMA table_info(camp_works)')
+      .all() as Array<{ name: string }>
+    const names = cols.map((c) => c.name)
+    const required = ['viewCount', 'grade', 'htmlFile', 'editToken', 'coverSource']
+    const missing = required.filter((c) => !names.includes(c))
+    if (missing.length > 0) {
+      console.error(
+        `[db/migrate] camp_works schema INCOMPLETE, missing columns: ${missing.join(', ')}`,
+      )
     }
+  } catch {
+    // 表还不存在（全新库由上方 init block 建），忽略
   }
 }
 
