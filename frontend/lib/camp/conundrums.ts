@@ -223,7 +223,7 @@ export const CONUNDRA: Conundrum[] = [
     discussion: ['科学、公众、商业，谁该优先看到？', '错过这次，要再等上百年，值得吗？'],
     aiProject: '做「彗星观测倒计时」页，附观测指南。',
     bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Blue%20Comet%20Conundrum',
-    bilibiliVideos: [{ title: 'The Blue Comet Conundrum', bvid: 'BV1VxKt6DEvy', url: 'https://www.bilibili.com/video/BV1VxKt6DEvy/' }],
+    bilibiliVideos: [{ title: '#1 蓝色彗星难题', bvid: 'BV1sS411F7xQ', url: 'https://www.bilibili.com/video/BV1sS411F7xQ/' }, { title: 'The Blue Comet Conundrum', bvid: 'BV1VxKt6DEvy', url: 'https://www.bilibili.com/video/BV1VxKt6DEvy/' }],
   },
   {
     id: 'treasure',
@@ -235,7 +235,7 @@ export const CONUNDRA: Conundrum[] = [
     discussion: ['产权、历史、公平，三方冲突怎么解？', '时间过去越久，归属越清楚还是越模糊？'],
     aiProject: '做「寻宝地图」小游戏，埋藏与发现的规则由孩子定。',
     bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Treasure%20Conundrum',
-    bilibiliVideos: [{ title: 'The Treasure Conundrum', bvid: 'BV1yf6hYNEFj', url: 'https://www.bilibili.com/video/BV1yf6hYNEFj/' }, { title: 'The Treasure Conundrum', bvid: 'BV13XK465EwC', url: 'https://www.bilibili.com/video/BV13XK465EwC/' }],
+    bilibiliVideos: [{ title: '#2 宝藏难题', bvid: 'BV12w4m1X7CQ', url: 'https://www.bilibili.com/video/BV12w4m1X7CQ/' }, { title: 'The Treasure Conundrum', bvid: 'BV1yf6hYNEFj', url: 'https://www.bilibili.com/video/BV1yf6hYNEFj/' }, { title: 'The Treasure Conundrum', bvid: 'BV13XK465EwC', url: 'https://www.bilibili.com/video/BV13XK465EwC/' }],
   },
   {
     id: 'fox',
@@ -247,7 +247,7 @@ export const CONUNDRA: Conundrum[] = [
     discussion: ['"贡献"怎么定义？', '团队合作里，谁不可替代？'],
     aiProject: '做「物种发现故事」页，孩子编排不同角色的贡献。',
     bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Fox%20Conundrum',
-    bilibiliVideos: [{ title: 'The Fox Conundrum', bvid: 'BV17t6hY4EfV', url: 'https://www.bilibili.com/video/BV17t6hY4EfV/' }, { title: 'The Fox Conundrum', bvid: 'BV13B67YGEZD', url: 'https://www.bilibili.com/video/BV13B67YGEZD/' }, { title: 'The Fox Conundrum', bvid: 'BV1DXK46VEhE', url: 'https://www.bilibili.com/video/BV1DXK46VEhE/' }],
+    bilibiliVideos: [{ title: '03 狐狸难题', bvid: 'BV1xr42177iY', url: 'https://www.bilibili.com/video/BV1xr42177iY/' }, { title: 'The Fox Conundrum', bvid: 'BV17t6hY4EfV', url: 'https://www.bilibili.com/video/BV17t6hY4EfV/' }, { title: 'The Fox Conundrum', bvid: 'BV13B67YGEZD', url: 'https://www.bilibili.com/video/BV13B67YGEZD/' }, { title: 'The Fox Conundrum', bvid: 'BV1DXK46VEhE', url: 'https://www.bilibili.com/video/BV1DXK46VEhE/' }],
   },
   {
     id: 'chocolate',
@@ -259,7 +259,7 @@ export const CONUNDRA: Conundrum[] = [
     discussion: ['知识产权、公平、创新激励，边界在哪？', '没有秘密，还会有创新吗？'],
     aiProject: '做「我的秘密配方」品牌页，孩子设计自己的"秘密"并讲所有权。',
     bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Chocolate%20Conundrum',
-    bilibiliVideos: [{ title: 'The Chocolate Conundrum', bvid: 'BV1Et6hY4Exn', url: 'https://www.bilibili.com/video/BV1Et6hY4Exn/' }, { title: 'The Chocolate Conundrum', bvid: 'BV1UdK463Emx', url: 'https://www.bilibili.com/video/BV1UdK463Emx/' }],
+    bilibiliVideos: [{ title: '04 巧克力难题', bvid: 'BV1pb421b7Kh', url: 'https://www.bilibili.com/video/BV1pb421b7Kh/' }, { title: 'The Chocolate Conundrum', bvid: 'BV1Et6hY4Exn', url: 'https://www.bilibili.com/video/BV1Et6hY4Exn/' }, { title: 'The Chocolate Conundrum', bvid: 'BV1UdK463Emx', url: 'https://www.bilibili.com/video/BV1UdK463Emx/' }],
   },
   {
     id: 'pizza',
@@ -271,7 +271,7 @@ export const CONUNDRA: Conundrum[] = [
     discussion: ['"公平"是平均分，还是按需分？', '算法能解决公平吗？'],
     aiProject: '做「公平分披萨」计算器，输入人数与偏好出切法。',
     bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Pizza%20Conundrum',
-    bilibiliVideos: [{ title: 'The Pizza Conundrum', bvid: 'BV1ft6hYxE3n', url: 'https://www.bilibili.com/video/BV1ft6hYxE3n/' }, { title: 'The Pizza Conundrum', bvid: 'BV1YmK462E5U', url: 'https://www.bilibili.com/video/BV1YmK462E5U/' }],
+    bilibiliVideos: [{ title: '05 披萨难题', bvid: 'BV1zM4m1d7xq', url: 'https://www.bilibili.com/video/BV1zM4m1d7xq/' }, { title: 'The Pizza Conundrum', bvid: 'BV1ft6hYxE3n', url: 'https://www.bilibili.com/video/BV1ft6hYxE3n/' }, { title: 'The Pizza Conundrum', bvid: 'BV1YmK462E5U', url: 'https://www.bilibili.com/video/BV1YmK462E5U/' }],
   },
   {
     id: 'martian',
@@ -283,7 +283,7 @@ export const CONUNDRA: Conundrum[] = [
     discussion: ['领导力品质有哪些？', '民主选举，还是能力优先？'],
     aiProject: '做「火星任务组队」模拟，孩子选队员并定领导规则。',
     bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Martian%20Conundrum',
-    bilibiliVideos: [{ title: 'The Martian Conundrum', bvid: 'BV17t6hY4EZA', url: 'https://www.bilibili.com/video/BV17t6hY4EZA/' }, { title: 'The Martian Conundrum', bvid: 'BV1KAKt6qEcg', url: 'https://www.bilibili.com/video/BV1KAKt6qEcg/' }],
+    bilibiliVideos: [{ title: '06 火星难题', bvid: 'BV1LJ4m1N787', url: 'https://www.bilibili.com/video/BV1LJ4m1N787/' }, { title: 'The Martian Conundrum', bvid: 'BV17t6hY4EZA', url: 'https://www.bilibili.com/video/BV17t6hY4EZA/' }, { title: 'The Martian Conundrum', bvid: 'BV1KAKt6qEcg', url: 'https://www.bilibili.com/video/BV1KAKt6qEcg/' }],
   },
   {
     id: 'dinosaur',
@@ -295,7 +295,7 @@ export const CONUNDRA: Conundrum[] = [
     discussion: ['伦理、生态、科学价值，谁优先？', '复活之后，谁来负责？'],
     aiProject: '做「恐龙图鉴」，孩子给每种恐龙写"该不该复活"的理由。',
     bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Dinosaur%20Conundrum',
-    bilibiliVideos: [{ title: 'The Dinosaur Conundrum', bvid: 'BV1pMKt6AE18', url: 'https://www.bilibili.com/video/BV1pMKt6AE18/' }, { title: 'The Dinosaur Conundrum', bvid: 'BV1X56EY2Emx', url: 'https://www.bilibili.com/video/BV1X56EY2Emx/' }],
+    bilibiliVideos: [{ title: '08 恐龙难题', bvid: 'BV1WZ42147FG', url: 'https://www.bilibili.com/video/BV1WZ42147FG/' }, { title: 'The Dinosaur Conundrum', bvid: 'BV1pMKt6AE18', url: 'https://www.bilibili.com/video/BV1pMKt6AE18/' }, { title: 'The Dinosaur Conundrum', bvid: 'BV1X56EY2Emx', url: 'https://www.bilibili.com/video/BV1X56EY2Emx/' }],
   },
   {
     id: 'flying-bike',
@@ -306,7 +306,7 @@ export const CONUNDRA: Conundrum[] = [
     question: '该允许满街飞吗？',
     discussion: ['安全、监管、个人自由，怎么平衡？', '新技术的规则，该事先定还是出了事再定？'],
     aiProject: '做「未来交通工具」设计页，孩子画规则并模拟交通。',
-    bilibiliVideos: [{ title: 'The Flying Bike Conundrum', bvid: 'BV1CKKt6eEy3', url: 'https://www.bilibili.com/video/BV1CKKt6eEy3/' }],
+    bilibiliVideos: [{ title: '09 飞行自行车难题', bvid: 'BV1sf421m7g3', url: 'https://www.bilibili.com/video/BV1sf421m7g3/' }, { title: 'The Flying Bike Conundrum', bvid: 'BV1CKKt6eEy3', url: 'https://www.bilibili.com/video/BV1CKKt6eEy3/' }],
     bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Flying%20Bike%20Conundrum',
   },
   {
@@ -318,7 +318,7 @@ export const CONUNDRA: Conundrum[] = [
     question: '第一句话该说什么？要不要主动联系？',
     discussion: ['风险、沟通、谁代表人类，怎么定？', '沉默更安全，还是更危险？'],
     aiProject: '做「外星问候语」生成器，孩子写并解释自己的选择。',
-    bilibiliVideos: [{ title: 'The Alien Conundrum', bvid: 'BV14fK46uEtj', url: 'https://www.bilibili.com/video/BV14fK46uEtj/' }, { title: '#10 The Alien Conundrum', bvid: 'BV1cw6nYeEZ3', url: 'https://www.bilibili.com/video/BV1cw6nYeEZ3/' }, { title: 'The Alien Conundrum', bvid: 'BV1My67YMEdt', url: 'https://www.bilibili.com/video/BV1My67YMEdt/' }],
+    bilibiliVideos: [{ title: '#10 外星人难题', bvid: 'BV1Wx4y1W7WD', url: 'https://www.bilibili.com/video/BV1Wx4y1W7WD/' }, { title: 'The Alien Conundrum', bvid: 'BV14fK46uEtj', url: 'https://www.bilibili.com/video/BV14fK46uEtj/' }, { title: '#10 The Alien Conundrum', bvid: 'BV1cw6nYeEZ3', url: 'https://www.bilibili.com/video/BV1cw6nYeEZ3/' }, { title: 'The Alien Conundrum', bvid: 'BV1My67YMEdt', url: 'https://www.bilibili.com/video/BV1My67YMEdt/' }],
     bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Alien%20Conundrum',
   },
   {
@@ -355,7 +355,7 @@ export const CONUNDRA: Conundrum[] = [
     discussion: ['"公有地悲剧"怎么破？', '个人自由与集体责任怎么分？'],
     aiProject: '做「湖泊保护倡议」页，孩子提出并解释自己的管理方案。',
     bilibiliSearch: 'https://search.bilibili.com/all?keyword=Astra%20Nova%20The%20Lake%20Conundrum',
-    bilibiliVideos: [{ title: 'The Lake Conundrum', bvid: 'BV1Zt6hYxEoA', url: 'https://www.bilibili.com/video/BV1Zt6hYxEoA/' }, { title: 'The Lake Conundrum', bvid: 'BV1EiCgY3Eih', url: 'https://www.bilibili.com/video/BV1EiCgY3Eih/' }, { title: '湖泊难题', bvid: 'BV1YK411Q79T', url: 'https://www.bilibili.com/video/BV1YK411Q79T/' }],
+    bilibiliVideos: [{ title: '★ 湖泊难题', bvid: 'BV1Ew4m19738', url: 'https://www.bilibili.com/video/BV1Ew4m19738/' }, { title: 'The Lake Conundrum', bvid: 'BV1Zt6hYxEoA', url: 'https://www.bilibili.com/video/BV1Zt6hYxEoA/' }, { title: 'The Lake Conundrum', bvid: 'BV1EiCgY3Eih', url: 'https://www.bilibili.com/video/BV1EiCgY3Eih/' }, { title: '湖泊难题', bvid: 'BV1YK411Q79T', url: 'https://www.bilibili.com/video/BV1YK411Q79T/' }],
   },
   {
     id: 'lake-returns',

@@ -51,48 +51,66 @@
   },
   "blue-comet": {
     "file": "blue-comet.mp4",
-    "bvid": "BV1VxKt6DEvy",
-    "title": "The Blue Comet Conundrum"
+    "bvid": "BV1sS411F7xQ",
+    "title": "#1 蓝色彗星难题",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：AstroNova星际学校 / mid=3546677931674532），AI 中文字幕已烧录进画面"
   },
   "treasure": {
     "file": "treasure.mp4",
-    "bvid": "BV1yf6hYNEFj",
-    "title": "The Treasure Conundrum"
+    "bvid": "BV12w4m1X7CQ",
+    "title": "#2 宝藏难题",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：AstroNova星际学校 / mid=3546677931674532），AI 中文字幕已烧录进画面"
   },
   "fox": {
     "file": "fox.mp4",
-    "bvid": "BV17t6hY4EfV",
-    "title": "The Fox Conundrum"
+    "bvid": "BV1xr42177iY",
+    "title": "03 狐狸难题",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：AstroNova星际学校 / mid=3546677931674532），AI 中文字幕已烧录进画面"
   },
   "chocolate": {
     "file": "chocolate.mp4",
-    "bvid": "BV1Et6hY4Exn",
-    "title": "The Chocolate Conundrum"
+    "bvid": "BV1pb421b7Kh",
+    "title": "04 巧克力难题",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：AstroNova星际学校 / mid=3546677931674532），AI 中文字幕已烧录进画面"
   },
   "pizza": {
     "file": "pizza.mp4",
-    "bvid": "BV1ft6hYxE3n",
-    "title": "The Pizza Conundrum"
+    "bvid": "BV1zM4m1d7xq",
+    "title": "05 披萨难题",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：AstroNova星际学校 / mid=3546677931674532），AI 中文字幕已烧录进画面"
   },
   "martian": {
     "file": "martian.mp4",
-    "bvid": "BV17t6hY4EZA",
-    "title": "The Martian Conundrum"
+    "bvid": "BV1LJ4m1N787",
+    "title": "06 火星难题",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：AstroNova星际学校 / mid=3546677931674532），AI 中文字幕已烧录进画面"
   },
   "dinosaur": {
     "file": "dinosaur.mp4",
-    "bvid": "BV1pMKt6AE18",
-    "title": "The Dinosaur Conundrum"
+    "bvid": "BV1WZ42147FG",
+    "title": "08 恐龙难题",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：AstroNova星际学校 / mid=3546677931674532），AI 中文字幕已烧录进画面"
   },
   "flying-bike": {
     "file": "flying-bike.mp4",
-    "bvid": "BV1CKKt6eEy3",
-    "title": "The Flying Bike Conundrum"
+    "bvid": "BV1sf421m7g3",
+    "title": "09 飞行自行车难题",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：AstroNova星际学校 / mid=3546677931674532），AI 中文字幕已烧录进画面"
   },
   "alien": {
     "file": "alien.mp4",
-    "bvid": "BV14fK46uEtj",
-    "title": "The Alien Conundrum"
+    "bvid": "BV1Wx4y1W7WD",
+    "title": "#10 外星人难题",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：AstroNova星际学校 / mid=3546677931674532），AI 中文字幕已烧录进画面"
   },
   "airport": {
     "file": "airport.mp4",
@@ -106,10 +124,10 @@
   },
   "lake": {
     "file": "lake.mp4",
-    "bvid": "BV1YK411Q79T",
-    "title": "The Lake Conundrum",
+    "bvid": "BV1Ew4m19738",
+    "title": "★ 湖泊难题",
     "subtitle": "zh-CN",
-    "sourceNote": "中文字幕版（UP主：五块钱西瓜 / mid=14342227），字幕已烧录进画面"
+    "sourceNote": "中文字幕版（UP主：AstroNova星际学校 / mid=3546677931674532），AI 中文字幕已烧录进画面"
   },
   "lake-returns": {
     "file": "lake-returns.mp4",
