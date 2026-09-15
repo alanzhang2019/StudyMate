@@ -2,52 +2,72 @@
   "conundrum-conundrum": {
     "file": "conundrum-conundrum.mp4",
     "bvid": "BV1Rar5YkEfR",
-    "title": "马斯克网校考题 #33"
+    "title": "马斯克网校考题 #33",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：小丸子饲养员MYA），B站 AI 中文字幕轨（ai-zh）已烧录进画面"
   },
   "arctic": {
     "file": "arctic.mp4",
-    "bvid": "BV11HK46eE44",
-    "title": "The Arctic Conundrum"
+    "bvid": "BV1uk67YzEvv",
+    "title": "The Arctic Conundrum",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：CaptainHohohoho），B站 AI 中文字幕轨（ai-zh）已烧录进画面"
   },
   "light": {
     "file": "light.mp4",
     "bvid": "BV1ver5Y3EGQ",
-    "title": "The Light Conundrum"
+    "title": "The Light Conundrum",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：小丸子饲养员MYA），B站 AI 中文字幕轨（ai-zh）已烧录进画面"
   },
   "ferry": {
     "file": "ferry.mp4",
     "bvid": "BV1ver5Y3EKs",
-    "title": "The Ferry Conundrum"
+    "title": "The Ferry Conundrum",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：小丸子饲养员MYA），B站 AI 中文字幕轨（ai-zh）已烧录进画面"
   },
   "island": {
     "file": "island.mp4",
     "bvid": "BV1var5YkEvR",
-    "title": "The Island Conundrum"
+    "title": "The Island Conundrum",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：小丸子饲养员MYA），B站 AI 中文字幕轨（ai-zh）已烧录进画面"
   },
   "boat": {
     "file": "boat.mp4",
-    "bvid": "BV1Yqr5YuEhv",
-    "title": "马斯克网校考题 #13 The Boat Conundrum"
+    "bvid": "BV1bk67YzERK",
+    "title": "13. The Boat Conundrum",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：CaptainHohohoho），B站 AI 中文字幕轨（ai-zh）已烧录进画面"
   },
   "moonshot": {
     "file": "moonshot.mp4",
     "bvid": "BV1u16JYLEUv",
-    "title": "#32 The Moonshot Conundrum"
+    "title": "#32 The Moonshot Conundrum",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：小丸子饲养员MYA），B站 AI 中文字幕轨（ai-zh）已烧录进画面"
   },
   "nasa": {
     "file": "nasa.mp4",
-    "bvid": "BV1var5YkECP",
-    "title": "The NASA Conundrum"
+    "bvid": "BV1Mk67YzEQW",
+    "title": "The NASA Conundrum",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：CaptainHohohoho），B站 AI 中文字幕轨（ai-zh）已烧录进画面"
   },
   "speed": {
     "file": "speed.mp4",
     "bvid": "BV1ver5Y3EFh",
-    "title": "The Speed Conundrum"
+    "title": "The Speed Conundrum",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：小丸子饲养员MYA），B站 AI 中文字幕轨（ai-zh）已烧录进画面"
   },
   "masterpiece": {
     "file": "masterpiece.mp4",
     "bvid": "BV1ver5Y3EVn",
-    "title": "The Masterpiece Conundrum"
+    "title": "The Masterpiece Conundrum",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：小丸子饲养员MYA），B站 AI 中文字幕轨（ai-zh）已烧录进画面"
   },
   "blue-comet": {
     "file": "blue-comet.mp4",
@@ -114,13 +134,17 @@
   },
   "airport": {
     "file": "airport.mp4",
-    "bvid": "BV1366JYUERX",
-    "title": "#11 The Airport Conundrum"
+    "bvid": "BV1by67YMETx",
+    "title": "11. The Airport Conundrum",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：CaptainHohohoho），B站 AI 中文字幕轨（ai-zh）已烧录进画面"
   },
   "neighbor": {
     "file": "neighbor.mp4",
-    "bvid": "BV1HtK46bEqZ",
-    "title": "The Neighbor Conundrum"
+    "bvid": "BV1uy67YMEP4",
+    "title": "12. The Neighbor Conundrum",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：CaptainHohohoho），B站 AI 中文字幕轨（ai-zh）已烧录进画面"
   },
   "lake": {
     "file": "lake.mp4",
@@ -132,26 +156,36 @@
   "lake-returns": {
     "file": "lake-returns.mp4",
     "bvid": "BV1m6C3Y4Et9",
-    "title": "The Lake Returns Conundrum"
+    "title": "The Lake Returns Conundrum",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：小丸子饲养员MYA），B站 AI 中文字幕轨（ai-zh）已烧录进画面"
   },
   "halloween": {
     "file": "halloween.mp4",
     "bvid": "BV15Sr3YeEVy",
-    "title": "The Halloween Conundrum"
+    "title": "The Halloween Conundrum",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：小丸子饲养员MYA），B站 AI 中文字幕轨（ai-zh）已烧录进画面"
   },
   "weather": {
     "file": "weather.mp4",
-    "bvid": "BV1Yqr5YuELi",
-    "title": "马斯克网校考题 #16"
+    "bvid": "BV1uk67YzEWy",
+    "title": "The Weather Conundrum",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：CaptainHohohoho），B站 AI 中文字幕轨（ai-zh）已烧录进画面"
   },
   "art": {
     "file": "art.mp4",
-    "bvid": "BV1Yqr5YuEUn",
-    "title": "马斯克网校考题 #15"
+    "bvid": "BV1wZ67YbEND",
+    "title": "The Art Conundrum",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：CaptainHohohoho），B站 AI 中文字幕轨（ai-zh）已烧录进画面"
   },
   "tree": {
     "file": "tree.mp4",
-    "bvid": "BV1Yqr5YuEEL",
-    "title": "马斯克网校考题 #17"
+    "bvid": "BV1uk67YzEew",
+    "title": "The Tree Conundrum",
+    "subtitle": "zh-CN",
+    "sourceNote": "中文字幕版（UP主：CaptainHohohoho），B站 AI 中文字幕轨（ai-zh）已烧录进画面"
   }
 }
