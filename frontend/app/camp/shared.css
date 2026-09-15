@@ -967,6 +967,11 @@ input,textarea,select,button{color:inherit}
 .conundrum-player video{aspect-ratio:16/9;background:#000;border:0;display:block;height:auto;width:100%}
 .conundrum-player-back{background:rgba(0,0,0,.35);color:var(--paper);font-size:.78rem;font-weight:650;padding:.5rem .8rem;text-align:left;width:100%}
 .conundrum-player-back:hover{color:var(--yellow)}
+/* 浏览器自动播放策略会拒绝「有声起播」，我们降级为静音播放后必须给出提示，
+   否则用户会以为视频坏了。点此按钮 = 用户交互手势，浏览器即放行声音。 */
+.conundrum-player-unmute{background:var(--yellow);color:var(--navy-950);display:block;font-size:.78rem;font-weight:750;padding:.5rem .8rem;text-align:left;width:100%;animation:unmute-hint 1.8s ease-in-out 2}
+.conundrum-player-unmute:hover{background:var(--paper)}
+@keyframes unmute-hint{0%,100%{opacity:1}50%{opacity:.62}}
 
 .conundrum-official{display:grid;gap:.5rem}
 .conundrum-official-link{align-items:center;border:1px dashed var(--line-strong);color:var(--paper);display:flex;font-size:.85rem;gap:.6rem;padding:.6rem .8rem;text-align:left;transition:border-color .16s ease,background-color .16s ease;width:100%}

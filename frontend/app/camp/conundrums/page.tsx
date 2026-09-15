@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   CONUNDRA,
@@ -15,6 +15,55 @@ export default function ConundrumsPage() {
   const [filter, setFilter] = useState<Filter>('全部');
   const [expanded, setExpanded] = useState<string | null>(null);
   const [playingKey, setPlayingKey] = useState<string | null>(null);
+  // 浏览器自动播放策略拒绝「有声起播」时，我们会降级为静音播放。
+  // 此时提示用户「点一下开声音」，避免出现"播了但没声音"的困惑。
+  const [mutedByPolicy, setMutedByPolicy] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  // 点开「看视频」后自动起播。
+  // 单写 autoPlay 属性是不够的：实测 Chromium 默认策略会直接拒绝有声自动播放
+  // （视频停在 0:00 不动，正是这个原因）。所以这里手动兜底：
+  //  1) 先尝试带声播放；
+  //  2) 被拒则改为静音播放（浏览器一定允许）—— 并标记 mutedByPolicy，
+  //     渲染一个「开声音」按钮，把控制权交还用户；
+  //  3) 都失败就保留原生 controls，交给用户点，不阻塞、不报错。
+  useEffect(() => {
+    if (!playingKey) return;
+    const el = videoRef.current;
+    if (!el) return;
+    let cancelled = false;
+    const tryPlay = async () => {
+      try {
+        await el.play();
+      } catch {
+        if (cancelled) return;
+        el.muted = true;
+        try {
+          await el.play();
+          if (!cancelled) setMutedByPolicy(true);
+        } catch {
+          /* 浏览器彻底拒绝自动播放：保留原生 controls，交给用户点 */
+        }
+      }
+    };
+    void tryPlay();
+    return () => {
+      cancelled = true;
+    };
+  }, [playingKey]);
+
+  // 用户点「收起播放」时清掉静音提示，下次点开重新走一遍自动播放判定。
+  const closePlayer = () => {
+    setPlayingKey(null);
+    setMutedByPolicy(false);
+  };
+
+  // 解除静音（用户主动点击 = 有交互手势，浏览器会放行有声播放）。
+  const unmute = () => {
+    const el = videoRef.current;
+    if (el) el.muted = false;
+    setMutedByPolicy(false);
+  };
 
   const filters: Filter[] = ['全部', ...CONUNDRUM_CATEGORIES];
   const list =
@@ -149,16 +198,33 @@ export default function ConundrumsPage() {
                           <div className="conundrum-videos">
                             {playingKey === c.id ? (
                               <div className="conundrum-player">
+                                {/* 自动起播：由上面的 useEffect 通过 ref 统一驱动
+                                    （先尝试有声，被浏览器拒绝则降级静音），
+                                    比只写 autoPlay 属性可靠。
+                                    key 保证切换课题时重建 video，不复用旧 src。
+                                    preload 保持 metadata：play() 本身就会触发加载，
+                                    不必在挂载阶段就抢带宽（单集平均 4.5MB）。 */}
                                 <video
+                                  key={c.id}
+                                  ref={videoRef}
                                   src={`/videos/conundrums/${c.id}.mp4`}
                                   controls
                                   playsInline
                                   preload="metadata"
                                 />
+                                {mutedByPolicy ? (
+                                  <button
+                                    type="button"
+                                    className="conundrum-player-unmute"
+                                    onClick={unmute}
+                                  >
+                                    🔇 正在静音播放 —— 点这里开声音
+                                  </button>
+                                ) : null}
                                 <button
                                   type="button"
                                   className="conundrum-player-back"
-                                  onClick={() => setPlayingKey(null)}
+                                  onClick={closePlayer}
                                 >
                                   ← 收起播放
                                 </button>
