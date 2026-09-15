@@ -19,6 +19,8 @@ export default function ConundrumsPage() {
   // 此时提示用户「点一下开声音」，避免出现"播了但没声音"的困惑。
   const [mutedByPolicy, setMutedByPolicy] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  // 记录已经预取过的视频 URL，避免反复插入 prefetch 标签
+  const prefetchedRef = useRef<Set<string>>(new Set());
 
   // 点开「看视频」后自动起播。
   // 单写 autoPlay 属性是不够的：实测 Chromium 默认策略会直接拒绝有声自动播放
@@ -64,6 +66,30 @@ export default function ConundrumsPage() {
     if (el) el.muted = false;
     setMutedByPolicy(false);
   };
+
+  // 展开某个课题时，后台把它的视频预取进 HTTP 缓存。
+  // 目的：用户点「看视频」的瞬间数据已在本地，起播与拖动都不必等缓冲。
+  // 用 <link rel="prefetch"> 而非直接塞 <video>：浏览器按低优先级抓取，
+  // 不阻塞页面渲染，也不会触发播放器实例。
+  // 服务端已返回 206 + Accept-Ranges: bytes + Cache-Control，
+  // 预取进缓存后 <video> 的 Range 拖动请求直接命中缓存。
+  useEffect(() => {
+    if (!expanded) return;
+    if (!LOCAL_VIDEO_IDS.includes(expanded)) return;
+    const href = `/videos/conundrums/${expanded}.mp4`;
+    // 同一个视频只预取一次（把已插过的 URL 记下来）
+    if (prefetchedRef.current.has(href)) return;
+    prefetchedRef.current.add(href);
+    const link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.as = 'video';
+    link.href = href;
+    document.head.appendChild(link);
+    // 刻意不做 cleanup（不移除 link）。
+    // 原因：prefetch 的价值就在「缓存住」，一旦移除标签，部分浏览器会取消
+    // 进行中的预取，反而白费带宽。prefetchedRef 已保证同一 URL 只插一次，
+    // head 里不会无限堆积。
+  }, [expanded]);
 
   const filters: Filter[] = ['全部', ...CONUNDRUM_CATEGORIES];
   const list =
@@ -202,15 +228,18 @@ export default function ConundrumsPage() {
                                     （先尝试有声，被浏览器拒绝则降级静音），
                                     比只写 autoPlay 属性可靠。
                                     key 保证切换课题时重建 video，不复用旧 src。
-                                    preload 保持 metadata：play() 本身就会触发加载，
-                                    不必在挂载阶段就抢带宽（单集平均 4.5MB）。 */}
+
+                                    preload="auto"：点开即后台完整缓存该集
+                                    （单集 2-9MB，均 4.5MB）。服务端已返回
+                                    206 + Accept-Ranges: bytes，配合预加载后
+                                    拖动进度条可任意跳转、秒响应，不再等缓冲。 */}
                                 <video
                                   key={c.id}
                                   ref={videoRef}
                                   src={`/videos/conundrums/${c.id}.mp4`}
                                   controls
                                   playsInline
-                                  preload="metadata"
+                                  preload="auto"
                                 />
                                 {mutedByPolicy ? (
                                   <button
