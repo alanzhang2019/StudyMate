@@ -275,54 +275,78 @@ export default function WorksPage() {
 
       {/* 精选专区：后台勾选「精选」的作品会出现在这里。
           精选作品同时仍按 featured 置顶排序保留在下方作品墙中，
-          保证「精选」既醒目、又不脱离完整列表。 */}
+          保证「精选」既醒目、又不脱离完整列表。
+
+          视觉上刻意与上方浅色工具条、下方便签墙硬切开：
+          整块深蓝底 + 黄色角标 + 黄描边卡片，让「精选」一眼可辨。 */}
       {!loading && !loadError && featuredWorks.length > 0 && !query.trim() ? (
         <section className="works-featured" aria-labelledby="featured-title">
-          <header className="works-featured-head">
-            <div>
-              <p className="mono works-featured-kicker">SELECTED / 精选</p>
-              <h2 id="featured-title">老师挑出来的这几个</h2>
-            </div>
-            <p className="works-featured-note">
-              共 {featuredWorks.length} 个 · 在真实问题里做出的完整作品
-            </p>
-          </header>
-          <div className="works-featured-rail">
-            {featuredWorks.map((work) => (
-              <Link
-                key={`featured-${work.slug}`}
-                href={`/camp/work/${work.slug}`}
-                className="works-featured-card"
-                aria-label={`查看精选作品：${work.title}`}
-              >
-                <figure className="works-featured-image">
-                  {work.cover ? (
-                    <img
-                      src={work.cover}
-                      alt={`${work.title}项目封面`}
-                      loading="lazy"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).style.display =
-                          'none';
-                      }}
-                    />
-                  ) : null}
-                </figure>
-                <div className="works-featured-copy">
-                  <div className="work-note-topline mono">
-                    <span>{work.category}</span>
-                    <span>{work.student}</span>
+          <div className="works-featured-inner">
+            <header className="works-featured-head">
+              <div>
+                <span className="works-featured-badge">
+                  <span className="works-featured-badge-star" aria-hidden="true">
+                    ★
+                  </span>
+                  精选 <em>SELECTED</em>
+                </span>
+                <h2 id="featured-title">老师挑出来的这几个</h2>
+              </div>
+              <p className="works-featured-note">
+                共 {featuredWorks.length} 个 · 在真实问题里做出的完整作品
+              </p>
+            </header>
+            <div className="works-featured-rail">
+              {featuredWorks.map((work) => (
+                <Link
+                  key={`featured-${work.slug}`}
+                  href={`/camp/work/${work.slug}`}
+                  className="works-featured-card"
+                  aria-label={`查看精选作品：${work.title}`}
+                >
+                  <span className="works-featured-flag" aria-hidden="true">
+                    ★ 精选
+                  </span>
+                  <figure className="works-featured-image">
+                    {work.cover ? (
+                      <img
+                        src={work.cover}
+                        alt={`${work.title}项目封面`}
+                        loading="lazy"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).style.display =
+                            'none';
+                        }}
+                      />
+                    ) : null}
+                  </figure>
+                  <div className="works-featured-copy">
+                    <div className="work-note-topline mono">
+                      <span>{work.category}</span>
+                      <span>{work.student}</span>
+                    </div>
+                    <h3>{work.title}</h3>
+                    <p>{work.description}</p>
                   </div>
-                  <h3>{work.title}</h3>
-                  <p>{work.description}</p>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
       ) : null}
 
       <section className="works-wall" aria-live="polite">
+        {!loading && !loadError && visibleWorks.length > 0 ? (
+          <header className="works-wall-head">
+            <p className="works-wall-index mono">
+              全部作品 <span>/ ALL WORKS</span>
+            </p>
+            <p className="works-wall-count">
+              共 {visibleWorks.length} 个
+              {query.trim() ? ` · 匹配「${query.trim()}」` : ''}
+            </p>
+          </header>
+        ) : null}
         {loading ? (
           <div className="works-wall-grid">
             <div
@@ -359,6 +383,11 @@ export default function WorksPage() {
                 aria-label={`查看作品：${work.title}`}
               >
                 <span className="work-note-tape" aria-hidden="true" />
+                {work.featured ? (
+                  <span className="work-note-flag" aria-hidden="true">
+                    ★ 精选
+                  </span>
+                ) : null}
                 <figure className="work-note-image">
                   {work.cover ? (
                     <img
