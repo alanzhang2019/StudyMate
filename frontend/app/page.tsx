@@ -59,6 +59,9 @@ export default function LandingPage() {
           <Button asChild size="sm" variant="outline">
             <Link href="/csp-lecture">📚 学生课件</Link>
           </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link href="/textbooks">📖 深圳教材</Link>
+          </Button>
           <Button asChild size="sm">
             <Link href="/mistake">立即开始</Link>
           </Button>
