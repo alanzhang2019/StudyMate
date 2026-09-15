@@ -104,9 +104,9 @@ export default function TextbooksPage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="min-h-screen bg-[#F3F6FC] text-slate-900">
       {/* 顶栏 */}
-      <nav className="border-b border-slate-200 bg-white">
+      <nav className="border-b border-[#D9E2F5] bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Link href="/" className="text-sm font-medium text-slate-500 hover:text-slate-900">
             ← 返回作业通
@@ -117,18 +117,30 @@ export default function TextbooksPage() {
         </div>
       </nav>
 
-      {/* 头部 */}
-      <header className="bg-slate-900 text-white">
+      {/* 头部：深圳校服蓝渐变 + 袖标白条纹 */}
+      <header
+        className="relative text-white"
+        style={{ background: 'linear-gradient(100deg, #24418E 0%, #2B50A8 55%, #3A63C4 100%)' }}
+      >
         <div className="mx-auto max-w-6xl px-6 py-12">
-          <p className="text-xs font-semibold tracking-[0.3em] text-yellow-400">
+          <p className="text-xs font-semibold tracking-[0.3em] text-[#BFD4FF]">
             SHENZHEN TEXTBOOKS
           </p>
           <h1 className="mt-3 text-3xl font-bold sm:text-4xl">深圳九年义务教育系列教材</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-300">
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#D8E3FA]">
             覆盖 1-9 年级 · 10 科 89 册，按深圳在用版本收录：小学数学北师大版、小学英语沪教牛津版、
             小学科学教科版、初中地理湘教版，其余为人教/部编版。支持在线阅读与下载。
           </p>
         </div>
+        {/* 校服袖标条纹（蓝白横条） */}
+        <div
+          aria-hidden
+          className="absolute inset-x-0 bottom-0 h-2"
+          style={{
+            background:
+              'repeating-linear-gradient(90deg, #ffffff 0 16px, transparent 16px 32px)',
+          }}
+        />
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-8">
@@ -138,8 +150,8 @@ export default function TextbooksPage() {
             onClick={() => pickSubject('all')}
             className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
               subject === 'all'
-                ? 'bg-slate-900 text-white'
-                : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-slate-400'
+                ? 'bg-[#2B50A8] text-white'
+                : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-[#8FA9DE]'
             }`}
           >
             全部 <span className="opacity-60">{counts.get('all')}</span>
@@ -151,7 +163,7 @@ export default function TextbooksPage() {
               className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
                 subject === s
                   ? 'text-white'
-                  : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-slate-400'
+                  : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-[#8FA9DE]'
               }`}
               style={subject === s ? { backgroundColor: SUBJECT_COLOR[s] } : undefined}
             >
@@ -166,7 +178,9 @@ export default function TextbooksPage() {
             <button
               onClick={() => setGrade('all')}
               className={`rounded-lg px-3 py-1 text-xs font-medium transition ${
-                grade === 'all' ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 ring-1 ring-slate-200'
+                grade === 'all'
+                  ? 'bg-[#2B50A8] text-white'
+                  : 'bg-white text-slate-500 ring-1 ring-slate-200 hover:ring-[#8FA9DE]'
               }`}
             >
               全部年级
@@ -176,7 +190,9 @@ export default function TextbooksPage() {
                 key={g}
                 onClick={() => setGrade(g)}
                 className={`rounded-lg px-3 py-1 text-xs font-medium transition ${
-                  grade === g ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 ring-1 ring-slate-200'
+                  grade === g
+                    ? 'bg-[#2B50A8] text-white'
+                    : 'bg-white text-slate-500 ring-1 ring-slate-200 hover:ring-[#8FA9DE]'
                 }`}
               >
                 {GRADE_CN[g]}年级
@@ -187,7 +203,7 @@ export default function TextbooksPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="搜索教材，如「一年级」「北师大」…"
-            className="ml-auto w-56 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-slate-400"
+            className="ml-auto w-56 rounded-lg border border-[#DCE5F6] bg-white px-3 py-1.5 text-sm outline-none focus:border-[#2B50A8]"
           />
         </div>
 
@@ -199,7 +215,7 @@ export default function TextbooksPage() {
             {filtered.map((b) => (
               <article
                 key={b.slug}
-                className="group flex flex-col rounded-2xl bg-white p-5 ring-1 ring-slate-200 transition hover:shadow-lg"
+                className="group flex flex-col rounded-2xl bg-white p-5 ring-1 ring-[#DCE5F6] transition hover:shadow-[0_8px_24px_rgba(43,80,168,0.12)]"
               >
                 <div className="flex items-start justify-between gap-2">
                   <span
@@ -221,14 +237,14 @@ export default function TextbooksPage() {
                 <div className="mt-4 flex gap-2 pt-1">
                   <button
                     onClick={() => openReader(b)}
-                    className="flex-1 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-slate-700"
+                    className="flex-1 rounded-lg bg-[#2B50A8] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-[#1F3D8A]"
                   >
                     在线阅读
                   </button>
                   <a
                     href={`/textbooks/${b.slug}.pdf`}
                     download={`${b.title}.pdf`}
-                    className="flex-1 rounded-lg px-3 py-1.5 text-center text-xs font-medium text-slate-600 ring-1 ring-slate-200 transition hover:ring-slate-400"
+                    className="flex-1 rounded-lg px-3 py-1.5 text-center text-xs font-medium text-slate-600 ring-1 ring-[#DCE5F6] transition hover:ring-[#8FA9DE]"
                   >
                     下载
                   </a>
@@ -239,31 +255,34 @@ export default function TextbooksPage() {
         )}
 
         {/* 版本说明 */}
-        <section className="mt-10 rounded-2xl bg-white p-6 ring-1 ring-slate-200">
+        <section className="mt-10 rounded-2xl bg-white p-6 ring-1 ring-[#DCE5F6]">
           <h3 className="text-sm font-semibold text-slate-900">版本说明（深圳在用）</h3>
           <ul className="mt-3 grid grid-cols-1 gap-x-8 gap-y-1.5 text-xs text-slate-500 sm:grid-cols-2">
             {SUBJECT_ORDER.map((s) => (
               <li key={s} className="flex items-center gap-2">
-                <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: SUBJECT_COLOR[s] }} />
+                <span
+                  className="inline-block h-2 w-2 rounded-full"
+                  style={{ backgroundColor: SUBJECT_COLOR[s] }}
+                />
                 <span className="font-medium text-slate-700">{SUBJECT_LABEL[s]}</span>
                 <span>{SUBJECT_NOTE[s]}</span>
               </li>
             ))}
           </ul>
-          <p className="mt-4 border-t border-slate-100 pt-3 text-xs leading-relaxed text-slate-400">
+          <p className="mt-4 border-t border-[#E4EBF9] pt-3 text-xs leading-relaxed text-slate-400">
             教材版权归原出版机构所有，本模块仅供教学参考使用。官方电子教材可访问国家中小学智慧教育平台
             basic.smartedu.cn。
           </p>
         </section>
       </main>
 
-      {/* 阅读器弹层 */}
+      {/* 阅读器弹层（深藏蓝衬底，非纯黑） */}
       {reading && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-slate-900/90">
+        <div className="fixed inset-0 z-50 flex flex-col bg-[#16295C]/95">
           <div className="flex items-center justify-between px-4 py-3 text-white">
             <div className="min-w-0">
               <p className="truncate text-sm font-medium">{reading.title}</p>
-              <p className="text-xs text-slate-300">
+              <p className="text-xs text-[#B9C9EE]">
                 {reading.publisher} · {formatSize(reading.sizeBytes)}
               </p>
             </div>
@@ -272,7 +291,7 @@ export default function TextbooksPage() {
                 href={`/textbooks/${reading.slug}.pdf`}
                 target="_blank"
                 rel="noopener"
-                className="rounded-lg px-3 py-1.5 text-xs text-slate-200 ring-1 ring-slate-500 hover:bg-slate-800"
+                className="rounded-lg px-3 py-1.5 text-xs text-[#D8E3FA] ring-1 ring-[#4A67B0] hover:bg-[#24418E]"
               >
                 新标签打开
               </a>
@@ -293,7 +312,7 @@ export default function TextbooksPage() {
       )}
 
       {/* 页脚 */}
-      <footer className="border-t border-slate-200 py-8 text-center text-xs text-slate-400">
+      <footer className="border-t border-[#D9E2F5] py-8 text-center text-xs text-slate-400">
         深圳九年义务教育系列教材 · 作业通 aijiangti.cn
       </footer>
     </div>
