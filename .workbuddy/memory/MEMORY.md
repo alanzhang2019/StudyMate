@@ -36,6 +36,19 @@ StudyMate（作业通，aijiangti.cn）— K12 AI 学习闭环的 monorepo。**�
 - **同一条消息里对同一文件发多个 Edit 会静默丢失部分改动**（返回"Successfully edited"但没落盘），已踩 2 次（handleShare、HTML 上传功能）。**同文件多改动用 Read 完整 + Write 重写，或逐个 Edit 分开发消息；提交前 grep/git diff 逐点核对。**
 - 自动封面依赖 `resolveImageApiKey('seedream')`（读 server-providers.yml 或 env）；生产 docker-compose 只显式配了 KIMI_API_KEY，**未配 seedream 图生 key** → 自动封面会静默跳过（coverSource='none'，学生可手动上传）。需在服务器确认 SEEDREAM key 是否已配。
 
+## B站视频采集（可复用流水线）
+
+创造营课程视频优先取自 B站，需绕过风控与字幕真伪两大坑。脚本在 `.workbuddy/bili/`（**含登录 cookie，已 gitignore**）。
+
+- **space 接口 412 风控**：拉某 UP 主投稿必须 **WBI 签名 + 登录 cookie** 双管齐下。裸抓 space 页只有登录墙。
+  - WBI：nav 接口取 `wbi_img.img_url`/`sub_url` → 取文件名拼 64 字符 → 按 `MIXIN_KEY_ENC_TAB` 重排取前 32 位 = `mixin_key` → 参数按 key 排序 urlencode + `wts` + mixin_key 求 md5 = `w_rid`
+  - 脚本：`extract_cookies.py`（Chrome/Edge DPAPI + AES-256-GCM 解 cookie）、`fetch_uploader.py`（WBI 拉列表）
+- **Chromium cookie DB 独占锁**：浏览器运行时读不到，`cp` 报 busy、`CreateFileW` 报 err=32。**用 `shutil.copy2` 快照到临时文件再只读打开**。Chrome 真实库在 `Default/Network/Cookies`（`Default/Cookies` 是 0 字节空壳）。
+- **判断「真有中文字幕」只能抽帧看图** —— **标题是中文 ≠ 有中文字幕**（曾误判「小丸子饲养员MYA」70 条中文标题，实际画面纯英文）。抽帧：`ffmpeg -i in.mp4 -vf "fps=1/8,crop=iw:ih*0.25:0:ih*0.75,scale=700:-1,tile=3x3" -frames:v 1 grid.png -y`
+- **yt-dlp 传 BV 号必须用完整 URL**；**format id 必须手写**：`30032`=480 avc1（Safari 可播）、`30033`=480 hvc1（HEVC，播不了）、`30064`=720 avc1、`30080`=1080 avc1、`30280`=音频。用 `bv*[height<=720]` 会匹配到 HEVC。
+- yt-dlp 在 `C:/Users/Administrator/.workbuddy/binaries/python/versions/3.13.12/Scripts/yt-dlp.exe`（曾丢失，`pip install yt-dlp` 可装回）。
+- 课题视频映射：`frontend/lib/camp/conundrums.ts` 的 `id` ↔ `frontend/public/videos/conundrums/<id>.mp4` ↔ `LOCAL_VIDEO_IDS`，页面 `src={`/videos/conundrums/${c.id}.mp4`}`。**替换 mp4 即生效，无需改页面**；同时更新 `manifest.json` 与 `bilibiliVideos` 首位引用。
+
 ## 记忆盲区提醒
 
 下次梳理"产品矩阵"型项目前，先 grep 一遍产品关键字（品牌名、域名、备案号、学员名），再决定讲几条线，不能只看 SKILL.md/AGENTS.md 就认定项目范围。
