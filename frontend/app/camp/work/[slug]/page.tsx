@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -383,6 +383,28 @@ export default function WorkDetailPage() {
   const [loading, setLoading] = useState(true);
   const [shareOpen, setShareOpen] = useState(false);
 
+  // 作品视频地址（本地 /api/camp/videos/... 或外部直链）
+  const videoSrc = useMemo(() => (work?.video || '').trim(), [work]);
+
+  // 拿到视频地址后立刻在后台预取整片，用户点播放时数据已在本地。
+  // 用 <link rel="prefetch" as="video"> 而非直接塞 <video>：浏览器按低优先级
+  // 抓取，不阻塞页面渲染，也不会额外创建播放器实例。
+  // 配合服务端的 Range 支持（206 + Content-Range）与 immutable 缓存，
+  // 预取进缓存后播放器的分段请求直接命中缓存，拖动进度条零等待。
+  // 注意只预取同源地址：外部直链的第三方服务器我们控制不了它的
+  // 缓存头与 Range 行为，强行预取可能白耗用户流量。
+  useEffect(() => {
+    if (!videoSrc) return;
+    if (!videoSrc.startsWith('/')) return;
+    const link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.as = 'video';
+    link.href = videoSrc;
+    document.head.appendChild(link);
+    // 刻意不做 cleanup（不移除 link）：一旦移除标签，部分浏览器会取消
+    // 进行中的预取，反而白费带宽。单页只会插一次，不会堆积。
+  }, [videoSrc]);
+
   useEffect(() => {
     let cancelled = false;
     // 种子作品（静态）优先，命中即直接展示完整内容。
@@ -583,7 +605,11 @@ export default function WorkDetailPage() {
             <h2>看看创作者怎么讲自己的作品</h2>
           </header>
           <div className="work-video-frame">
-            <video src={work.video} controls preload="metadata" playsInline />
+            {/* preload="auto"：进入详情页即后台完整缓存该片，配合
+                /api/camp/videos 路由的 Range 支持（206 + Content-Range）
+                与 immutable 长缓存，拖动进度条可任意跳转、秒响应。
+                原先用 metadata，拖动时只能重新拉流，进度条拖不动。 */}
+            <video src={videoSrc} controls preload="auto" playsInline />
           </div>
         </section>
       ) : null}

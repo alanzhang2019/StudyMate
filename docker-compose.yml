@@ -125,6 +125,15 @@ services:
     # 引用的远程域名资源不在本 volume 范围内。
     volumes:
       - ./frontend/data/classrooms:/app/data/classrooms
+      # 作品介绍视频（老师后台上传）挂到宿主机，供 nginx 直出。
+      # 背景：camp-videos 原本只落在命名卷 /app/data 里，nginx 容器读不到，
+      # 所以视频只能走 Next.js 应用路由转发 —— 每次拖动都要 Node 进程
+      # 参与读盘+回传，多人同时看视频会占应用内存。
+      # 这里用与 entities/classrooms 相同的模式：先挂命名卷占住 /app/data，
+      # 再把宿主机目录挂到其子路径上覆盖（Docker 按声明顺序叠加）。
+      # 注意：容器内路径必须与 /app/data/camp-videos 完全一致，
+      # 否则应用读写与 nginx 直出会看到两份不同的文件。
+      - ./frontend/data/camp-videos:/app/data/camp-videos
       - ./frontend/public:/app/public
       - studymate-frontend-data:/app/data
     networks:
