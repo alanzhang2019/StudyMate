@@ -62,6 +62,25 @@ async function ev(c, sid, expr, awaitPromise = false) {
   return r.result && r.result.result ? r.result.result.value : undefined;
 }
 
+// 清空正文：ProseMirror 会拦截 execCommand('delete')，必须发真实按键 Ctrl+A + Delete。
+// （曾用 Range.selectNodeContents + Delete 键，不生效；删除后残留选区还会让下次插入替换掉全部内容）
+async function clearBody(c, sid) {
+  for (let k = 0; k < 3; k++) {
+    await ev(c, sid, `(()=>{const el=document.querySelectorAll('.ProseMirror')[1]; el.focus(); return 1;})()`);
+    await sleep(400);
+    await c.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'a', code: 'KeyA', windowsVirtualKeyCode: 65, nativeVirtualKeyCode: 65, modifiers: 2 }, sid);
+    await c.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'a', code: 'KeyA', windowsVirtualKeyCode: 65, nativeVirtualKeyCode: 65, modifiers: 2 }, sid);
+    await sleep(400);
+    await c.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Delete', code: 'Delete', windowsVirtualKeyCode: 46, nativeVirtualKeyCode: 46 }, sid);
+    await c.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Delete', code: 'Delete', windowsVirtualKeyCode: 46, nativeVirtualKeyCode: 46 }, sid);
+    await sleep(1500);
+    const st = await ev(c, sid, `(()=>{const el=document.querySelectorAll('.ProseMirror')[1]; return JSON.stringify({len:el.innerText.length, imgs:el.querySelectorAll('img').length});})()`);
+    log(`clear[${k}] ->`, st);
+    try { const o = JSON.parse(st); if (o.len < 30 && o.imgs === 0) { log('CLEARED'); return true; } } catch (e) { }
+  }
+  return false;
+}
+
 async function shot(c, sid, name) {
   const p = path.join(ROOT, name || '_shot.png');
   const r = await c.send('Page.captureScreenshot', { format: 'png' }, sid);
@@ -174,10 +193,7 @@ async function shot(c, sid, name) {
     log('author:', await ev(c, sid, `(()=>{const a=document.querySelector('#author'); a.value='Alan张老师';
       a.dispatchEvent(new Event('input',{bubbles:true})); a.dispatchEvent(new Event('change',{bubbles:true})); return a.value;})()`));
 
-    // 清空正文
-    await ev(c, sid, `(()=>{const el=document.querySelectorAll('.ProseMirror')[1]; el.focus();
-      document.execCommand('selectAll'); document.execCommand('delete'); return 'c';})()`);
-    await sleep(1200);
+    await clearBody(c, sid);
 
     const parts = html.split(/(<img[^>]*>)/i).filter(s => s.trim());
     log('parts:', parts.length);
@@ -202,15 +218,26 @@ async function shot(c, sid, name) {
           if (after === before) log('   !! no new image, dialog may be open');
         }
       } else {
-        const r = await ev(c, sid, `(function(){
+        const pasteExpr = `(function(){
           const el=document.querySelectorAll('.ProseMirror')[1]; el.focus();
           const h=${JSON.stringify(p)};
           const dt=new DataTransfer(); dt.setData('text/html',h); dt.setData('text/plain',h.replace(/<[^>]+>/g,''));
           el.dispatchEvent(new ClipboardEvent('paste',{clipboardData:dt,bubbles:true,cancelable:true}));
           return el.innerText.length;
-        })()`);
-        await sleep(700);
-        log(`[${i}] TEXT -> len ${r}`);
+        })()`;
+        const before = await ev(c, sid, `document.querySelectorAll('.ProseMirror')[1].innerText.length`);
+        await ev(c, sid, pasteExpr);
+        await sleep(900);
+        let after = await ev(c, sid, `document.querySelectorAll('.ProseMirror')[1].innerText.length`);
+        if (Number(after) <= Number(before)) {
+          await ev(c, sid, `(()=>{const el=document.querySelectorAll('.ProseMirror')[1]; el.click(); el.focus(); return 1;})()`);
+          await sleep(600);
+          await ev(c, sid, pasteExpr);
+          await sleep(900);
+          after = await ev(c, sid, `document.querySelectorAll('.ProseMirror')[1].innerText.length`);
+          log(`   retried`);
+        }
+        log(`[${i}] TEXT ${before} -> ${after}`);
       }
     }
     log('total imgs:', await ev(c, sid, `document.querySelectorAll('.ProseMirror img.js_insertlocalimg').length`));
@@ -307,6 +334,11 @@ async function shot(c, sid, name) {
   // 通用 JS 求值: node cdp_wechat.js js "<expression>"
   if (cmd === 'js') {
     log(await ev(c, sid, process.argv[3]));
+  }
+
+  // 强制清空正文: node cdp_wechat.js clear
+  if (cmd === 'clear') {
+    await clearBody(c, sid);
   }
 
   c.close();
