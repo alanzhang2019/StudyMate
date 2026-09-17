@@ -288,7 +288,7 @@ async function shot(c, sid, name) {
     log('url:', await ev(c, sid, 'location.href'));
     log('toast:', await ev(c, sid, `JSON.stringify([...document.querySelectorAll('.weui-desktop-toast,.weui-desktop-dialog__bd,.weui-desktop-tips,[class*="toast"]')].map(e=>(e.innerText||'').trim().slice(0,60)).filter(Boolean).slice(0,5))`));
     await c.send('Page.enable', {}, sid);
-    await shot(c, sid, '_shot_saved.png');
+    try { await shot(c, sid, '_shot_saved.png'); } catch (e) { log('shot skipped:', e.message); }
   }
 
   // 状态总览
@@ -303,6 +303,11 @@ async function shot(c, sid, name) {
   }
 
   if (cmd === 'shot') { await c.send('Page.enable', {}, sid); await shot(c, sid, process.argv[3]); }
+
+  // 通用 JS 求值: node cdp_wechat.js js "<expression>"
+  if (cmd === 'js') {
+    log(await ev(c, sid, process.argv[3]));
+  }
 
   c.close();
 })().catch(e => { console.error('FATAL', e); process.exit(1); });
