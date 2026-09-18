@@ -144,5 +144,15 @@ networks:
   studymate-net:
     driver: bridge
 
+# ⚠️ 数据保护红线（2026-09-18 作品视频 404 事故后新增）
+# 本命名卷（compose 项目名 studymate 下磁盘实际名为 studymate_studymate-frontend-data）
+# 是【唯一】存放 SQLite 数据库（studymate.sqlite）与作品封面（camp-covers/）的地方：
+# 不在 git、不在宿主机普通目录，删除即永久丢失全部账号 / 学习进度 / 封面。
+# 严禁以下操作（会删卷）：
+#   - docker compose down -v        ← 带 -v 会删卷！重启只用 docker compose down（不带 -v）
+#   - docker volume rm studymate_studymate-frontend-data
+#   - docker volume prune           ← 容器停止后卷可能被判定"未使用"而清理
+# 视频在宿主机 bind 目录 ~/studymate/frontend/data/camp-videos（已恢复 8 个，走普通目录
+# 受主机备份保护）；DB 与封面只在卷里，必须定期备份（见下方 deploy runbook / 报警提醒）。
 volumes:
   studymate-frontend-data:
