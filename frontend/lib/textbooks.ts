@@ -162,3 +162,25 @@ export function formatSize(bytes: number): string {
   if (bytes >= 1024 * 1024) return Math.round(bytes / 1024 / 1024) + ' MB';
   return Math.max(1, Math.round(bytes / 1024)) + ' KB';
 }
+
+/** 按科目分组的教材，供下拉框用 optgroup 渲染（科目顺序 = SUBJECT_ORDER） */
+export interface TextbookGroup {
+  subject: SubjectKey;
+  label: string;
+  books: Textbook[];
+}
+
+export function groupTextbooksBySubject(): TextbookGroup[] {
+  return SUBJECT_ORDER.map((subject) => ({
+    subject,
+    label: SUBJECT_LABEL[subject],
+    books: TEXTBOOKS.filter((t) => t.subject === subject),
+  })).filter((g) => g.books.length > 0);
+}
+
+/** 由 slug 反查显示名（用于作品墙/详情页展示）；非法或空返回 '' */
+export function textbookTitle(slug: string | null | undefined): string {
+  if (!slug) return '';
+  const t = TEXTBOOKS.find((b) => b.slug === slug);
+  return t ? t.title : '';
+}

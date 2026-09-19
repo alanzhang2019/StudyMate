@@ -4,6 +4,7 @@ import { writeFileSync, mkdirSync } from 'fs';
 import path from 'path';
 import { db, getDb } from '@/lib/db';
 import { GRADE_OPTIONS } from '@/lib/camp/grades';
+import { TEXTBOOKS } from '@/lib/textbooks';
 import {
   checkRateLimit,
   getClientIp,
@@ -75,6 +76,9 @@ function safeJsonParse(str: string | null | undefined): any[] {
   }
 }
 
+/** 合法教材 slug 集合（来自 textbooks.ts），用于校验与过滤 */
+const TEXTBOOK_SLUGS = new Set(TEXTBOOKS.map((t) => t.slug));
+
 function transformWork(row: any): any {
   return {
     ...row,
@@ -94,6 +98,7 @@ export const GET = async (req: NextRequest) => {
     const category = url.searchParams.get('category')?.trim();
     const featured = url.searchParams.get('featured')?.trim();
     const sort = url.searchParams.get('sort')?.trim();
+    const textbook = url.searchParams.get('textbook')?.trim();
 
     const whereSql: string[] = ['status = ?'];
     const params: any[] = ['approved'];
@@ -105,6 +110,10 @@ export const GET = async (req: NextRequest) => {
     if (featured === '1') {
       whereSql.push('featured = ?');
       params.push(1);
+    }
+    if (textbook && TEXTBOOK_SLUGS.has(textbook)) {
+      whereSql.push('textbookSlug = ?');
+      params.push(textbook);
     }
 
     // 排序：精选永远置顶（这是「精选」的意义所在），同一档内再按请求的方式排。
@@ -216,6 +225,15 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
+    // 关联教材：学生上传必选单本，slug 必须合法（见 textbooks.ts）。
+    const textbookRaw = (typeof fields.textbook === 'string' ? fields.textbook.trim() : '');
+    if (!textbookRaw || !TEXTBOOK_SLUGS.has(textbookRaw)) {
+      return NextResponse.json(
+        { success: false, error: '请选择关联教材' },
+        { status: 400 },
+      );
+    }
+
     const safeStr = (v: any, max: number) =>
       typeof v === 'string' ? v.trim().slice(0, max) : '';
     const isUrl = (v: string) => /^https?:\/\/.+/i.test(v);
@@ -290,6 +308,7 @@ export const POST = async (req: NextRequest) => {
         className: className || null,
         grade,
         category,
+        textbookSlug: textbookRaw,
         coverImage: coverImage || null,
         linkUrl: linkUrl || null,
         description: description || null,

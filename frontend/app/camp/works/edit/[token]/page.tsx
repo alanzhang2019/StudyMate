@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { GRADE_OPTIONS } from '@/lib/camp/grades';
+import { groupTextbooksBySubject } from '@/lib/textbooks';
 
 
 const CATEGORY_OPTIONS = [
@@ -12,6 +13,8 @@ const CATEGORY_OPTIONS = [
   { value: '代码', label: '代码' },
   { value: '其他', label: '其他' },
 ];
+
+const TEXTBOOK_GROUPS = groupTextbooksBySubject();
 
 type LoadState =
   | { kind: 'loading' }
@@ -30,6 +33,7 @@ export default function CampWorkEditPage() {
   const [grade, setGrade] = useState('不便透露');
   const [className, setClassName] = useState('');
   const [category, setCategory] = useState('作品');
+  const [textbook, setTextbook] = useState('');
   const [description, setDescription] = useState('');
   const [coverImage, setCoverImage] = useState('');
   const [coverSource, setCoverSource] = useState('');
@@ -62,6 +66,7 @@ export default function CampWorkEditPage() {
         setGrade(d.grade || '不便透露');
         setClassName(d.className || '');
         setCategory(d.category || '作品');
+        setTextbook(d.textbookSlug || '');
         setDescription(d.description || '');
         setCoverImage(d.coverImage || '');
         setCoverSource(d.coverSource || '');
@@ -76,6 +81,10 @@ export default function CampWorkEditPage() {
       setBanner({ kind: 'error', text: '请填写作品标题' });
       return;
     }
+    if (!textbook) {
+      setBanner({ kind: 'error', text: '请选择「关联教材」' });
+      return;
+    }
     setSaving(true);
     setBanner(null);
     const fd = new FormData();
@@ -84,6 +93,7 @@ export default function CampWorkEditPage() {
     fd.append('grade', grade);
     fd.append('className', className.trim());
     fd.append('category', category);
+    fd.append('textbook', textbook);
     if (coverFile) fd.append('coverFile', coverFile);
     if (htmlFile) fd.append('htmlFile', htmlFile);
     try {
@@ -346,6 +356,24 @@ export default function CampWorkEditPage() {
                 maxLength={40}
                 className="submit-input"
               />
+            </Field>
+            <Field label="关联教材" required hint="必选一本，作品会归类到对应教材">
+              <select
+                value={textbook}
+                onChange={(e) => setTextbook(e.target.value)}
+                className="submit-select"
+              >
+                <option value="">请选择关联教材</option>
+                {TEXTBOOK_GROUPS.map((g) => (
+                  <optgroup key={g.subject} label={g.label}>
+                    {g.books.map((b) => (
+                      <option key={b.slug} value={b.slug}>
+                        {b.title}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
             </Field>
           </div>
 

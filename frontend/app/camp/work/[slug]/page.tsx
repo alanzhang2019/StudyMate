@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { textbookTitle } from '@/lib/textbooks';
 
 type Lesson = {
   time: string;
@@ -35,6 +36,7 @@ type WorkDetail = {
   teacherComment: string;
   shareTitle: string;
   shareText: string;
+  textbookLabel?: string; // 关联教材显示名
   video: string;
 };
 
@@ -372,6 +374,7 @@ function mapDbWorkToDetail(row: any): WorkDetail {
       '',
     shareTitle: row.title || '学员作品',
     shareText: `${studentLabel || '学员'} 的作品`,
+    textbookLabel: textbookTitle(row.textbookSlug),
   };
 }
 
@@ -546,6 +549,9 @@ export default function WorkDetailPage() {
               {work.views} 次浏览
             </span>
           </div>
+          {work.textbookLabel ? (
+            <p className="work-detail-textbook">关联教材：{work.textbookLabel}</p>
+          ) : null}
           <div className="work-detail-actions">
             {hasHtml ? (
               <a

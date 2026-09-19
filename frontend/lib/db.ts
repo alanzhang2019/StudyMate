@@ -566,6 +566,7 @@ export function getDb(): Database {
       grade TEXT,                    /* 年级（如「三年级」），学生自助提交时填写；老库通过下方迁移补齐 */
       classLogId TEXT,               /* 对应 camp_class_logs.id，可空 */
       category TEXT NOT NULL DEFAULT '作品',    /* 作品 / 项目 / 代码 / 其他 */
+      textbookSlug TEXT,             /* 关联教材 slug（见 frontend/lib/textbooks.ts），学生上传必选单本 */
       coverImage TEXT,               /* 封面图 URL */
       linkUrl TEXT,                  /* 作品外链，比如 Scratch 项目页 */
       description TEXT,              /* 作品介绍 */
@@ -653,6 +654,7 @@ export function getDb(): Database {
             className TEXT,
             classLogId TEXT,
             category TEXT NOT NULL DEFAULT '作品',
+            textbookSlug TEXT,
             coverImage TEXT,
             linkUrl TEXT,
             description TEXT,
@@ -797,6 +799,7 @@ function applyMigrations(db: Database): void {
       coverImage TEXT,
       linkUrl TEXT,
       description TEXT,
+      textbookSlug TEXT,
       techStackJson TEXT NOT NULL DEFAULT '[]',
       status TEXT NOT NULL DEFAULT 'pending',
       reviewNote TEXT,
@@ -883,6 +886,10 @@ function applyMigrations(db: Database): void {
     migrate(db, `ALTER TABLE camp_works ADD COLUMN ${col} ${type}`, `camp_works.${col}`)
   }
 
+  // 2026-09-19：作品关联教材（学生上传必选单本，slug 来自 textbooks.ts）。
+  // 新部署走上方 CREATE TABLE 的 textbookSlug 列；老库平滑补列，列已存在会被吞掉。
+  migrate(db, 'ALTER TABLE camp_works ADD COLUMN textbookSlug TEXT', 'camp_works.textbookSlug')
+
   // 2026-09-15：启动自检 —— 确认 camp_works 的关键列都在。
   // viewCount 曾因迁移静默失败而缺失，导致作品墙接口 500 且日志无痕。
   // 这里显式体检并打日志，让同类问题在下一次部署时立刻可见。
@@ -891,7 +898,7 @@ function applyMigrations(db: Database): void {
       .prepare('PRAGMA table_info(camp_works)')
       .all() as Array<{ name: string }>
     const names = cols.map((c) => c.name)
-    const required = ['viewCount', 'grade', 'htmlFile', 'editToken', 'coverSource']
+    const required = ['viewCount', 'grade', 'htmlFile', 'editToken', 'coverSource', 'textbookSlug']
     const missing = required.filter((c) => !names.includes(c))
     if (missing.length > 0) {
       console.error(

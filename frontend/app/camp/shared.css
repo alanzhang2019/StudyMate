@@ -793,6 +793,8 @@ input{font-family:inherit}
   .works-tools{gap:1rem}
   .works-sort{width:100%}
   .works-sort button{flex:1;padding-inline:.75rem}
+  .works-filter{width:100%}
+  .works-filter-select{width:100%}
   .works-wall{padding-bottom:5rem;padding-top:4.5rem}
   .works-wall-grid{gap:3.5rem;grid-template-columns:1fr}
   .work-note--hero,.work-note--side{grid-column:span 1;margin-top:0;rotate:0deg}

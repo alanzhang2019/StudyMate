@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { groupTextbooksBySubject, textbookTitle } from '@/lib/textbooks';
+
+const TEXTBOOK_GROUPS = groupTextbooksBySubject();
 
 type Work = {
   slug: string;
@@ -16,6 +19,8 @@ type Work = {
   ts: number; // 排序用时间戳
   featured: boolean; // 后台「精选」—— 置顶 + 进精选专区
   sortOrder: number; // 后台自定义排序，越小越靠前
+  textbookSlug?: string | null; // 关联教材 slug（必填单本）
+  textbook?: string; // 关联教材显示名（前端由 slug 解析）
 };
 
 // 两个早期示范作品（炳炳 / 小高）为静态种子，保留在作品墙顶部；
@@ -82,6 +87,7 @@ type DbWork = {
   sortOrder?: number;
   viewCount?: number;
   createdAt?: string | null;
+  textbookSlug?: string | null;
 };
 
 function mapDbWork(w: DbWork, index: number): Work {
@@ -90,6 +96,7 @@ function mapDbWork(w: DbWork, index: number): Work {
     .join(' · ');
   return {
     slug: w.id,
+    textbookSlug: w.textbookSlug ?? null,
     title: w.title || '未命名作品',
     category: w.category || '作品',
     date: formatDate(w.createdAt),
@@ -97,6 +104,7 @@ function mapDbWork(w: DbWork, index: number): Work {
     views: typeof w.viewCount === 'number' ? w.viewCount : 0,
     description: w.description || '',
     cover: w.coverImage || '',
+    textbook: textbookTitle(w.textbookSlug),
     // 精选不再强制套一种样式（原来统一变黄底大卡，反而破坏了便签墙
     // 黄/蓝/纸白交错的随机感）。现在精选与普通作品共用同一套循环配色，
     // 「精选」身份只靠右上角角标 + 置顶排序体现。
@@ -109,6 +117,7 @@ function mapDbWork(w: DbWork, index: number): Work {
 
 export default function WorksPage() {
   const [query, setQuery] = useState('');
+  const [textbook, setTextbook] = useState('');
   const [sort, setSort] = useState<'latest' | 'hot'>('latest');
   const [liveWorks, setLiveWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(true);
@@ -155,6 +164,7 @@ export default function WorksPage() {
   const visibleWorks = useMemo(() => {
     const q = query.trim().toLowerCase();
     const filtered = allWorks.filter((work) => {
+      if (textbook && work.textbookSlug !== textbook) return false;
       if (!q) return true;
       return (
         work.title.toLowerCase().includes(q) ||
@@ -252,25 +262,47 @@ export default function WorksPage() {
             onChange={(e) => setQuery(e.target.value)}
           />
         </label>
-        <div className="works-sort" aria-label="作品排序方式">
-          <button
-            type="button"
-            className={sort === 'latest' ? 'active' : ''}
-            aria-pressed={sort === 'latest'}
-            id="sortLatest"
-            onClick={() => setSort('latest')}
-          >
-            最新贴上
-          </button>
-          <button
-            type="button"
-            className={sort === 'hot' ? 'active' : ''}
-            aria-pressed={sort === 'hot'}
-            id="sortHot"
-            onClick={() => setSort('hot')}
-          >
-            最近最热
-          </button>
+        <div className="works-tools-right">
+          <div className="works-sort" aria-label="作品排序方式">
+            <button
+              type="button"
+              className={sort === 'latest' ? 'active' : ''}
+              aria-pressed={sort === 'latest'}
+              id="sortLatest"
+              onClick={() => setSort('latest')}
+            >
+              最新贴上
+            </button>
+            <button
+              type="button"
+              className={sort === 'hot' ? 'active' : ''}
+              aria-pressed={sort === 'hot'}
+              id="sortHot"
+              onClick={() => setSort('hot')}
+            >
+              最近最热
+            </button>
+          </div>
+
+          <div className="works-filter" aria-label="按教材筛选">
+            <select
+              value={textbook}
+              onChange={(e) => setTextbook(e.target.value)}
+              className="works-filter-select"
+              aria-label="按关联教材筛选"
+            >
+              <option value="">全部教材</option>
+              {TEXTBOOK_GROUPS.map((g) => (
+                <optgroup key={g.subject} label={g.label}>
+                  {g.books.map((b) => (
+                    <option key={b.slug} value={b.slug}>
+                      {b.title}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
         </div>
       </section>
 
@@ -348,10 +380,11 @@ export default function WorksPage() {
                   ) : null}
                 </figure>
                 <div className="work-note-copy">
-                  <div className="work-note-topline mono">
-                    <span>{work.category}</span>
-                    <span>{work.date}</span>
-                  </div>
+                <div className="work-note-topline mono">
+                  <span>{work.category}</span>
+                  {work.textbook ? <span>📘 {work.textbook}</span> : null}
+                  <span>{work.date}</span>
+                </div>
                   <h2>{work.title}</h2>
                   <p>{work.description}</p>
                   <div className="work-note-meta">

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { screenshotHtmlFile } from '@/lib/client/html-screenshot';
 import { GRADE_OPTIONS } from '@/lib/camp/grades';
+import { groupTextbooksBySubject } from '@/lib/textbooks';
 
 const CATEGORY_OPTIONS = [
   { value: '作品', label: '作品' },
@@ -11,6 +12,8 @@ const CATEGORY_OPTIONS = [
   { value: '代码', label: '代码' },
   { value: '其他', label: '其他' },
 ];
+
+const TEXTBOOK_GROUPS = groupTextbooksBySubject();
 
 
 type SubmitState =
@@ -37,6 +40,7 @@ export default function CampSubmitPage() {
   const [linkUrl, setLinkUrl] = useState('');
   const [description, setDescription] = useState('');
   const [techStack, setTechStack] = useState('');
+  const [textbook, setTextbook] = useState('');
   const [htmlFile, setHtmlFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [company, setCompany] = useState(''); // 蜜罐，隐藏，留空
@@ -46,7 +50,7 @@ export default function CampSubmitPage() {
   const busy = state.kind === 'generating' || state.kind === 'submitting';
 
   const canSubmit =
-    title.trim().length > 0 && studentName.trim().length > 0 && !busy;
+    title.trim().length > 0 && studentName.trim().length > 0 && !!textbook && !busy;
 
   const buildFormData = (file?: File, coverDataUrl?: string | null): FormData => {
     const fd = new FormData();
@@ -59,6 +63,7 @@ export default function CampSubmitPage() {
     fd.append('linkUrl', linkUrl.trim());
     fd.append('description', description.trim());
     fd.append('techStack', techStack.trim());
+    fd.append('textbook', textbook);
     fd.append('company', company);
     if (file) fd.append('htmlFile', file);
     if (coverDataUrl) fd.append('coverDataUrl', coverDataUrl);
@@ -106,10 +111,10 @@ export default function CampSubmitPage() {
   // 上传 HTML：立即触发「客户端截图 + 自动生成介绍」，无需再点提交
   const captureAndSubmit = async (file: File) => {
     setHtmlFile(file);
-    if (!title.trim() || !studentName.trim()) {
+    if (!title.trim() || !studentName.trim() || !textbook) {
       setState({
         kind: 'error',
-        message: '请先填写「作品标题」和「你的名字」，再上传 HTML 作品',
+        message: '请先填写「作品标题」「你的名字」并选择「关联教材」，再上传 HTML 作品',
       });
       return;
     }
@@ -167,6 +172,7 @@ export default function CampSubmitPage() {
     setLinkUrl('');
     setDescription('');
     setTechStack('');
+    setTextbook('');
     setHtmlFile(null);
     setDragOver(false);
     setState({ kind: 'idle' });
@@ -328,6 +334,24 @@ export default function CampSubmitPage() {
                   placeholder="例如：AI 创造营 1 班"
                   className="submit-input"
                 />
+              </Field>
+              <Field label="关联教材" required hint="必选一本，作品会归类到对应教材">
+                <select
+                  value={textbook}
+                  onChange={(e) => setTextbook(e.target.value)}
+                  className="submit-select"
+                >
+                  <option value="">请选择关联教材</option>
+                  {TEXTBOOK_GROUPS.map((g) => (
+                    <optgroup key={g.subject} label={g.label}>
+                      {g.books.map((b) => (
+                        <option key={b.slug} value={b.slug}>
+                          {b.title}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
               </Field>
             </div>
 

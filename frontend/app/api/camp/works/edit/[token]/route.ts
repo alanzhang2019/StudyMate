@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { writeFileSync } from 'fs';
 import { db } from '@/lib/db';
 import { GRADE_OPTIONS } from '@/lib/camp/grades';
+import { TEXTBOOKS } from '@/lib/textbooks';
 import {
   coverFilePath,
   saveHtmlFile,
@@ -9,6 +10,8 @@ import {
 
 const ALLOWED_COVER_EXT = ['png', 'jpg', 'jpeg', 'webp', 'gif'];
 const ALLOWED_HTML_EXT = ['html', 'htm'];
+/** 合法教材 slug 集合（来自 textbooks.ts），用于校验 */
+const TEXTBOOK_SLUGS = new Set(TEXTBOOKS.map((t) => t.slug));
 
 function safeStr(v: any, max: number): string {
   return typeof v === 'string' ? v.trim().slice(0, max) : '';
@@ -37,6 +40,7 @@ export const GET = async (
         grade: work.grade,
         className: work.className,
         category: work.category,
+        textbookSlug: work.textbookSlug,
         description: work.description,
         coverImage: work.coverImage,
         coverSource: work.coverSource,
@@ -89,6 +93,8 @@ export const PATCH = async (
     const category = ALLOWED_CAT.includes(categoryRaw) ? categoryRaw : (work.category || '作品');
     const gradeRaw = safeStr(get('grade'), 20);
     const grade = GRADE_OPTIONS.includes(gradeRaw as any) ? gradeRaw : (work.grade || '不便透露');
+    const textbookRaw = safeStr(get('textbook'), 80);
+    const textbook = TEXTBOOK_SLUGS.has(textbookRaw) ? textbookRaw : (work.textbookSlug || null);
 
     if (!title) {
       return NextResponse.json(
@@ -103,6 +109,7 @@ export const PATCH = async (
       className: className || null,
       category,
       grade,
+      textbookSlug: textbook,
       updatedAt: new Date().toISOString(),
     };
 
