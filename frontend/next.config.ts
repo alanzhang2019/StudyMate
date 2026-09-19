@@ -213,6 +213,12 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: '/csp-j-2026-original.pdf',
+        headers: [
+          { key: 'Cache-Control', value: 'no-cache, must-revalidate' },
+        ],
+      },
+      {
         source: '/csp-difficulty-map.png',
         headers: [
           { key: 'Cache-Control', value: 'no-cache, must-revalidate' },

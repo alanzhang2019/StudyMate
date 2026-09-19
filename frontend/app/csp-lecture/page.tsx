@@ -331,6 +331,7 @@ export default async function CspLecturePage() {
     cm_imp_cspj2023j_v1: 'csp-j-2023-original.pdf',
     cm_imp_cspj2024j_v1: 'csp-j-2024-original.pdf',
     cm_imp_cspj2025j_v1: 'csp-j-2025-original.pdf',
+    cm_imp_cspj2026j_v1: 'csp-j-2026-original.pdf',
     // S 组 2014-2025
     cm_imp_csps2014s_v1: 'csp-s-2014-original.pdf',
     cm_imp_csps2015s_v1: 'csp-s-2015-original.pdf',

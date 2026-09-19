@@ -52,7 +52,7 @@ const FULL_PAPER_CLASSROOM_IDS = new Set<string>([
   'cm_imp_cspj2014j_v1', 'cm_imp_cspj2015j_v1', 'cm_imp_cspj2016j_v1',
   'cm_imp_cspj2017j_v1', 'cm_imp_cspj2018j_v1', 'cm_imp_cspj2019j_v1',
   'cm_imp_cspj2020j_v1', 'cm_imp_cspj2021j_v1', 'cm_imp_cspj2022j_v1',
-  'cm_imp_cspj2023j_v1', 'cm_imp_cspj2024j_v1', 'cm_imp_cspj2025j_v1',
+  'cm_imp_cspj2023j_v1', 'cm_imp_cspj2024j_v1', 'cm_imp_cspj2025j_v1', 'cm_imp_cspj2026j_v1',
   'cm_imp_csps2014s_v1', 'cm_imp_csps2015s_v1', 'cm_imp_csps2016s_v1',
   'cm_imp_csps2017s_v1', 'cm_imp_csps2018s_v1', 'cm_imp_csps2019s_v1',
   'cm_imp_csps2020s_v1', 'cm_imp_csps2021s_v1', 'cm_imp_csps2022s_v1',

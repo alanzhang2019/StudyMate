@@ -73,6 +73,7 @@ export const FULL_PAPER_CLASSROOM_IDS = new Set<string>([
   'cm_imp_cspj2023j_v1',
   'cm_imp_cspj2024j_v1',
   'cm_imp_cspj2025j_v1',
+  'cm_imp_cspj2026j_v1',
   'cm_imp_csps2014s_v1',
   'cm_imp_csps2015s_v1',
   'cm_imp_csps2016s_v1',
