@@ -24,6 +24,8 @@ StudyMate（作业通 aijiangti.cn）K12 AI 学习闭环 monorepo，三产品线
 - 本机 curl 被沙箱 http_proxy 劫持 → 在服务器/容器内测
 - PowerShell 沙箱拦 `.ssh` → scp/ssh 用 Bash
 - 沙箱 git 输出可能是假的 → `git log -1` + `git ls-remote` 对账
+- **`docker cp` 嵌套坑**：`docker cp SRC C:/app/data/exam-papers` 当目标目录已存在时会把源目录嵌套成 `exam-papers/exam-papers`（每轮部署翻倍）。正确：`docker exec <c> mkdir -p /app/data/exam-papers` 后 `docker cp "$SRC/." "<c>:/app/data/exam-papers/"`（仅拷内容，幂等不嵌套）。容器内默认 exec 用户是 `nextjs` 非 root，删文件要 `docker exec -u 0`。
+- 真题/doc 等非 git 数据若靠命名卷持久（非 bind），**必须**在 `deploy-prod.sh` 里 docker cp 兜底（现第 7/9 步），否则换卷/重建会丢。
 - 作品墙精选不做专区，只便签墙置顶 + 角标；`VISUAL_CLASSES[index % 3]` 循环
 
 ## Nginx（宿主机 `/etc/nginx/sites-enabled/studymate.conf`，**不在 compose 里**）
