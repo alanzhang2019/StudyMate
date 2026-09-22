@@ -3,16 +3,20 @@
 #
 # What this does:
 #   1. Verifies we're at the repo root and on a clean tree
-#   2. Pulls the latest master
-#   3. Syncs frontend/.env.local from the env-var template (callers can
+#   2. Chowns the host-side bind mount so git pull can proceed
+#   3. Pulls the latest master
+#   4. Syncs frontend/.env.local from the env-var template (callers can
 #      pre-create it; the script refuses to overwrite blindly)
-#   4. Rebuilds the frontend image
-#   5. Restarts the frontend container
-#   6. Fixes ownership of the host-side bind mount for classroom
+#   5. Rebuilds the frontend image
+#   6. Restarts the frontend container
+#   7. Syncs the 深圳中考真题库 (exam-papers) doc/docx from the host
+#      dir into the container's named volume (these files are gitignored,
+#      not a bind mount, and would otherwise vanish on a fresh volume)
+#   8. Fixes ownership of the host-side bind mount for classroom
 #      uploads (chown frontend/data/classrooms → 1001:1001 and verify
 #      with an in-container touch test). Safe to re-run; runs the
 #      script at frontend/scripts/fix-bind-mount-perms.sh.
-#   7. Runs a health check against the new /api/integrations/health
+#   9. Runs a health check against the new /api/integrations/health
 #
 # Usage:
 #   ./deploy-prod.sh                      # pull master, rebuild, restart
@@ -43,7 +47,7 @@ for arg in "$@"; do
     --no-pull)            PULL=0 ;;
     --skip-healthcheck)   RUN_HEALTHCHECK=0 ;;
     -h|--help)
-      sed -n '2,32p' "$0"
+      sed -n '2,36p' "$0"
       exit 0
       ;;
     *) echo "Unknown arg: $arg" >&2; exit 1 ;;
@@ -52,7 +56,7 @@ done
 
 cd "$REPO_DIR"
 
-echo "== 1/7 Sanity checks =="
+echo "== 1/9 Sanity checks =="
 git rev-parse --is-inside-work-tree >/dev/null
 current_branch="$(git rev-parse --abbrev-ref HEAD)"
 if [[ "$current_branch" != "master" ]]; then
@@ -70,16 +74,18 @@ if [[ -z "${DEPLOY_DOMAIN:-}" ]]; then
   exit 2
 fi
 
-echo "== 2/8 Chown host bind-mount for git =="
+echo "== 2/9 Chown host bind-mount for git =="
 # The host-side bind mount `./frontend/data/classrooms` ends up
 # owned by the container's `nextjs` user (UID 1001) after the
 # container writes to it. `git pull` runs as the deploy user
 # (typically `ubuntu`) and cannot unlink those files, so the
 # pull aborts with "Permission denied" on every classroom JSON.
 # Normalize ownership back to the deploy user here, before
-# pulling. fix-bind-mount-perms.sh (Step 6/8) re-chowns to
+# pulling. fix-bind-mount-perms.sh (Step 8/9) re-chowns to
 # 1001:1001 once the container is back up, so classroom uploads
 # still work.
+# (This also normalizes frontend/data/exam-papers ownership, which is
+#  harmless — exam-papers is copied into the volume later in Step 7/9.)
 HOST_DATA_DIR="$REPO_DIR/frontend/data"
 if [[ -d "$HOST_DATA_DIR" ]]; then
   deploy_uid="$(id -u)"
@@ -90,7 +96,7 @@ else
   echo "  (no $HOST_DATA_DIR yet, skipping)"
 fi
 
-echo "== 3/8 Pull latest master =="
+echo "== 3/9 Pull latest master =="
 if [[ "$PULL" -eq 1 ]]; then
   git pull --ff-only origin master
 else
@@ -98,7 +104,7 @@ else
 fi
 echo "  HEAD: $(git rev-parse --short HEAD)"
 
-echo "== 4/8 Sync frontend/.env.local =="
+echo "== 4/9 Sync frontend/.env.local =="
 ENV_FILE="frontend/.env.local"
 TMP_ENV="$(mktemp)"
 trap 'rm -f "$TMP_ENV"' EXIT
@@ -126,13 +132,40 @@ done
 install -m 600 "$TMP_ENV" "$ENV_FILE"
 echo "  wrote $ENV_FILE ($(wc -c < "$ENV_FILE") bytes, mode 600)"
 
-echo "== 5/8 Rebuild frontend image =="
+echo "== 5/9 Rebuild frontend image =="
 docker compose build --pull frontend
 
-echo "== 6/8 Restart stack =="
+echo "== 6/9 Restart stack =="
 docker compose up -d --no-deps --force-recreate frontend
 
-echo "== 7/8 Fix bind-mount permissions =="
+echo "== 7/9 Sync 深圳中考真题库 (exam-papers) into named volume =="
+# The exam-papers doc/docx files (深圳中考真题库, 7 subjects 2008–2025)
+# live on the HOST at frontend/data/exam-papers. They are:
+#   - gitignored (not in git), and
+#   - NOT a bind mount — they sit inside the frontend container's
+#     NAMED VOLUME (/app/data, i.e. studymate_studymate-frontend-data).
+# The named volume survives a --force-recreate, BUT on a fresh server or
+# a volume rebuild the files would be gone and the /api/exam-papers
+# download route would 404. Re-sync from the host dir after every
+# recreate so the data can never silently disappear between deploys.
+# Idempotent: docker cp upserts (copies only what differs).
+EXAM_SRC="$REPO_DIR/frontend/data/exam-papers"
+if [[ ! -d "$EXAM_SRC" ]]; then
+  echo "  WARN: $EXAM_SRC not found — skipping exam-papers sync." >&2
+  echo "        Run upload_exam_papers.sh (or scp the papers) once first." >&2
+else
+  EXAM_SRC_COUNT="$(find "$EXAM_SRC" -type f | wc -l | tr -d ' ')"
+  echo "  syncing $EXAM_SRC_COUNT exam-paper files host → named volume..."
+  docker cp "$EXAM_SRC" "studymate-frontend:/app/data/exam-papers"
+  EXAM_VOL_COUNT="$(docker exec studymate-frontend sh -c 'find /app/data/exam-papers -type f | wc -l' | tr -d ' ')"
+  echo "  named volume now has $EXAM_VOL_COUNT exam-paper files"
+  if [[ "$EXAM_VOL_COUNT" != "$EXAM_SRC_COUNT" ]]; then
+    echo "  WARN: volume count ($EXAM_VOL_COUNT) != source count ($EXAM_SRC_COUNT)" >&2
+    echo "        some files may have failed to copy" >&2
+  fi
+fi
+
+echo "== 8/9 Fix bind-mount permissions =="
 # The host-side bind mount that the frontend container writes
 # classrooms into (`./frontend/data/classrooms`) is created by
 # humans (root, ubuntu) whose uid does not match the container's
@@ -165,7 +198,7 @@ else
   echo "        run: sudo chmod +x $PERM_SCRIPT && sudo $PERM_SCRIPT" >&2
 fi
 
-echo "== 8/8 Health check =="
+echo "== 9/9 Health check =="
 if [[ "$RUN_HEALTHCHECK" -eq 1 ]]; then
   HEALTH_URL="${DEPLOY_DOMAIN%/}/api/integrations/health"
   for i in 1 2 3 4 5 6 7 8 9 10; do
