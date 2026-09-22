@@ -156,7 +156,12 @@ if [[ ! -d "$EXAM_SRC" ]]; then
 else
   EXAM_SRC_COUNT="$(find "$EXAM_SRC" -type f | wc -l | tr -d ' ')"
   echo "  syncing $EXAM_SRC_COUNT exam-paper files host → named volume..."
-  docker cp "$EXAM_SRC" "studymate-frontend:/app/data/exam-papers"
+  # IMPORTANT: docker cp nests the source dir when the destination already
+  # exists (→ /app/data/exam-papers/exam-papers, which duplicates files on
+  # every redeploy). Avoid that by mkdir -p on the dest and copying the
+  # CONTENTS via the "src/." idiom — idempotent upsert, no nesting.
+  docker exec studymate-frontend mkdir -p /app/data/exam-papers
+  docker cp "$EXAM_SRC/." "studymate-frontend:/app/data/exam-papers/"
   EXAM_VOL_COUNT="$(docker exec studymate-frontend sh -c 'find /app/data/exam-papers -type f | wc -l' | tr -d ' ')"
   echo "  named volume now has $EXAM_VOL_COUNT exam-paper files"
   if [[ "$EXAM_VOL_COUNT" != "$EXAM_SRC_COUNT" ]]; then
