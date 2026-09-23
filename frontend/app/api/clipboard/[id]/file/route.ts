@@ -10,6 +10,14 @@ export const dynamic = 'force-dynamic';
 // 与 camp/videos 路由一致：严格校验 id（UUID）+ 防路径穿越 + 支持 HTTP Range。
 const DATA_DIR = process.env.STUDYMATE_DB_DIR ?? '/tmp/studymate';
 
+// 仅这些类型允许浏览器内联预览；其余（含 html/svg/js/cpp/zip 等）一律强制下载，
+// 避免用户上传的 html/svg 在同源下被执行（存储型 XSS）。
+const INLINE_EXT = new Set([
+  'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'tiff', 'tif', 'ico', 'heic',
+  'avif', 'mp4', 'mov', 'webm', 'avi', 'mkv', 'm4v', 'mp3', 'wav', 'm4a',
+  'aac', 'ogg', 'oga', 'flac', 'pdf',
+]);
+
 export const GET = async (
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -38,9 +46,11 @@ export const GET = async (
     const size = statSync(abs).size;
     const fileName = row.fileName || 'file';
     const encoded = encodeURIComponent(fileName);
+    const ext = (fileName.split('.').pop() || '').toLowerCase();
+    const disposition = INLINE_EXT.has(ext) ? 'inline' : 'attachment';
     const baseHeaders: Record<string, string> = {
       'Content-Type': row.mimeType || 'application/octet-stream',
-      'Content-Disposition': `inline; filename*=UTF-8''${encoded}`,
+      'Content-Disposition': `${disposition}; filename*=UTF-8''${encoded}`,
       'Accept-Ranges': 'bytes',
       'Cache-Control': 'private, max-age=31536000, immutable',
     };

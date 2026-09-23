@@ -40,15 +40,18 @@ function formatTime(iso: string): string {
 function fileEmoji(name: string | null, mime: string | null): string {
   const m = (mime || '').toLowerCase();
   const ext = (name || '').split('.').pop()?.toLowerCase() || '';
-  if (m.startsWith('image/') || ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext)) return '🖼️';
-  if (m.startsWith('video/') || ['mp4', 'mov', 'webm'].includes(ext)) return '🎬';
-  if (m.startsWith('audio/') || ['mp3', 'wav', 'm4a'].includes(ext)) return '🎵';
+  if (m.startsWith('image/') || ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico', 'heic', 'avif', 'tif', 'tiff'].includes(ext)) return '🖼️';
+  if (m.startsWith('video/') || ['mp4', 'mov', 'webm', 'avi', 'mkv', 'm4v', 'flv'].includes(ext)) return '🎬';
+  if (m.startsWith('audio/') || ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac'].includes(ext)) return '🎵';
   if (ext === 'pdf') return '📕';
-  if (['doc', 'docx', 'pages'].includes(ext)) return '📘';
-  if (['ppt', 'pptx', 'key'].includes(ext)) return '📙';
-  if (['xls', 'xlsx', 'numbers', 'csv'].includes(ext)) return '📗';
-  if (['zip', 'rar', '7z'].includes(ext)) return '🗜️';
-  if (['html', 'htm'].includes(ext)) return '🌐';
+  if (['doc', 'docx', 'pages', 'rtf', 'odt'].includes(ext)) return '📘';
+  if (['ppt', 'pptx', 'key', 'odp'].includes(ext)) return '📙';
+  if (['xls', 'xlsx', 'numbers', 'csv', 'ods'].includes(ext)) return '📗';
+  if (['zip', 'rar', '7z', 'tar', 'gz', 'tgz', 'bz2', 'xz', 'zst', 'iso', 'dmg', 'cab', 'jar'].includes(ext)) return '🗜️';
+  // 源码 & 工程文件
+  if (['c', 'h', 'hpp', 'cc', 'cxx', 'cpp', 'hh', 'tpp', 'py', 'js', 'jsx', 'ts', 'tsx', 'java', 'go', 'rs', 'php', 'rb', 'sh', 'bash', 'sql', 'swift', 'kt', 'lua', 'cs', 'pas', 'asm', 'dart', 'scala', 'r', 'm', 'mm', 'groovy'].includes(ext)) return '💻';
+  if (['html', 'htm', 'css', 'scss', 'vue', 'svelte'].includes(ext)) return '🌐';
+  if (['json', 'xml', 'yaml', 'yml', 'toml', 'ini', 'cfg', 'conf', 'log', 'env'].includes(ext)) return '⚙️';
   return '📎';
 }
 
@@ -278,7 +281,7 @@ export default function SharedClipboard() {
         <p className="text-slate-700 text-sm font-medium">
           点击选择文件，或把文件拖到这里，或直接 Ctrl+V 粘贴
         </p>
-        <p className="text-slate-400 text-xs mt-1">单个文件 ≤ 20MB · 支持文档/图片/音视频/压缩包等</p>
+        <p className="text-slate-400 text-xs mt-1">单个文件 ≤ 20MB · 支持文档/图片/音视频/压缩包/源代码（C++、Python…）等</p>
       </div>
 
       {/* 署名 + 文本发布 */}

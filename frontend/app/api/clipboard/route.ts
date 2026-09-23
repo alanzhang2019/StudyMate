@@ -18,11 +18,38 @@ export const maxDuration = 60;
 const DATA_DIR = process.env.STUDYMATE_DB_DIR ?? '/tmp/studymate';
 const CLIPBOARD_DIR = path.join(DATA_DIR, 'clipboard');
 
+// 文件类型白名单：覆盖文档 / 图片 / 音视频 / 压缩包 / 源码等常见教学资料。
+// 注意：出于安全不收录可直接执行的类型（exe/msi/dll/bat/cmd/com/scr/vbs/ps1 等）。
 const ALLOWED_EXT = new Set([
-  'pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'md', 'csv',
-  'json', 'html', 'htm', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'zip',
-  'rar', '7z', 'mp3', 'mp4', 'mov', 'webm', 'm4a', 'wav', 'pages', 'key',
-  'numbers',
+  // 文档 & 电子书
+  'pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'md', 'rtf',
+  'odt', 'odp', 'ods', 'pages', 'key', 'numbers', 'epub', 'mobi', 'tex',
+  'csv', 'tsv',
+  // 数据 & 配置
+  'json', 'xml', 'yaml', 'yml', 'toml', 'ini', 'cfg', 'conf', 'log', 'env',
+  'properties', 'lock',
+  // 网页 & 样式
+  'html', 'htm', 'css', 'scss', 'less', 'sass', 'svg', 'vue', 'svelte',
+  // 图片
+  'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'tif', 'ico', 'heic',
+  'avif',
+  // 音频
+  'mp3', 'wav', 'm4a', 'aac', 'ogg', 'oga', 'flac', 'wma', 'aiff', 'opus',
+  // 视频
+  'mp4', 'mov', 'webm', 'avi', 'mkv', 'm4v', 'flv', 'wmv', 'mpg', 'mpeg',
+  '3gp',
+  // 压缩包 & 安装包
+  'zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'tgz', 'lz', 'zst', 'z',
+  'iso', 'dmg', 'deb', 'rpm', 'apk', 'jar', 'war', 'ear', 'cab',
+  // 源码 & 工程文件（重点：C/C++ 等）
+  'c', 'h', 'hpp', 'cc', 'cxx', 'cpp', 'hh', 'h++', 'tpp', 'py', 'pyw', 'js',
+  'jsx', 'mjs', 'cjs', 'ts', 'tsx', 'java', 'go', 'rs', 'php', 'php3', 'php4',
+  'rb', 'sh', 'bash', 'zsh', 'fish', 'sql', 'swift', 'kt', 'kts', 'scala',
+  'lua', 'pl', 'pm', 'r', 'm', 'mm', 'cs', 'vb', 'pas', 'asm', 's', 'dart',
+  'ex', 'exs', 'erl', 'elm', 'clj', 'cljs', 'hs', 'ml', 'fs', 'fsi', 'nim',
+  'groovy', 'gradle',
+  // 其他
+  'db', 'sqlite', 'sqlite3', 'drawio', 'excalidraw',
 ]);
 const MAX_FILE_BYTES = 20 * 1024 * 1024; // 20MB
 const MAX_TEXT_CHARS = 8000;
@@ -131,7 +158,10 @@ export const POST = async (req: NextRequest) => {
       const ext = (origName.split('.').pop() || '').toLowerCase();
       if (!ALLOWED_EXT.has(ext)) {
         return NextResponse.json(
-          { success: false, error: '暂不支持该文件类型' },
+          {
+            success: false,
+            error: '暂不支持该文件类型（支持文档、图片、音视频、压缩包、源代码等常见格式）',
+          },
           { status: 400 },
         );
       }
