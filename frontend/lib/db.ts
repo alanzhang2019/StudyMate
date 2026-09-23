@@ -417,6 +417,26 @@ export function getDb(): Database {
     ON csp_paper_analysis_reports (userId, updatedAt DESC);
 `)
 
+  // 首页「共享剪贴板」：老师/学生在首页按房间码共享文件与文本资料。
+  // 上线日期：2026-09-23。room 为短码（课堂/班级共享板），type ∈ file|text。
+  _db.exec(`
+  CREATE TABLE IF NOT EXISTS clipboard_items (
+    id TEXT PRIMARY KEY,
+    room TEXT NOT NULL,
+    type TEXT NOT NULL,              /* 'file' | 'text' */
+    title TEXT NOT NULL,             /* 展示名：文件名 或 文本首行 */
+    fileName TEXT,                   /* 原始文件名（文件类） */
+    filePath TEXT,                   /* 相对 DATA_DIR 的路径（文件类），如 clipboard/<room>/<id>.pdf */
+    fileSize INTEGER,
+    mimeType TEXT,
+    content TEXT,                    /* 文本剪贴内容（文本类） */
+    author TEXT,
+    createdAt TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_clipboard_room_time
+    ON clipboard_items (room, createdAt DESC);
+  `)
+
   // CSP 初赛水平摸底：每个学生一行（PRIMARY KEY userId）
   // 上线日期：2026-07-26 + 摸底 spec 增量
   _db.exec(`
@@ -890,6 +910,30 @@ function applyMigrations(db: Database): void {
   // 新部署走上方 CREATE TABLE 的 textbookSlug 列；老库平滑补列，列已存在会被吞掉。
   migrate(db, 'ALTER TABLE camp_works ADD COLUMN textbookSlug TEXT', 'camp_works.textbookSlug')
 
+  // 2026-09-23：首页「共享剪贴板」表。老库 init block 已跳过（_dbInit=true），
+  // 这里每启动跑一次 CREATE TABLE IF NOT EXISTS 兜底，列全为新增、无需补列。
+  try {
+    db.exec(`
+    CREATE TABLE IF NOT EXISTS clipboard_items (
+      id TEXT PRIMARY KEY,
+      room TEXT NOT NULL,
+      type TEXT NOT NULL,
+      title TEXT NOT NULL,
+      fileName TEXT,
+      filePath TEXT,
+      fileSize INTEGER,
+      mimeType TEXT,
+      content TEXT,
+      author TEXT,
+      createdAt TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_clipboard_room_time
+      ON clipboard_items (room, createdAt DESC);
+    `)
+  } catch (err) {
+    console.error('[db/applyMigrations] clipboard_items init failed:', err)
+  }
+
   // 2026-09-15：启动自检 —— 确认 camp_works 的关键列都在。
   // viewCount 曾因迁移静默失败而缺失，导致作品墙接口 500 且日志无痕。
   // 这里显式体检并打日志，让同类问题在下一次部署时立刻可见。
@@ -1128,6 +1172,8 @@ class PrismaCompatClient {
   campStudent = buildFinder('camp_students', 'id')
   campClassLog = buildFinder('camp_class_logs', 'id')
   campWork = buildFinder('camp_works', 'id')
+  // 首页「共享剪贴板」
+  clipboardItem = buildFinder('clipboard_items', 'id')
   // csp_progress has a composite primary key (userId, classroomId),
   // so it can't use buildFinder directly. We expose a tiny model
   // that uses raw SQL for the upsert/read operations the progress

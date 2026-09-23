@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import SharedClipboard from '@/app/components/SharedClipboard';
 
 export const dynamic = 'force-static';
 export const revalidate = 3600;
@@ -151,6 +152,18 @@ export default function LandingPage() {
             </Card>
           ))}
         </div>
+      </section>
+
+      {/* 共享剪贴板：老师/学生在首页按房间码共享文件与资料 */}
+      <section className="max-w-6xl mx-auto px-6 pb-16 scroll-mt-20">
+        <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 text-center mb-3">
+          资料共享，从一页开始
+        </h2>
+        <p className="text-slate-600 text-center max-w-2xl mx-auto mb-10">
+          建一个房间码，把链接发到班级群，老师和学生就能在同一个页面里
+          拖拽上传、粘贴文本、随时下载——无需注册，即开即用。
+        </p>
+        <SharedClipboard />
       </section>
 
       {/* Final CTA */}
