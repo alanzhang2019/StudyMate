@@ -219,11 +219,11 @@ export default function SharedClipboard() {
   }, []);
 
   return (
-    <div className="rounded-3xl border border-slate-200/70 bg-white/80 backdrop-blur p-6 sm:p-8 shadow-sm">
+    <div className="rounded-3xl border border-slate-200/70 bg-white/80 backdrop-blur p-6 sm:p-8 shadow-sm dark:border-slate-700/70 dark:bg-slate-900/80 transition-colors">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div>
-          <h3 className="text-xl font-bold text-slate-900">📋 共享剪贴板</h3>
-          <p className="text-sm text-slate-500 mt-1">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 transition-colors">📋 共享剪贴板</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 transition-colors">
             老师和同学在同个房间码下，拖拽 / 粘贴文件或文本即可共享资料
           </p>
         </div>
@@ -236,11 +236,11 @@ export default function SharedClipboard() {
               if (e.key === 'Enter') switchRoom((e.target as HTMLInputElement).value);
             }}
             placeholder="房间码"
-            className="w-32 px-3 py-1.5 text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-32 px-3 py-1.5 text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 transition-colors"
           />
           <button
             onClick={newRoom}
-            className="px-3 py-1.5 text-sm rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700"
+            className="px-3 py-1.5 text-sm rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 transition-colors"
           >
             + 新建房间
           </button>
@@ -267,7 +267,9 @@ export default function SharedClipboard() {
           onFilesPicked(e.dataTransfer.files);
         }}
         className={`cursor-pointer rounded-2xl border-2 border-dashed transition-colors p-6 text-center ${
-          dragOver ? 'border-blue-500 bg-blue-50' : 'border-slate-300 bg-slate-50/60'
+          dragOver
+            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+            : 'border-slate-300 bg-slate-50/60 dark:border-slate-600 dark:bg-slate-800/60'
         }`}
       >
         <input
@@ -278,10 +280,10 @@ export default function SharedClipboard() {
           onChange={(e) => onFilesPicked(e.target.files)}
         />
         <div className="text-3xl mb-2">📥</div>
-        <p className="text-slate-700 text-sm font-medium">
+        <p className="text-slate-700 dark:text-slate-200 text-sm font-medium transition-colors">
           点击选择文件，或把文件拖到这里，或直接 Ctrl+V 粘贴
         </p>
-        <p className="text-slate-400 text-xs mt-1">单个文件 ≤ 20MB · 支持文档/图片/音视频/压缩包/源代码（C++、Python…）等</p>
+        <p className="text-slate-400 dark:text-slate-500 text-xs mt-1 transition-colors">单个文件 ≤ 20MB · 支持文档/图片/音视频/压缩包/源代码（C++、Python…）等</p>
       </div>
 
       {/* 署名 + 文本发布 */}
@@ -291,7 +293,7 @@ export default function SharedClipboard() {
           onChange={(e) => setAuthor(e.target.value)}
           placeholder="你的名字（选填，默认匿名）"
           maxLength={40}
-          className="px-3 py-2 text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="px-3 py-2 text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 transition-colors"
         />
         <div className="flex flex-col sm:flex-row gap-2">
           <textarea
@@ -300,7 +302,7 @@ export default function SharedClipboard() {
             placeholder="或者粘贴一段文字 / 链接，点击「发布文本」共享给同学"
             rows={2}
             maxLength={8000}
-            className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+            className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 transition-colors"
           />
           <button
             onClick={postText}
@@ -312,40 +314,40 @@ export default function SharedClipboard() {
         </div>
       </div>
 
-      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
-      {success && <p className="mt-3 text-sm text-green-600">{success}</p>}
+      {error && <p className="mt-3 text-sm text-red-600 dark:text-red-400 transition-colors">{error}</p>}
+      {success && <p className="mt-3 text-sm text-green-600 dark:text-green-400 transition-colors">{success}</p>}
 
       {/* 列表 */}
       <div className="mt-6">
         <div className="flex items-center justify-between mb-3">
-          <h4 className="text-sm font-semibold text-slate-700">
+          <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
             房间「{room}」的资料（{items.length}）
           </h4>
           <button
             onClick={() => loadItems(room)}
-            className="text-xs text-slate-500 hover:text-slate-800"
+            className="text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
           >
             刷新
           </button>
         </div>
 
         {loading ? (
-          <p className="text-sm text-slate-400">加载中…</p>
+          <p className="text-sm text-slate-400 dark:text-slate-500 transition-colors">加载中…</p>
         ) : items.length === 0 ? (
-          <p className="text-sm text-slate-400">这个房间还没有资料，快来上传第一份吧～</p>
+          <p className="text-sm text-slate-400 dark:text-slate-500 transition-colors">这个房间还没有资料，快来上传第一份吧～</p>
         ) : (
           <ul className="space-y-2">
             {items.map((it) => (
               <li
                 key={it.id}
-                className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5"
+                className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 dark:border-slate-700 dark:bg-slate-800 transition-colors"
               >
                 <div className="text-2xl flex-shrink-0">
                   {it.type === 'file' ? fileEmoji(it.fileName, it.mimeType) : '📝'}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium text-slate-800 truncate">{it.title}</div>
-                  <div className="text-xs text-slate-400">
+                  <div className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate transition-colors">{it.title}</div>
+                  <div className="text-xs text-slate-400 dark:text-slate-500 transition-colors">
                     {it.author} · {formatTime(it.createdAt)}
                     {it.fileSize ? ` · ${formatBytes(it.fileSize)}` : ''}
                   </div>
@@ -355,12 +357,12 @@ export default function SharedClipboard() {
                         onClick={() =>
                           setExpanded((prev) => ({ ...prev, [it.id]: !prev[it.id] }))
                         }
-                        className="text-xs text-blue-600 hover:underline"
+                        className="text-xs text-blue-600 hover:underline dark:text-blue-400 transition-colors"
                       >
                         {expanded[it.id] ? '收起' : '预览'}
                       </button>
                       {expanded[it.id] && (
-                        <pre className="mt-1 whitespace-pre-wrap text-xs text-slate-600 bg-slate-50 rounded-lg p-2 max-h-40 overflow-auto">
+                        <pre className="mt-1 whitespace-pre-wrap text-xs text-slate-600 bg-slate-50 rounded-lg p-2 max-h-40 overflow-auto dark:text-slate-300 dark:bg-slate-900 transition-colors">
                           {it.content}
                         </pre>
                       )}
@@ -386,7 +388,7 @@ export default function SharedClipboard() {
                   )}
                   <button
                     onClick={() => removeItem(it.id)}
-                    className="text-xs px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500"
+                    className="text-xs px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-400 transition-colors"
                   >
                     删除
                   </button>
@@ -397,7 +399,7 @@ export default function SharedClipboard() {
         )}
       </div>
 
-      <p className="mt-5 text-xs text-slate-400">
+      <p className="mt-5 text-xs text-slate-400 dark:text-slate-500 transition-colors">
         资料仅保存在当前房间码下，分享链接给同学即可一起查看与下载；文件上限 20MB，链接长期有效。
       </p>
     </div>

@@ -142,6 +142,12 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  color-scheme: dark;
+}
+
+/* 深色模式下把波点改成低对比浅点，避免浅灰点在暗底上过亮 */
+.dark body {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 2px, transparent 2px);
 }
 
 @layer base {

@@ -111,6 +111,12 @@ export default async function RootLayout({
         className={`${GeistMono.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
+        {/* 在首屏绘制前根据 localStorage / 系统偏好设置 .dark，避免深色模式闪烁 */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var s=localStorage.getItem('theme');var m=window.matchMedia('(prefers-color-scheme: dark)').matches;var d=s?(s==='dark'||(s==='system'&&m)):m;if(d)document.documentElement.classList.add('dark');}catch(e){}})();`,
+          }}
+        />
         <VisitorBootstrap visitorId={visitorId} />
         <ThemeProvider>
           <I18nProvider>
