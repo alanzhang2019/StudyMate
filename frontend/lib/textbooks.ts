@@ -12,15 +12,41 @@ export type SubjectKey =
   | 'biology'
   | 'history'
   | 'geography'
-  | 'ethics';
+  | 'ethics'
+  | 'politics';
 
-export type Semester = '上册' | '下册' | '全一册';
+export type Semester =
+  | '上册'
+  | '下册'
+  | '全一册'
+  | '必修上册'
+  | '必修下册'
+  | '必修第一册'
+  | '必修第二册'
+  | '必修第三册'
+  | '必修1'
+  | '必修2'
+  | '必修3'
+  | '必修4'
+  | '选择性必修上册'
+  | '选择性必修中册'
+  | '选择性必修下册'
+  | '选择性必修第一册'
+  | '选择性必修第二册'
+  | '选择性必修第三册'
+  | '选择性必修第四册'
+  | '选择性必修1'
+  | '选择性必修2'
+  | '选择性必修3';
+
+/** 学段：义务教育（1-9 年级）或高中（必修/选择性必修） */
+export type Stage = 'compulsory' | 'highschool';
 
 export interface Textbook {
   /** 文件 slug，URL 为 /textbooks/<slug>.pdf */
   slug: string;
   subject: SubjectKey;
-  grade: number; // 1-9
+  grade: number; // 义务教育 1-9；高中统一为 10（不用于年级筛选）
   semester: Semester;
   publisher: string;
   /** 完整显示名，如「语文 · 一年级 · 上册」 */
@@ -28,10 +54,14 @@ export interface Textbook {
   sizeBytes: number;
   /** 压缩轻量版（同一册的更小体积版本） */
   lite?: boolean;
+  /** 学段，默认 compulsory（义务教育） */
+  stage?: Stage;
+  /** 已录入但 PDF 尚未上传，页面置灰不可下载 */
+  pending?: boolean;
 }
 
 export const SUBJECT_ORDER: SubjectKey[] = [
-  'chinese', 'math', 'english', 'science', 'physics', 'chemistry', 'biology', 'history', 'geography', 'ethics',
+  'chinese', 'math', 'english', 'science', 'physics', 'chemistry', 'biology', 'history', 'geography', 'ethics', 'politics',
 ];
 
 export const SUBJECT_LABEL: Record<SubjectKey, string> = {
@@ -45,6 +75,7 @@ export const SUBJECT_LABEL: Record<SubjectKey, string> = {
   history: '历史',
   geography: '地理',
   ethics: '道德与法治',
+  politics: '思想政治',
 };
 
 /** 每个科目的版本说明（深圳在用版本） */
@@ -59,6 +90,7 @@ export const SUBJECT_NOTE: Record<SubjectKey, string> = {
   history: '人教版 · 深圳在用',
   geography: '湘教版 · 深圳在用',
   ethics: '人教版 · 深圳在用',
+  politics: '统编版 · 全国统一',
 };
 
 export const GRADE_CN: Record<number, string> = {
@@ -155,6 +187,66 @@ export const TEXTBOOKS: Textbook[] = [
   { slug: 'ethics-pep-g8b', subject: 'ethics', grade: 8, semester: '下册', publisher: '人教版', title: '道德与法治 · 八年级 · 下册', sizeBytes: 12359294 },
   { slug: 'ethics-pep-g9a', subject: 'ethics', grade: 9, semester: '上册', publisher: '人教版', title: '道德与法治 · 九年级 · 上册', sizeBytes: 11490679 },
   { slug: 'ethics-pep-g9b', subject: 'ethics', grade: 9, semester: '下册', publisher: '人教版', title: '道德与法治 · 九年级 · 下册', sizeBytes: 9520471 },
+  // ===== 高中（深圳全系列 50 本，stage: 'highschool'；PDF 未上传的置 pending: true） =====
+  // 语文 · 统编版（5）
+  { slug: 'chinese-tb-hs1', subject: 'chinese', grade: 10, semester: '必修上册', publisher: '统编版', title: '语文 · 必修上册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'chinese-tb-hs2', subject: 'chinese', grade: 10, semester: '必修下册', publisher: '统编版', title: '语文 · 必修下册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'chinese-tb-hs3', subject: 'chinese', grade: 10, semester: '选择性必修上册', publisher: '统编版', title: '语文 · 选择性必修上册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'chinese-tb-hs4', subject: 'chinese', grade: 10, semester: '选择性必修中册', publisher: '统编版', title: '语文 · 选择性必修中册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'chinese-tb-hs5', subject: 'chinese', grade: 10, semester: '选择性必修下册', publisher: '统编版', title: '语文 · 选择性必修下册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  // 数学 · 人教A版（5）
+  { slug: 'math-rja-hs1', subject: 'math', grade: 10, semester: '必修第一册', publisher: '人教A版', title: '数学 · 必修第一册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'math-rja-hs2', subject: 'math', grade: 10, semester: '必修第二册', publisher: '人教A版', title: '数学 · 必修第二册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'math-rja-hs3', subject: 'math', grade: 10, semester: '选择性必修第一册', publisher: '人教A版', title: '数学 · 选择性必修第一册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'math-rja-hs4', subject: 'math', grade: 10, semester: '选择性必修第二册', publisher: '人教A版', title: '数学 · 选择性必修第二册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'math-rja-hs5', subject: 'math', grade: 10, semester: '选择性必修第三册', publisher: '人教A版', title: '数学 · 选择性必修第三册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  // 英语 · 外研社版（7）
+  { slug: 'english-wy-hs1', subject: 'english', grade: 10, semester: '必修第一册', publisher: '外研社版', title: '英语 · 必修第一册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'english-wy-hs2', subject: 'english', grade: 10, semester: '必修第二册', publisher: '外研社版', title: '英语 · 必修第二册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'english-wy-hs3', subject: 'english', grade: 10, semester: '必修第三册', publisher: '外研社版', title: '英语 · 必修第三册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'english-wy-hs4', subject: 'english', grade: 10, semester: '选择性必修第一册', publisher: '外研社版', title: '英语 · 选择性必修第一册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'english-wy-hs5', subject: 'english', grade: 10, semester: '选择性必修第二册', publisher: '外研社版', title: '英语 · 选择性必修第二册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'english-wy-hs6', subject: 'english', grade: 10, semester: '选择性必修第三册', publisher: '外研社版', title: '英语 · 选择性必修第三册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'english-wy-hs7', subject: 'english', grade: 10, semester: '选择性必修第四册', publisher: '外研社版', title: '英语 · 选择性必修第四册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  // 物理 · 人教版（6）
+  { slug: 'physics-pep-hs1', subject: 'physics', grade: 10, semester: '必修第一册', publisher: '人教版', title: '物理 · 必修第一册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'physics-pep-hs2', subject: 'physics', grade: 10, semester: '必修第二册', publisher: '人教版', title: '物理 · 必修第二册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'physics-pep-hs3', subject: 'physics', grade: 10, semester: '必修第三册', publisher: '人教版', title: '物理 · 必修第三册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'physics-pep-hs4', subject: 'physics', grade: 10, semester: '选择性必修第一册', publisher: '人教版', title: '物理 · 选择性必修第一册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'physics-pep-hs5', subject: 'physics', grade: 10, semester: '选择性必修第二册', publisher: '人教版', title: '物理 · 选择性必修第二册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'physics-pep-hs6', subject: 'physics', grade: 10, semester: '选择性必修第三册', publisher: '人教版', title: '物理 · 选择性必修第三册（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  // 化学 · 人教版（5）
+  { slug: 'chemistry-pep-hs1', subject: 'chemistry', grade: 10, semester: '必修第一册', publisher: '人教版', title: '化学 · 必修第一册（高中）', sizeBytes: 15937522, stage: 'highschool' },
+  { slug: 'chemistry-pep-hs2', subject: 'chemistry', grade: 10, semester: '必修第二册', publisher: '人教版', title: '化学 · 必修第二册（高中）', sizeBytes: 16903428, stage: 'highschool' },
+  { slug: 'chemistry-pep-hs3', subject: 'chemistry', grade: 10, semester: '选择性必修1', publisher: '人教版', title: '化学 · 选择性必修1 · 化学反应原理', sizeBytes: 15164027, stage: 'highschool' },
+  { slug: 'chemistry-pep-hs4', subject: 'chemistry', grade: 10, semester: '选择性必修2', publisher: '人教版', title: '化学 · 选择性必修2 · 物质结构与性质', sizeBytes: 12882202, stage: 'highschool' },
+  { slug: 'chemistry-pep-hs5', subject: 'chemistry', grade: 10, semester: '选择性必修3', publisher: '人教版', title: '化学 · 选择性必修3 · 有机化学基础', sizeBytes: 17892998, stage: 'highschool' },
+  // 生物 · 人教版（5）
+  { slug: 'biology-pep-hs1', subject: 'biology', grade: 10, semester: '必修1', publisher: '人教版', title: '生物 · 必修1 · 分子与细胞', sizeBytes: 20825169, stage: 'highschool' },
+  { slug: 'biology-pep-hs2', subject: 'biology', grade: 10, semester: '必修2', publisher: '人教版', title: '生物 · 必修2 · 遗传与进化', sizeBytes: 20500632, stage: 'highschool' },
+  { slug: 'biology-pep-hs3', subject: 'biology', grade: 10, semester: '选择性必修1', publisher: '人教版', title: '生物 · 选择性必修1 · 稳态与调节', sizeBytes: 17464155, stage: 'highschool' },
+  { slug: 'biology-pep-hs4', subject: 'biology', grade: 10, semester: '选择性必修2', publisher: '人教版', title: '生物 · 选择性必修2 · 生物与环境', sizeBytes: 19807979, stage: 'highschool' },
+  { slug: 'biology-pep-hs5', subject: 'biology', grade: 10, semester: '选择性必修3', publisher: '人教版', title: '生物 · 选择性必修3 · 生物技术与工程', sizeBytes: 0, stage: 'highschool', pending: true },
+  // 历史 · 统编版（5）
+  { slug: 'history-tb-hs1', subject: 'history', grade: 10, semester: '必修上册', publisher: '统编版', title: '历史 · 必修上册 · 中外历史纲要（上）', sizeBytes: 31855276, stage: 'highschool' },
+  { slug: 'history-tb-hs2', subject: 'history', grade: 10, semester: '必修下册', publisher: '统编版', title: '历史 · 必修下册 · 中外历史纲要（下）', sizeBytes: 22730703, stage: 'highschool' },
+  { slug: 'history-tb-hs3', subject: 'history', grade: 10, semester: '选择性必修1', publisher: '统编版', title: '历史 · 选择性必修1 · 国家制度与社会治理', sizeBytes: 16820196, stage: 'highschool' },
+  { slug: 'history-tb-hs4', subject: 'history', grade: 10, semester: '选择性必修2', publisher: '统编版', title: '历史 · 选择性必修2 · 经济与社会生活', sizeBytes: 13896821, stage: 'highschool' },
+  { slug: 'history-tb-hs5', subject: 'history', grade: 10, semester: '选择性必修3', publisher: '统编版', title: '历史 · 选择性必修3 · 文化交流与传播', sizeBytes: 13975954, stage: 'highschool' },
+  // 地理 · 人教版（5）
+  { slug: 'geography-pep-hs1', subject: 'geography', grade: 10, semester: '必修第一册', publisher: '人教版', title: '地理 · 必修第一册（高中）', sizeBytes: 16953861, stage: 'highschool' },
+  { slug: 'geography-pep-hs2', subject: 'geography', grade: 10, semester: '必修第二册', publisher: '人教版', title: '地理 · 必修第二册（高中）', sizeBytes: 17900954, stage: 'highschool' },
+  { slug: 'geography-pep-hs3', subject: 'geography', grade: 10, semester: '选择性必修1', publisher: '人教版', title: '地理 · 选择性必修1 · 自然地理基础', sizeBytes: 13301226, stage: 'highschool' },
+  { slug: 'geography-pep-hs4', subject: 'geography', grade: 10, semester: '选择性必修2', publisher: '人教版', title: '地理 · 选择性必修2 · 区域发展', sizeBytes: 13806208, stage: 'highschool' },
+  { slug: 'geography-pep-hs5', subject: 'geography', grade: 10, semester: '选择性必修3', publisher: '人教版', title: '地理 · 选择性必修3 · 资源、环境与国家安全', sizeBytes: 16152262, stage: 'highschool' },
+  // 思想政治 · 统编版（7）
+  { slug: 'politics-tb-hs1', subject: 'politics', grade: 10, semester: '必修1', publisher: '统编版', title: '思想政治 · 必修1（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'politics-tb-hs2', subject: 'politics', grade: 10, semester: '必修2', publisher: '统编版', title: '思想政治 · 必修2（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'politics-tb-hs3', subject: 'politics', grade: 10, semester: '必修3', publisher: '统编版', title: '思想政治 · 必修3（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'politics-tb-hs4', subject: 'politics', grade: 10, semester: '必修4', publisher: '统编版', title: '思想政治 · 必修4（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'politics-tb-hs5', subject: 'politics', grade: 10, semester: '选择性必修1', publisher: '统编版', title: '思想政治 · 选择性必修1（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'politics-tb-hs6', subject: 'politics', grade: 10, semester: '选择性必修2', publisher: '统编版', title: '思想政治 · 选择性必修2（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
+  { slug: 'politics-tb-hs7', subject: 'politics', grade: 10, semester: '选择性必修3', publisher: '统编版', title: '思想政治 · 选择性必修3（高中）', sizeBytes: 0, stage: 'highschool', pending: true },
 ];
 
 export function formatSize(bytes: number): string {

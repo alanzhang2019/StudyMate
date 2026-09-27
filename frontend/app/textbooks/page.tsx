@@ -9,6 +9,7 @@ import {
   SUBJECT_ORDER,
   TEXTBOOKS,
   formatSize,
+  type Stage,
   type SubjectKey,
   type Textbook,
 } from '../../lib/textbooks';
@@ -32,6 +33,20 @@ const SUBJECT_COLOR: Record<SubjectKey, string> = {
   history: '#b45309',
   geography: '#0891b2',
   ethics: '#dc2626',
+  politics: '#be185d',
+};
+
+/** 高中科目版本说明（深圳高中在用） */
+const HS_SUBJECT_NOTE: Partial<Record<SubjectKey, string>> = {
+  chinese: '统编版 · 全国统一',
+  math: '人教A版 · 深圳主流',
+  english: '外研社版 · 深圳主流',
+  physics: '人教版 · 深圳主流',
+  chemistry: '人教版 · 深圳主流',
+  biology: '人教版 · 深圳主流',
+  history: '统编版 · 全国统一',
+  geography: '人教版 · 深圳主流',
+  politics: '统编版 · 全国统一',
 };
 
 /** 超过该体积提示「建议下载后阅读」 */
@@ -42,6 +57,9 @@ type Mode = 'textbook' | 'exam';
 
 export default function TextbooksPage() {
   const [mode, setMode] = useState<Mode>('textbook');
+
+  // —— 学段（义务教育 / 高中）——
+  const [stage, setStage] = useState<Stage>('compulsory');
 
   // —— 教材（课本）状态 ——
   const [subject, setSubject] = useState<SubjectKey | 'all'>('all');
@@ -74,20 +92,24 @@ export default function TextbooksPage() {
 
   // ====== 课本派生数据 ======
   const grades = useMemo(() => {
-    const pool = subject === 'all' ? TEXTBOOKS : TEXTBOOKS.filter((b) => b.subject === subject);
+    const pool = (subject === 'all' ? TEXTBOOKS : TEXTBOOKS.filter((b) => b.subject === subject)).filter(
+      (b) => (b.stage ?? 'compulsory') === stage
+    );
     return [...new Set(pool.map((b) => b.grade))].sort((a, b) => a - b);
-  }, [subject]);
+  }, [subject, stage]);
 
   const textbookCounts = useMemo(() => {
     const m = new Map<SubjectKey | 'all', number>();
-    m.set('all', TEXTBOOKS.length);
-    for (const s of SUBJECT_ORDER) m.set(s, TEXTBOOKS.filter((b) => b.subject === s).length);
+    const pool = TEXTBOOKS.filter((b) => (b.stage ?? 'compulsory') === stage);
+    m.set('all', pool.length);
+    for (const s of SUBJECT_ORDER) m.set(s, pool.filter((b) => b.subject === s).length);
     return m;
-  }, []);
+  }, [stage]);
 
   const filteredTextbooks = useMemo(() => {
     const q = query.trim().toLowerCase();
     return TEXTBOOKS.filter((b) => {
+      if ((b.stage ?? 'compulsory') !== stage) return false;
       if (subject !== 'all' && b.subject !== subject) return false;
       if (grade !== 'all' && b.grade !== grade) return false;
       if (q) {
@@ -96,10 +118,15 @@ export default function TextbooksPage() {
       }
       return true;
     });
-  }, [subject, grade, query]);
+  }, [subject, grade, query, stage]);
 
   const pickSubject = (s: SubjectKey | 'all') => {
     setSubject(s);
+    setGrade('all');
+  };
+
+  const pickStage = (s: Stage) => {
+    setStage(s);
     setGrade('all');
   };
 
@@ -112,8 +139,22 @@ export default function TextbooksPage() {
   };
 
   const totalTextbookSize = useMemo(
-    () => TEXTBOOKS.reduce((acc, b) => acc + b.sizeBytes, 0),
-    []
+    () =>
+      TEXTBOOKS.filter((b) => (b.stage ?? 'compulsory') === stage && !b.pending).reduce(
+        (acc, b) => acc + b.sizeBytes,
+        0
+      ),
+    [stage]
+  );
+
+  const stageCount = useMemo(
+    () => TEXTBOOKS.filter((b) => (b.stage ?? 'compulsory') === stage).length,
+    [stage]
+  );
+
+  const stagePendingCount = useMemo(
+    () => TEXTBOOKS.filter((b) => (b.stage ?? 'compulsory') === stage && b.pending).length,
+    [stage]
   );
 
   // ====== 真题派生数据 ======
@@ -148,7 +189,7 @@ export default function TextbooksPage() {
           </Link>
           <div className="text-sm text-slate-400">
             {mode === 'textbook'
-              ? `${TEXTBOOKS.length} 册 · ${formatSize(totalTextbookSize)}`
+              ? `${stageCount} 册 · ${formatSize(totalTextbookSize)}${stagePendingCount ? `（${stagePendingCount} 本待上传）` : ''}`
               : `${EXAM_PAPERS.length} 份 · ${formatSize(totalExamSize)}`}
           </div>
         </div>
@@ -180,6 +221,34 @@ export default function TextbooksPage() {
         </div>
       </div>
 
+      {/* 学段切换（仅教材模式） */}
+      {mode === 'textbook' && (
+        <div className="border-b border-[#D9E2F5] bg-white">
+          <div className="mx-auto flex max-w-6xl gap-2 px-6 pb-4">
+            <button
+              onClick={() => pickStage('compulsory')}
+              className={`rounded-full px-5 py-1.5 text-sm font-semibold transition ${
+                stage === 'compulsory'
+                  ? 'bg-[#2B50A8] text-white'
+                  : 'bg-[#EEF3FC] text-slate-600 hover:bg-[#E2EAFB]'
+              }`}
+            >
+              义务教育
+            </button>
+            <button
+              onClick={() => pickStage('highschool')}
+              className={`rounded-full px-5 py-1.5 text-sm font-semibold transition ${
+                stage === 'highschool'
+                  ? 'bg-[#4F46E5] text-white'
+                  : 'bg-[#EEF3FC] text-slate-600 hover:bg-[#E2EAFB]'
+              }`}
+            >
+              高中
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 头部 hero */}
       <header
         className="relative text-white"
@@ -192,16 +261,29 @@ export default function TextbooksPage() {
       >
         <div className="mx-auto max-w-6xl px-6 py-12">
           {mode === 'textbook' ? (
-            <>
-              <p className="text-xs font-semibold tracking-[0.3em] text-[#BFD4FF]">
-                SHENZHEN TEXTBOOKS
-              </p>
-              <h1 className="mt-3 text-3xl font-bold sm:text-4xl">深圳九年义务教育系列教材</h1>
-              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#D8E3FA]">
-                覆盖 1-9 年级 · 10 科 89 册，按深圳在用版本收录：小学数学北师大版、小学英语沪教牛津版、
-                小学科学教科版、初中地理湘教版，其余为人教/部编版。支持在线阅读与下载。
-              </p>
-            </>
+            stage === 'compulsory' ? (
+              <>
+                <p className="text-xs font-semibold tracking-[0.3em] text-[#BFD4FF]">
+                  SHENZHEN TEXTBOOKS
+                </p>
+                <h1 className="mt-3 text-3xl font-bold sm:text-4xl">深圳九年义务教育系列教材</h1>
+                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#D8E3FA]">
+                  覆盖 1-9 年级 · 10 科 89 册，按深圳在用版本收录：小学数学北师大版、小学英语沪教牛津版、
+                  小学科学教科版、初中地理湘教版，其余为人教/部编版。支持在线阅读与下载。
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-xs font-semibold tracking-[0.3em] text-[#D9C8FF]">
+                  SHENZHEN HIGH SCHOOL TEXTBOOKS
+                </p>
+                <h1 className="mt-3 text-3xl font-bold sm:text-4xl">深圳高中系列教材</h1>
+                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#E4D9FF]">
+                  覆盖语文 / 数学 / 英语 / 物理 / 化学 / 生物 / 历史 / 地理 / 思想政治 9 科 50 册（高中新课标）：
+                  语文、政治、历史统编版，数学人教A版，英语外研社版，其余人教版。50 册已全部收录，电子版陆续上传中。
+                </p>
+              </>
+            )
           ) : (
             <>
               <p className="text-xs font-semibold tracking-[0.3em] text-[#FED7AA]">
@@ -256,8 +338,9 @@ export default function TextbooksPage() {
               ))}
             </div>
 
-            {/* 年级 + 搜索 */}
+            {/* 年级（义务教育）+ 搜索 */}
             <div className="mt-4 flex flex-wrap items-center gap-3">
+              {stage === 'compulsory' && (
               <div className="flex flex-wrap gap-1.5">
                 <button
                   onClick={() => setGrade('all')}
@@ -283,6 +366,7 @@ export default function TextbooksPage() {
                   </button>
                 ))}
               </div>
+              )}
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -308,7 +392,9 @@ export default function TextbooksPage() {
                       >
                         {SUBJECT_LABEL[b.subject]}
                       </span>
-                      <span className="text-xs text-slate-400">{formatSize(b.sizeBytes)}</span>
+                      <span className="text-xs text-slate-400">
+                        {b.pending ? '待上传' : formatSize(b.sizeBytes)}
+                      </span>
                     </div>
                     <h2 className="mt-3 text-base font-semibold leading-snug">{b.title}</h2>
                     <p className="mt-1 text-xs text-slate-400">
@@ -318,6 +404,16 @@ export default function TextbooksPage() {
                     {b.sizeBytes > BIG_SIZE && !b.lite && (
                       <p className="mt-2 text-xs text-amber-600">文件较大，建议下载后阅读</p>
                     )}
+                    {b.pending ? (
+                      <div className="mt-4 flex gap-2 pt-1">
+                        <span className="flex-1 rounded-lg bg-slate-100 px-3 py-1.5 text-center text-xs font-medium text-slate-400">
+                          待上传
+                        </span>
+                        <span className="flex-1 rounded-lg px-3 py-1.5 text-center text-xs font-medium text-slate-300 ring-1 ring-[#E4EBF9]">
+                          待上传
+                        </span>
+                      </div>
+                    ) : (
                     <div className="mt-4 flex gap-2 pt-1">
                       <button
                         onClick={() => openReader(b)}
@@ -333,6 +429,7 @@ export default function TextbooksPage() {
                         下载
                       </a>
                     </div>
+                    )}
                   </article>
                 ))}
               </div>
@@ -340,16 +437,20 @@ export default function TextbooksPage() {
 
             {/* 版本说明 */}
             <section className="mt-10 rounded-2xl bg-white p-6 ring-1 ring-[#DCE5F6]">
-              <h3 className="text-sm font-semibold text-slate-900">版本说明（深圳在用）</h3>
+              <h3 className="text-sm font-semibold text-slate-900">
+                {stage === 'compulsory' ? '版本说明（深圳义务教育在用）' : '版本说明（深圳高中在用）'}
+              </h3>
               <ul className="mt-3 grid grid-cols-1 gap-x-8 gap-y-1.5 text-xs text-slate-500 sm:grid-cols-2">
-                {SUBJECT_ORDER.map((s) => (
+                {SUBJECT_ORDER.filter((s) =>
+                  TEXTBOOKS.some((b) => (b.stage ?? 'compulsory') === stage && b.subject === s)
+                ).map((s) => (
                   <li key={s} className="flex items-center gap-2">
                     <span
                       className="inline-block h-2 w-2 rounded-full"
                       style={{ backgroundColor: SUBJECT_COLOR[s] }}
                     />
                     <span className="font-medium text-slate-700">{SUBJECT_LABEL[s]}</span>
-                    <span>{SUBJECT_NOTE[s]}</span>
+                    <span>{stage === 'compulsory' ? SUBJECT_NOTE[s] : HS_SUBJECT_NOTE[s]}</span>
                   </li>
                 ))}
               </ul>
@@ -509,7 +610,7 @@ export default function TextbooksPage() {
 
       {/* 页脚 */}
       <footer className="border-t border-[#D9E2F5] py-8 text-center text-xs text-slate-400">
-        深圳九年义务教育系列教材 · 作业通 aijiangti.cn
+        深圳义务教育与高中系列教材 · 作业通 aijiangti.cn
       </footer>
     </div>
   );
