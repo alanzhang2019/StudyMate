@@ -128,6 +128,11 @@ export default function TextbooksPage() {
   const pickStage = (s: Stage) => {
     setStage(s);
     setGrade('all');
+    // 切换学段后，若当前科目在该学段不存在（如高中无科学/道德与法治），重置为「全部」
+    const hasSubject = TEXTBOOKS.some(
+      (b) => (b.stage ?? 'compulsory') === s && b.subject === subject
+    );
+    if (!hasSubject) setSubject('all');
   };
 
   const openReader = (b: Textbook) => {
@@ -322,7 +327,9 @@ export default function TextbooksPage() {
               >
                 全部 <span className="opacity-60">{textbookCounts.get('all')}</span>
               </button>
-              {SUBJECT_ORDER.map((s) => (
+              {SUBJECT_ORDER.filter((s) =>
+                TEXTBOOKS.some((b) => (b.stage ?? 'compulsory') === stage && b.subject === s)
+              ).map((s) => (
                 <button
                   key={s}
                   onClick={() => pickSubject(s)}
