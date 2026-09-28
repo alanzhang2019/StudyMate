@@ -67,6 +67,9 @@ export default function LandingPage() {
           <Button asChild size="sm" variant="outline">
             <Link href="/textbooks">📖 深圳教材</Link>
           </Button>
+          <Button asChild size="sm" variant="outline">
+            <a href="https://aijiangti.cn/wrong-notebook/">📓 智能错题本</a>
+          </Button>
           <Button asChild size="sm">
             <Link href="/mistake">立即开始</Link>
           </Button>
