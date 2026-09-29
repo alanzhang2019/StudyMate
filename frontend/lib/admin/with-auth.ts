@@ -21,7 +21,12 @@ export function withAdminAuth<T extends (...args: any[]) => Promise<NextResponse
       if (!token) {
         return apiError('INVALID_REQUEST', 401, '未登录');
       }
-      await verifyAdminToken(token);
+      // verifyAdminToken 失败时返回 null，必须显式判断。
+      // 不能只依赖抛异常：一旦实现改成不抛异常，旧的 try/catch 写法会静默放行。
+      const payload = await verifyAdminToken(token);
+      if (!payload) {
+        return apiError('INVALID_REQUEST', 401, '登录已过期或无效');
+      }
     } catch (err) {
       return apiError('INVALID_REQUEST', 401, '登录已过期或无效');
     }

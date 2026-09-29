@@ -105,11 +105,14 @@ export function middleware(req: NextRequest) {
   // endpoint (otherwise you can never log in). The page layer still
   // validates via withAdminAuth as a safety net.
   if (pathname.startsWith("/admin")) {
-    // Whitelist: login page + login API + static assets under /admin
+    // Whitelist: login page + login API + captcha API + static assets under /admin
+    // 注意：验证码接口必须放行，否则未登录访客取验证码时会被下面的
+    // admin_token 检查拦到登录页（返回一段重定向 HTML 而非 JSON）。
     if (
       pathname === "/admin/login" ||
       pathname.startsWith("/admin/login/") ||
-      pathname.startsWith("/api/admin/login")
+      pathname.startsWith("/api/admin/login") ||
+      pathname.startsWith("/api/admin/captcha")
     ) {
       return NextResponse.next();
     }

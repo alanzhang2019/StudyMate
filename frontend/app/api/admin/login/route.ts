@@ -1,47 +1,95 @@
 import { cookies } from 'next/headers';
-import { timingSafeEqual } from 'crypto';
+import { createHash, timingSafeEqual } from 'crypto';
+
 import { apiError, apiSuccess } from '@/lib/server/api-response';
-import { signAdminToken } from '@/lib/admin/auth';
+import { requireAdminCredentials, signAdminToken } from '@/lib/admin/auth';
+import { verifyCaptcha } from '@/lib/admin/captcha';
+import { checkLoginAllowed, clientKey, resetLoginAttempts } from '@/lib/admin/rate-limit';
 import { trackEvent } from '@/lib/usage/track';
 
-export async function POST(request: Request) {
-  const validUsername = process.env.ADMIN_USERNAME || 'admin';
-  const validPassword = process.env.ADMIN_PASSWORD || 'admin123';
+/**
+ * POST /api/admin/login
+ *
+ * P0 之前这里有三个洞，本次全部收敛：
+ *   1. `ADMIN_PASSWORD || 'admin123'` —— 环境变量没配就退化成公开弱口令。
+ *   2. 验证码完全不在服务端校验 —— 纯前端 canvas 生成并比对，脚本可直接绕过。
+ *   3. 无任何失败限流 —— 可以无限撞库。
+ *
+ * 顺序有讲究：限流 → 验证码 → 凭据 → 签发令牌。
+ * 验证码放在凭据之前，撞库前必须先过「一次性验证码」这一关。
+ */
+function safeEqual(a: string, b: string): boolean {
+  // 先做 SHA-256 再比较：长度恒定，避免 timingSafeEqual 前的长度判断泄漏长度信息。
+  const ha = createHash('sha256').update(a).digest();
+  const hb = createHash('sha256').update(b).digest();
+  return timingSafeEqual(ha, hb);
+}
 
-  let body: { username?: string; password?: string };
+export async function POST(request: Request) {
+  // ① 限流（按来源 IP，15 分钟内 5 次）
+  const key = clientKey(request);
+  const guard = checkLoginAllowed(key);
+  if (!guard.allowed) {
+    const minutes = Math.max(1, Math.ceil(guard.retryAfterSec / 60));
+    return apiError('INVALID_REQUEST', 429, `尝试过于频繁，请 ${minutes} 分钟后重试`);
+  }
+
+  let body: { username?: string; password?: string; captcha?: string };
   try {
     body = await request.json();
   } catch {
-    return apiError('INVALID_REQUEST', 400, 'Invalid JSON body');
+    return apiError('INVALID_REQUEST', 400, '请求格式有误');
   }
 
   if (!body.username || !body.password) {
-    return apiError('MISSING_REQUIRED_FIELD', 400, 'Username and password are required');
+    return apiError('MISSING_REQUIRED_FIELD', 400, '请输入账号和密码');
+  }
+  if (!body.captcha) {
+    return apiError('MISSING_REQUIRED_FIELD', 400, '请输入验证码');
   }
 
-  const encoder = new TextEncoder();
-  const inputUsername = encoder.encode(body.username);
-  const inputPassword = encoder.encode(body.password);
-  const expectedUsername = encoder.encode(validUsername);
-  const expectedPassword = encoder.encode(validPassword);
-
-  let isValid = true;
-
-  if (inputUsername.byteLength !== expectedUsername.byteLength || !timingSafeEqual(inputUsername, expectedUsername)) {
-    isValid = false;
+  // ② 服务端校验验证码（一次性，失败即作废，客户端需重新拉图）
+  const captcha = await verifyCaptcha(body.captcha);
+  if (!captcha.ok) {
+    if (captcha.reason === 'NOT_CONFIGURED') {
+      return apiError('INTERNAL_ERROR', 503, '服务端未配置密钥，无法校验验证码');
+    }
+    const msg =
+      captcha.reason === 'MISSING'
+        ? '验证码已过期，请点击图片刷新后重试'
+        : '验证码错误，请重新识别';
+    return apiError('INVALID_REQUEST', 400, msg);
   }
 
-  if (inputPassword.byteLength !== expectedPassword.byteLength || !timingSafeEqual(inputPassword, expectedPassword)) {
-    isValid = false;
+  // ③ fail-closed：凭据未配置 → 503 并要求运维配置，绝不回退默认口令
+  let expected: { username: string; password: string };
+  try {
+    expected = requireAdminCredentials();
+  } catch {
+    return apiError(
+      'INTERNAL_ERROR',
+      503,
+      '管理员凭据未配置：请在环境变量中设置 ADMIN_USERNAME / ADMIN_PASSWORD 后重启服务',
+    );
   }
 
-  if (!isValid) {
-    return apiError('INVALID_REQUEST', 401, 'Invalid credentials');
+  if (!safeEqual(body.username, expected.username) || !safeEqual(body.password, expected.password)) {
+    return apiError('INVALID_REQUEST', 401, '账号或密码错误');
   }
 
-  const token = await signAdminToken();
+  // ④ 签发令牌；密钥强度不足同样拒绝，避免弱密钥上线
+  let token: string;
+  try {
+    token = await signAdminToken();
+  } catch {
+    return apiError(
+      'INTERNAL_ERROR',
+      503,
+      '管理端密钥未配置或强度不足（ADMIN_JWT_SECRET 需不少于 32 字符）',
+    );
+  }
+
   const cookieStore = await cookies();
-
   cookieStore.set('admin_token', token, {
     httpOnly: true,
     sameSite: 'lax',
@@ -50,7 +98,9 @@ export async function POST(request: Request) {
     secure: process.env.NODE_ENV === 'production',
   });
 
-  void trackEvent('admin.login', { username: validUsername }, { request });
+  resetLoginAttempts(key);
+  // 不再记录具体用户名：避免把攻击者输入的字符串写进日志。
+  void trackEvent('admin.login', { success: true }, { request });
 
   return apiSuccess({ valid: true });
 }

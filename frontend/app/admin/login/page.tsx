@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -9,52 +9,38 @@ export default function AdminLogin() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [captcha, setCaptcha] = useState('');
+  const [captchaSvg, setCaptchaSvg] = useState('');
+  const [captchaLoading, setCaptchaLoading] = useState(false);
   const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const captchaCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const currentCaptchaRef = useRef('');
 
-  const drawCaptcha = () => {
-    const canvas = captchaCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let code = '';
-    for (let i = 0; i < 4; i++) {
-      code += chars[Math.floor(Math.random() * chars.length)];
+  // 验证码由服务端生成并校验：这里只负责显示图片 + 收集用户输入。
+  // 答案不出服务端（AES-GCM 加密在 httpOnly cookie 里），本地比对逻辑已彻底移除。
+  const loadCaptcha = useCallback(async () => {
+    setCaptchaLoading(true);
+    try {
+      const res = await fetch('/api/admin/captcha', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        setCaptchaSvg(String(data?.svg ?? ''));
+      } else {
+        setCaptchaSvg('');
+      }
+    } catch {
+      setCaptchaSvg('');
+    } finally {
+      setCaptchaLoading(false);
     }
-    currentCaptchaRef.current = code;
-
-    ctx.clearRect(0, 0, 120, 48);
-    for (let i = 0; i < 6; i++) {
-      ctx.strokeStyle = `rgba(${Math.random() * 100},${Math.random() * 100},${Math.random() * 150},0.3)`;
-      ctx.beginPath();
-      ctx.moveTo(Math.random() * 120, Math.random() * 48);
-      ctx.lineTo(Math.random() * 120, Math.random() * 48);
-      ctx.stroke();
-    }
-    ctx.font = 'bold 26px monospace';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const colors = ['#ffd447', '#f5f2e9', '#b8c1d3', '#1b56c5'];
-    for (let i = 0; i < 4; i++) {
-      ctx.fillStyle = colors[i % colors.length];
-      ctx.save();
-      const x = 20 + i * 26;
-      const y = 24 + (Math.random() * 8 - 4);
-      ctx.translate(x, y);
-      ctx.rotate(Math.random() * 0.4 - 0.2);
-      ctx.fillText(code[i], 0, 0);
-      ctx.restore();
-    }
-  };
+  }, []);
 
   useEffect(() => {
-    drawCaptcha();
-  }, []);
+    void loadCaptcha();
+  }, [loadCaptcha]);
+
+  const captchaImage = captchaSvg
+    ? `data:image/svg+xml,${encodeURIComponent(captchaSvg)}`
+    : '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,10 +50,8 @@ export default function AdminLogin() {
       alert('请输入账号和密码');
       return;
     }
-    if (captcha.trim().toUpperCase() !== currentCaptchaRef.current) {
-      alert('验证码错误，请重新输入');
-      drawCaptcha();
-      setCaptcha('');
+    if (!captcha.trim()) {
+      alert('请输入验证码');
       return;
     }
 
@@ -76,7 +60,7 @@ export default function AdminLogin() {
       const res = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: uname, password }),
+        body: JSON.stringify({ username: uname, password, captcha: captcha.trim() }),
       });
       if (res.ok) {
         router.push('/admin/camp/works');
@@ -89,8 +73,9 @@ export default function AdminLogin() {
           // ignore JSON parse failure, keep default message
         }
         alert(msg);
-        drawCaptcha();
+        // 验证码是一次性的：任何失败都要换新图，否则用户拿着已作废的答案重试
         setCaptcha('');
+        void loadCaptcha();
       }
     } catch {
       alert('网络错误，请稍后重试');
@@ -234,10 +219,28 @@ export default function AdminLogin() {
               />
               <button
                 type="button"
-                onClick={drawCaptcha}
+                onClick={() => void loadCaptcha()}
                 aria-label="点击刷新验证码"
               >
-                <canvas ref={captchaCanvasRef} width="120" height="48" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {captchaImage ? (
+                  <img src={captchaImage} alt="验证码" width={120} height={48} />
+                ) : (
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      width: 120,
+                      height: 48,
+                      background: '#e5e7eb',
+                      borderRadius: 4,
+                      lineHeight: '48px',
+                      fontSize: 12,
+                      color: '#6b7280',
+                    }}
+                  >
+                    {captchaLoading ? '加载中…' : '点击重取'}
+                  </span>
+                )}
               </button>
             </div>
           </div>

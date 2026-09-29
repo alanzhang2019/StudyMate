@@ -57,6 +57,13 @@ services:
       - ./frontend/.env.local
     environment:
       - BACKEND_URL=http://backend:3000
+      # --- 管理后台凭据（P0 安全加固，必配）--------------------------------------
+      # 取值来自宿主机仓库根目录的 .env（该文件不入库）。
+      # 缺失或强度不足时 /api/admin/login 直接 503 拒绝登录 ——
+      # 不会再像以前那样回退到源码里写死的 admin/admin123。
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - ADMIN_JWT_SECRET=${ADMIN_JWT_SECRET}
       # Allow oi.aijiangti.cn to embed us via iframe during ICP filing
       - ALLOWED_FRAME_ANCESTORS=https://oi.aijiangti.cn
       # SQLite database location. The default in lib/db.ts is
