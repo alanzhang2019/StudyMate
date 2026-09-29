@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import SharedClipboard from '@/app/components/SharedClipboard';
-import ThemeToggle from '@/app/components/ThemeToggle';
+import SiteHeader from '@/app/components/SiteHeader';
 
 export const dynamic = 'force-static';
 export const revalidate = 3600;
@@ -47,34 +46,7 @@ export default function LandingPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 transition-colors">
       {/* Top nav */}
-      <nav className="max-w-6xl mx-auto flex items-center justify-between px-6 py-5">
-        <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold">
-            爱
-          </div>
-          <span className="text-lg font-bold text-slate-800 dark:text-slate-100">
-            爱讲题
-          </span>
-        </div>
-        <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-          <ThemeToggle />
-          <Button asChild size="sm" variant="outline">
-            <Link href="/camp">🚀 AI 原生教育</Link>
-          </Button>
-          <Button asChild size="sm" variant="outline">
-            <Link href="/csp-lecture">📚 学生课件</Link>
-          </Button>
-          <Button asChild size="sm" variant="outline">
-            <Link href="/textbooks">📖 深圳教材</Link>
-          </Button>
-          <Button asChild size="sm" variant="outline">
-            <a href="https://aijiangti.cn/wrong-notebook/">📓 智能错题本</a>
-          </Button>
-          <Button asChild size="sm">
-            <Link href="/mistake">立即开始</Link>
-          </Button>
-        </div>
-      </nav>
+      <SiteHeader />
 
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-6 pt-10 pb-20 sm:pt-16 sm:pb-28 text-center">
@@ -162,18 +134,6 @@ export default function LandingPage() {
             </Card>
           ))}
         </div>
-      </section>
-
-      {/* 共享剪贴板：老师/学生在首页按房间码共享文件与资料 */}
-      <section className="max-w-6xl mx-auto px-6 pb-16 scroll-mt-20">
-        <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50 text-center mb-3 transition-colors">
-          资料共享，从一页开始
-        </h2>
-        <p className="text-slate-600 dark:text-slate-300 text-center max-w-2xl mx-auto mb-10 transition-colors">
-          建一个房间码，把链接发到班级群，老师和学生就能在同一个页面里
-          拖拽上传、粘贴文本、随时下载——无需注册，即开即用。
-        </p>
-        <SharedClipboard />
       </section>
 
       {/* Final CTA */}
