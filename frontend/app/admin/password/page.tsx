@@ -42,7 +42,13 @@ export default function AdminPasswordPage() {
       }
       const json = await res.json();
       if (!json.success) throw new Error(json.error || `HTTP ${res.status}`);
-      const data: Identity = json.data;
+      // 注意：apiSuccess 是扁平返回（{success, username, ...}），不套 data 层
+      const data: Identity = {
+        username: json.username ?? null,
+        source: json.source ?? 'unconfigured',
+        updatedAt: json.updatedAt ?? null,
+        minLength: json.minLength ?? 12,
+      };
       setId(data);
       setUsername(data.username || '');
     } catch (e: any) {
