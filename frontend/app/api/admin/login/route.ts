@@ -1,8 +1,7 @@
 import { cookies } from 'next/headers';
-import { createHash, timingSafeEqual } from 'crypto';
 
 import { apiError, apiSuccess } from '@/lib/server/api-response';
-import { requireAdminCredentials, signAdminToken } from '@/lib/admin/auth';
+import { signAdminToken, verifyAdminPassword } from '@/lib/admin/auth';
 import { verifyCaptcha } from '@/lib/admin/captcha';
 import { checkLoginAllowed, clientKey, resetLoginAttempts } from '@/lib/admin/rate-limit';
 import { trackEvent } from '@/lib/usage/track';
@@ -18,13 +17,6 @@ import { trackEvent } from '@/lib/usage/track';
  * 顺序有讲究：限流 → 验证码 → 凭据 → 签发令牌。
  * 验证码放在凭据之前，撞库前必须先过「一次性验证码」这一关。
  */
-function safeEqual(a: string, b: string): boolean {
-  // 先做 SHA-256 再比较：长度恒定，避免 timingSafeEqual 前的长度判断泄漏长度信息。
-  const ha = createHash('sha256').update(a).digest();
-  const hb = createHash('sha256').update(b).digest();
-  return timingSafeEqual(ha, hb);
-}
-
 export async function POST(request: Request) {
   // ① 限流（按来源 IP，15 分钟内 5 次）
   const key = clientKey(request);
@@ -62,18 +54,16 @@ export async function POST(request: Request) {
   }
 
   // ③ fail-closed：凭据未配置 → 503 并要求运维配置，绝不回退默认口令
-  let expected: { username: string; password: string };
-  try {
-    expected = requireAdminCredentials();
-  } catch {
+  //    凭据取自「持久卷里的自定义凭据」优先，其次环境变量（见 lib/admin/auth.ts）
+  const result = verifyAdminPassword(body.username, body.password);
+  if (result === 'unconfigured') {
     return apiError(
       'INTERNAL_ERROR',
       503,
       '管理员凭据未配置：请在环境变量中设置 ADMIN_USERNAME / ADMIN_PASSWORD 后重启服务',
     );
   }
-
-  if (!safeEqual(body.username, expected.username) || !safeEqual(body.password, expected.password)) {
+  if (result === 'bad') {
     return apiError('INVALID_REQUEST', 401, '账号或密码错误');
   }
 

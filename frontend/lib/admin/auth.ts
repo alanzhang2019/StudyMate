@@ -1,9 +1,28 @@
 import { SignJWT, jwtVerify } from 'jose';
-import { createHash } from 'crypto';
+import { createHash, timingSafeEqual } from 'crypto';
+import {
+  readStoredAdminCreds,
+  verifyAgainstHash,
+} from './credentials-store';
 
 const MIN_SECRET_LENGTH = 32;
-const MIN_PASSWORD_LENGTH = 12;
+export const MIN_PASSWORD_LENGTH = 12;
 const ADMIN_TOKEN_TTL = '24h';
+
+/** 先 SHA-256 再比较：长度恒定，避免 timingSafeEqual 前的长度判断泄漏长度信息。 */
+function safeEqual(a: string, b: string): boolean {
+  const ha = createHash('sha256').update(a).digest();
+  const hb = createHash('sha256').update(b).digest();
+  return timingSafeEqual(ha, hb);
+}
+
+/**
+ * 当前令牌代次。自定义凭据里带 epoch，每次改密 +1；
+ * 未自定义（走环境变量）时恒为 0。
+ */
+function currentEpoch(): number {
+  return readStoredAdminCreds()?.epoch ?? 0;
+}
 
 /**
  * 管理端令牌签名 / 校验。
@@ -38,7 +57,7 @@ export function adminAesKey(): Uint8Array {
 }
 
 export async function signAdminToken() {
-  return new SignJWT({ role: 'admin' })
+  return new SignJWT({ role: 'admin', epoch: currentEpoch() })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(ADMIN_TOKEN_TTL)
@@ -56,10 +75,62 @@ export async function verifyAdminToken(token: string) {
   try {
     const { payload } = await jwtVerify(token, new TextEncoder().encode(readSecret()));
     if (payload?.role !== 'admin') return null;
+    // 代次校验：改过密码后旧令牌一律失效（旧令牌没有 epoch 时按 0 处理）
+    const tokenEpoch = typeof payload.epoch === 'number' ? payload.epoch : 0;
+    if (tokenEpoch !== currentEpoch()) return null;
     return payload;
   } catch {
     return null;
   }
+}
+
+/** 当前生效的管理员账号与凭据来源，供后台展示（不下发密码相关信息）。 */
+export function getAdminIdentity(): {
+  username: string | null;
+  source: 'custom' | 'env' | 'unconfigured';
+  updatedAt: string | null;
+} {
+  const stored = readStoredAdminCreds();
+  if (stored) {
+    return {
+      username: stored.username,
+      source: 'custom',
+      updatedAt: stored.updatedAt || null,
+    };
+  }
+  const envUser = process.env.ADMIN_USERNAME;
+  return {
+    username: envUser || null,
+    source: envUser ? 'env' : 'unconfigured',
+    updatedAt: null,
+  };
+}
+
+/**
+ * 校验登录账号密码。
+ * 自定义凭据（文件，bcrypt）优先；否则回退环境变量（明文比较，已做定时安全）。
+ * 返回 unconfigured 表示环境变量也没配 —— 调用方应返回 503 而不是 401。
+ */
+export function verifyAdminPassword(
+  username: string,
+  password: string,
+): 'ok' | 'bad' | 'unconfigured' {
+  const stored = readStoredAdminCreds();
+  if (stored) {
+    const userOk = safeEqual(username, stored.username);
+    const passOk = verifyAgainstHash(password, stored.passwordHash);
+    return userOk && passOk ? 'ok' : 'bad';
+  }
+
+  let expected: { username: string; password: string };
+  try {
+    expected = requireAdminCredentials();
+  } catch {
+    return 'unconfigured';
+  }
+  return safeEqual(username, expected.username) && safeEqual(password, expected.password)
+    ? 'ok'
+    : 'bad';
 }
 
 /**

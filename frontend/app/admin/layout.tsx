@@ -40,6 +40,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/admin/settings" className="block p-2 hover:bg-gray-50 rounded">
             ⚙️ TTS 设置
           </Link>
+          <Link href="/admin/password" className="block p-2 hover:bg-gray-50 rounded">
+            🔑 修改密码
+          </Link>
 
           <div className="text-xs text-gray-400 uppercase tracking-wider px-2 pt-4 pb-1">
             Alan张老师·创造营
