@@ -110,6 +110,9 @@ export default function AdminCampWorksPage() {
   const [showDelete, setShowDelete] = useState(false);
   const [deletingWork, setDeletingWork] = useState<Work | null>(null);
 
+  const [showFiles, setShowFiles] = useState(false);
+  const [filesWork, setFilesWork] = useState<Work | null>(null);
+
   const loadList = async () => {
     setLoading(true);
     setError(null);
@@ -536,6 +539,15 @@ export default function AdminCampWorksPage() {
                   </button>
                   <button
                     onClick={() => {
+                      setFilesWork(w);
+                      setShowFiles(true);
+                    }}
+                    className="px-3 py-1.5 text-sm rounded-md bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition"
+                  >
+                    ⬇ 源文件
+                  </button>
+                  <button
+                    onClick={() => {
                       setDeletingWork(w);
                       setShowDelete(true);
                     }}
@@ -652,6 +664,17 @@ export default function AdminCampWorksPage() {
           </div>
         </Overlay>
       )}
+
+      {/* Source files */}
+      {showFiles && filesWork && (
+        <FilesModal
+          work={filesWork}
+          onClose={() => {
+            setShowFiles(false);
+            setFilesWork(null);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -676,6 +699,134 @@ function Overlay({
         {children}
       </div>
     </div>
+  );
+}
+
+/* ---------- 源文件下载 Modal ---------- */
+type WorkFile = {
+  i: number;
+  kind: string;
+  label: string;
+  fileName: string;
+  size: number;
+  sizeText: string;
+};
+
+function FilesModal({
+  work,
+  onClose,
+}: {
+  work: Work;
+  onClose: () => void;
+}) {
+  const [files, setFiles] = useState<WorkFile[] | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const res = await fetch(`/api/admin/camp/works/${work.id}/files`);
+        const json = await res.json();
+        if (!alive) return;
+        if (json.success) setFiles(json.data.files || []);
+        else setErr(json.error || '读取失败');
+      } catch (e: any) {
+        if (alive) setErr(e?.message || '读取失败');
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [work.id]);
+
+  const base = `/api/admin/camp/works/${work.id}/download`;
+
+  return (
+    <Overlay onClose={onClose}>
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">源文件</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            {work.title} · {work.studentName || work.studentId}
+          </p>
+        </div>
+        <button
+          onClick={onClose}
+          className="text-sm text-gray-500 hover:text-gray-800"
+        >
+          关闭
+        </button>
+      </div>
+
+      {err ? (
+        <p className="text-sm text-red-600">{err}</p>
+      ) : files === null ? (
+        <p className="text-sm text-gray-500">正在读取…</p>
+      ) : files.length === 0 ? (
+        <div className="text-sm text-gray-600 space-y-2">
+          <p>该作品没有落盘的源文件。</p>
+          {work.linkUrl ? (
+            <p>
+              它是一个外链作品：
+              <a
+                href={work.linkUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-blue-600 hover:underline break-all"
+              >
+                {work.linkUrl}
+              </a>
+            </p>
+          ) : null}
+        </div>
+      ) : (
+        <>
+          <ul className="divide-y border rounded-md">
+            {files.map((f) => (
+              <li
+                key={f.i}
+                className="flex items-center gap-3 px-3 py-2.5 text-sm"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="text-gray-900 truncate">{f.label}</div>
+                  <div className="text-xs text-gray-400 truncate">
+                    {f.fileName} · {f.sizeText}
+                  </div>
+                </div>
+                {f.kind === 'html' ? (
+                  <a
+                    href={`/api/camp/works/${work.id}/html`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-2.5 py-1 text-xs rounded border border-gray-300 text-gray-600 hover:bg-gray-50"
+                  >
+                    预览
+                  </a>
+                ) : null}
+                <a
+                  href={`${base}?i=${f.i}`}
+                  className="px-2.5 py-1 text-xs rounded border border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  下载
+                </a>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4 flex items-center justify-between gap-3">
+            <span className="text-xs text-gray-400">
+              共 {files.length} 个文件
+            </span>
+            <a
+              href={base}
+              className="px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700"
+            >
+              📦 打包下载全部（.zip）
+            </a>
+          </div>
+        </>
+      )}
+    </Overlay>
   );
 }
 
