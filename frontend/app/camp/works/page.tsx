@@ -19,8 +19,11 @@ type Work = {
   ts: number; // 排序用时间戳
   featured: boolean; // 后台「精选」—— 置顶 + 进精选专区
   sortOrder: number; // 后台自定义排序，越小越靠前
-  textbookSlug?: string | null; // 关联教材 slug（必填单本）
+  textbookSlug?: string | null; // 关联教材 slug（选填，「与教材无关」时为 null）
   textbook?: string; // 关联教材显示名（前端由 slug 解析）
+  ratingAvg?: number; // 讨论区平均分（0 = 还没人评分）
+  ratingCount?: number; // 评分人数
+  commentCount?: number; // 讨论区评论数（含回复）
 };
 
 // 两个早期示范作品（炳炳 / 小高）为静态种子，保留在作品墙顶部；
@@ -88,6 +91,9 @@ type DbWork = {
   viewCount?: number;
   createdAt?: string | null;
   textbookSlug?: string | null;
+  ratingAvg?: number;
+  ratingCount?: number;
+  commentCount?: number;
 };
 
 function mapDbWork(w: DbWork, index: number): Work {
@@ -112,6 +118,9 @@ function mapDbWork(w: DbWork, index: number): Work {
     ts: w.createdAt ? Date.parse(w.createdAt) : 0,
     featured: !!w.featured,
     sortOrder: typeof w.sortOrder === 'number' ? w.sortOrder : 0,
+    ratingAvg: typeof w.ratingAvg === 'number' ? w.ratingAvg : 0,
+    ratingCount: typeof w.ratingCount === 'number' ? w.ratingCount : 0,
+    commentCount: typeof w.commentCount === 'number' ? w.commentCount : 0,
   };
 }
 
@@ -401,6 +410,19 @@ export default function WorksPage() {
                       </svg>
                       {work.views}
                     </span>
+                    {work.ratingCount && work.ratingCount > 0 ? (
+                      <span
+                        className="work-note-rating"
+                        title={`${work.ratingCount} 人评分，平均 ${work.ratingAvg?.toFixed(1)} 星`}
+                      >
+                        ★ {work.ratingAvg?.toFixed(1)}
+                      </span>
+                    ) : null}
+                    {work.commentCount && work.commentCount > 0 ? (
+                      <span title={`${work.commentCount} 条讨论`}>
+                        💬 {work.commentCount}
+                      </span>
+                    ) : null}
                     <span className="work-note-arrow" aria-hidden="true">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"

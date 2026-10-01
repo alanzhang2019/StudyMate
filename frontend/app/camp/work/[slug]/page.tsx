@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { textbookTitle } from '@/lib/textbooks';
+import WorkDiscussion from '@/app/camp/work/[slug]/discussion';
 
 type Lesson = {
   time: string;
@@ -729,6 +730,10 @@ export default function WorkDetailPage() {
           </blockquote>
         </section>
       ) : null}
+
+      {/* 讨论区 + 评分：匿名留言、一人一票。种子作品没有数据库记录，
+          但其 slug 在接口侧放行，同样可以参与讨论。 */}
+      <WorkDiscussion workId={work.slug} />
 
       <footer className="works-footer">
         <div className="works-footer-meta">

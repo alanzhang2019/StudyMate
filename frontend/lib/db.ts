@@ -934,6 +934,45 @@ function applyMigrations(db: Database): void {
     console.error('[db/applyMigrations] clipboard_items init failed:', err)
   }
 
+  // 2026-10-01：作品「讨论区 + 评分」。
+  //   camp_work_comments  评论/回复。parentId 为空即顶层评论，非空为对某条评论的回复。
+  //     authorVisitorId 记匿名访客 id（httpOnly cookie sm_visitor_id），仅用于「删除自己的评论」，
+  //     不对外返回。status='hidden' 为老师/管理员隐藏的评论，公开列表过滤掉。
+  //   camp_work_ratings   评分。PRIMARY KEY(workId, visitorId) 保证同一访客对同一作品只有一票，
+  //     重复提交走 UPSERT 覆盖（改分），而不是叠加刷分。
+  try {
+    db.exec(`
+    CREATE TABLE IF NOT EXISTS camp_work_comments (
+      id TEXT PRIMARY KEY,
+      workId TEXT NOT NULL,
+      parentId TEXT,
+      authorName TEXT NOT NULL,
+      authorRole TEXT NOT NULL DEFAULT 'guest',
+      authorVisitorId TEXT,
+      body TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'visible',
+      createdAt TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_camp_comments_work_time
+      ON camp_work_comments (workId, createdAt);
+    CREATE INDEX IF NOT EXISTS idx_camp_comments_parent
+      ON camp_work_comments (parentId);
+
+    CREATE TABLE IF NOT EXISTS camp_work_ratings (
+      workId TEXT NOT NULL,
+      visitorId TEXT NOT NULL,
+      score INTEGER NOT NULL,
+      createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+      updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+      PRIMARY KEY (workId, visitorId)
+    );
+    CREATE INDEX IF NOT EXISTS idx_camp_ratings_work
+      ON camp_work_ratings (workId);
+    `)
+  } catch (err) {
+    console.error('[db/applyMigrations] camp discussion tables init failed:', err)
+  }
+
   // 2026-09-15：启动自检 —— 确认 camp_works 的关键列都在。
   // viewCount 曾因迁移静默失败而缺失，导致作品墙接口 500 且日志无痕。
   // 这里显式体检并打日志，让同类问题在下一次部署时立刻可见。

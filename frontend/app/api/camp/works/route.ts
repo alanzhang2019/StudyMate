@@ -15,6 +15,7 @@ import {
   runWorkAutoGen,
   coverFilePath,
 } from '@/lib/server/camp-work-autogen';
+import { ratingSummaryForMany } from '@/lib/server/camp-discussion';
 
 /**
  * 把客户端 html2canvas 截图产生的 dataURL 落盘成 PNG 文件。
@@ -128,6 +129,20 @@ export const GET = async (req: NextRequest) => {
 
     const rawRows = getDb().prepare(sql).all(...params) as any[];
     const works = rawRows.map(transformWork);
+
+    // 讨论区概览（平均分 / 评分人数 / 评论数）一次聚合取回，避免 N+1。
+    // 失败不影响作品墙本身：这三个字段只是卡片上的角标。
+    try {
+      const summary = ratingSummaryForMany(works.map((w: any) => w.id));
+      for (const w of works as any[]) {
+        const s = summary[w.id];
+        w.ratingAvg = s?.avg ?? 0;
+        w.ratingCount = s?.count ?? 0;
+        w.commentCount = s?.commentCount ?? 0;
+      }
+    } catch (e) {
+      console.error('[camp/works public GET] discussion summary failed:', e);
+    }
 
     return NextResponse.json({ success: true, data: works });
   } catch (error) {

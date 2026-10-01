@@ -62,6 +62,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           >
             📝 课堂记录
           </Link>
+          <Link
+            href="/admin/camp/comments"
+            className="block p-2 hover:bg-gray-50 rounded"
+          >
+            💬 讨论管理
+          </Link>
         </nav>
         {/* Admin logout — clear the JWT `admin_token` cookie via the
             dedicated /api/admin/logout route, then bounce to the login
