@@ -54,12 +54,15 @@ export const POST = async (
     }
 
     if (kind === 'cover') {
+      // 手动重新生成：preferAi 让 AI 插画优先（每次不同）；AI 未配置时退回
+      // 随机时间预算截图，避免每次截出完全相同的画面
       const gen = await generateCover(
         work.id,
         work.title || '我的作品',
         work.description || '',
         work.htmlFile,
         work.linkUrl,
+        { preferAi: true },
       );
       if (!gen) {
         return NextResponse.json(

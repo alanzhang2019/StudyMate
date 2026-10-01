@@ -37,6 +37,9 @@ export default function CampWorkEditPage() {
   const [description, setDescription] = useState('');
   const [coverImage, setCoverImage] = useState('');
   const [coverSource, setCoverSource] = useState('');
+  // 封面缓存穿透时间戳：重新生成/上传会覆盖同名文件（URL 不变），
+  // 必须换 URL 才能让浏览器放弃旧缓存图（2026-10-01 事故修复）
+  const [coverV, setCoverV] = useState(0);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [htmlFile, setHtmlFile] = useState<File | null>(null);
   const [hasHtml, setHasHtml] = useState(false);
@@ -76,6 +79,11 @@ export default function CampWorkEditPage() {
       .catch(() => setLoad({ kind: 'error', message: '网络错误，请重试' }));
   }, [token]);
 
+  const bumpCoverV = () => setCoverV(Date.now());
+  const coverSrc = coverImage
+    ? `${coverImage}${coverImage.includes('?') ? '&' : '?'}v=${coverV}`
+    : '';
+
   const handleSave = async () => {
     if (!title.trim()) {
       setBanner({ kind: 'error', text: '请填写作品标题' });
@@ -104,7 +112,10 @@ export default function CampWorkEditPage() {
         return;
       }
       const d = json.data || {};
-      if (d.coverImage) setCoverImage(d.coverImage);
+      if (d.coverImage) {
+        setCoverImage(d.coverImage);
+        bumpCoverV();
+      }
       if (d.coverSource) setCoverSource(d.coverSource);
       setCoverFile(null);
       setHtmlFile(null);
@@ -143,7 +154,10 @@ export default function CampWorkEditPage() {
       }
       const d = json.data || {};
       if (d.description) setDescription(d.description);
-      if (d.coverImage) setCoverImage(d.coverImage);
+      if (d.coverImage) {
+        setCoverImage(d.coverImage);
+        bumpCoverV();
+      }
       if (d.coverSource) setCoverSource(d.coverSource);
       if (d.hasHtml) setHasHtml(true);
       setHtmlFileName(file.name);
@@ -187,8 +201,9 @@ export default function CampWorkEditPage() {
         return;
       }
       if (kind === 'cover') {
-        setCoverImage(json.data?.coverImage || '');
+        if (json.data?.coverImage) setCoverImage(json.data.coverImage);
         setCoverSource(json.data?.coverSource || 'ai');
+        bumpCoverV();
         setBanner({ kind: 'ok', text: '封面已重新生成' });
       } else {
         setDescription(json.data?.description || description);
@@ -280,9 +295,9 @@ export default function CampWorkEditPage() {
           {/* 封面预览 + 重新生成 / 上传 */}
           <div className="edit-cover-block">
             <div className="edit-cover-preview">
-              {coverImage ? (
+              {coverSrc ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={coverImage} alt="作品封面预览" />
+                <img src={coverSrc} alt="作品封面预览" />
               ) : (
                 <div className="edit-cover-empty">暂无封面</div>
               )}

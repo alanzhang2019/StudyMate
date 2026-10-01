@@ -349,6 +349,11 @@ export async function generateAndSaveCover(
  * 生成作品封面（统一入口）：优先用作品真实截图（chromium），
  * 截图不可用时回退 AI 插画（Seedream）。都失败返回 null。
  * 返回 { coverImage, coverSource }，coverSource ∈ 'screenshot' | 'ai'。
+ *
+ * options.preferAi：手动「重新生成封面」时传 true —— 优先走 AI 插画
+ * （每次生成都不同），AI 不可用再退回截图；此时用随机 virtual-time-budget，
+ * 避免固定 budget=5000 每次截出完全相同的画面（2026-10-01 反馈：重新生成
+ * 封面始终一样）。首次自动生成不带该选项，保持「真实截图优先」。
  */
 export async function generateCover(
   workId: string,
@@ -356,11 +361,30 @@ export async function generateCover(
   description: string,
   htmlFileRel?: string | null,
   linkUrl?: string | null,
+  options?: { preferAi?: boolean },
 ): Promise<{ coverImage: string; coverSource: string } | null> {
+  // 0. 手动重新生成：优先 AI 插画（每次结果都不同，符合「重新生成」预期）
+  if (options?.preferAi) {
+    try {
+      const gen = await generateAndSaveCover(workId, title, description);
+      if (gen) return gen;
+    } catch (e) {
+      log.warn(`[camp-work-autogen] AI cover (preferAi) failed for ${workId}`, e);
+    }
+  }
+
   // 1. 作品截图（默认首选，真实还原 HTML）
   if (htmlFileRel) {
     try {
-      const shot = await screenshotHtmlToPng(workId);
+      // preferAi 场景下随机化时间预算，让动画/游戏类作品截到不同画面；
+      // 静态页面多次截图差异有限，但配合前端 ?v= 缓存穿透至少不会「点了没反应」
+      const budget = options?.preferAi
+        ? [3000, 8000, 15000][Math.floor(Math.random() * 3)]
+        : undefined;
+      const shot = await screenshotHtmlToPng(
+        workId,
+        budget ? { budget } : undefined,
+      );
       if (shot) {
         return { coverImage: `/api/camp/covers/${workId}.png`, coverSource: 'screenshot' };
       }
