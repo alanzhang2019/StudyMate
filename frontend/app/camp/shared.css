@@ -951,3 +951,20 @@ input,textarea,select,button{color:inherit}
 .conundrum-official-link{align-items:center;border:1px dashed var(--line-strong);color:var(--paper);display:flex;font-size:.85rem;gap:.6rem;padding:.6rem .8rem;text-align:left;transition:border-color .16s ease,background-color .16s ease;width:100%}
 .conundrum-official-link:hover{border-color:var(--yellow);background:rgba(255,212,71,.06)}
 .conundrum-official-link span:nth-child(2){flex:1 1 auto;line-height:1.4}
+
+/* ===== TextbookPicker（关联教材折叠选择器）===== */
+.tbp{position:relative}
+.tbp-trigger{align-items:center;cursor:pointer;display:flex;justify-content:space-between;text-align:left}
+.tbp-trigger--empty{color:#7e8aa0}
+.tbp-panel{background:var(--paper);border:1px solid var(--navy-950);box-shadow:0 12px 32px rgba(5,20,47,.25);left:0;position:absolute;right:0;top:calc(100% + .35rem);z-index:40}
+.tbp-search{background:#fff;border:0;border-bottom:1px solid var(--navy-950);color:var(--navy-950);font:inherit;font-size:.85rem;outline:0;padding:.6rem .8rem;width:100%}
+.tbp-search::placeholder{color:#7e8aa0}
+.tbp-list{max-height:320px;overflow-y:auto;padding:.35rem 0}
+.tbp-option{color:var(--navy-950);cursor:pointer;display:block;font:inherit;font-size:.85rem;padding:.45rem .9rem;text-align:left;width:100%}
+.tbp-option:hover{background:rgba(5,20,47,.06)}
+.tbp-option--active{background:var(--navy-950);color:var(--paper)}
+.tbp-option--none{border-bottom:1px solid var(--line);font-weight:680;margin-bottom:.25rem}
+.tbp-group-label{align-items:center;color:#66738a;cursor:pointer;display:flex;font-size:.72rem;font-weight:680;justify-content:space-between;letter-spacing:.06em;padding:.5rem .9rem .25rem;text-transform:uppercase}
+.tbp-group-label::marker{content:''}
+.tbp-count{background:rgba(5,20,47,.08);border-radius:99px;font-size:.62rem;padding:.05rem .45rem}
+.tbp-empty{color:#66738a;font-size:.78rem;padding:.8rem .9rem}

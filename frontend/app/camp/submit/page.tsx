@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { screenshotHtmlFile } from '@/lib/client/html-screenshot';
 import { GRADE_OPTIONS } from '@/lib/camp/grades';
-import { groupTextbooksBySubject } from '@/lib/textbooks';
+import TextbookPicker from '@/app/camp/textbook-picker';
 
 const CATEGORY_OPTIONS = [
   { value: '作品', label: '作品' },
@@ -12,8 +12,6 @@ const CATEGORY_OPTIONS = [
   { value: '代码', label: '代码' },
   { value: '其他', label: '其他' },
 ];
-
-const TEXTBOOK_GROUPS = groupTextbooksBySubject();
 
 
 type SubmitState =
@@ -49,8 +47,9 @@ export default function CampSubmitPage() {
 
   const busy = state.kind === 'generating' || state.kind === 'submitting';
 
+  // 教材可选：'' = 与教材无关（自由创作），也允许不选（未选时按无关处理）
   const canSubmit =
-    title.trim().length > 0 && studentName.trim().length > 0 && !!textbook && !busy;
+    title.trim().length > 0 && studentName.trim().length > 0 && !busy;
 
   const buildFormData = (file?: File, coverDataUrl?: string | null): FormData => {
     const fd = new FormData();
@@ -111,10 +110,10 @@ export default function CampSubmitPage() {
   // 上传 HTML：立即触发「客户端截图 + 自动生成介绍」，无需再点提交
   const captureAndSubmit = async (file: File) => {
     setHtmlFile(file);
-    if (!title.trim() || !studentName.trim() || !textbook) {
+    if (!title.trim() || !studentName.trim()) {
       setState({
         kind: 'error',
-        message: '请先填写「作品标题」「你的名字」并选择「关联教材」，再上传 HTML 作品',
+        message: '请先填写「作品标题」和「你的名字」，再上传 HTML 作品',
       });
       return;
     }
@@ -335,23 +334,14 @@ export default function CampSubmitPage() {
                   className="submit-input"
                 />
               </Field>
-              <Field label="关联教材" required hint="必选一本，作品会归类到对应教材">
-                <select
+              <Field
+                label="关联教材"
+                hint="选填 · 作品会归类到对应教材；自由创作可选「与教材无关」"
+              >
+                <TextbookPicker
                   value={textbook}
-                  onChange={(e) => setTextbook(e.target.value)}
-                  className="submit-select"
-                >
-                  <option value="">请选择关联教材</option>
-                  {TEXTBOOK_GROUPS.map((g) => (
-                    <optgroup key={g.subject} label={g.label}>
-                      {g.books.map((b) => (
-                        <option key={b.slug} value={b.slug}>
-                          {b.title}
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
-                </select>
+                  onChange={setTextbook}
+                />
               </Field>
             </div>
 

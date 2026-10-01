@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { GRADE_OPTIONS } from '@/lib/camp/grades';
-import { groupTextbooksBySubject } from '@/lib/textbooks';
-
+import TextbookPicker from '@/app/camp/textbook-picker';
 
 const CATEGORY_OPTIONS = [
   { value: '作品', label: '作品' },
@@ -13,8 +12,6 @@ const CATEGORY_OPTIONS = [
   { value: '代码', label: '代码' },
   { value: '其他', label: '其他' },
 ];
-
-const TEXTBOOK_GROUPS = groupTextbooksBySubject();
 
 type LoadState =
   | { kind: 'loading' }
@@ -87,10 +84,6 @@ export default function CampWorkEditPage() {
   const handleSave = async () => {
     if (!title.trim()) {
       setBanner({ kind: 'error', text: '请填写作品标题' });
-      return;
-    }
-    if (!textbook) {
-      setBanner({ kind: 'error', text: '请选择「关联教材」' });
       return;
     }
     setSaving(true);
@@ -372,23 +365,11 @@ export default function CampWorkEditPage() {
                 className="submit-input"
               />
             </Field>
-            <Field label="关联教材" required hint="必选一本，作品会归类到对应教材">
-              <select
-                value={textbook}
-                onChange={(e) => setTextbook(e.target.value)}
-                className="submit-select"
-              >
-                <option value="">请选择关联教材</option>
-                {TEXTBOOK_GROUPS.map((g) => (
-                  <optgroup key={g.subject} label={g.label}>
-                    {g.books.map((b) => (
-                      <option key={b.slug} value={b.slug}>
-                        {b.title}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
+            <Field
+              label="关联教材"
+              hint="选填 · 作品会归类到对应教材；自由创作可选「与教材无关」"
+            >
+              <TextbookPicker value={textbook} onChange={setTextbook} />
             </Field>
           </div>
 

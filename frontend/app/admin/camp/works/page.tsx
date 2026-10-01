@@ -767,6 +767,50 @@ function WorkFormModal({
     }
   };
 
+  // 上传封面图（复用创作记录图片上传接口；仅编辑已有作品时可用，需 work.id）。
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const uploadCover = async (file: File) => {
+    if (!initial?.id) {
+      alert('请先保存作品，再上传封面图');
+      return;
+    }
+    if (
+      !/^image\//.test(file.type) &&
+      !/\.(png|jpe?g|webp|gif)$/i.test(file.name)
+    ) {
+      alert('仅支持 png / jpg / jpeg / webp / gif 格式');
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      alert('图片不能超过 20MB');
+      return;
+    }
+    setUploadingCover(true);
+    try {
+      const fd = new FormData();
+      fd.append('image', file);
+      const res = await fetch(`/api/admin/camp/works/${initial.id}/image`, {
+        method: 'POST',
+        body: fd,
+      });
+      let json: any = {};
+      try {
+        json = await res.json();
+      } catch {}
+      if (!res.ok || !json.success) {
+        const msg = json.error || `上传失败（${res.status} ${res.statusText}）`;
+        alert(msg);
+        return;
+      }
+      setForm((f) => ({ ...f, coverImage: json.data.url }));
+      alert('封面上传成功，记得点「保存」');
+    } catch (e: any) {
+      alert(e?.message || '上传失败');
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
   // 上传创作记录第 i 条的过程截图。
   const [uploadingImageIdx, setUploadingImageIdx] = useState<number | null>(null);
   const uploadProcessImage = async (i: number, file: File) => {
@@ -936,6 +980,33 @@ function WorkFormModal({
             value={form.coverImage}
             onChange={(e) => setField('coverImage', e.target.value)}
           />
+          <div className="mt-2 flex items-center gap-2">
+            <label className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 cursor-pointer">
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                className="hidden"
+                disabled={uploadingCover}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  e.target.value = '';
+                  if (f) uploadCover(f);
+                }}
+              />
+              {uploadingCover ? '上传中…' : '从本机上传封面'}
+            </label>
+            <span className="text-xs text-gray-400">
+              上传后自动填入上方 URL（仅已保存的作品可用）
+            </span>
+          </div>
+          {form.coverImage ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={form.coverImage}
+              alt="封面预览"
+              className="mt-2 max-h-32 rounded-md border border-gray-200 object-contain"
+            />
+          ) : null}
         </div>
         <div className="sm:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">

@@ -225,11 +225,11 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    // 关联教材：学生上传必选单本，slug 必须合法（见 textbooks.ts）。
+    // 关联教材：可选。填了必须是合法 slug（见 textbooks.ts）；空 = 与教材无关（自由创作）。
     const textbookRaw = (typeof fields.textbook === 'string' ? fields.textbook.trim() : '');
-    if (!textbookRaw || !TEXTBOOK_SLUGS.has(textbookRaw)) {
+    if (textbookRaw && !TEXTBOOK_SLUGS.has(textbookRaw)) {
       return NextResponse.json(
-        { success: false, error: '请选择关联教材' },
+        { success: false, error: '关联教材无效，请重新选择' },
         { status: 400 },
       );
     }
@@ -308,7 +308,7 @@ export const POST = async (req: NextRequest) => {
         className: className || null,
         grade,
         category,
-        textbookSlug: textbookRaw,
+        textbookSlug: textbookRaw || null,
         coverImage: coverImage || null,
         linkUrl: linkUrl || null,
         description: description || null,

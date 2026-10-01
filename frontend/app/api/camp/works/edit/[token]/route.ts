@@ -94,7 +94,11 @@ export const PATCH = async (
     const gradeRaw = safeStr(get('grade'), 20);
     const grade = GRADE_OPTIONS.includes(gradeRaw as any) ? gradeRaw : (work.grade || '不便透露');
     const textbookRaw = safeStr(get('textbook'), 80);
-    const textbook = TEXTBOOK_SLUGS.has(textbookRaw) ? textbookRaw : (work.textbookSlug || null);
+    // 表单总是携带 textbook：'' 表示学生显式选了「与教材无关」→ 清空；
+    // 非法 slug 则保留原值兜底。
+    const textbook = textbookRaw === ''
+      ? null
+      : (TEXTBOOK_SLUGS.has(textbookRaw) ? textbookRaw : (work.textbookSlug || null));
 
     if (!title) {
       return NextResponse.json(
