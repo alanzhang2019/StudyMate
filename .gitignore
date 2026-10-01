@@ -30,3 +30,6 @@ take-machine/
 # Credentials & scratch space (B站登录 cookie / 视频抓取临时产物，严禁入库)
 .workbuddy/bili/
 
+
+# Root-level compose interpolation secrets (ADMIN_* 等，仅存在于部署机)
+/.env
