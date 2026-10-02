@@ -150,7 +150,7 @@ export default function LandingPage() {
             size="lg"
             className="bg-white text-blue-700 hover:bg-blue-50 text-base h-12 px-8"
           >
-            <Link href="/mistake">立即开始 →</Link>
+            <Link href="/ai/">AI 自学 →</Link>
           </Button>
         </div>
       </section>
