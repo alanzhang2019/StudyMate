@@ -33,7 +33,7 @@ export default function SiteHeader() {
           <a href="https://aijiangti.cn/wrong-notebook/">📓 智能错题本</a>
         </Button>
         <Button asChild size="sm">
-          <Link href="/mistake">立即开始</Link>
+          <a href="/ai/">AI 自学</a>
         </Button>
       </div>
     </nav>
