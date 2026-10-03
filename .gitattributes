@@ -2,3 +2,9 @@
 # so they work correctly when built inside Linux containers.
 *.sh text eol=lf
 frontend/docker-entrypoint.sh text eol=lf
+
+# nginx 配置只在 Linux 上用，强制 LF。
+# 另外 deploy/deploy-studymate.sh 是用 sha256 把仓库里的 nginx/studymate.conf
+# 和 /etc/nginx/sites-enabled/ 里那份做比对的 —— 行尾一旦在某个平台上被改成 CRLF，
+# 比对就会永远"不相等"，每次部署都白白多跑一次同步。钉死 LF 避免这个坑。
+nginx/*.conf text eol=lf

@@ -1,15 +1,44 @@
+# ⚠️ 已废弃（2026-10-03）
+#
+# 本文件属于 compose 项目 `frontend`，是同一套应用（openmaic = StudyMate 的代码名）
+# 的一份【重复部署配置】，已被仓库根目录的 docker-compose.yml（项目 `studymate`，
+# 容器 studymate-frontend）取代。
+#
+# 它长期只起了一个容器 frontend-openmaic-1（镜像构建于 2026-09-12），而且端口对不上：
+#   · Dockerfile:  ENV PORT=3001 / EXPOSE 3001 / CMD node server.js
+#   · 本文件:      ports: "3000:3000"
+# 于是宿主 3000 上没有任何进程应答 —— nginx 的 /machine/ 路由因此长期 502
+# （error.log 是 recv() failed 104，不是 connection refused：docker-proxy 接了连接
+#   又因为没有后端而 reset，容易被误判成上游崩了）。
+#
+# 2026-10-03 处置：
+#   · 容器 frontend-openmaic-1 与 compose 项目 `frontend` 已 down（未带 -v，卷保留）
+#   · 数据卷 frontend_openmaic-data 自 09-12 建立起从未写入（4KB 空卷），无数据损失
+#   · nginx 的 /machine/ 改为 301 跳到主应用（见 nginx/studymate.conf）
+#   · 端口修正为 3000:3001、restart 改为 "no"，这样万一有人重新 up 它，
+#     既是能跑的、也不会在重启后自己回来
+#
+# 需要跑前端请用根目录的 compose：
+#   cd /home/ubuntu/studymate && docker compose up -d frontend
+#
+# 若确要恢复本配置，先把 ports 改回 "3000:3001" 并把 restart 改成 unless-stopped，
+# 再确认 nginx 里 /machine/ 的 301 块已移除（备份见
+# /home/ubuntu/hlplatform-backups/20261003-155512-machine-retire/studymate.conf）。
+
 services:
   openmaic:
     build: .
     ports:
-      - "3000:3000"
+      # 宿主 3000 -> 容器 3001（容器内 next-server 监听 3001，见 Dockerfile）
+      - "3000:3001"
     env_file:
       - .env.local
     volumes:
       # Optional: mount server-providers.yml for provider config
       # - ./server-providers.yml:/app/server-providers.yml:ro
       - openmaic-data:/app/data
-    restart: unless-stopped
+    # 已退役：不再开机自启。恢复时改回 unless-stopped。
+    restart: "no"
 
 volumes:
   openmaic-data:
