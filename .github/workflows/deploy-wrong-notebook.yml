@@ -1,0 +1,63 @@
+name: Deploy wrong-notebook to production
+
+# wrong-notebook 的源码在 third-party/wrong-notebook/ —— 第三方项目
+# wttwins/wrong-notebook 的部署副本（基线 tag v1.9.1）。
+#
+# 它的部署与主应用分开：只有这个目录（或它的部署脚本）变了才触发，
+# 免得每次改 StudyMate 都白重建一次错题本镜像。
+#
+# 流程：push → SSH 到服务器执行 'deploy wrong-notebook'
+#       → dispatch.sh 先把主仓库 reset 到 origin/master（third-party 在里面）
+#       → deploy/deploy-wrong-notebook.sh 把 third-party rsync 到
+#         /home/ubuntu/wrong-notebook 再 docker compose build
+#
+# 需要的仓库 secret 与主 workflow 相同：DEPLOY_SSH_KEY
+# 手动触发：Actions → Deploy wrong-notebook to production → Run workflow
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'third-party/wrong-notebook/**'
+      - 'deploy/deploy-wrong-notebook.sh'
+      - 'deploy/dispatch.sh'
+      - '.github/workflows/deploy-wrong-notebook.yml'
+  workflow_dispatch:
+
+# 同一时间只跑一个部署；不取消正在跑的（部署中断会留下半成品）
+concurrency:
+  group: deploy-wrong-notebook
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: 部署错题本到 aijiangti.cn
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: 准备 SSH 凭据
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$DEPLOY_SSH_KEY" ]; then
+            echo "::error::缺少仓库 secret DEPLOY_SSH_KEY（Settings → Secrets and variables → Actions）"
+            exit 1
+          fi
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          # 固定服务器主机密钥。不用 ssh-keyscan —— 那等于"第一次见到就信"，挡不住中间人。
+          # 指纹：SHA256:WwuQJ8jpJcIOLJRGCgm3rD3LzG5iyq8LSbL0VfrKoLw
+          printf '%s\n' 'aijiangti.cn ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBhmcRxp79pkSNiCBHFX5piILx3H2rzLgMNb9walm3po' > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: 触发部署
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/id_deploy \
+              -o IdentitiesOnly=yes \
+              -o BatchMode=yes \
+              -o ServerAliveInterval=30 \
+              -o ServerAliveCountMax=20 \
+              ubuntu@aijiangti.cn 'deploy wrong-notebook'

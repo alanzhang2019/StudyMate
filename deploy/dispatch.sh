@@ -38,7 +38,9 @@ fi
 case "$APP" in
     studymate)      DIR=/home/ubuntu/studymate;      BRANCH=master ;;
     hl-platform)    DIR=/home/ubuntu/hl-platform;    BRANCH=main   ;;
-    wrong-notebook) DIR=/home/ubuntu/wrong-notebook; BRANCH=main   ;;
+    # wrong-notebook 的源码在主仓库的 third-party/wrong-notebook/，
+    # 所以它的「拉取」也用主仓库 —— 部署脚本再 rsync 到 /home/ubuntu/wrong-notebook 构建。
+    wrong-notebook) DIR=/home/ubuntu/studymate;      BRANCH=master ;;
     *)
         log "拒绝：未知应用 '$APP'（可用：studymate / hl-platform / wrong-notebook）"
         exit 64
