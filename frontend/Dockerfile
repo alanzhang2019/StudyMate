@@ -114,17 +114,25 @@ FROM base AS builder
 # the CSP placement recommender) silently failed and fell through to the
 # deterministic fallback. Switched to kimi:moonshotai/kimi-k2.5 to
 # align with KIMI_MODELS in the deployment env.
-# `KIMI_MODELS` is the comma-separated allowlist of model ids the
-# "kimi" provider actually accepts (e.g. "kimi:deepseek/deepseek-v4-flash").
-# Whatever DEFAULT_MODEL we set here must appear in that list, otherwise
-# resolveModel() rejects it and the call falls through to the
-# deterministic fallback. The previous default ("kimi:moonshotai/kimi-k2.5")
-# looked right but was not in the list, so every server-side LLM call
-# silently failed. Switched to "kimi:deepseek/deepseek-v4-flash" (the
-# first entry of KIMI_MODELS in the deployment env) so the call
-# actually reaches the upstream.
-ARG DEFAULT_MODEL=kimi:deepseek/deepseek-v4-flash
-ARG MISTAKE_OCR_MODEL=kimi:deepseek/deepseek-v4-flash
+# `KIMI_MODELS` is the comma-separated list of model ids the "kimi"
+# provider advertises (e.g. "kimi:deepseek/deepseek-v4-flash").
+#
+# ⚠️ 更正（2026-10-03 实测）：它【不是】运行时的硬白名单。
+#    getModel() 不会拿 modelId 去比对这个列表，未知 id 一样能建出客户端、
+#    一路打到上游。实测把 MISTAKE_OCR_MODEL 设成不在列表里的
+#    `moonshot-v1-8k` 时，报的是上游的 "no available channels"，
+#    而不是本地的 resolveModel 拒绝 —— 说明本地根本没拦。
+#    所以列表只影响 UI 里能选到哪些模型，别指望它兜底。
+#
+# ⚠️ 更正（2026-10-03 实测）：上面说的"构建时内联、改容器 env 无效"
+#    对【服务端路由】不成立。在容器内 grep /app/.next，既搜不到
+#    moonshot-v1-8k 也搜不到 qwen3-vl-30b-a3b-instruct，
+#    证明 process.env.MISTAKE_OCR_MODEL 是运行时读的 ——
+#    改 docker-compose 的 environment 段再 `up -d` 即可生效，不必重建镜像。
+#    下面的 ARG 只影响构建期；真要重建时请让它们与 compose 的
+#    environment 段保持一致。
+ARG DEFAULT_MODEL=kimi:deepseek/deepseek-v4-flash-20260731
+ARG MISTAKE_OCR_MODEL=kimi:qwen-vl-max-2025-01-25
 ARG LLM_THINKING_DISABLED=false
 
 COPY --from=deps /app/node_modules ./node_modules
