@@ -36,27 +36,36 @@ if [ "${CMD:-}" != "deploy" ] || [ -z "${APP:-}" ] || [ -n "${EXTRA:-}" ]; then
 fi
 
 case "$APP" in
-    studymate)   DIR=/home/ubuntu/studymate;   BRANCH=master ;;
-    hl-platform) DIR=/home/ubuntu/hl-platform; BRANCH=main   ;;
+    studymate)      DIR=/home/ubuntu/studymate;      BRANCH=master ;;
+    hl-platform)    DIR=/home/ubuntu/hl-platform;    BRANCH=main   ;;
+    wrong-notebook) DIR=/home/ubuntu/wrong-notebook; BRANCH=main   ;;
     *)
-        log "拒绝：未知应用 '$APP'（可用：studymate / hl-platform）"
+        log "拒绝：未知应用 '$APP'（可用：studymate / hl-platform / wrong-notebook）"
         exit 64
         ;;
 esac
 
 cd "$DIR"
 
-# 这两个仓库【只是部署目标】。任何服务器上的本地改动都会被下面的 reset --hard 丢掉，
-# 所以先把它亮出来，别让它静默消失。
-if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
-    log "⚠️ $APP 仓库存在未提交的【已跟踪】改动，即将被 reset --hard 丢弃："
-    git status --porcelain --untracked-files=no | tee -a "$LOG"
-fi
+# 有 origin 的（studymate / hl-platform）才做 fetch+reset；
+# wrong-notebook 目前是**服务器本地仓库**（无 origin），跳过拉取、直接用当前工作区。
+# 它一旦接上 GitHub 远端（git remote add origin …），这里会自动走 fetch+reset 分支。
+if git remote get-url origin >/dev/null 2>&1; then
+    # 这两个仓库【只是部署目标】。任何服务器上的本地改动都会被下面的 reset --hard 丢掉，
+    # 所以先把它亮出来，别让它静默消失。
+    if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+        log "⚠️ $APP 仓库存在未提交的【已跟踪】改动，即将被 reset --hard 丢弃："
+        git status --porcelain --untracked-files=no | tee -a "$LOG"
+    fi
 
-log "拉取 origin/$BRANCH …"
-git fetch --prune origin "$BRANCH"
-git reset --hard "origin/$BRANCH"
-log "HEAD 现在 = $(git rev-parse --short HEAD)  $(git log -1 --format=%s)"
+    log "拉取 origin/$BRANCH …"
+    git fetch --prune origin "$BRANCH"
+    git reset --hard "origin/$BRANCH"
+    log "HEAD 现在 = $(git rev-parse --short HEAD)  $(git log -1 --format=%s)"
+else
+    log "⚠️ $APP 没有 origin remote（服务器本地仓库），跳过 fetch/reset，直接用当前工作区"
+    log "HEAD 现在 = $(git rev-parse --short HEAD 2>/dev/null || echo '<非 git 仓库>')"
+fi
 
 SCRIPT="$DIR/deploy/deploy-$APP.sh"
 if [ ! -f "$SCRIPT" ]; then
