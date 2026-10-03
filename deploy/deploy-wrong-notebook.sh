@@ -26,12 +26,17 @@ log() { printf '[wrong-notebook] %s\n' "$*"; }
 [ -d "$DST" ] || { log "❌ 找不到部署目录 $DST"; exit 66; }
 
 log "同步源码 $SRC → $DST"
-log "  （排除 data/ config/ .env* .git/ deploy/ —— 运行数据与部署脚本不参与同步）"
+log "  （排除 data/ config/ .env 及其本机备份 .git/ deploy/ —— 运行数据与部署脚本不参与同步）"
+# ⚠️ 这里刻意**不用** `/.env.*` 通配：那会连 `.env.example` 一起排除掉，
+#    而 .env.example 是随仓库走的模板文件，应当同步（否则部署目录里会留着一份
+#    过期的旧版，`diff -rq` 永远报差异）。只排除真正的本机机密。
 rsync -a --delete \
   --exclude '/data/' \
   --exclude '/config/' \
   --exclude '/.env' \
-  --exclude '/.env.*' \
+  --exclude '/.env.bak_*' \
+  --exclude '/.env.local' \
+  --exclude '/.env.*.local' \
   --exclude '/.git/' \
   --exclude '/deploy/' \
   "$SRC/" "$DST/"
