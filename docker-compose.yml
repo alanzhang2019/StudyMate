@@ -104,13 +104,18 @@ services:
       - DEFAULT_MODEL=kimi:deepseek/deepseek-v4-flash-20260731
       - MISTAKE_OCR_MODEL=kimi:moonshot-v1-8k
       - MISTAKE_CLASSROOM_MODEL=kimi:moonshot-v1-8k
-      # Force KIMI_API_KEY at runtime so a stale/expired key in
-      # frontend/.env (e.g. an API Key that has been disabled or
-      # deleted on the 七牛云 console) does not silently break every
-      # server-side LLM call. Keep this in sync with `frontend/.env`'s
-      # KIMI_API_KEY line — change in BOTH places whenever rotating
-      # the key.
-      - KIMI_API_KEY=sk-5f7573b1fd8f82d0bdf808169153a690c33a8d92c62997fafe466828e8fa1ba7
+      # --- KIMI / 七牛云 密钥（必配，安全）---------------------------------------
+      # ⚠️ 这里曾是明文密钥并已进入 git 历史（2026-10-03 移除）。该密钥必须
+      #    视为已泄露：请到七牛云后台作废重签，再按下述方式注入新值。
+      #
+      # 取值来自宿主机仓库根目录的 .env（与 ADMIN_* 同处，该文件不入库）。
+      # environment 段在 env_file 之后合并，因此这里的值会覆盖 frontend/.env。
+      #
+      # ⚠️ 根目录 .env 里【必须】有 KIMI_API_KEY，否则会展开成空字符串并覆盖掉
+      #    frontend/.env 的有效值，导致所有服务端 LLM 调用失败。
+      #    若你更希望只保留 frontend/.env 一份，直接删掉下面这行即可（env_file 生效）。
+      # 改完重启：docker compose up -d frontend
+      - KIMI_API_KEY=${KIMI_API_KEY}
       # Force thinking mode OFF at runtime. The deepseek-v4-flash
       # model on 七牛云 returns an empty `content` field when
       # thinking is enabled (it dumps its reasoning into a separate
