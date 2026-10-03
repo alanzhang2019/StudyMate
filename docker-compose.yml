@@ -57,6 +57,18 @@ services:
       - ./frontend/.env.local
     environment:
       - BACKEND_URL=http://backend:3000
+      # --- 站点访问密码（可选，全站门禁）-----------------------------------------
+      # 取值来自宿主机仓库根目录的 .env（与 ADMIN_* 同处，该文件不入库）。
+      # 设置后全站需要输入访问码才能进入；留空 = 不启用门禁。
+      #
+      # ⚠️ 关键：这一行是必需的。此前 ACCESS_CODE 从未接入 compose，
+      # 只在根目录 .env 里设置是【无效】的 —— 前端容器读不到该变量，
+      # 门禁状态接口恒返回 enabled:false，于是"配了密码也能直接进"。
+      #
+      # ⚠️ 请勿把它写进 frontend/.env：environment 段在 env_file 之后合并，
+      # 若此处展开为空字符串，会覆盖掉 env_file 里的值。
+      # 改完必须重启容器生效：docker compose up -d frontend
+      - ACCESS_CODE=${ACCESS_CODE}
       # --- 管理后台凭据（P0 安全加固，必配）--------------------------------------
       # 取值来自宿主机仓库根目录的 .env（该文件不入库）。
       # 缺失或强度不足时 /api/admin/login 直接 503 拒绝登录 ——

@@ -105,6 +105,13 @@ export default async function RootLayout({
   // `VisitorBootstrap` component that copies it into localStorage
   // for fetch() attribution.
   const visitorId = await getOrGenerateVisitorId();
+
+  // 站点访问码门禁开关。服务端只读 process.env（不读 cookie，因此不会
+  // 把静态页强制转为动态渲染）：静态页在构建期求值，动态页在请求期求值。
+  // 这里只作为"未知状态下能否先渲染内容"的提示；最终判定以
+  // /api/access-code/status 的运行时结果为准。
+  const accessCodeEnabled = !!process.env.ACCESS_CODE;
+
   return (
     <html lang="zh-CN" className={`${baloo.variable} ${comicNeue.variable}`} suppressHydrationWarning>
       <body
@@ -122,7 +129,7 @@ export default async function RootLayout({
           <I18nProvider>
             <NextAuthProvider>
               <ServerProvidersInit />
-              <AccessCodeGuard>{children}</AccessCodeGuard>
+              <AccessCodeGuard enabled={accessCodeEnabled}>{children}</AccessCodeGuard>
               <Toaster position="top-center" />
             </NextAuthProvider>
           </I18nProvider>

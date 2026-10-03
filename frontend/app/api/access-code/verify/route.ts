@@ -3,6 +3,10 @@ import { timingSafeEqual } from 'crypto';
 import { apiError, apiSuccess } from '@/lib/server/api-response';
 import { createAccessToken } from '@/lib/server/access-token';
 
+// 运行时才能读到 ACCESS_CODE，禁止任何形式的静态缓存。
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function POST(request: Request) {
   const accessCode = process.env.ACCESS_CODE;
   if (!accessCode) {
