@@ -83,6 +83,11 @@ export async function POST(req: NextRequest) {
         ? { modelString: resolveMistakeClassroomModelString() }
         : {}),
       maxScenes: 5, // Increased to 5 to allow enough space for multi-step math problems
+      // `enableImageGeneration` controls *text-to-image* generation, not
+      // whether the lesson may use images. No image provider is configured for
+      // this deployment, so flipping it on would only produce permanent
+      // skeleton placeholders. The student's uploaded photo reaches the slides
+      // through `imageData` below, which is persisted as a real source image.
       enableImageGeneration: false,
       enableVideoGeneration: true,
       enableTTS: true,

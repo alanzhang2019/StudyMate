@@ -27,7 +27,7 @@ import {
   resolveTTSApiKey,
   resolveTTSBaseUrl,
 } from '@/lib/server/provider-config';
-import type { SceneOutline } from '@/lib/types/generation';
+import type { SceneOutline, PdfImage, ImageMapping } from '@/lib/types/generation';
 import type { Scene } from '@/lib/types/stage';
 import type { SpeechAction } from '@/lib/types/action';
 import type { ImageProviderId } from '@/lib/media/types';
@@ -67,6 +67,202 @@ async function downloadToBuffer(url: string): Promise<Buffer> {
 
 function mediaServingUrl(baseUrl: string, classroomId: string, subPath: string): string {
   return `${baseUrl}/api/classroom-media/${classroomId}/${subPath}`;
+}
+
+// ---------------------------------------------------------------------------
+// Caller-supplied (uploaded) images
+// ---------------------------------------------------------------------------
+
+const IMAGE_EXT_BY_MIME: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+  'image/bmp': 'bmp',
+  'image/avif': 'avif',
+};
+
+/**
+ * Best-effort intrinsic size reader for the formats a browser file picker
+ * hands us. We only need width/height so the slide generator can size the
+ * element box to the photo's real aspect ratio — `fixElementDefaults()` in
+ * scene-generator.ts corrects the box from `PdfImage.width/height`, and the
+ * LLM is told the ratio through `formatImageDescription()`.
+ *
+ * Deliberately dependency-free: the alternative (sharp) is a native module
+ * and would add a cold-start cost to a code path that otherwise never
+ * touches image codecs. A wrong/absent result is harmless — the renderer
+ * falls back to `object-fit: contain`.
+ *
+ * Exported for unit tests: the header bit-twiddling is the one part of this
+ * module that can silently regress without any integration test noticing.
+ */
+export function readImageDimensions(buf: Buffer): { width: number; height: number } | undefined {
+  try {
+    // PNG: 8-byte signature, then IHDR with width/height as BE uint32.
+    if (buf.length > 24 && buf.readUInt32BE(0) === 0x89504e47) {
+      return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
+    }
+
+    // GIF: "GIF87a"/"GIF89a", then LE uint16 width/height.
+    if (buf.length > 10 && buf.toString('ascii', 0, 3) === 'GIF') {
+      return { width: buf.readUInt16LE(6), height: buf.readUInt16LE(8) };
+    }
+
+    // WebP: RIFF container, dimensions live in the first sub-chunk.
+    if (
+      buf.length > 30 &&
+      buf.toString('ascii', 0, 4) === 'RIFF' &&
+      buf.toString('ascii', 8, 12) === 'WEBP'
+    ) {
+      const format = buf.toString('ascii', 12, 16);
+      if (format === 'VP8X') {
+        // Extended: 24-bit canvas size, stored as value-1.
+        return {
+          width: (buf.readUIntLE(24, 3) & 0xffffff) + 1,
+          height: (buf.readUIntLE(27, 3) & 0xffffff) + 1,
+        };
+      }
+      if (format === 'VP8 ') {
+        // Lossy: 14-bit width/height inside the keyframe header.
+        return { width: buf.readUInt16LE(26) & 0x3fff, height: buf.readUInt16LE(28) & 0x3fff };
+      }
+      if (format === 'VP8L') {
+        // Lossless: 14-bit each, bit-packed after the 0x2f signature byte.
+        const bits = buf.readUInt32LE(21);
+        return { width: (bits & 0x3fff) + 1, height: ((bits >> 14) & 0x3fff) + 1 };
+      }
+    }
+
+    // JPEG: walk the marker chain to the first SOFn segment, which carries
+    // height/width as BE uint16. Phone photos land here.
+    if (buf.length > 4 && buf[0] === 0xff && buf[1] === 0xd8) {
+      let offset = 2;
+      while (offset + 9 < buf.length) {
+        if (buf[offset] !== 0xff) {
+          offset += 1;
+          continue;
+        }
+        const marker = buf[offset + 1];
+        // Standalone markers carry no length field.
+        if (marker === 0xd8 || marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) {
+          offset += 2;
+          continue;
+        }
+        const segmentLength = buf.readUInt16BE(offset + 2);
+        const isStartOfFrame =
+          marker >= 0xc0 &&
+          marker <= 0xcf &&
+          marker !== 0xc4 && // DHT
+          marker !== 0xc8 && // JPG
+          marker !== 0xcc; // DAC
+        if (isStartOfFrame) {
+          return { height: buf.readUInt16BE(offset + 5), width: buf.readUInt16BE(offset + 7) };
+        }
+        offset += 2 + segmentLength;
+      }
+    }
+  } catch {
+    // Malformed or truncated upload — fall through to "size unknown".
+  }
+  return undefined;
+}
+
+/** Provenance string shown to the LLM for a caller-supplied image. */
+const UPLOADED_IMAGE_ORIGIN = "the student's uploaded photo of the original problem";
+
+/**
+ * Persist caller-supplied images (the mistake lesson's uploaded problem photo)
+ * into the classroom's `media/` directory.
+ *
+ * Returns three views of the same images, because they are consumed in three
+ * different places that cannot share one shape:
+ *
+ *  - `pdfImages` — descriptors whose `src` is a public serving URL. Feed to
+ *    scene generation as `assignedImages`, so the slide prompt can offer the
+ *    photo to the model by id.
+ *  - `imageMapping` — `id → serving URL`. Feed to scene generation as
+ *    `imageMapping`, so `resolveImageIds()` can swap `src: "img_1"` for a real
+ *    URL. Without this the element is *dropped*, not blanked.
+ *  - `visionImages` — same ids but `src` is an inline data URL. Feed to the
+ *    outline stage's vision call: the model provider must be able to read the
+ *    bytes, and it cannot reach our server's own media route.
+ *
+ * Files on disk rather than inline data URLs because the classroom JSON is
+ * re-read by the player on every open — a base64 blob would bloat it and be
+ * re-parsed on every load.
+ */
+export async function persistInlineClassroomImages(
+  images: { mimeType: string; base64: string }[],
+  classroomId: string,
+  baseUrl: string,
+): Promise<{
+  pdfImages: PdfImage[];
+  imageMapping: ImageMapping;
+  visionImages: Array<{ id: string; src: string; width?: number; height?: number; origin: string }>;
+}> {
+  const pdfImages: PdfImage[] = [];
+  const imageMapping: ImageMapping = {};
+  const visionImages: Array<{
+    id: string;
+    src: string;
+    width?: number;
+    height?: number;
+    origin: string;
+  }> = [];
+
+  if (images.length === 0) return { pdfImages, imageMapping, visionImages };
+
+  const mediaDir = path.join(CLASSROOMS_DIR, classroomId, 'media');
+  await ensureDir(mediaDir);
+
+  for (let idx = 0; idx < images.length; idx += 1) {
+    const img = images[idx];
+    const buffer = Buffer.from(img.base64, 'base64');
+    if (buffer.length === 0) {
+      log.warn(`Uploaded image #${idx} decoded to 0 bytes, skipping`);
+      continue;
+    }
+
+    const mimeType = img.mimeType.toLowerCase();
+    const ext = IMAGE_EXT_BY_MIME[mimeType] || 'png';
+    // `img_N`, not `vision-N`: the slide prompt's examples are all `img_N`
+    // and `isImageIdReference()` only recognises that shape as a resolvable
+    // id reference — anything else is treated as a literal URL.
+    const id = `img_${idx + 1}`;
+    const filename = `${id}.${ext}`;
+
+    try {
+      await fs.writeFile(path.join(mediaDir, filename), buffer);
+    } catch (err) {
+      log.warn(`Failed to persist uploaded image ${id}:`, err);
+      continue;
+    }
+
+    const url = mediaServingUrl(baseUrl, classroomId, `media/${filename}`);
+    const size = readImageDimensions(buffer);
+
+    pdfImages.push({
+      id,
+      src: url,
+      pageNumber: 0,
+      origin: UPLOADED_IMAGE_ORIGIN,
+      ...(size ? { width: size.width, height: size.height } : {}),
+    });
+    imageMapping[id] = url;
+    visionImages.push({
+      id,
+      src: `data:${img.mimeType};base64,${img.base64}`,
+      origin: UPLOADED_IMAGE_ORIGIN,
+      ...(size ? { width: size.width, height: size.height } : {}),
+    });
+  }
+
+  log.info(
+    `Persisted ${pdfImages.length}/${images.length} uploaded image(s) for classroom ${classroomId}`,
+  );
+  return { pdfImages, imageMapping, visionImages };
 }
 
 export function resolveServerTTSRequestConfig(providerId: string, voice: string) {

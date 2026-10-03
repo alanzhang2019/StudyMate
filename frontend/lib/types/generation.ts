@@ -21,6 +21,12 @@ export interface PdfImage {
   storageId?: string; // Reference to IndexedDB (session_xxx_img_1)
   width?: number; // Image width (px or normalized)
   height?: number; // Image height (px or normalized)
+  /**
+   * Human-readable provenance shown to the LLM instead of "from PDF page N".
+   * Used by non-PDF flows (e.g. the mistake-lesson photo upload) so the prompt
+   * doesn't tell the model to look for a page that doesn't exist.
+   */
+  origin?: string;
 }
 
 /**

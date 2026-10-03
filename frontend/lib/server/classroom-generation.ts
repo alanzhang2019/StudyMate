@@ -24,11 +24,12 @@ import type { BaiduSubSources, WebSearchProviderId } from '@/lib/web-search/type
 import { persistClassroom } from '@/lib/server/classroom-storage';
 import {
   generateMediaForClassroom,
+  persistInlineClassroomImages,
   replaceMediaPlaceholders,
   generateTTSForClassroom,
 } from '@/lib/server/classroom-media-generation';
 import { buildVideoManifestFromOutlines } from '@/lib/media/video-manifest';
-import type { UserRequirements } from '@/lib/types/generation';
+import type { PdfImage, SceneOutline, UserRequirements } from '@/lib/types/generation';
 import type { Scene, Stage } from '@/lib/types/stage';
 import { AGENT_COLOR_PALETTE, AGENT_DEFAULT_AVATARS } from '@/lib/constants/agent-defaults';
 import {
@@ -107,6 +108,31 @@ export function limitSceneOutlines<T>(outlines: T[], maxScenes?: number): T[] {
   }
 
   return outlines.slice(0, maxScenes);
+}
+
+/**
+ * Narrow the classroom-wide source-image pool down to the images the outline
+ * stage suggested for this particular scene.
+ *
+ * The outline prompt is asked for `suggestedImageIds` per scene precisely so
+ * that a 5-scene lesson doesn't offer the same photo to all 5 slides — the
+ * model would happily paste the problem statement everywhere. When the outline
+ * didn't commit to a selection (prompt regression, empty response) we fall
+ * back to the full pool rather than nothing, so the failure mode is "the model
+ * decides" instead of "the image silently disappears".
+ */
+export function selectAssignedImages(
+  outline: Pick<SceneOutline, 'suggestedImageIds'>,
+  pool?: PdfImage[],
+): PdfImage[] | undefined {
+  if (!pool || pool.length === 0) return undefined;
+
+  const suggested = outline.suggestedImageIds;
+  if (!suggested || suggested.length === 0) return pool;
+
+  const wanted = new Set(suggested);
+  const selected = pool.filter((img) => wanted.has(img.id));
+  return selected.length > 0 ? selected : pool;
 }
 
 function createInMemoryStore(stage: Stage): StageStore {
@@ -350,11 +376,23 @@ export async function generateClassroom(
     scenesGenerated: 0,
   });
 
-  // Prepare vision images if provided
-  const visionImages = input.imageData?.map((img, idx) => ({
-    id: `vision-${idx}`,
-    src: `data:${img.mimeType};base64,${img.base64}`,
-  }));
+  // Persist any caller-supplied images (the mistake lesson's uploaded problem
+  // photo) into this classroom's media/ directory before either stage runs.
+  // They serve double duty: vision input for the outline stage, and a
+  // source-image pool the slide stage can reference by id. Previously these
+  // bytes only reached the one-shot vision call and were then discarded, which
+  // is why scenes had no image to place even when the student had supplied one.
+  const stageId = nanoid(10);
+  const uploaded = input.imageData?.length
+    ? await persistInlineClassroomImages(input.imageData, stageId, options.baseUrl)
+    : undefined;
+  const assignedImages = uploaded?.pdfImages.length ? uploaded.pdfImages : undefined;
+  const imageMapping = uploaded?.pdfImages.length ? uploaded.imageMapping : undefined;
+  // Vision gets data URLs, not the serving URLs: the model provider has to be
+  // able to read the bytes, and it cannot reach this server's own media route.
+  // Ids match `assignedImages`, so `suggestedImageIds` emitted by the outline
+  // stage are directly usable as `src` references in the scene stage.
+  const visionImages = uploaded?.visionImages.length ? uploaded.visionImages : undefined;
 
   const outlinesResult = await generateSceneOutlinesFromRequirements(
     requirements,
@@ -409,7 +447,6 @@ export async function generateClassroom(
     agents = getDefaultAgents();
   }
 
-  const stageId = nanoid(10);
   const stage: Stage = {
     id: stageId,
     name: outlines[0]?.title || requirement.slice(0, 50),
@@ -478,10 +515,17 @@ export async function generateClassroom(
     // legacy two-step path automatically for PBL scenes (combinedActions
     // is empty) — in that case we re-issue the actions call below to
     // preserve pre-r12 behavior.
+    // Source images reach the slide stage in two pieces, and both are
+    // required: `assignedImages` tells the prompt which photos exist (and how
+    // big they are, so the element box can match the aspect ratio), while
+    // `imageMapping` is the lookup `resolveImageIds()` uses to turn
+    // `src: "img_1"` into a real URL. Pass the ids without the mapping and the
+    // element is silently *dropped*, not blanked.
+    const sceneImages = selectAssignedImages(safeOutline, assignedImages);
     const { content, actions: combinedActions } = await generateSceneContentAndActions(
       safeOutline,
       aiCall,
-      { agents, languageDirective },
+      { agents, languageDirective, assignedImages: sceneImages, imageMapping },
     );
     if (!content) {
       log.warn(`Skipping scene "${safeOutline.title}" — content generation failed`);

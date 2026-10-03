@@ -3,8 +3,10 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   limitSceneOutlines,
   resolveClassroomModelString,
+  selectAssignedImages,
   shouldPersistPlayableClassroom,
 } from '@/lib/server/classroom-generation';
+import type { PdfImage } from '@/lib/types/generation';
 
 describe('classroom live generation helpers', () => {
   beforeEach(() => {
@@ -49,5 +51,32 @@ describe('classroom live generation helpers', () => {
       { id: '2', title: 'scene-2', order: 2 },
     ]);
     expect(limitSceneOutlines(outlines, undefined)).toHaveLength(4);
+  });
+});
+
+describe('selectAssignedImages', () => {
+  const pool: PdfImage[] = [
+    { id: 'img_1', src: 'http://x/media/img_1.png', pageNumber: 0 },
+    { id: 'img_2', src: 'http://x/media/img_2.png', pageNumber: 0 },
+  ];
+
+  it('returns undefined when there is no source-image pool', () => {
+    expect(selectAssignedImages({}, undefined)).toBeUndefined();
+    expect(selectAssignedImages({}, [])).toBeUndefined();
+  });
+
+  it('hands the whole pool to a scene that made no selection', () => {
+    // Better to let the model decide than to withhold the only image it has.
+    expect(selectAssignedImages({}, pool)).toBe(pool);
+    expect(selectAssignedImages({ suggestedImageIds: [] }, pool)).toBe(pool);
+  });
+
+  it('narrows the pool to the ids the outline stage suggested', () => {
+    expect(selectAssignedImages({ suggestedImageIds: ['img_2'] }, pool)).toEqual([pool[1]]);
+  });
+
+  it('falls back to the full pool when the suggestion names unknown ids', () => {
+    // A hallucinated id must not leave the slide with no image at all.
+    expect(selectAssignedImages({ suggestedImageIds: ['img_99'] }, pool)).toBe(pool);
   });
 });

@@ -56,9 +56,23 @@ export async function generateSceneOutlinesFromRequirements(
     const isVisionReady = pdfImages.length > 0 && 'src' in pdfImages[0];
 
     if (isVisionReady) {
-      // Direct vision images passed from upstream (e.g., mistake photo mode)
-      visionImages = (pdfImages as Array<{ id: string; src: string }>).slice(0, MAX_VISION_IMAGES);
-      availableImagesText = `Using ${visionImages.length} uploaded image(s) for vision analysis.`;
+      // Direct vision images passed from upstream (e.g., mistake photo mode).
+      // These are the only source images the scenes can later reference, so the
+      // ids MUST show up in `availableImagesText`: the outline prompt asks for
+      // `suggestedImageIds` whenever `hasSourceImages` is true ("Only use image
+      // IDs listed under Available Images"), and with the old generic
+      // "Using N uploaded image(s)" line there was nothing to cite — the model
+      // either dropped the field or invented an id that no lookup could resolve.
+      const readyImages = (
+        pdfImages as Array<{ id: string; src: string; origin?: string }>
+      ).slice(0, MAX_VISION_IMAGES);
+      visionImages = readyImages;
+      availableImagesText = readyImages
+        .map(
+          (img) =>
+            `- **${img.id}**: ${img.origin?.trim() || 'uploaded image'} (attached for vision analysis)`,
+        )
+        .join('\n');
     } else if (options?.visionEnabled && options?.imageMapping) {
       // Vision mode: split into vision images (first N) and text-only (rest)
       const typedPdfImages = pdfImages as PdfImage[];

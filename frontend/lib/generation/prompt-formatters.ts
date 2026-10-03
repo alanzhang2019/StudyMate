@@ -82,7 +82,17 @@ export function formatImageDescription(img: PdfImage): string {
     dimInfo = ` | size: ${img.width}×${img.height} (aspect ratio ${ratio})`;
   }
   const desc = img.description ? ` | ${img.description}` : '';
-  return `- **${img.id}**: from PDF page ${img.pageNumber}${dimInfo}${desc}`;
+  return `- **${img.id}**: ${formatImageOrigin(img)}${dimInfo}${desc}`;
+}
+
+/**
+ * Provenance phrase for an image. Non-PDF flows (mistake-lesson photo upload)
+ * set `origin`; everything else keeps the historical "from PDF page N" wording.
+ */
+function formatImageOrigin(img: PdfImage): string {
+  return img.origin && img.origin.trim().length > 0
+    ? img.origin.trim()
+    : `from PDF page ${img.pageNumber}`;
 }
 
 /**
@@ -95,7 +105,7 @@ export function formatImagePlaceholder(img: PdfImage): string {
     const ratio = (img.width / img.height).toFixed(2);
     dimInfo = ` | size: ${img.width}×${img.height} (aspect ratio ${ratio})`;
   }
-  return `- **${img.id}**: image from PDF page ${img.pageNumber}${dimInfo} [see attached]`;
+  return `- **${img.id}**: ${formatImageOrigin(img)}${dimInfo} [see attached]`;
 }
 
 /**
