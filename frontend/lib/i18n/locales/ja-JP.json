@@ -66,6 +66,7 @@
     "noConversations": "会話はありません",
     "startConversation": "下にメッセージを入力して会話を始めましょう",
     "noMessages": "メッセージはまだありません",
+    "thinking": "思考中",
     "ended": "終了",
     "unknown": "不明",
     "stopDiscussion": "ディスカッションを終了",

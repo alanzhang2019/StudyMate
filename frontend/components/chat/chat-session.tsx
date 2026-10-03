@@ -58,6 +58,7 @@ const MessageBubble = memo(function MessageBubble({
 }) {
   const parts: MessagePart[] = (message.parts || []) as MessagePart[];
   const isLive = !!(isStreaming && isLastMessage);
+  const { t } = useI18n();
 
   // ── Determine renderable content ──
   const hasContent = parts.some(
@@ -68,6 +69,9 @@ const MessageBubble = memo(function MessageBubble({
   if (!hasContent && isActive && message.role === 'assistant') {
     return (
       <div className="flex gap-1.5 items-center py-1.5 px-1">
+        <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500">
+          {t('chat.thinking')}
+        </span>
         <span
           className={cn(
             'w-1.5 h-1.5 rounded-full animate-pulse',
@@ -154,6 +158,42 @@ const MessageBubble = memo(function MessageBubble({
   );
 });
 
+/**
+ * ThinkingIndicator — 等待首位 AI 回应时的占位提示。
+ *
+ * 覆盖「用户已发出消息、但还没有任何 assistant 消息」的空窗期：
+ * 这段里服务端正在做 director 决策 / 等待模型首个 token，可能持续数秒到数十秒。
+ * 之前聊天窗口在此期间完全不显示任何东西，用户会误以为没有回复。
+ */
+function ThinkingIndicator() {
+  const { t } = useI18n();
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
+      className="flex items-center gap-2 px-2 py-1.5"
+    >
+      <div className="flex items-center gap-1.5 rounded-full border border-indigo-100/60 bg-indigo-50/80 px-2.5 py-1 dark:border-indigo-800/50 dark:bg-indigo-900/20">
+        <span className="text-[10px] font-medium text-indigo-600 dark:text-indigo-300">
+          {t('chat.thinking')}
+        </span>
+        <span className="flex gap-0.5">
+          <span className="h-1 w-1 animate-pulse rounded-full bg-indigo-400" />
+          <span
+            className="h-1 w-1 animate-pulse rounded-full bg-indigo-400"
+            style={{ animationDelay: '150ms' }}
+          />
+          <span
+            className="h-1 w-1 animate-pulse rounded-full bg-indigo-400"
+            style={{ animationDelay: '300ms' }}
+          />
+        </span>
+      </div>
+    </motion.div>
+  );
+}
+
 export function ChatSessionComponent({
   session,
   isActive,
@@ -170,6 +210,12 @@ export function ChatSessionComponent({
   const isQA = session.type === 'qa';
   const canEnd = (isDiscussion || isQA) && session.status === 'active';
   const isEnded = session.status === 'completed' && (isDiscussion || isQA);
+
+  // 已发出请求、但首个 assistant 消息还没落库 —— 这段空窗期（director 决策 /
+  // 等待模型首个 token）必须给出反馈，否则用户会以为没有回复。
+  const lastMessage = session.messages[session.messages.length - 1];
+  const awaitingFirstAgent =
+    !!isStreaming && (!lastMessage || lastMessage.metadata?.originalRole === 'user');
 
   // Track whether user is at the bottom of the scroll container.
   // When user scrolls up to read history, auto-scroll is suppressed.
@@ -339,6 +385,9 @@ export function ChatSessionComponent({
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* 等待首位 AI 回应时的反馈（尚无 assistant 消息） */}
+        {awaitingFirstAgent && <ThinkingIndicator />}
 
         <div ref={bottomRef} />
       </div>
