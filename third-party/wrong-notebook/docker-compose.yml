@@ -1,5 +1,13 @@
 services:
   wrong-notebook:
+    # ⚠️ build 段必须有：Next.js 是「代码烤进镜像」的部署方式。
+    #    docker-compose.yml 里如果只写 image: 不写 build:，
+    #    `docker compose build` 会**静默 no-op**（退出码 0、零输出），
+    #    `docker compose up -d` 也只会复用旧镜像 ⇒ 源码改了但线上永远不更新。
+    #    2026-10-06 踩过：ensure-user 接口部署后容器里根本没有该文件。
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: wrong-notebook:latest
     container_name: wrong-notebook
     restart: always
