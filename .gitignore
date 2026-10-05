@@ -23,6 +23,9 @@ classroom-test-error.png
 
 # Local artifacts / debug helpers
 package-lock.json
+# ⚠️ 例外：wrong-notebook 的 Dockerfile 第 10 行 `COPY package.json package-lock.json ./`
+# 依赖它存在。若被忽略 ⇒ 服务器永远构建不成功（failed to compute cache key: not found）。
+!third-party/wrong-notebook/package-lock.json
 runner.cjs
 studymate.tar.gz
 take-machine/
