@@ -101,7 +101,13 @@ export async function POST(
   const resolved = await resolveModel({ modelString });
 
   const systemPrompt = VARIANT_PROMPT_SYSTEM;
-  const userPrompt = buildVariantPrompt({ item: existing });
+  const difficulty =
+    existing.variantResult === 0
+      ? 'guided'
+      : existing.variantResult === 1
+        ? 'stretch'
+        : 'standard';
+  const userPrompt = buildVariantPrompt({ item: existing, difficulty });
 
   let rawText = '';
   try {

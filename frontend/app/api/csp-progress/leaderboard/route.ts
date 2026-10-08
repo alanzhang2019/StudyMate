@@ -9,9 +9,8 @@
 //
 // Query params:
 //   - scope=total (default) — all-time cumulative ranking
-//   - scope=daily           — same metric, restricted to "today"
-//                             (server localtime, matching the
-//                              streak window used elsewhere)
+//   - scope=daily           — milestones first earned today
+//                             (server localtime)
 //
 // Caching: the server-side aggregation in
 // lib/server/leaderboard.ts is in-process cached for 5 minutes

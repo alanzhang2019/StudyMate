@@ -9,8 +9,9 @@ type Scope = 'total' | 'daily';
 type LeaderboardEntry = {
   rank: number;
   displayName: string;
-  activeDays: number;
   completedClassrooms: number;
+  perfectQuizScenes: number;
+  improvedQuizScenes: number;
   score: number;
 };
 
@@ -19,7 +20,9 @@ type LeaderboardData = {
   entries: LeaderboardEntry[];
   totalStudents: number;
   totalCompletions: number;
-  activeStudents: number;
+  totalPerfectQuizScenes: number;
+  totalImprovedQuizScenes: number;
+  milestoneStudents: number;
   dayKey: string;
   computedAt: string;
 };
@@ -36,10 +39,9 @@ type LeaderboardData = {
  * - 旧版本只展示前 10 名。这次放开：显示**所有**参与学员的排名
  *   （按当前 scope 过滤后的候选集），用 `max-h + overflow-y-auto`
  *   滚动。不会有人被隐藏，学生之间不再有"看得见 vs 看不见"的不公平。
- * - 新增 `日榜 / 总榜` tab 切换：
- *   - 日榜：今天（服务器 localtime）的活动 = 活跃 1 天 × 10
- *     + 今天新打卡的课件数 × 30
- *   - 总榜：累计 = 累计活跃天数 × 10 + 累计打卡课件 × 30
+ * - `日榜 / 总榜` tab 按学习里程碑切换：
+ *   - 日榜：今天首次获得的课件完成、测验全对、订正进步记录
+ *   - 总榜：累计课件完成、测验全对、订正进步记录
  *   两个 scope 的缓存分开（5min TTL），切 tab 不互相 invalidate。
  *
  * 视觉：
@@ -102,8 +104,7 @@ export function Leaderboard() {
     );
   }
 
-  // Empty state: no student has any activity in this scope.
-  // Show a CTA-style "be the first" rather than a blank card.
+  // Empty state: no student has earned a learning milestone in this scope.
   if (data.entries.length === 0) {
     const isDaily = data.scope === 'daily';
     return (
@@ -113,10 +114,10 @@ export function Leaderboard() {
             <Sparkles className="w-6 h-6" />
           </div>
           <p className="text-sm font-medium text-slate-700">
-            {isDaily ? '今天还没有同学开始学习' : '还没有同学上榜'}
+            {isDaily ? '今天还没有新的学习里程碑' : '还没有学习成就上榜'}
           </p>
           <p className="text-xs text-slate-500 mt-1">
-            累计有 {data.totalStudents} 位同学注册，做完第 1 个课件就上榜首
+            完成课件、测验全对或订正进步后，学习记录会出现在这里
           </p>
         </CardContent>
       </Card>
@@ -125,8 +126,8 @@ export function Leaderboard() {
 
   const isDaily = data.scope === 'daily';
   const summaryText = isDaily
-    ? `今天 ${data.activeStudents} 位同学在坚持 · 今天完成 ${data.totalCompletions} 个课件`
-    : `${data.activeStudents} 位同学在坚持 · 累计完成 ${data.totalCompletions} 个课件`;
+    ? `今天 ${data.milestoneStudents} 位同学取得进展 · 完成课件 ${data.totalCompletions} · 测验全对 ${data.totalPerfectQuizScenes} · 订正进步 ${data.totalImprovedQuizScenes}`
+    : `${data.milestoneStudents} 位同学取得进展 · 完成课件 ${data.totalCompletions} · 测验全对 ${data.totalPerfectQuizScenes} · 订正进步 ${data.totalImprovedQuizScenes}`;
 
   return (
     <Card className="overflow-hidden border-slate-200/60 shadow-sm">
@@ -141,7 +142,7 @@ export function Leaderboard() {
               </span>
             </div>
             <span className="text-[10px] text-indigo-100/90 hidden sm:inline">
-              实时同步
+              按学习进展累计，不计在线时长
             </span>
           </div>
 
@@ -177,9 +178,9 @@ export function Leaderboard() {
           ))}
         </ol>
 
-        {/* 底部：分数公式 — 日榜和总榜公式一致（权重不变，只是窗口不同） */}
+        {/* 底部：展示记分依据，避免分数变成不透明的奖励。 */}
         <div className="px-4 sm:px-5 py-2.5 bg-slate-50/60 border-t border-slate-100 text-[11px] text-slate-500 text-center tabular-nums">
-          分数 = 活跃天数 × 10 + 完成课件数 × 30{isDaily ? '（仅统计今日）' : ''}
+          分数 = 完成课件 × 3 + 测验全对 × 1 + 订正进步 × 2{isDaily ? '（仅统计今日新达成）' : ''}
         </div>
       </CardContent>
     </Card>
@@ -269,7 +270,7 @@ function LeaderboardRow({ entry: e }: { entry: LeaderboardEntry }) {
         )}
       </div>
 
-      {/* 姓名 + 完成/活跃 */}
+      {/* 姓名 + 学习证据 */}
       <div className="flex-1 min-w-0">
         <div
           className={`truncate ${isPodium ? 'text-sm font-semibold text-slate-900' : 'text-sm font-medium text-slate-700'}`}
@@ -286,9 +287,16 @@ function LeaderboardRow({ entry: e }: { entry: LeaderboardEntry }) {
           <span className="mx-1.5 text-slate-300">·</span>
           <span className="inline-flex items-center gap-1">
             <span className="font-semibold text-slate-700">
-              {e.activeDays}
+              {e.perfectQuizScenes}
             </span>
-            <span>天活跃</span>
+            <span>全对</span>
+          </span>
+          <span className="mx-1.5 text-slate-300">·</span>
+          <span className="inline-flex items-center gap-1">
+            <span className="font-semibold text-slate-700">
+              {e.improvedQuizScenes}
+            </span>
+            <span>订正进步</span>
           </span>
         </div>
       </div>

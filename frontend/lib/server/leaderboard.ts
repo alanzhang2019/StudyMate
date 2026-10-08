@@ -4,25 +4,20 @@
 // /api/csp-progress/leaderboard route. Reads `users` + `csp_progress`
 // and returns a sorted, name-masked ranking.
 //
-// Scoring formula (agreed 2026-07-24 with the user):
-//   score = activeDays × 10 + completedClassrooms × 30
+// Quality scoring:
+//   score = completedClassrooms × 3 + perfectQuizScenes + improvedQuizScenes × 2
+// Time and attendance do not add points. Quiz milestones come from the
+// append-only submission history.
 //
 // Two scopes are supported via the `scope` parameter:
-//   - 'total'  — all-time cumulative score (the original metric)
-//   - 'daily'  — same shape, but the activity window is "today only"
-//                (server localtime, matching the streak window).
+//   - 'total'  — all-time cumulative score
+//   - 'daily'  — milestones first earned today (server localtime).
 //                The API caller picks the scope via `?scope=` so
 //                one source of truth can drive both views.
 //
-// Anti-cheat (lightweight v1, no schema change):
-//   - A "day" is counted only if the watchSeconds accrued on that
-//     day is ≤ MAX_DAILY_WATCH_SECONDS (8 hours). Opening a
-//     classroom and leaving it open in a background tab shouldn't
-//     inflate the streak; capping at one effective day keeps the
-//     number honest.
-//   - This is intentionally lenient — false positives (a student
-//     actually studied 9h on a heavy day) are cheaper than false
-//     negatives (a student gaming the system by going AFK).
+// Daily scope counts milestones first earned today. Total scope counts
+// persistent course completions and quiz evidence, so a later lower score
+// does not erase a previously achieved milestone.
 //
 // Caching:
 //   - 5 minute in-process TTL. Leaderboard is read on every
@@ -38,13 +33,9 @@ import { db, getDb } from '@/lib/db';
 import { evaluateCompletion } from '@/lib/server/csp-completion';
 import { pinyin } from 'pinyin-pro';
 
-const MAX_DAILY_WATCH_SECONDS = 8 * 60 * 60; // 8h/day
-
-// Score weights. completion-heavy so "finishing a whole
-// classroom" is the dominant signal; activeDays provides a
-// smaller bonus for the consistent-but-slow student.
-const SCORE_WEIGHT_DAY = 10;
-const SCORE_WEIGHT_COMPLETION = 30;
+const SCORE_WEIGHT_COMPLETION = 3;
+const SCORE_WEIGHT_PERFECT_QUIZ = 1;
+const SCORE_WEIGHT_IMPROVEMENT = 2;
 
 const DEFAULT_TTL_MS = 5 * 60 * 1000;
 
@@ -55,8 +46,9 @@ export type LeaderboardEntry = {
   displayName: string;
   /** 1-based rank. */
   rank: number;
-  activeDays: number;
   completedClassrooms: number;
+  perfectQuizScenes: number;
+  improvedQuizScenes: number;
   score: number;
 };
 
@@ -68,8 +60,10 @@ export type LeaderboardSnapshot = {
   totalStudents: number;
   /** Total completed-classroom count across all students in this scope. */
   totalCompletions: number;
-  /** Total active student count (≥1 progress row in this scope). */
-  activeStudents: number;
+  totalPerfectQuizScenes: number;
+  totalImprovedQuizScenes: number;
+  /** Students with at least one earned learning milestone in this scope. */
+  milestoneStudents: number;
   /**
    * YYYY-MM-DD (server localtime) for daily scope; for the
    * total scope this is the day the snapshot was computed
@@ -208,58 +202,94 @@ async function computeLeaderboard(
       entries: [],
       totalStudents: 0,
       totalCompletions: 0,
-      activeStudents: 0,
+      totalPerfectQuizScenes: 0,
+      totalImprovedQuizScenes: 0,
+      milestoneStudents: 0,
       dayKey: todayKey(),
       computedAt: new Date().toISOString(),
     };
   }
 
-  // 2. Per-(user, day) watchSeconds rollup. We use SQLite's
-  //    `date(updatedAt, 'localtime')` to get a YYYY-MM-DD key
-  //    in the server's local timezone. The `localtime` modifier
-  //    makes the streak align to the student's day, not UTC —
-  //    otherwise a student studying at 23:50 would split across
-  //    two UTC days and never count both.
-  //
-  //    The HAVING clause caps each day's watchSeconds at the
-  //    anti-cheat threshold. Filtering per-day contributions
-  //    BEFORE they inflate the activeDay count is more
-  //    accurate than capping the SUM in JS — a single 9h
-  //    day contributes 0 (not 1 with a warning), and a normal
-  //    1h day contributes 1.
-  //
-  //    The Prisma-compat shim doesn't expose a `groupBy` or
-  //    `having`-on-aggregation API, so we drop to raw SQL.
-  const dayFilter =
-    scope === 'daily'
-      ? `AND date(updatedAt, 'localtime') = date('now', 'localtime')`
-      : '';
-  const rows = getDb()
+  // 2. Count quality milestones from the append-only quiz history.
+  // A scene earns a perfect milestone the first time it reaches 100%;
+  // an improvement milestone is recorded when a later attempt exceeds the
+  // student's previous best. Daily scope includes only milestones earned today.
+  type QuizHistoryRow = {
+    userId: string;
+    classroomId: string;
+    sceneId: string;
+    attemptIndex: number;
+    score: number;
+    activityDay: string;
+  };
+  const userPlaceholders = users.map(() => '?').join(', ');
+  const quizHistory = getDb()
     .prepare(
-      `SELECT
-         userId,
-         date(updatedAt, 'localtime') AS day,
-         SUM(CAST(watchSeconds AS INTEGER)) AS sec
-       FROM csp_progress
-       WHERE updatedAt IS NOT NULL
-         ${dayFilter}
-       GROUP BY userId, day
-       HAVING sec > 0
-         AND sec <= ?`,
+      `SELECT userId, classroomId, sceneId, attemptIndex, score,
+              date(submittedAt, 'localtime') AS activityDay
+         FROM csp_quiz_submission_history
+        WHERE userId IN (${userPlaceholders})
+        ORDER BY userId, classroomId, sceneId, attemptIndex, submittedAt`,
     )
-    .all(MAX_DAILY_WATCH_SECONDS) as Array<{
-      userId: string;
-      day: string;
-      sec: number;
-    }>;
-
-  // 3. Per-user aggregations in JS.
-  const activeDaysByUser = new Map<string, number>();
-  for (const r of rows) {
-    activeDaysByUser.set(r.userId, (activeDaysByUser.get(r.userId) ?? 0) + 1);
+    .all(...users.map((user) => user.id)) as QuizHistoryRow[];
+  const perfectByUser = new Map<string, Set<string>>();
+  const improvedByUser = new Map<string, Set<string>>();
+  const dailyPerfectByUser = new Map<string, Set<string>>();
+  const dailyImprovedByUser = new Map<string, Set<string>>();
+  let currentSceneKey = '';
+  let bestScore = Number.NEGATIVE_INFINITY;
+  let hadPerfectScore = false;
+  const today = todayKey();
+  for (const attempt of quizHistory) {
+    const sceneKey = `${attempt.userId}:${attempt.classroomId}:${attempt.sceneId}`;
+    if (sceneKey !== currentSceneKey) {
+      currentSceneKey = sceneKey;
+      bestScore = Number.NEGATIVE_INFINITY;
+      hadPerfectScore = false;
+    }
+    const score = Number(attempt.score);
+    if (score >= 100) {
+      const set = perfectByUser.get(attempt.userId) ?? new Set<string>();
+      set.add(`${attempt.classroomId}:${attempt.sceneId}`);
+      perfectByUser.set(attempt.userId, set);
+      if (!hadPerfectScore && attempt.activityDay === today) {
+        const daily = dailyPerfectByUser.get(attempt.userId) ?? new Set<string>();
+        daily.add(`${attempt.classroomId}:${attempt.sceneId}`);
+        dailyPerfectByUser.set(attempt.userId, daily);
+      }
+      hadPerfectScore = true;
+    }
+    if (bestScore !== Number.NEGATIVE_INFINITY && score > bestScore) {
+      const set = improvedByUser.get(attempt.userId) ?? new Set<string>();
+      set.add(`${attempt.classroomId}:${attempt.sceneId}`);
+      improvedByUser.set(attempt.userId, set);
+      if (attempt.activityDay === today) {
+        const daily = dailyImprovedByUser.get(attempt.userId) ?? new Set<string>();
+        daily.add(`${attempt.classroomId}:${attempt.sceneId}`);
+        dailyImprovedByUser.set(attempt.userId, daily);
+      }
+    }
+    if (score > bestScore) bestScore = score;
+  }
+  if (scope === 'total') {
+    // Preserve the milestone for older installations where some quizzes may
+    // predate append-only history (but only while the latest recorded score
+    // still proves mastery).
+    const legacyPerfectRows = getDb()
+      .prepare(
+        `SELECT userId, classroomId, sceneId
+           FROM csp_quiz_submissions
+          WHERE totalQuestions > 0 AND correctCount = totalQuestions`,
+      )
+      .all() as Array<{ userId: string; classroomId: string; sceneId: string }>;
+    for (const row of legacyPerfectRows) {
+      const set = perfectByUser.get(row.userId) ?? new Set<string>();
+      set.add(`${row.classroomId}:${row.sceneId}`);
+      perfectByUser.set(row.userId, set);
+    }
   }
 
-  // 4. Completed classrooms per user.
+  // 3. Completed classrooms per user.
   //
   //    For 'total' we use the (expensive) `evaluateCompletion()`
   //    path so the leaderboard agrees with the "已打卡" badge on
@@ -311,33 +341,29 @@ async function computeLeaderboard(
     );
   }
 
-  // 5. Build the candidate set. We exclude accounts with zero
-  //    progress in this scope (no activeDays AND no completions)
-  //    so the leaderboard shows actual learners, not "registered
-  //    but never logged in". This is also a privacy kindness:
-  //    empty accounts that happen to be in `users` with
-  //    `role=student` won't accidentally show up as "rank 99"
-  //    just because someone registered a throw-away email.
-  //
-  //    For 'total' this naturally yields the historical leader
-  //    set. For 'daily' it yields "everyone who did anything
-  //    today" — including students whose only activity is
-  //    opening a classroom briefly.
+  // 4. Build the candidate set from learning milestones only.
   type Candidate = {
     userId: string;
     displayName: string;
-    activeDays: number;
     completedClassrooms: number;
+    perfectQuizScenes: number;
+    improvedQuizScenes: number;
     score: number;
   };
   const candidates: Candidate[] = [];
   for (const u of users) {
-    const activeDays = activeDaysByUser.get(u.id) ?? 0;
     const completedClassrooms = completionsByUser.get(u.id) ?? 0;
-    if (activeDays === 0 && completedClassrooms === 0) continue;
+    const perfectQuizScenes =
+      (scope === 'daily' ? dailyPerfectByUser : perfectByUser).get(u.id)?.size ?? 0;
+    const improvedQuizScenes =
+      (scope === 'daily' ? dailyImprovedByUser : improvedByUser).get(u.id)?.size ?? 0;
+    if (completedClassrooms === 0 && perfectQuizScenes === 0 && improvedQuizScenes === 0) {
+      continue;
+    }
     const score =
-      activeDays * SCORE_WEIGHT_DAY +
-      completedClassrooms * SCORE_WEIGHT_COMPLETION;
+      completedClassrooms * SCORE_WEIGHT_COMPLETION +
+      perfectQuizScenes * SCORE_WEIGHT_PERFECT_QUIZ +
+      improvedQuizScenes * SCORE_WEIGHT_IMPROVEMENT;
     candidates.push({
       userId: u.id,
       // Prefer the user-set name. Fall back to the email's
@@ -346,25 +372,23 @@ async function computeLeaderboard(
       // name. Both still go through maskName() for the
       // public response.
       displayName: u.name ?? u.email.split('@')[0] ?? '同学',
-      activeDays,
       completedClassrooms,
+      perfectQuizScenes,
+      improvedQuizScenes,
       score,
     });
   }
 
-  // 6. Sort by score desc, then by completedClassrooms desc
-  //    (tiebreaker — a student who actually finished more
-  //    classrooms wins over one who just opened many), then
-  //    by activeDays desc.
+  // 5. Sort by quality score, then by completion and improvement evidence.
   candidates.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
     if (b.completedClassrooms !== a.completedClassrooms) {
       return b.completedClassrooms - a.completedClassrooms;
     }
-    return b.activeDays - a.activeDays;
+    return b.improvedQuizScenes - a.improvedQuizScenes;
   });
 
-  // 7. Return ALL ranked participants. The earlier top-10 cap
+  // 6. Return ALL ranked participants. The earlier top-10 cap
   //    was removed (2026-07-02) so the public page can show
   //    the whole cohort. The UI scrolls the list internally
   //    when the count exceeds a comfortable viewport height.
@@ -373,24 +397,35 @@ async function computeLeaderboard(
   const entries = candidates.map((c, i) => ({
     rank: i + 1,
     displayName: maskName(c.displayName),
-    activeDays: c.activeDays,
     completedClassrooms: c.completedClassrooms,
+    perfectQuizScenes: c.perfectQuizScenes,
+    improvedQuizScenes: c.improvedQuizScenes,
     score: c.score,
   }));
 
-  // 8. Cohort summary numbers.
+  // 7. Cohort summary numbers.
   const totalCompletions = candidates.reduce(
     (s, c) => s + c.completedClassrooms,
     0,
   );
-  const activeStudents = candidates.length;
+  const totalPerfectQuizScenes = candidates.reduce(
+    (sum, candidate) => sum + candidate.perfectQuizScenes,
+    0,
+  );
+  const totalImprovedQuizScenes = candidates.reduce(
+    (sum, candidate) => sum + candidate.improvedQuizScenes,
+    0,
+  );
+  const milestoneStudents = candidates.length;
 
   return {
     scope,
     entries,
     totalStudents,
     totalCompletions,
-    activeStudents,
+    totalPerfectQuizScenes,
+    totalImprovedQuizScenes,
+    milestoneStudents,
     dayKey: todayKey(),
     computedAt: new Date().toISOString(),
   };

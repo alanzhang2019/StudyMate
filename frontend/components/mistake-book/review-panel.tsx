@@ -164,16 +164,32 @@ export function ReviewPanel({ item, onItemUpdate, onMarkMastered }: ReviewPanelP
 
       {/* 三段完成态提示 */}
       {stage === 'mastered' ? (
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 text-sm dark:border-emerald-900/40 dark:bg-emerald-950/30">
-          <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
-            <PartyPopper className="h-4 w-4" />
-            三段复盘完成, 这道题你已经真正掌握了.
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 dark:border-emerald-900/40 dark:bg-emerald-950/30">
+          <div className="flex items-start gap-2 text-sm text-emerald-800 dark:text-emerald-300">
+            <PartyPopper className="mt-0.5 h-4 w-4 shrink-0" />
+            <div>
+              <p className="font-semibold">掌握证据已记录</p>
+              <p className="mt-1 text-xs leading-relaxed text-emerald-800/80 dark:text-emerald-300/80">
+                你写下了错因、查看了 AI 正解，并答对了一道同类变式题。可以回看思路，也可以继续练习。
+              </p>
+            </div>
           </div>
-          {onMarkMastered ? (
-            <Button size="sm" variant="outline" onClick={onMarkMastered}>
-              标记掌握
+          <div className="mt-3 flex flex-wrap gap-2 pl-6">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setActiveStep(1)}
+            >
+              回看我的错因
             </Button>
-          ) : null}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setActiveStep(2)}
+            >
+              回看 AI 正解
+            </Button>
+          </div>
         </div>
       ) : null}
     </div>

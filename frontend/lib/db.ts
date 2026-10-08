@@ -317,6 +317,16 @@ export function getDb(): Database {
   CREATE INDEX IF NOT EXISTS idx_csp_progress_user_updated
     ON csp_progress (userId, updatedAt DESC);
 
+  -- One editable weekly learning goal per student. Progress is
+  -- derived from quiz submission history, so changing a goal never
+  -- erases the student's learning record.
+  CREATE TABLE IF NOT EXISTS student_learning_goals (
+    userId TEXT PRIMARY KEY,
+    goalType TEXT NOT NULL,
+    target INTEGER NOT NULL,
+    updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
   -- csp_quiz_submissions: per-user quiz answers. One row per
   -- (userId, classroomId, sceneId) — we use upsert semantics so a
   -- student can re-take a quiz and only the latest submission
@@ -1408,7 +1418,32 @@ class PrismaCompatClient {
         .get(userId, classroomId) as any) ?? null
     },
   }
+  studentLearningGoal = {
+    findByUser: (userId: string) => {
+      return (getDb()
+        .prepare('SELECT * FROM student_learning_goals WHERE userId = ? LIMIT 1')
+        .get(userId) as any) ?? null
+    },
+    upsert: (params: { userId: string; goalType: string; target: number }) => {
+      getDb()
+        .prepare(
+          `INSERT INTO student_learning_goals (userId, goalType, target, updatedAt)
+           VALUES (?, ?, ?, datetime('now'))
+           ON CONFLICT(userId) DO UPDATE SET
+             goalType = excluded.goalType,
+             target = excluded.target,
+             updatedAt = datetime('now')`,
+        )
+        .run(params.userId, params.goalType, params.target)
+      return this.studentLearningGoal.findByUser(params.userId)
+    },
+  }
   cspQuizSubmission = {
+    findManyByUser: (userId: string) => {
+      return getDb()
+        .prepare('SELECT * FROM csp_quiz_submissions WHERE userId = ? ORDER BY submittedAt DESC')
+        .all(userId) as any[]
+    },
     findByUser: (userId: string, classroomId: string) => {
       return getDb()
         .prepare(
@@ -1586,6 +1621,57 @@ class PrismaCompatClient {
   // rationale. UI uses this to render "首次 X / 订正 Y / 订正 Z"
   // and the teacher can see score progression.
   cspQuizSubmissionHistory = {
+    weeklyGoalProgress: (userId: string, goalType: string) => {
+      if (goalType === 'perfect_quiz_scenes') {
+        const row = getDb()
+          .prepare(
+            `SELECT COUNT(*) AS value FROM (
+               SELECT classroomId, sceneId
+                 FROM csp_quiz_submission_history
+                WHERE userId = ?
+                  AND submittedAt >= datetime('now', '-7 days')
+                  AND totalQuestions > 0
+                  AND correctCount = totalQuestions
+                GROUP BY classroomId, sceneId
+             )`,
+          )
+          .get(userId) as { value: number } | undefined
+        return Number(row?.value ?? 0)
+      }
+      const rows = getDb()
+        .prepare(
+          `SELECT answersJson
+             FROM csp_quiz_submission_history
+            WHERE userId = ? AND submittedAt >= datetime('now', '-7 days')`,
+        )
+        .all(userId) as Array<{ answersJson: string }>
+      let answered = 0
+      for (const row of rows) {
+        try {
+          const answers = JSON.parse(row.answersJson || '[]')
+          if (!Array.isArray(answers)) continue
+          answered += answers.filter((answer) => {
+            const choice = answer?.choice
+            if (Array.isArray(choice)) return choice.length > 0
+            if (typeof choice === 'string') return choice.trim().length > 0
+            return typeof choice === 'number' && Number.isFinite(choice)
+          }).length
+        } catch {
+          // Ignore malformed legacy answer rows rather than inflating a goal.
+        }
+      }
+      return answered
+    },
+    /** Every quiz attempt across the user's classrooms, oldest first. */
+    findManyByUser: (userId: string) => {
+      return getDb()
+        .prepare(
+          `SELECT * FROM csp_quiz_submission_history
+             WHERE userId = ?
+             ORDER BY submittedAt ASC, attemptIndex ASC`,
+        )
+        .all(userId) as any[]
+    },
     /**
      * Append a new history row. Computes attemptIndex by
      * counting existing rows for the same (userId, classroomId,

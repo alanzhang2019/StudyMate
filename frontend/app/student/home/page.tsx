@@ -21,6 +21,8 @@ import { listClassroomSummaries } from '@/lib/server/classroom-storage';
 import { evaluateCompletion, type CompletionResult } from '@/lib/server/csp-completion';
 import { loadCspMistakeBook } from '@/lib/server/csp-mistake-book';
 import { SignOutLink } from '@/components/SignOutLink';
+import { AchievementWall } from '@/components/achievement-wall';
+import { StudentLearningGoal } from '@/components/student-learning-goal';
 import { PaperScoreTrendChart } from '@/components/csp-lecture/paper-score-trend';
 import { formatDateBeijing, parseStoredTimestamp } from '@/lib/utils/date';
 
@@ -118,6 +120,37 @@ export default async function StudentHomePage() {
   // 不会报错。
   const mistakeBook = await loadCspMistakeBook(userId);
   const mistakeCount = mistakeBook.totalMistakes;
+  const quizSubmissions = db.cspQuizSubmission.findManyByUser(userId);
+  const quizAttempts = db.cspQuizSubmissionHistory.findManyByUser(userId);
+  const attemptScores = new Map<string, Array<{ index: number; score: number }>>();
+  for (const attempt of quizAttempts) {
+    const key = `${attempt.classroomId}:${attempt.sceneId}`;
+    const scores = attemptScores.get(key) ?? [];
+    scores.push({ index: Number(attempt.attemptIndex) || 0, score: Number(attempt.score) || 0 });
+    attemptScores.set(key, scores);
+  }
+  const improvedQuizScenes = [...attemptScores.values()].filter(
+    (scores) => {
+      const ordered = scores.slice().sort((a, b) => a.index - b.index);
+      return ordered.length > 1 && ordered[ordered.length - 1].score > ordered[0].score;
+    },
+  ).length;
+  const perfectQuizSceneKeys = new Set(
+    quizAttempts
+      .filter((attempt) => Number(attempt.score) >= 100)
+      .map((attempt) => `${attempt.classroomId}:${attempt.sceneId}`),
+  );
+  // Include legacy latest-submission rows in case they predate the append-only
+  // history table; current lower scores never erase a previously earned mark.
+  quizSubmissions.forEach((submission) => {
+    if (
+      submission.totalQuestions > 0 &&
+      submission.correctCount === submission.totalQuestions
+    ) {
+      perfectQuizSceneKeys.add(`${submission.classroomId}:${submission.sceneId}`);
+    }
+  });
+  const perfectQuizScenes = perfectQuizSceneKeys.size;
 
   const inProgress: Entry[] = [];
   const completed: Entry[] = [];
@@ -227,6 +260,90 @@ export default async function StudentHomePage() {
           value={formatDuration(summary.totalWatchSeconds)}
           accent="violet"
         />
+      </section>
+
+      <section className="max-w-6xl mx-auto px-6 pb-6">
+        <AchievementWall
+          completedClassrooms={completed.length}
+          perfectQuizScenes={perfectQuizScenes}
+          improvedQuizScenes={improvedQuizScenes}
+        />
+      </section>
+
+      <section className="max-w-6xl mx-auto px-6 pb-6">
+        <StudentLearningGoal />
+      </section>
+
+      {/* 学习动力：用真实的学习证据反馈进展，并把下一步交给学生选择。 */}
+      <section className="max-w-6xl mx-auto px-6 pb-6">
+        <div className="rounded-2xl border border-indigo-200/80 bg-white shadow-sm overflow-hidden">
+          <div className="px-5 py-4 sm:px-6 sm:py-5 bg-gradient-to-r from-indigo-50 via-white to-cyan-50">
+            <p className="text-xs font-semibold tracking-wide text-indigo-700">
+              我的学习进展
+            </p>
+            <h2 className="mt-1 text-lg font-bold text-slate-900">
+              {completed.length > 0
+                ? `你已经完成 ${completed.length} 个课件，进度是一步步积累起来的。`
+                : inProgress.length > 0
+                  ? `你正在学习「${inProgress[0].title}」，可以从上次停下的地方继续。`
+                  : '从一个感兴趣的课件开始，按自己的节奏探索。'}
+            </h2>
+            <p className="mt-1 text-sm text-slate-600">
+              {mistakeCount > 0
+                ? `错题也能帮你发现下一步：目前有 ${mistakeCount} 道题可以复盘。`
+                : completed.length > 0
+                  ? '完成记录来自课件进度和答题情况；挑一个方向，继续巩固或探索新内容。'
+                  : '下面有几种学习方式，选现在最适合你的一个。'}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 sm:p-4">
+            {inProgress[0] ? (
+              <LearningChoice
+                href={
+                  inProgress[0].lastViewedSceneId
+                    ? `/classroom/${inProgress[0].classroomId}?scene=${encodeURIComponent(inProgress[0].lastViewedSceneId)}&resume=1`
+                    : `/classroom/${inProgress[0].classroomId}`
+                }
+                title="继续当前课件"
+                detail={inProgress[0].title}
+              />
+            ) : completed[0] ? (
+              <LearningChoice
+                href={`/classroom/${completed[0].classroomId}`}
+                title="回顾已学内容"
+                detail={completed[0].title}
+              />
+            ) : (
+              <LearningChoice
+                href="/csp-lecture"
+                title="从课件库开始"
+                detail="挑一个感兴趣的主题"
+              />
+            )}
+            {mistakeCount > 0 ? (
+              <LearningChoice
+                href="/student/csp-mistakes"
+                title="复盘一道错题"
+                detail={`${mistakeCount} 道题待你探索`}
+              />
+            ) : (
+              <LearningChoice
+                href={
+                  completed[0]
+                    ? `/classroom/${completed[0].classroomId}`
+                    : '/csp-lecture'
+                }
+                title="巩固已经学过的"
+                detail={completed[0] ? completed[0].title : '做题时留意自己的解题思路'}
+              />
+            )}
+            <LearningChoice
+              href="/csp-lecture"
+              title="看看其他课件"
+              detail="也可以换个主题学习"
+            />
+          </div>
+        </div>
       </section>
 
       {/* 错题本入口 — 单独成块, 用玫红色与上面 4 个蓝紫调 SummaryCard
@@ -358,6 +475,28 @@ function SummaryCard({
         {sub && <span className="text-xs text-slate-400">{sub}</span>}
       </div>
     </div>
+  );
+}
+
+function LearningChoice({
+  href,
+  title,
+  detail,
+}: {
+  href: string;
+  title: string;
+  detail: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group rounded-xl border border-slate-200 bg-white px-4 py-3 transition hover:border-indigo-300 hover:bg-indigo-50/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+    >
+      <span className="block text-sm font-semibold text-slate-800 group-hover:text-indigo-700">
+        {title} <span aria-hidden="true">→</span>
+      </span>
+      <span className="mt-1 block truncate text-xs text-slate-500">{detail}</span>
+    </Link>
   );
 }
 

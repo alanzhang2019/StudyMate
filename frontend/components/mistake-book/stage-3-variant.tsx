@@ -86,7 +86,7 @@ export function Stage3Variant({
       const res = await submitReviewVariant(item.id, { userAnswer: trimmed });
       onUpdated(res.item);
       if (res.correct) {
-        toast.success('答对了! 这道题你掌握了');
+        toast.success('变式题答对了：错因、正解和变式的复盘已完成。');
       } else {
         toast.error('不对, 看看反馈再试一次');
       }
@@ -128,6 +128,13 @@ export function Stage3Variant({
               <span className="ml-1">换一题</span>
             </Button>
           </div>
+          <p className="text-xs text-muted-foreground">
+            {lastResult === 0
+              ? '如果换题，下一题会降低一点复杂度，继续练同一个知识点。'
+              : lastResult === 1
+                ? '如果继续，下一题会增加一点挑战，但仍练同一个知识点。'
+                : '答题后会根据你的表现调整下一题，知识点保持不变。'}
+          </p>
           <div className="rounded-xl border bg-card p-4 text-sm leading-relaxed text-foreground whitespace-pre-wrap">
             {question}
           </div>

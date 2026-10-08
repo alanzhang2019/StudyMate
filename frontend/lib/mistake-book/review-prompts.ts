@@ -113,6 +113,7 @@ function categoryLabel(category: string): string {
 
 export interface VariantPromptInput {
   item: VariantPromptItem;
+  difficulty?: 'guided' | 'standard' | 'stretch';
 }
 
 export const VARIANT_PROMPT_SYSTEM = `你是一位数学命题老师, 任务是给学生出一道**同类变式题** — 用来巩固他/她刚做错的那道题.
@@ -120,7 +121,7 @@ export const VARIANT_PROMPT_SYSTEM = `你是一位数学命题老师, 任务是�
 变式题的设计原则 (非常重要, 决定学生是否真掌握):
 1. **同一知识点**: 必须用相同的核心方法/公式/定理, 不要换考点.
 2. **不同数字或场景**: 数字、人物名、场景都要换, 但**结构保持一致**.
-3. **难度相当**: 不要明显变难 (学生受挫) 或变简单 (无巩固效果), 控制在 ±10% 难度.
+3. **难度按表现调整**: 默认与原题相当；任务说明要求调整时，只提高或降低一个小台阶。保持同一核心知识点，不能明显挫败学生，也不能简化到无需思考.
 4. **不要原题**: 不准照搬原题, 哪怕换 1-2 个数字也算变式.
 5. **能严格判分**: 答案必须是**唯一的** (数字 / 表达式 / 单词), 不要开放式.
 
@@ -134,7 +135,7 @@ export const VARIANT_PROMPT_SYSTEM = `你是一位数学命题老师, 任务是�
 直接输出 JSON, 不要任何前缀/后缀文字.`;
 
 export function buildVariantPrompt(input: VariantPromptInput): string {
-  const { item } = input;
+  const { item, difficulty = 'standard' } = input;
   const parts: string[] = [];
 
   parts.push(`## 原题\n${item.problemText}`);
@@ -142,6 +143,15 @@ export function buildVariantPrompt(input: VariantPromptInput): string {
     parts.push(`## 原题答案\n${item.correctAnswer}`);
   }
   parts.push(`## 学科 / 年级\n${item.subject ?? 'math'} / ${item.grade ?? '未知'}`);
+
+  const difficultyInstruction = {
+    guided:
+      '学生刚才的同类变式题没有做对。保持同一核心知识点，降低一个小台阶：优先使用更直观的数字或更清楚的条件，减少一个非必要的干扰步骤；仍让学生独立思考，不要在题干里泄露答案。',
+    standard: '保持与原题大致相当的难度，改变数字或情境，但保留同一核心方法。',
+    stretch:
+      '学生刚才答对了同类变式题。保持同一核心知识点，提高一个小台阶：可使用稍不直观的数字或增加一个相关推理步骤，但不要引入新知识点。',
+  }[difficulty];
+  parts.push(`## 难度安排\n${difficultyInstruction}`);
 
   parts.push(
     `\n## 任务\n请出 1 道同型变式题. 严格按 system prompt 的 JSON 格式输出.`,
