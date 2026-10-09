@@ -1,10 +1,10 @@
 // 自动生成：由 .workbuddy/exam_papers_manifest.json 生成，请勿手工改名/排序。
-// 深圳中考真题（2008-2025），源为 doc/docx，仅提供下载，无在线预览。
+// 深圳中考真题（2008-2025），源为 doc/docx 与 pdf（2025 回忆版），仅提供下载，无在线预览。
 // 文件由 /exam-papers/<subject>/<fileName> 经 app/api/exam-papers 路由提供下载。
 
 import { SUBJECT_LABEL, formatSize, type SubjectKey } from './textbooks';
 
-export type ExamVariant = 'answer' | 'blank' | 'analysis';
+export type ExamVariant = 'answer' | 'blank' | 'analysis' | 'recall' | 'recall-answer' | 'recall-key';
 
 export interface ExamPaper {
   /** ASCII slug，与文件名（不含扩展名）一致 */
@@ -19,12 +19,16 @@ export interface ExamPaper {
 }
 
 export const VARIANT_LABEL: Record<ExamVariant, string> = {
-  answer: '真题及答案',
-  blank: '空白卷',
-  analysis: '解析卷',
+  'answer': '真题及答案',
+  'blank': '空白卷',
+  'analysis': '解析卷',
+  'recall': '真题（回忆版）',
+  'recall-answer': '真题及答案（回忆版）',
+  'recall-key': '参考答案（回忆版）',
 };
 
 export const EXAM_PAPERS: ExamPaper[] = [
+  { slug: 'chinese-2025-recall', subject: 'chinese', year: 2025, variant: 'recall', title: '语文 · 2025 · 真题（回忆版）', fileName: 'chinese-2025-recall.pdf', ext: 'pdf', sizeBytes: 565754 },
   { slug: 'chinese-2024-blank', subject: 'chinese', year: 2024, variant: 'blank', title: '语文 · 2024 · 空白卷', fileName: 'chinese-2024-blank.docx', ext: 'docx', sizeBytes: 741690 },
   { slug: 'chinese-2024-analysis', subject: 'chinese', year: 2024, variant: 'analysis', title: '语文 · 2024 · 解析卷', fileName: 'chinese-2024-analysis.docx', ext: 'docx', sizeBytes: 761869 },
   { slug: 'chinese-2023-blank', subject: 'chinese', year: 2023, variant: 'blank', title: '语文 · 2023 · 空白卷', fileName: 'chinese-2023-blank.docx', ext: 'docx', sizeBytes: 460771 },
@@ -84,6 +88,7 @@ export const EXAM_PAPERS: ExamPaper[] = [
   { slug: 'math-2010-answer', subject: 'math', year: 2010, variant: 'answer', title: '数学 · 2010 · 真题及答案', fileName: 'math-2010-answer.docx', ext: 'docx', sizeBytes: 164476 },
   { slug: 'math-2009-answer', subject: 'math', year: 2009, variant: 'answer', title: '数学 · 2009 · 真题及答案', fileName: 'math-2009-answer.docx', ext: 'docx', sizeBytes: 339312 },
   { slug: 'math-2008-answer', subject: 'math', year: 2008, variant: 'answer', title: '数学 · 2008 · 真题及答案', fileName: 'math-2008-answer.docx', ext: 'docx', sizeBytes: 185087 },
+  { slug: 'english-2025-recall-key', subject: 'english', year: 2025, variant: 'recall-key', title: '英语 · 2025 · 参考答案（回忆版）', fileName: 'english-2025-recall-key.pdf', ext: 'pdf', sizeBytes: 411931 },
   { slug: 'english-2024-blank', subject: 'english', year: 2024, variant: 'blank', title: '英语 · 2024 · 空白卷', fileName: 'english-2024-blank.docx', ext: 'docx', sizeBytes: 20950 },
   { slug: 'english-2024-analysis', subject: 'english', year: 2024, variant: 'analysis', title: '英语 · 2024 · 解析卷', fileName: 'english-2024-analysis.docx', ext: 'docx', sizeBytes: 30877 },
   { slug: 'english-2023-blank', subject: 'english', year: 2023, variant: 'blank', title: '英语 · 2023 · 空白卷', fileName: 'english-2023-blank.docx', ext: 'docx', sizeBytes: 77576 },
@@ -166,6 +171,8 @@ export const EXAM_PAPERS: ExamPaper[] = [
   { slug: 'chemistry-2010-answer', subject: 'chemistry', year: 2010, variant: 'answer', title: '化学 · 2010 · 真题及答案', fileName: 'chemistry-2010-answer.docx', ext: 'docx', sizeBytes: 75213 },
   { slug: 'chemistry-2009-answer', subject: 'chemistry', year: 2009, variant: 'answer', title: '化学 · 2009 · 真题及答案', fileName: 'chemistry-2009-answer.docx', ext: 'docx', sizeBytes: 184684 },
   { slug: 'chemistry-2008-answer', subject: 'chemistry', year: 2008, variant: 'answer', title: '化学 · 2008 · 真题及答案', fileName: 'chemistry-2008-answer.docx', ext: 'docx', sizeBytes: 50908 },
+  { slug: 'biology-2025-recall-answer', subject: 'biology', year: 2025, variant: 'recall-answer', title: '生物 · 2025 · 真题及答案（回忆版）', fileName: 'biology-2025-recall-answer.pdf', ext: 'pdf', sizeBytes: 1151033 },
+  { slug: 'ethics-2025-recall-key', subject: 'ethics', year: 2025, variant: 'recall-key', title: '道德与法治 · 2025 · 参考答案（回忆版）', fileName: 'ethics-2025-recall-key.pdf', ext: 'pdf', sizeBytes: 1113340 },
   { slug: 'ethics-2023-blank', subject: 'ethics', year: 2023, variant: 'blank', title: '道德与法治 · 2023 · 空白卷', fileName: 'ethics-2023-blank.docx', ext: 'docx', sizeBytes: 172909 },
   { slug: 'ethics-2023-analysis', subject: 'ethics', year: 2023, variant: 'analysis', title: '道德与法治 · 2023 · 解析卷', fileName: 'ethics-2023-analysis.docx', ext: 'docx', sizeBytes: 180539 },
   { slug: 'ethics-2022-blank', subject: 'ethics', year: 2022, variant: 'blank', title: '道德与法治 · 2022 · 空白卷', fileName: 'ethics-2022-blank.docx', ext: 'docx', sizeBytes: 889627 },
@@ -198,7 +205,7 @@ export const EXAM_PAPERS: ExamPaper[] = [
   { slug: 'history-2008-answer', subject: 'history', year: 2008, variant: 'answer', title: '历史 · 2008 · 真题及答案', fileName: 'history-2008-answer.docx', ext: 'docx', sizeBytes: 363824 },
 ];
 
-export const EXAM_SUBJECT_ORDER: SubjectKey[] = ["chinese","math","english","physics","chemistry","ethics","history"];
+export const EXAM_SUBJECT_ORDER: SubjectKey[] = ["chinese","math","english","physics","chemistry","biology","geography","ethics","history"];
 
 export function examYears(): number[] {
   return [...new Set(EXAM_PAPERS.map((p) => p.year))].sort((a, b) => b - a);

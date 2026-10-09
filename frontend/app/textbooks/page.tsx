@@ -164,6 +164,11 @@ export default function TextbooksPage() {
 
   // ====== 真题派生数据 ======
   const years = useMemo(() => examYears(), []);
+  /** 只展示已有真题的科目（避免出现「地理 0」这类空 tab） */
+  const examSubjects = useMemo(
+    () => EXAM_SUBJECT_ORDER.filter((s) => EXAM_PAPERS.some((p) => p.subject === s)),
+    []
+  );
   const examCounts = useMemo(() => {
     const m = new Map<SubjectKey | 'all', number>();
     m.set('all', EXAM_PAPERS.length);
@@ -296,8 +301,9 @@ export default function TextbooksPage() {
               </p>
               <h1 className="mt-3 text-3xl font-bold sm:text-4xl">深圳中考真题库（2008–2025）</h1>
               <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#FFE4CC]">
-                覆盖语文 / 数学 / 英语 / 物理 / 化学 / 道德与法治 / 历史 7 科，历年真题及答案、空白卷、解析卷，
-                按科目与年份检索，支持一键下载。真题版权归深圳市招考办及命题方所有，本模块仅供个人学习参考。
+                覆盖{examSubjects.map((s) => SUBJECT_LABEL[s]).join(' / ')}共 {examSubjects.length} 科，
+                历年真题及答案、空白卷、解析卷，2025 年部分科目另有考生回忆版；
+                按科目与年份检索，支持一键下载，PDF 可在线预览。真题版权归深圳市招考办及命题方所有，本模块仅供个人学习参考。
               </p>
             </>
           )}
@@ -481,7 +487,7 @@ export default function TextbooksPage() {
               >
                 全部 <span className="opacity-60">{examCounts.get('all')}</span>
               </button>
-              {EXAM_SUBJECT_ORDER.map((s) => (
+              {examSubjects.map((s) => (
                 <button
                   key={s}
                   onClick={() => setExamSubject(s)}
@@ -571,8 +577,9 @@ export default function TextbooksPage() {
             <section className="mt-10 rounded-2xl bg-white p-6 ring-1 ring-[#DCE5F6]">
               <h3 className="text-sm font-semibold text-slate-900">使用说明</h3>
               <ul className="mt-3 space-y-1.5 text-xs leading-relaxed text-slate-500">
-                <li>· 真题按「科目 → 年份」组织，每年含 <b>真题及答案</b>、<b>空白卷</b>、<b>解析卷</b> 三种卷型。</li>
-                <li>· 文件为 Word 原版（.docx / .doc），点击「下载」保存到本地后可用 Word / WPS 打开。</li>
+                <li>· 真题按「科目 → 年份」组织，卷型含 <b>真题及答案</b>、<b>空白卷</b>、<b>解析卷</b>，2025 年部分科目为 <b>回忆版</b>。</li>
+                <li>· 文件为 Word 原版（.docx / .doc）或 PDF。Word 下载后可用 Word / WPS 打开；PDF 可点「新标签打开」直接在线预览。</li>
+                <li>· 标注「回忆版」的试卷由考生考后回忆整理，题干或答案可能与官方原卷存在出入，请以官方发布为准，仅供备考参考。</li>
                 <li>· 真题版权归深圳市招生考试办公室及命题方所有，本模块仅作个人学习参考，请勿商用传播。</li>
               </ul>
             </section>

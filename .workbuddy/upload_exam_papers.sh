@@ -18,7 +18,7 @@ ssh -o BatchMode=yes "$SERVER" "mkdir -p '$REMOTE_DIR'" || {
   echo "[FAIL] 无法连接服务器或创建目录，请检查 ssh 配置"; exit 1;
 }
 
-for subj in chinese math english physics chemistry ethics history; do
+for subj in chinese math english physics chemistry biology geography ethics history; do
   local_d="$SRC_DIR/$subj"
   [ -d "$local_d" ] || continue
   cnt=$(ls -1 "$local_d" 2>/dev/null | wc -l)
