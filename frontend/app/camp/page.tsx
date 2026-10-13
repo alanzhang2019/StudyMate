@@ -102,6 +102,11 @@ export default function CampPage() {
           <Link href="/admin/login" className="site-login-link">
             教师登录
           </Link>
+          {/* 看见科学（WeduLab 复刻站）由 nginx 静态直出，Next.js 无此路由，
+              必须用原生 <a> 全量导航，不能走 <Link> 客户端路由 */}
+          <a href="/science/" className="page-switch-link">
+            看见科学
+          </a>
         </div>
       </header>
 
