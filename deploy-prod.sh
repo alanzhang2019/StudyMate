@@ -138,6 +138,23 @@ docker compose build --pull frontend
 echo "== 6/9 Restart stack =="
 docker compose up -d --no-deps --force-recreate frontend
 
+echo "== 6.5/9 Archive _next/static for roll-forward cache safety =="
+# 每次部署都重建容器，/_next/static 下所有 chunk 文件名随新构建更换、
+# 旧文件随旧容器消失。仍缓存旧 HTML 的浏览器（history.back / 旧标签）
+# 会请求已删除的旧 chunk -> 404 -> 整页无样式。这里把容器内当前构建的
+# /app/.next/static 追加拷贝到宿主机归档目录（upsert，不删已有文件），
+# nginx 优先直出归档（含历史版本 chunk），缺失时回退到容器代理。
+# 归档目录结构： $REPO_DIR/_next_static_archive/_next/static/...
+# 详见 nginx/studymate.conf 的 `location ^~ /_next/static/` 块。
+STATIC_ARCHIVE="$REPO_DIR/_next_static_archive/_next/static"
+mkdir -p "$STATIC_ARCHIVE"
+if docker ps --format '{{.Names}}' | grep -qx studymate-frontend; then
+  docker cp "studymate-frontend:/app/.next/static/." "$STATIC_ARCHIVE/" \
+    && echo "  archived $(find "$STATIC_ARCHIVE" -type f | wc -l | tr -d ' ') static files (cumulative)"
+else
+  echo "  WARN: studymate-frontend container not running — skipped archiving" >&2
+fi
+
 echo "== 7/9 Sync 深圳中考真题库 (exam-papers) into named volume =="
 # The exam-papers doc/docx files (深圳中考真题库, 7 subjects 2008–2025)
 # live on the HOST at frontend/data/exam-papers. They are:
