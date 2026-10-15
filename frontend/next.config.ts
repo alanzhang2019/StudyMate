@@ -187,6 +187,39 @@ const nextConfig: NextConfig = {
     const frameAncestors = extraAncestors ? `'self' ${extraAncestors}` : "'self'";
 
     return [
+      // HTML 文档强制「用前必验证」——修复「浏览器返回后整页无样式」。
+      //
+      // 根因：ISR / 静态页面（export const force-static + revalidate）由
+      // Next.js 自动附加 `Cache-Control: s-maxage=3600,
+      // stale-while-revalidate=...`。s-maxage 只对 CDN 等共享缓存生效，
+      // 浏览器侧既没有 max-age 也没有 Last-Modified，旧 HTML 于是被
+      // 浏览器磁盘缓存长期复用（stale-while-revalidate 语义下甚至直接
+      // 展示缓存副本、后台才验证）。而每次部署都是「新镜像 +
+      // force-recreate」，/_next/static 下全部 chunk 文件名随新构建
+      // 更换、旧文件在新容器里不存在——命中旧 HTML 的返回导航
+      // （history.back / 链接跳转后返回）会拿到一串 404 的 CSS/JS，
+      // 表现为整页无样式，必须手动刷新才能恢复。
+      //
+      // max-age=0, must-revalidate：浏览器可保留本地副本，但每次使用前
+      // 必须带 If-None-Match 回源验证。同一构建走 304（便宜），部署后
+      // ETag 变化直接返回 200 + 新 HTML，旧 HTML 再无静默展示窗口。
+      //
+      // 排除：
+      //   /_next/*            —— immutable 静态资源，保留原生长缓存
+      //   /api/*              —— 可能含用户私有数据，不套文档缓存策略
+      //   RSC / prefetch 请求 —— App Router 自己的缓存协议（router cache
+      //                          + staleTimes），不依赖 HTTP 缓存头
+      {
+        source: '/:path((?!_next|api).*)',
+        missing: [
+          { type: 'header', key: 'rsc' },
+          { type: 'header', key: 'next-router-prefetch' },
+          { type: 'header', key: 'next-router-segment-prefetch' },
+        ],
+        headers: [
+          { key: 'Cache-Control', value: 'max-age=0, must-revalidate' },
+        ],
+      },
       // 课程资源永久不缓存。
       //
       // 原因: 运营会通过 1Panel 文件管理器或 docker cp 直接替换
