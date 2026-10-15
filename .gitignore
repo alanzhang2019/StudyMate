@@ -36,3 +36,8 @@ take-machine/
 
 # Root-level compose interpolation secrets (ADMIN_* 等，仅存在于部署机)
 /.env
+
+# Roll-forward static-asset archive: deploy-prod.sh copies every build's
+# /app/.next/static here (upsert) so pre-deploy HTML still finds its old
+# chunks after a force-recreate. Never purge; never commit.
+_next_static_archive/
