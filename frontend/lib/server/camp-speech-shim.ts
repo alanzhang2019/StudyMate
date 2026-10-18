@@ -54,7 +54,7 @@ export function buildSpeechShim(endpoint: string = CAMP_ASR_ENDPOINT): string {
     this.onspeechend = null; this.onresult = null; this.onnomatch = null;
     this.onerror = null; this.onend = null;
     this._native = null; this._rec = null; this._stream = null;
-    this._chunks = []; this._stopped = true;
+    this._chunks = []; this._stopped = true; this._switching = false;
   }
 
   CampSpeechRecognition.prototype.start = function () {
@@ -79,12 +79,17 @@ export function buildSpeechShim(endpoint: string = CAMP_ASR_ENDPOINT): string {
     r.onspeechend = function (e) { fire(self, 'speechend', e); };
     r.onresult = function (e) { fire(self, 'result', e); };
     r.onnomatch = function (e) { fire(self, 'nomatch', e); };
-    r.onend = function (e) { fire(self, 'end', e); };
+    r.onend = function (e) {
+      // 正在切兜底时原生还会补一个 end，别把它透出去 —— 作品会以为识别已结束
+      if (self._switching) { self._switching = false; return; }
+      fire(self, 'end', e);
+    };
     r.onerror = function (e) {
       var code = e && e.error;
       // not-allowed 是用户拒绝授权，换服务端也拿不到音频，不切
       if (code === 'network' || code === 'service-not-allowed') {
         nativeBroken = true;
+        self._switching = true;
         try { r.abort(); } catch (_) {}
         self._startServer();
         return;
@@ -170,7 +175,8 @@ export function buildSpeechShim(endpoint: string = CAMP_ASR_ENDPOINT): string {
         var text = '';
         if (j && j.success) text = String((j.data && j.data.text) || j.text || '').trim();
         if (!text) {
-          if (isFinal) { fire(self, 'nomatch', {}); }
+          // 没识别到内容也要收尾，否则作品会一直停在「正在听」
+          if (isFinal) { fire(self, 'nomatch', {}); fire(self, 'end', {}); }
           return;
         }
         fire(self, 'result', makeResult(text, isFinal));
