@@ -108,9 +108,15 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, text: result.text || '' });
   } catch (e: any) {
+    const msg = String(e?.message || '');
+    // 静音 / 太短 / 无效音频：provider 侧会抛错，对作品而言就是「没听清」，
+    // 按空结果返回，让前端走 nomatch，而不是把 500 当成服务故障。
+    if (/no transcript|empty|too short|unsupported|invalid/i.test(msg)) {
+      return NextResponse.json({ success: true, text: '' });
+    }
     log.error('camp asr failed:', e);
     return NextResponse.json(
-      { success: false, error: `识别失败：${e?.message || '未知错误'}` },
+      { success: false, error: `识别失败：${msg || '未知错误'}` },
       { status: 500 },
     );
   }
