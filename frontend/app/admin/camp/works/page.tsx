@@ -721,6 +721,12 @@ function FilesModal({
 }) {
   const [files, setFiles] = useState<WorkFile[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  // 替换 HTML 后用来重新拉一次清单
+  const [reloadKey, setReloadKey] = useState(0);
+  const [uploading, setUploading] = useState(false);
+  const [uploadMsg, setUploadMsg] = useState<{ ok: boolean; text: string } | null>(
+    null,
+  );
 
   useEffect(() => {
     let alive = true;
@@ -738,9 +744,36 @@ function FilesModal({
     return () => {
       alive = false;
     };
-  }, [work.id]);
+  }, [work.id, reloadKey]);
 
   const base = `/api/admin/camp/works/${work.id}/download`;
+
+  // 替换作品的 HTML 源文件：直接覆盖 camp-uploads/<id>.html，
+  // 作品地址、预览链接、下载链路全部保持不变。
+  async function replaceHtml(file: File) {
+    setUploading(true);
+    setUploadMsg(null);
+    try {
+      const fd = new FormData();
+      fd.append('htmlFile', file);
+      const res = await fetch(`/api/admin/camp/works/${work.id}/html`, {
+        method: 'POST',
+        body: fd,
+      });
+      const json = await res.json();
+      if (json?.success) {
+        const kb = json.data?.size ? (json.data.size / 1024).toFixed(1) : '?';
+        setUploadMsg({ ok: true, text: `已替换为新版本（${kb} KB）` });
+        setReloadKey((k) => k + 1);
+      } else {
+        setUploadMsg({ ok: false, text: json?.error || '替换失败' });
+      }
+    } catch (e: any) {
+      setUploadMsg({ ok: false, text: e?.message || '替换失败' });
+    } finally {
+      setUploading(false);
+    }
+  }
 
   return (
     <Overlay onClose={onClose}>
@@ -826,6 +859,43 @@ function FilesModal({
           </div>
         </>
       )}
+
+      {/* 替换 HTML 源文件 */}
+      <div className="mt-4 rounded-md border border-dashed border-gray-300 bg-gray-50 p-3">
+        <div className="text-sm font-medium text-gray-800">
+          替换作品 HTML 源文件
+        </div>
+        <p className="text-xs text-gray-500 mt-1">
+          选择新的 .html 文件即可覆盖旧版本，作品地址与预览链接都不变。
+        </p>
+        <div className="mt-2 flex items-center gap-2">
+          <input
+            type="file"
+            accept=".html,.htm,text/html"
+            disabled={uploading}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void replaceHtml(f);
+              e.target.value = '';
+            }}
+            className="text-xs text-gray-700"
+          />
+          {uploading ? (
+            <span className="text-xs text-gray-500">上传中…</span>
+          ) : null}
+        </div>
+        {uploadMsg ? (
+          <p
+            className={
+              uploadMsg.ok
+                ? 'text-xs text-green-600 mt-2'
+                : 'text-xs text-red-600 mt-2'
+            }
+          >
+            {uploadMsg.text}
+          </p>
+        ) : null}
+      </div>
     </Overlay>
   );
 }

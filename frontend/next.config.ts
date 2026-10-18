@@ -305,6 +305,52 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // 学生作品 HTML 单独定制策略 —— 必须放在 `/(.*)` 之后。
+      //
+      // Next 对 headers() 是按匹配顺序写同名响应头的，后写的才生效；
+      // 放在前面的话会被上面的通用策略（frame-ancestors / COOP / COEP）覆盖掉，
+      // 这正是之前「在路由里写 sandbox 却完全没生效」的原因。
+      //
+      // 内容取舍：
+      //   1. 不加 sandbox —— CSP sandbox 会让文档落到 opaque origin，
+      //      getUserMedia / localStorage / IndexedDB 全部失效，学生作品里
+      //      的麦克风、跟读打分、进度存档会一起坏掉。作品由老师审核通过后
+      //      才对外可见，风险可控（真正要隔离应改走独立域名，见部署备注）。
+      //   2. Permissions-Policy 显式放行麦克风/摄像头等能力。
+      //   3. COOP / COEP 放开：作品是独立打开的页面，不需要 SharedArrayBuffer，
+      //      留着 credentialless 反而会干扰外部资源加载。
+      {
+        source: '/api/camp/works/:id/html',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http:",
+              "script-src 'unsafe-inline' 'unsafe-eval' data: blob: https: http:",
+              "style-src 'unsafe-inline' data: blob: https: http:",
+              "img-src * data: blob:",
+              "media-src * data: blob:",
+              "font-src * data:",
+              "connect-src * data: blob:",
+              "frame-src *",
+              "frame-ancestors 'self'",
+            ].join('; '),
+          },
+          {
+            key: 'Permissions-Policy',
+            value:
+              'microphone=*, camera=*, display-capture=*, geolocation=*, midi=*, clipboard-read=*, clipboard-write=*, speaker-selection=*',
+          },
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'unsafe-none',
+          },
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'unsafe-none',
+          },
+        ],
+      },
     ];
   },
 };
