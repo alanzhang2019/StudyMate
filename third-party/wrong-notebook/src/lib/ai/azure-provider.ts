@@ -88,6 +88,7 @@ export class AzureOpenAIProvider implements AIService {
         const subjectRaw = this.extractTag(text, "subject");
         const knowledgePointsRaw = this.extractTag(text, "knowledge_points");
         const requiresImageRaw = this.extractTag(text, "requires_image");
+        const reuseOriginalImageRaw = this.extractTag(text, "reuse_original_image");
         const wrongAnswerText = this.extractTag(text, "wrong_answer_text") || "";
         const mistakeAnalysis = this.extractTag(text, "mistake_analysis") || "";
         const mistakeStatusRaw = this.extractTag(text, "mistake_status");
@@ -125,7 +126,8 @@ export class AzureOpenAIProvider implements AIService {
             mistakeStatus,
             subject,
             knowledgePoints,
-            requiresImage
+            requiresImage,
+            reuseOriginalImage: reuseOriginalImageRaw?.toLowerCase().trim() === 'true'
         };
 
         // Final Schema Validation
@@ -235,7 +237,8 @@ export class AzureOpenAIProvider implements AIService {
         knowledgePoints: string[],
         language: 'zh' | 'en' = 'zh',
         difficulty: DifficultyLevel = 'medium',
-        gradeSemester?: string | null
+        gradeSemester?: string | null,
+        originalImageUrl?: string
     ): Promise<ParsedQuestion> {
         const config = getAppConfig();
         const systemPrompt = generateSimilarQuestionPrompt(language, originalQuestion, knowledgePoints, difficulty, {
@@ -269,7 +272,10 @@ Knowledge Points: ${knowledgePoints.join(", ")}
                     },
                     {
                         role: "user",
-                        content: userPrompt,
+                        content: originalImageUrl ? [
+                            { type: "text", text: userPrompt + '\n请参考附带的原题图片，确保新题可以独立作答。' },
+                            { type: "image_url", image_url: { url: originalImageUrl } },
+                        ] : userPrompt,
                     },
                 ],
                 max_tokens: 8192,

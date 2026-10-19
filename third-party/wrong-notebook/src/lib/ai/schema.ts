@@ -18,6 +18,7 @@ export const ParsedQuestionSchema = z.object({
     ]),
     knowledgePoints: z.array(z.string()).max(5, "知识点最多 5 个"),
     requiresImage: z.boolean().optional().default(false), // 题目是否依赖图片（如几何题）
+    reuseOriginalImage: z.boolean().optional().default(false), // 变式题的图形和原图完全一致时才复用
     // AI 根据题目内容判断出的年级/学期（如「初二上」）与试卷等级（a/b/other）。
     // AI 判断不出来时不返回，由前端回退到账号档案推算的当前年级与默认 A 卷。
     gradeSemester: z.string().optional(),

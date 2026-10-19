@@ -107,6 +107,7 @@ export class GeminiProvider implements AIService {
         const subjectRaw = this.extractTag(text, "subject");
         const knowledgePointsRaw = this.extractTag(text, "knowledge_points");
         const requiresImageRaw = this.extractTag(text, "requires_image");
+        const reuseOriginalImageRaw = this.extractTag(text, "reuse_original_image");
         const wrongAnswerText = this.extractTag(text, "wrong_answer_text") || "";
         const mistakeAnalysis = this.extractTag(text, "mistake_analysis") || "";
         const mistakeStatusRaw = this.extractTag(text, "mistake_status");
@@ -144,7 +145,8 @@ export class GeminiProvider implements AIService {
             mistakeStatus,
             subject,
             knowledgePoints,
-            requiresImage
+            requiresImage,
+            reuseOriginalImage: reuseOriginalImageRaw?.toLowerCase().trim() === 'true'
         };
 
         // Final Schema Validation
@@ -247,7 +249,7 @@ export class GeminiProvider implements AIService {
         }
     }
 
-    async generateSimilarQuestion(originalQuestion: string, knowledgePoints: string[], language: 'zh' | 'en' = 'zh', difficulty: DifficultyLevel = 'medium', gradeSemester?: string | null): Promise<ParsedQuestion> {
+    async generateSimilarQuestion(originalQuestion: string, knowledgePoints: string[], language: 'zh' | 'en' = 'zh', difficulty: DifficultyLevel = 'medium', gradeSemester?: string | null, originalImageUrl?: string): Promise<ParsedQuestion> {
         const config = getAppConfig();
         const prompt = generateSimilarQuestionPrompt(language, originalQuestion, knowledgePoints, difficulty, {
             customTemplate: config.prompts?.similar
@@ -266,7 +268,10 @@ export class GeminiProvider implements AIService {
         try {
             const response = await this.retryOperation(() => this.ai.models.generateContent({
                 model: this.modelName,
-                contents: prompt
+                contents: originalImageUrl ? [
+                    { text: prompt },
+                    { inlineData: { mimeType: originalImageUrl.match(/^data:([^;]+);base64,/)?.[1] || 'image/jpeg', data: originalImageUrl.replace(/^data:[^;]+;base64,/, '') } },
+                ] : prompt
             }));
 
             const text = response.text || '';

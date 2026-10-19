@@ -272,8 +272,13 @@ export const DEFAULT_SIMILAR_TEMPLATE = `你是一位资深的K12教育题目生
 * **直接使用标准的 LaTeX 符号**（如 $\frac{1}{2}$），**不要**进行 JSON 转义。
 </analysis>
 
+<reuse_original_image>
+如果输入提供了原题图片，且新题可直接使用原图（图上的数字、字母、阴影和新题完全一致），填写 true；否则填写 false。不要把原图中不存在的新图形或标注假装成已有图片。
+</reuse_original_image>
+
 ###关键格式与内容约束 (CRITICAL RULES) !!!
 1. **纯文本**：内容作为纯文本处理，**不要转义反斜杠**。
+2. 如果提供原图，先结合图形理解原题。变式题必须可以独立作答。若复用原图，保持图上全部标注、几何关系和阴影不变，只改变提问角度；若不能复用，题干必须用文字完整写出新图形的所有必要条件，不得写“如图”或依赖未提供的新图。
 
 {{grade_instruction}}
 {{provider_hints}}`;
@@ -460,7 +465,7 @@ export function generateSimilarQuestionPrompt(
     knowledge_points: knowledgePoints.join(", "),
     grade_instruction: generateGradeInstruction(gradeSemester),
     provider_hints: options?.providerHints || ''
-  }).trim();
+  }).trim() + `\n\n【变式题配图规则】如果原题附有图片，请结合图片理解图形、标注和阴影。新题必须独立可作答：只有沿用原图的全部图形与标注时才能在 <reuse_original_image> 写 true；其他情况写 false，并在题干用文字完整给出条件，不能引用不存在的新图。输出必须包含 <reuse_original_image>true 或 false</reuse_original_image>。`;
 }
 
 /**

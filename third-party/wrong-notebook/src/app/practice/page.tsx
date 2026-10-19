@@ -23,7 +23,7 @@ function PracticeContent() {
     const errorItemId = searchParams.get("id");
     const { t, language } = useLanguage();
 
-    const [question, setQuestion] = useState<ParsedQuestion | null>(null);
+    const [question, setQuestion] = useState<(ParsedQuestion & { questionImageUrl?: string }) | null>(null);
     const [loading, setLoading] = useState(false);
     const [showAnswer, setShowAnswer] = useState(false);
     const [userAnswer, setUserAnswer] = useState("");
@@ -64,7 +64,7 @@ function PracticeContent() {
             frontendLogger.info('[Practice]', 'Generating question', {
                 timeout
             });
-            const data = await apiClient.post<ParsedQuestion>("/api/practice/generate", {
+            const data = await apiClient.post<ParsedQuestion & { questionImageUrl?: string }>("/api/practice/generate", {
                 errorItemId,
                 language,
                 difficulty
@@ -74,7 +74,7 @@ function PracticeContent() {
             console.error(error);
             const msg = error.data?.message || "";
 
-            let errorMessage = t.practice.errors?.default || "Failed to generate";
+            let errorMessage = msg || t.practice.errors?.default || "Failed to generate";
 
             if (msg.includes('AI_CONNECTION_FAILED')) {
                 errorMessage = t.errors?.aiConnectionFailed || errorMessage;
@@ -238,6 +238,7 @@ function PracticeContent() {
                         </CardHeader>
                         <CardContent>
                             <MarkdownRenderer content={question.questionText} className="font-medium" />
+                            {question.questionImageUrl && <img src={question.questionImageUrl} alt="变式题所用原图" className="mt-4 max-w-full rounded-lg border" />}
                         </CardContent>
                     </Card>
 

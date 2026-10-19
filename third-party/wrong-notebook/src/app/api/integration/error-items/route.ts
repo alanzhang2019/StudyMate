@@ -50,6 +50,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const email = (searchParams.get('email') || '').trim();
     const sinceRaw = searchParams.get('since');
+    const imageItemId = (searchParams.get('imageItemId') || '').trim();
 
     if (!email) {
         return createErrorResponse(
@@ -83,6 +84,18 @@ export async function GET(req: Request) {
             );
         }
 
+        // 原图单独按题读取，避免列表接口把每道题的 base64 图片全量传给 hl-platform。
+        if (imageItemId) {
+            const imageItem = await prisma.errorItem.findFirst({
+                where: { id: imageItemId, userId: user.id },
+                select: { id: true, originalImageUrl: true },
+            });
+            if (!imageItem) {
+                return createErrorResponse('这道错题不存在', 404, ErrorCode.USER_NOT_FOUND);
+            }
+            return NextResponse.json({ ok: true, item: imageItem });
+        }
+
         // ── 4. 查询条件 ──────────────────────────────────────────
         const whereClause: Prisma.ErrorItemWhereInput = { userId: user.id };
 
@@ -109,6 +122,7 @@ export async function GET(req: Request) {
         // ── 5. 只透出需要的字段（不整个实体序列化出去） ──────────
         const shaped = items.map((it) => ({
             id: it.id,
+            hasImage: !!it.originalImageUrl,
             subject: it.subject?.name ?? null,
             questionText: it.questionText,
             answerText: it.answerText,
