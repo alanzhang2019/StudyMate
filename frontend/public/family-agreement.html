@@ -62,6 +62,10 @@
   .sign .item{font-size:14px;color:var(--deep)}
   .sign .line{display:inline-block;width:190px;border-bottom:1px solid var(--ink);height:1.4em;vertical-align:bottom;margin:0 6px}
   footer.doc{margin-top:34px;padding-top:12px;border-top:1px solid var(--line);font-size:11px;color:var(--muted);text-align:center}
+  /* 手写补充区：屏幕上正常显示，打印时用横线格纸的样子 */
+  .extra{margin-top:16px;page-break-inside:avoid;break-inside:avoid}
+  .extra-t{font-size:12px;color:var(--muted);margin-bottom:4px}
+  .extra-lines span{display:block;height:34px;border-bottom:1px solid var(--line)}
   .pgbreak{page-break-before:always}
   table.tblB{page-break-inside:avoid}
   table.tblB tr{page-break-inside:avoid}
@@ -102,11 +106,13 @@
   /* ★ A4 竖版：不显式声明 size 时，打印对话框的默认纸张不一定是 A4，
      列宽算法随之变化 —— 上面那个 label 嵌套 bug 就是只在 A4 宽度下暴露的。 */
   @page{size:A4 portrait;margin:11mm 12mm 13mm}
-  /* 双栏 checklist：固定表布局，两栏稳定 50/50，不随内容宽窄漂移 */
-  table.acts{table-layout:fixed;width:100%}
+  /* 双栏 checklist：固定表布局，两栏稳定 50/50，不随内容宽窄漂移。
+     ★ 只在打印时开 fixed —— 屏幕窄于 640px 时（手机）fixed 会把列宽锁死，
+     而 .opt 里的中文标签换不下行，整张表撑到 487px，横向溢出 97px。 */
   table.acts th,table.acts td{vertical-align:top;word-break:break-word}
   /* A4 竖版里两栏各 ~85mm，圆选框跟着文字走，别被压成一列小字 */
   @media print{
+    table.acts{table-layout:fixed;width:100%}
     table.acts td .opt{line-height:1.75}
     table.acts td .opt .box{margin-top:6px}
   }
@@ -120,8 +126,40 @@
     .guard,.tip,.acts{page-break-inside:avoid;break-inside:avoid}
     .sign{page-break-inside:avoid;break-inside:avoid}
   }
-  @media print{body{background:#fff}.page{margin:0;box-shadow:none;border-radius:0;padding:22px 30px;max-width:none}}
-  @media (max-width:640px){.page{padding:24px 18px}.sign .row{gap:22px}}
+  @media print{body{background:#fff}.page{margin:0;box-shadow:none;border-radius:0;padding:12px 26px 10px;max-width:none}}
+  /* ★ 压到「正好 4 页 A4」的打印专用密度调整：只改间距/行高，不动任何一档字号与内容。
+     屏幕阅读样式完全不受影响（全部包在 @media print 里）。 */
+  @media print{
+    body{line-height:1.6}
+    h2{margin:16px 0 6px}
+    h3{margin:10px 0 4px}
+    h4{margin:9px 0 3px;padding:5px 10px}
+    .tip{margin:10px 0;padding:8px 13px}
+    .guard{margin:9px 0;padding:8px 13px}
+    .grp{margin:3px 0}
+    /* 签字栏改成横排留白：原 .row 是竖着码的几个 25px 行 + 30px 间距，
+       A4 下每份签字要吃掉 139~190px，实在不划算。 */
+    .sign{margin-top:14px;padding-top:10px}
+    .sign .row{margin-top:6px;gap:16px}
+    .sign .item{margin:0}
+    .sign .line{width:150px}
+    footer.doc{margin-top:12px;padding-top:7px}
+    th,td{padding:4px 8px}
+    td.empty{height:24px}
+    .fill.cell{height:22px}
+    .tick{margin:1px 6px 1px 0}
+    .opt{margin:2px 14px 2px 0}
+    ol.clauses li,ul.plain li{margin:2px 0}
+  }
+  @media (max-width:640px){
+    .page{padding:24px 18px}
+    .sign .row{gap:22px}
+    /* ★ 手机窄屏：表 C/D 有 6 列，th 的 nowrap 会把表撑到 469px（视口 390）
+       ⇒ 整页横向溢出。窄屏放开表头换行 + 收紧单元格内边距。 */
+    th{white-space:normal}
+    th,td{padding:5px 6px;font-size:11.5px}
+    table{font-size:11.5px}
+  }
 </style>
 </head>
 <body>
@@ -275,6 +313,15 @@
       <div class="item">家长签字：<span class="line"></span>日期：<span class="line" style="width:120px"></span></div>
       <div class="item">孩子签字：<span class="line"></span>日期：<span class="line" style="width:120px"></span></div>
     </div>
+  </div>
+
+  <!-- 第 3 页末尾的手写补充区：A 段内容到签字栏为止只占本页约 2/3，
+       留白不利用等于浪费一页纸，给家庭留几行自己加条款的地方。
+       （注：4 页是靠下面 .pgbreak 让 C/D 段另起一页达成的，
+        本区不是页数保证 —— 删掉它仍是 4 页，只是第 3 页留白变空。） -->
+  <div class="extra">
+    <p class="extra-t">补充约定（上面没写到、但这家要加的，写这儿）</p>
+    <div class="extra-lines"><span></span><span></span><span></span><span></span><span></span><span></span></div>
   </div>
 
   <!-- ===== C ===== -->
