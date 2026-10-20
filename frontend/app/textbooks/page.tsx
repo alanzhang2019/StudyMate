@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import TextbookPdfReader, { type PdfReaderHandle } from '../../components/textbook-pdf-reader';
 import {
   GRADE_CN,
   SUBJECT_LABEL,
@@ -68,6 +69,16 @@ export default function TextbooksPage() {
   const [reading, setReading] = useState<Textbook | null>(null);
   const [isIOS, setIsIOS] = useState(false);
 
+  // —— 阅读器状态（页码 / 总页数 / 缩放）——
+  // currentPage 是「真源」：工具栏输入框、翻页按钮、阅读器滚动三方都以它为准，
+  // 阅读器滚动后会把实测页号回写到这里（见 onPageChange）。
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [scale, setScale] = useState(1);
+  /** 输入框的草稿值：允许用户先清空再输入，不即时同步成页码 */
+  const [pageDraft, setPageDraft] = useState('1');
+  const readerRef = useRef<PdfReaderHandle | null>(null);
+
   // —— 中考真题状态 ——
   const [examSubject, setExamSubject] = useState<SubjectKey | 'all'>('all');
   const [examYear, setExamYear] = useState<number | 'all'>('all');
@@ -89,6 +100,27 @@ export default function TextbooksPage() {
       document.body.style.overflow = '';
     };
   }, [reading]);
+
+  // —— 阅读器回调（都必须是稳定引用：阅读器把它们放进 effect 依赖，
+  //    每次渲染换新函数会导致文档反复重新加载）——
+  const handleTotalPages = useCallback((n: number) => setTotalPages(n), []);
+  const handleScaleChange = useCallback((s: number) => setScale(s), []);
+  const handlePageChange = useCallback((p: number) => {
+    setCurrentPage(p);
+    setPageDraft(String(p));
+  }, []);
+  const handleReaderError = useCallback(() => setTotalPages(0), []);
+
+  /** 翻到指定页（工具栏输入框回车 / 失焦时调用）。非法输入回滚为当前页。 */
+  const jumpToPage = (raw: string) => {
+    const n = Number.parseInt(raw, 10);
+    if (!Number.isFinite(n) || n < 1 || (totalPages > 0 && n > totalPages)) {
+      setPageDraft(String(currentPage));
+      return;
+    }
+    setCurrentPage(n);
+    setPageDraft(String(n));
+  };
 
   // ====== 课本派生数据 ======
   const grades = useMemo(() => {
@@ -140,6 +172,11 @@ export default function TextbooksPage() {
       window.open(`/textbooks/${b.slug}.pdf`, '_blank', 'noopener');
       return;
     }
+    // 换书必须重置页码/缩放，否则上一本的 "第 200 页" 会带进这本只有 90 页的书
+    setCurrentPage(1);
+    setPageDraft('1');
+    setTotalPages(0);
+    setScale(1);
     setReading(b);
   };
 
@@ -590,14 +627,16 @@ export default function TextbooksPage() {
       {/* 阅读器弹层（深藏蓝衬底，非纯黑）—— 仅课本使用 */}
       {reading && mode === 'textbook' && (
         <div className="fixed inset-0 z-50 flex flex-col bg-[#16295C]/95">
-          <div className="flex items-center justify-between px-4 py-3 text-white">
+          {/* 顶栏：书名 + 关闭 */}
+          <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-2.5 text-white">
             <div className="min-w-0">
               <p className="truncate text-sm font-medium">{reading.title}</p>
               <p className="text-xs text-[#B9C9EE]">
                 {reading.publisher} · {formatSize(reading.sizeBytes)}
+                {totalPages > 0 && ` · 共 ${totalPages} 页`}
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex shrink-0 items-center gap-3">
               <a
                 href={`/textbooks/${reading.slug}.pdf`}
                 target="_blank"
@@ -614,10 +653,93 @@ export default function TextbooksPage() {
               </button>
             </div>
           </div>
-          <iframe
-            src={`/textbooks/${reading.slug}.pdf`}
+
+          {/* 工具栏：翻页 + 页码跳转 + 缩放 */}
+          <div className="flex flex-wrap items-center gap-2 border-b border-white/10 px-4 py-2 text-white">
+            <button
+              type="button"
+              onClick={() => readerRef.current?.goPage(currentPage - 1)}
+              disabled={currentPage <= 1}
+              data-testid="reader-prev"
+              className="rounded-lg bg-white/10 px-3 py-1.5 text-xs font-medium transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              上一页
+            </button>
+
+            {/* 页码：输入框可直接键入页码跳转，回车或失焦生效 */}
+            <div className="flex items-center gap-1.5 text-xs">
+              <input
+                value={pageDraft}
+                onChange={(e) => setPageDraft(e.target.value.replace(/[^\d]/g, ''))}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    jumpToPage(pageDraft);
+                    e.currentTarget.blur();
+                  } else if (e.key === 'Escape') {
+                    e.stopPropagation();
+                    setPageDraft(String(currentPage));
+                    e.currentTarget.blur();
+                  }
+                }}
+                onBlur={() => jumpToPage(pageDraft)}
+                inputMode="numeric"
+                aria-label="跳转到页码"
+                data-testid="reader-page-input"
+                className="w-14 rounded-lg border border-[#4A67B0] bg-[#16295C] px-2 py-1.5 text-center font-medium text-white outline-none focus:border-white/60"
+              />
+              <span className="text-[#B9C9EE]">/ {totalPages > 0 ? totalPages : '…'}</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => readerRef.current?.goPage(currentPage + 1)}
+              disabled={totalPages > 0 && currentPage >= totalPages}
+              data-testid="reader-next"
+              className="rounded-lg bg-white/10 px-3 py-1.5 text-xs font-medium transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              下一页
+            </button>
+
+            <div className="ml-auto flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => readerRef.current?.zoomOut()}
+                data-testid="reader-zoom-out"
+                className="rounded-lg bg-white/10 px-3 py-1.5 text-xs font-medium transition hover:bg-white/20"
+              >
+                缩小
+              </button>
+              <button
+                type="button"
+                onClick={() => readerRef.current?.zoomReset()}
+                title="恢复 100%"
+                data-testid="reader-zoom-reset"
+                className="w-14 rounded-lg px-2 py-1.5 text-center text-xs font-medium text-[#D8E3FA] transition hover:bg-white/10"
+              >
+                {Math.round(scale * 100)}%
+              </button>
+              <button
+                type="button"
+                onClick={() => readerRef.current?.zoomIn()}
+                data-testid="reader-zoom-in"
+                className="rounded-lg bg-white/10 px-3 py-1.5 text-xs font-medium transition hover:bg-white/20"
+              >
+                放大
+              </button>
+            </div>
+          </div>
+
+          <TextbookPdfReader
+            key={reading.slug}
+            url={`/textbooks/${reading.slug}.pdf`}
             title={reading.title}
-            className="w-full flex-1 bg-white"
+            page={currentPage}
+            onPageChange={handlePageChange}
+            onTotalPages={handleTotalPages}
+            onScaleChange={handleScaleChange}
+            onError={handleReaderError}
+            handleRef={readerRef}
           />
         </div>
       )}

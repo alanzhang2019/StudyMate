@@ -41,3 +41,16 @@ take-machine/
 # /app/.next/static here (upsert) so pre-deploy HTML still finds its old
 # chunks after a force-recreate. Never purge; never commit.
 _next_static_archive/
+
+# 教材 PDF 阅读器（frontend/components/textbook-pdf-reader.tsx）运行时资产：
+# - pdf.min.js / pdf.worker.min.js：构建时由 scripts/copy-pdfjs-assets.mjs 从
+#   node_modules/pdfjs-dist 拷入（dev 与 prebuild 都会跑），是产物不是源码。
+#   漏 ignore 会被人误提交两份 ~1.4MB 的 vendor 副本。
+# - public/textbooks/*.pdf：教材原件，只存在于各部署机（compose 把
+#   ./frontend/public bind 挂进容器），git 历史上从未跟踪过。
+# - _tb-reader.png：scripts/verify-textbook-reader.cjs 的 E2E 截图产物。
+/frontend/public/pdf.min.js
+/frontend/public/pdf.worker.min.js
+/frontend/public/textbooks/
+/_tb-reader.png
+/frontend/_tb-reader.png
