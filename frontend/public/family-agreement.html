@@ -99,6 +99,27 @@
   .tb-tip{font-size:11.5px;color:var(--muted);margin-left:auto}
   @media (max-width:640px){.tb-tip{display:none}.toolbar{padding:8px 10px;gap:6px}.tb-btn{padding:6px 10px;font-size:12px}}
   @media print{.toolbar{display:none!important}}
+  /* ★ A4 竖版：不显式声明 size 时，打印对话框的默认纸张不一定是 A4，
+     列宽算法随之变化 —— 上面那个 label 嵌套 bug 就是只在 A4 宽度下暴露的。 */
+  @page{size:A4 portrait;margin:11mm 12mm 13mm}
+  /* 双栏 checklist：固定表布局，两栏稳定 50/50，不随内容宽窄漂移 */
+  table.acts{table-layout:fixed;width:100%}
+  table.acts th,table.acts td{vertical-align:top;word-break:break-word}
+  /* A4 竖版里两栏各 ~85mm，圆选框跟着文字走，别被压成一列小字 */
+  @media print{
+    table.acts td .opt{line-height:1.75}
+    table.acts td .opt .box{margin-top:6px}
+  }
+  /* ★ 分页保护：原文件只护了 table.tblB。第五版块是**双栏对照表**，
+     一旦从页中被劈开，"家长要做的事" 在一页、"孩子要做的事" 在另一页，就废了。
+     其余小表（表 C 处置 / 表 D 回头看）同理；标题不许单独留在页尾。 */
+  @media print{
+    table{page-break-inside:avoid}
+    tr{page-break-inside:avoid}
+    h3,h4{page-break-after:avoid;break-after:avoid}
+    .guard,.tip,.acts{page-break-inside:avoid;break-inside:avoid}
+    .sign{page-break-inside:avoid;break-inside:avoid}
+  }
   @media print{body{background:#fff}.page{margin:0;box-shadow:none;border-radius:0;padding:22px 30px;max-width:none}}
   @media (max-width:640px){.page{padding:24px 18px}.sign .row{gap:22px}}
 </style>
@@ -186,14 +207,14 @@
   <p class="note">上面选了「固定到每天同一时段」，就填这张表（表头下第一行是<b>填写示例</b>，看看怎么填，可照抄也可改）。玩的时间是固定安排，<b>不用等作业写完</b>就能玩。</p>
   <table class="tblB">
     <tr><th style="width:11%">日期</th><th style="width:20%">娱乐时段</th><th style="width:12%">时长</th><th style="width:33%">怎么计时（每天勾选）</th><th>备注</th></tr>
-    <tr class="def"><td class="rowhead">示例<span class="tag2">参考</span></td><td>19:00–19:30</td><td>30 分</td><td><label class="tick"><input type="checkbox" class="box" data-i="t1" checked>平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t2"></span>计时器</label></td><td>家庭电影夜等写这</td></tr>
-    <tr><td class="rowhead">周一</td><td class="empty"><input class="fill cell" data-f="f1" style="width:100%"></td><td class="empty"><input class="fill cell" data-f="f2" style="width:100%"></td><td><label class="tick"><input type="checkbox" class="box" data-i="t3"></span>手机屏时</label><label class="tick"><input type="checkbox" class="box" data-i="t4"></span>平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t5"></span>计时器</label><label class="tick"><input type="checkbox" class="box" data-i="t6"></span>家长帮看</label></td><td class="empty"><input class="fill cell" data-f="f3" style="width:100%"></td></tr>
-    <tr><td class="rowhead">周二</td><td class="empty"><input class="fill cell" data-f="f4" style="width:100%"></td><td class="empty"><input class="fill cell" data-f="f5" style="width:100%"></td><td><label class="tick"><input type="checkbox" class="box" data-i="t7"></span>手机屏时</label><label class="tick"><input type="checkbox" class="box" data-i="t8"></span>平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t9"></span>计时器</label><label class="tick"><input type="checkbox" class="box" data-i="t10"></span>家长帮看</label></td><td class="empty"><input class="fill cell" data-f="f6" style="width:100%"></td></tr>
-    <tr><td class="rowhead">周三</td><td class="empty"><input class="fill cell" data-f="f7" style="width:100%"></td><td class="empty"><input class="fill cell" data-f="f8" style="width:100%"></td><td><label class="tick"><input type="checkbox" class="box" data-i="t11"></span>手机屏时</label><label class="tick"><input type="checkbox" class="box" data-i="t12"></span>平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t13"></span>计时器</label><label class="tick"><input type="checkbox" class="box" data-i="t14"></span>家长帮看</label></td><td class="empty"><input class="fill cell" data-f="f9" style="width:100%"></td></tr>
-    <tr><td class="rowhead">周四</td><td class="empty"><input class="fill cell" data-f="f10" style="width:100%"></td><td class="empty"><input class="fill cell" data-f="f11" style="width:100%"></td><td><label class="tick"><input type="checkbox" class="box" data-i="t15"></span>手机屏时</label><label class="tick"><input type="checkbox" class="box" data-i="t16"></span>平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t17"></span>计时器</label><label class="tick"><input type="checkbox" class="box" data-i="t18"></span>家长帮看</label></td><td class="empty"><input class="fill cell" data-f="f12" style="width:100%"></td></tr>
-    <tr><td class="rowhead">周五</td><td class="empty"><input class="fill cell" data-f="f13" style="width:100%"></td><td class="empty"><input class="fill cell" data-f="f14" style="width:100%"></td><td><label class="tick"><input type="checkbox" class="box" data-i="t19"></span>手机屏时</label><label class="tick"><input type="checkbox" class="box" data-i="t20"></span>平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t21"></span>计时器</label><label class="tick"><input type="checkbox" class="box" data-i="t22"></span>家长帮看</label></td><td class="empty"><input class="fill cell" data-f="f15" style="width:100%"></td></tr>
-    <tr><td class="rowhead">周六</td><td class="empty"><input class="fill cell" data-f="f16" style="width:100%"></td><td class="empty"><input class="fill cell" data-f="f17" style="width:100%"></td><td><label class="tick"><input type="checkbox" class="box" data-i="t23"></span>手机屏时</label><label class="tick"><input type="checkbox" class="box" data-i="t24"></span>平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t25"></span>计时器</label><label class="tick"><input type="checkbox" class="box" data-i="t26"></span>家长帮看</label></td><td class="empty"><input class="fill cell" data-f="f18" style="width:100%"></td></tr>
-    <tr><td class="rowhead">周日</td><td class="empty"><input class="fill cell" data-f="f19" style="width:100%"></td><td class="empty"><input class="fill cell" data-f="f20" style="width:100%"></td><td><label class="tick"><input type="checkbox" class="box" data-i="t27"></span>手机屏时</label><label class="tick"><input type="checkbox" class="box" data-i="t28"></span>平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t29"></span>计时器</label><label class="tick"><input type="checkbox" class="box" data-i="t30"></span>家长帮看</label></td><td class="empty"><input class="fill cell" data-f="f21" style="width:100%"></td></tr>
+    <tr class="def"><td class="rowhead">示例<span class="tag2">参考</span></td><td>19:00–19:30</td><td>30 分</td><td><label class="tick"><input type="checkbox" class="box" data-i="t1" checked>平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t2">计时器</label></td><td>家庭电影夜等写这</td></tr>
+    <tr><td class="rowhead">周一</td><td class="empty"><input class="fill cell" data-f="f1" style="width:100%"></td><td class="empty"><input class="fill cell" data-f="f2" style="width:100%"></td><td><label class="tick"><input type="checkbox" class="box" data-i="t3">手机屏时</label><label class="tick"><input type="checkbox" class="box" data-i="t4">平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t5">计时器</label><label class="tick"><input type="checkbox" class="box" data-i="t6">家长帮看</label></td><td class="empty"><input class="fill cell" data-f="f3" style="width:100%"></td></tr>
+    <tr><td class="rowhead">周二</td><td class="empty"><input class="fill cell" data-f="f4" style="width:100%"></td><td class="empty"><input class="fill cell" data-f="f5" style="width:100%"></td><td><label class="tick"><input type="checkbox" class="box" data-i="t7">手机屏时</label><label class="tick"><input type="checkbox" class="box" data-i="t8">平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t9">计时器</label><label class="tick"><input type="checkbox" class="box" data-i="t10">家长帮看</label></td><td class="empty"><input class="fill cell" data-f="f6" style="width:100%"></td></tr>
+    <tr><td class="rowhead">周三</td><td class="empty"><input class="fill cell" data-f="f7" style="width:100%"></td><td class="empty"><input class="fill cell" data-f="f8" style="width:100%"></td><td><label class="tick"><input type="checkbox" class="box" data-i="t11">手机屏时</label><label class="tick"><input type="checkbox" class="box" data-i="t12">平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t13">计时器</label><label class="tick"><input type="checkbox" class="box" data-i="t14">家长帮看</label></td><td class="empty"><input class="fill cell" data-f="f9" style="width:100%"></td></tr>
+    <tr><td class="rowhead">周四</td><td class="empty"><input class="fill cell" data-f="f10" style="width:100%"></td><td class="empty"><input class="fill cell" data-f="f11" style="width:100%"></td><td><label class="tick"><input type="checkbox" class="box" data-i="t15">手机屏时</label><label class="tick"><input type="checkbox" class="box" data-i="t16">平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t17">计时器</label><label class="tick"><input type="checkbox" class="box" data-i="t18">家长帮看</label></td><td class="empty"><input class="fill cell" data-f="f12" style="width:100%"></td></tr>
+    <tr><td class="rowhead">周五</td><td class="empty"><input class="fill cell" data-f="f13" style="width:100%"></td><td class="empty"><input class="fill cell" data-f="f14" style="width:100%"></td><td><label class="tick"><input type="checkbox" class="box" data-i="t19">手机屏时</label><label class="tick"><input type="checkbox" class="box" data-i="t20">平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t21">计时器</label><label class="tick"><input type="checkbox" class="box" data-i="t22">家长帮看</label></td><td class="empty"><input class="fill cell" data-f="f15" style="width:100%"></td></tr>
+    <tr><td class="rowhead">周六</td><td class="empty"><input class="fill cell" data-f="f16" style="width:100%"></td><td class="empty"><input class="fill cell" data-f="f17" style="width:100%"></td><td><label class="tick"><input type="checkbox" class="box" data-i="t23">手机屏时</label><label class="tick"><input type="checkbox" class="box" data-i="t24">平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t25">计时器</label><label class="tick"><input type="checkbox" class="box" data-i="t26">家长帮看</label></td><td class="empty"><input class="fill cell" data-f="f18" style="width:100%"></td></tr>
+    <tr><td class="rowhead">周日</td><td class="empty"><input class="fill cell" data-f="f19" style="width:100%"></td><td class="empty"><input class="fill cell" data-f="f20" style="width:100%"></td><td><label class="tick"><input type="checkbox" class="box" data-i="t27">手机屏时</label><label class="tick"><input type="checkbox" class="box" data-i="t28">平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t29">计时器</label><label class="tick"><input type="checkbox" class="box" data-i="t30">家长帮看</label></td><td class="empty"><input class="fill cell" data-f="f21" style="width:100%"></td></tr>
   </table>
   <p class="note">填写提示：「怎么计时」在格子里勾选当天用的工具（手机屏时 / 平板限额 / 计时器 / 家长帮看，可多选）；「备注」可以写家庭电影夜、过生日这类特殊安排。</p>
   <p class="note">如果上面选的是「不固定」，这张表就空着不用填。</p>
@@ -221,12 +242,16 @@
     <tr><th style="width:50%">家长要做的事</th><th>孩子要做的事</th></tr>
     <tr><td>
       <label class="opt"><input type="checkbox" class="box" data-i="16">到时间提醒、帮忙计时，不因为生气或成绩改规矩、临时加罚<br>
+      </label>
       <label class="opt"><input type="checkbox" class="box" data-i="17">要改规矩，说清楚为啥、俩人商量、写明白啥时生效<br>
-      <label class="opt"><input type="checkbox" class="box" data-i="18">真有生病 / 急事 / 学校临时安排，调整当天安排，事后说一声、回头一起看</td>
+      </label>
+      <label class="opt"><input type="checkbox" class="box" data-i="18">真有生病 / 急事 / 学校临时安排，调整当天安排，事后说一声、回头一起看</label></td>
       <td>
       <label class="opt"><input type="checkbox" class="box" data-i="19">按说好的时间玩、到点主动放下<br>
+      </label>
       <label class="opt"><input type="checkbox" class="box" data-i="20">不绕开限额、不偷偷用没让用的设备 / 账号<br>
-      <label class="opt"><input type="checkbox" class="box" data-i="21">真违规了，接受表 C 的处置、参加回头看</td></tr>
+      </label>
+      <label class="opt"><input type="checkbox" class="box" data-i="21">真违规了，接受表 C 的处置、参加回头看</label></td></tr>
   </table>
 
   <h3>六、特殊情况 &amp; 怎么改规矩</h3>
