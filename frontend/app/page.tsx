@@ -93,9 +93,6 @@ export default function LandingPage() {
             <Link href="#features">了解功能</Link>
           </Button>
         </div>
-        <p className="mt-4 text-sm text-slate-500 dark:text-slate-400 transition-colors">
-          无需注册 · 即开即用
-        </p>
       </section>
 
       {/* 3 steps */}
