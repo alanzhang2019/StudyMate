@@ -31,16 +31,17 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || 'https://aijiangti.cn',
   ),
-  title: '爱讲题 · 用户可创建个人学习课件，用于教学或者学习记录',
+  title: '爱讲题 · AI 自学与学习工具箱',
   description:
-    '爱讲题是一款在线课件创建平台，用户可通过网站创建个人学习课件，用于教学或者学习记录。',
+    '爱讲题把 AI 自学、信息学奥赛、深圳教材、资料共享与智能错题本收进同一个入口：拍一道题或打一句话，AI 从思路讲到步骤，学完接着做同类题与单元测评。',
   keywords: [
     '爱讲题',
-    '学习课件',
-    '课件创建',
-    '教学',
-    '学习记录',
-    '个人课件',
+    'AI 自学',
+    '信息学奥赛',
+    'CSP 初赛',
+    '深圳教材',
+    '智能错题本',
+    '资料共享',
   ],
   authors: [{ name: '爱讲题' }],
   creator: '爱讲题',
@@ -49,9 +50,9 @@ export const metadata: Metadata = {
     locale: 'zh_CN',
     url: 'https://aijiangti.cn',
     siteName: '爱讲题',
-    title: '爱讲题 · 用户可创建个人学习课件，用于教学或者学习记录',
+    title: '爱讲题 · AI 自学与学习工具箱',
     description:
-      '爱讲题是一款在线课件创建平台，用户可通过网站创建个人学习课件，用于教学或者学习记录。',
+      '爱讲题把 AI 自学、信息学奥赛、深圳教材、资料共享与智能错题本收进同一个入口：拍一道题或打一句话，AI 从思路讲到步骤，学完接着做同类题与单元测评。',
     images: [
       {
         url: '/og-cover.png',
@@ -63,9 +64,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '爱讲题 · 用户可创建个人学习课件，用于教学或者学习记录',
+    title: '爱讲题 · AI 自学与学习工具箱',
     description:
-      '爱讲题是一款在线课件创建平台，用户可通过网站创建个人学习课件，用于教学或者学习记录。',
+      '爱讲题把 AI 自学、信息学奥赛、深圳教材、资料共享与智能错题本收进同一个入口：拍一道题或打一句话，AI 从思路讲到步骤，学完接着做同类题与单元测评。',
     images: ['/og-cover.png'],
   },
   robots: {

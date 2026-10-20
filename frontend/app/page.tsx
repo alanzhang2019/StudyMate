@@ -196,7 +196,7 @@ export default function LandingPage() {
       <footer className="border-t border-slate-200/60 bg-white/40 backdrop-blur dark:border-slate-700/60 dark:bg-slate-900/40 transition-colors">
         <div className="max-w-6xl mx-auto px-6 py-8 space-y-5 text-sm text-slate-500 dark:text-slate-400">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div>© {new Date().getFullYear()} 爱讲题 · 用户可创建个人学习课件，用于教学或者学习记录</div>
+            <div>© {new Date().getFullYear()} 爱讲题 · AI 自学与学习工具箱</div>
             <div className="flex items-center gap-5">
               <Link href="/camp" className="hover:text-slate-900 dark:hover:text-slate-100">
                 AI 原生教育
