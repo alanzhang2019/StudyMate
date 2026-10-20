@@ -141,7 +141,7 @@ export default function LandingPage() {
           {FEATURES.map((f) => {
             // ★ `/ai/` 是 hl-platform（同一个域名下的**另一个 Next 应用**）。
             //   走 Next 的客户端软导航会去要本站根本不存在的 chunk ⇒ 白屏或 404。
-            //   所以跨应用一律 `<a>` 整页跳转（SiteHeader 里的 AI 自学按钮同理）。
+            //   所以跨应用一律 `<a>` 整页跳转（Hero 主按钮与 Final CTA 同理）。
             const isCrossApp = f.href.startsWith('http') || f.href.startsWith('/ai/');
             const card = (
               <Card className="h-full bg-white/80 backdrop-blur border-slate-200/60 hover:shadow-md hover:border-blue-300 dark:bg-slate-800/60 dark:border-slate-700/60 dark:hover:border-blue-600 transition-colors">
