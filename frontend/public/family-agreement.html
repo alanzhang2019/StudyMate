@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家庭电子产品使用约定 · 标准勾选版</title>
+<style>
+  :root{
+    --blue:#2563EB; --deep:#0F172A; --ink:#1e293b; --muted:#64748b;
+    --line:#cbd5e1; --soft:#f1f5f9; --warn:#fff7ed; --warn-line:#fdba74;
+    --blue-soft:#eff6ff; --blue-line:#bfdbfe;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    background:#eef2f7;color:var(--ink);line-height:1.75;font-size:14px;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .page{max-width:820px;margin:22px auto;background:#fff;border-radius:12px;
+    padding:44px 52px;box-shadow:0 4px 24px rgba(15,23,42,.08);}
+  header.doc{border-bottom:3px solid var(--blue);padding-bottom:16px}
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .brand .dot{width:12px;height:12px;border-radius:50%;background:var(--blue)}
+  .brand span{font-size:12px;color:var(--muted);letter-spacing:.14em}
+  h1{font-size:25px;color:var(--deep)}
+  .subtitle{margin-top:6px;font-size:13px;color:var(--muted)}
+  .status{display:inline-block;margin-top:10px;padding:3px 14px;border-radius:999px;
+    background:var(--blue-soft);border:1px solid var(--blue-line);color:#1e40af;font-size:12.5px;font-weight:700}
+  .tip{background:var(--warn);border:1px solid var(--warn-line);border-left:5px solid #f97316;
+    border-radius:8px;padding:12px 16px;margin:18px 0;font-size:12.5px;color:#7c2d12}
+  .tip b{color:#9a3412}
+  .guard{background:var(--blue-soft);border:1px solid var(--blue-line);border-left:5px solid var(--blue);
+    border-radius:8px;padding:12px 16px;margin:16px 0;font-size:12.5px;color:#1e3a8a}
+  .guard b{color:var(--deep)}
+  h2{font-size:17px;color:var(--deep);margin:30px 0 10px;padding-left:11px;border-left:5px solid var(--blue)}
+  h2 .en{font-size:11px;color:var(--muted);font-weight:400;margin-left:8px;letter-spacing:.08em}
+  h3{font-size:15px;color:var(--deep);margin:16px 0 6px}
+  h4{font-size:13.5px;color:var(--deep);margin:14px 0 4px;padding:8px 12px;
+    background:var(--blue-soft);border:1px solid var(--blue-line);border-left:4px solid var(--blue);border-radius:6px}
+  h4 .en{font-size:10.5px;color:var(--muted);font-weight:400;margin-left:8px;letter-spacing:.08em}
+  p.sec{margin:6px 0}
+  .opt{display:inline-flex;align-items:center;gap:7px;margin:4px 16px 4px 0;vertical-align:top}
+  .opt .box{width:15px;height:15px;border:1.6px solid #94a3b8;border-radius:4px;flex:none;background:#fff}
+  .radio .box{border-radius:50%}
+  .grp{margin:6px 0}
+  .grp .glabel{font-weight:600;color:var(--deep);margin-right:4px}
+  .note{font-size:12px;color:var(--muted);margin-top:5px}
+  .tick{display:inline-flex;align-items:center;gap:3px;font-size:11px;margin:2px 8px 2px 0;white-space:nowrap;color:var(--ink)}
+  .tick .box{width:13px;height:13px;border:1.4px solid #94a3b8;border-radius:3px;flex:none;display:inline-flex;align-items:center;justify-content:center;font-size:11px;line-height:1;color:#1e40af;font-weight:700}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:12.5px}
+  th,td{border:1px solid var(--line);padding:8px 9px;text-align:left;vertical-align:top}
+  th{background:var(--soft);color:var(--deep);font-weight:600;white-space:nowrap}
+  td.rowhead{background:#fafcff;font-weight:600;white-space:nowrap;color:var(--deep)}
+  td.empty{height:32px;color:#cbd5e1}
+  td.def{background:#fffbeb}
+  td.def .tag2{display:inline-block;font-size:10px;color:#b45309;background:#fde68a;
+    border-radius:4px;padding:1px 6px;margin-left:6px;font-weight:600}
+  ol.clauses{padding-left:20px;margin:6px 0}
+  ol.clauses li{margin:6px 0}
+  ul.plain{padding-left:20px;margin:6px 0}
+  ul.plain li{margin:4px 0}
+  .sign{margin-top:30px;padding-top:18px;border-top:2px dashed var(--line)}
+  .sign .row{display:flex;gap:56px;flex-wrap:wrap;margin-top:14px}
+  .sign .item{font-size:14px;color:var(--deep)}
+  .sign .line{display:inline-block;width:190px;border-bottom:1px solid var(--ink);height:1.4em;vertical-align:bottom;margin:0 6px}
+  footer.doc{margin-top:34px;padding-top:12px;border-top:1px solid var(--line);font-size:11px;color:var(--muted);text-align:center}
+  .pgbreak{page-break-before:always}
+  table.tblB{page-break-inside:avoid}
+  table.tblB tr{page-break-inside:avoid}
+  table.acts td .opt{display:flex;align-items:flex-start;width:100%;margin:4px 0}
+  table.acts td .opt .box{margin-top:5px}
+  table.acts td br{display:none}
+
+  /* ===== 可交互化改造（不影响原视觉）===== */
+  .box{-webkit-appearance:none;appearance:none;cursor:pointer;flex:none;
+    transition:background-color .12s,border-color .12s}
+  .box:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+  .box:checked{background-color:var(--blue);border-color:var(--blue);
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.6 6.3l2.3 2.3 4.5-5' fill='none' stroke='%23fff' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-size:12px 12px;background-position:center;background-repeat:no-repeat}
+  .radio .box:checked{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Ccircle cx='6' cy='6' r='2.9' fill='%23fff'/%3E%3C/svg%3E");
+    background-size:12px 12px}
+  .tick .box{display:inline-block;vertical-align:-2px}
+  .fill{font-family:inherit;font-size:inherit;color:var(--ink);line-height:1.5;
+    border:none;border-bottom:1px solid var(--line);padding:1px 4px;vertical-align:baseline}
+  .fill:focus{outline:none;border-bottom-color:var(--blue);background:var(--blue-soft)}
+  .fill.cell{display:block;width:100%;height:28px;border-bottom:none}
+  td.empty{color:transparent}
+  .fill::placeholder{color:#cbd5e1}
+  /* 工具条：屏幕显示、打印隐藏 */
+  .no-print{}
+  .toolbar{position:sticky;top:0;z-index:99;display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+    padding:10px 14px;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);box-shadow:0 1px 8px rgba(15,23,42,.06)}
+  .tb-btn{display:inline-flex;align-items:center;gap:5px;font:inherit;font-size:13px;font-weight:600;
+    padding:7px 14px;border-radius:9px;cursor:pointer;text-decoration:none;
+    border:1px solid var(--line);background:#fff;color:var(--ink);transition:all .15s}
+  .tb-btn:hover{border-color:var(--blue);color:var(--deep);background:var(--blue-soft)}
+  .tb-btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+  .tb-btn.primary:hover{background:#1d4ed8;color:#fff}
+  .tb-tip{font-size:11.5px;color:var(--muted);margin-left:auto}
+  @media (max-width:640px){.tb-tip{display:none}.toolbar{padding:8px 10px;gap:6px}.tb-btn{padding:6px 10px;font-size:12px}}
+  @media print{.toolbar{display:none!important}}
+  @media print{body{background:#fff}.page{margin:0;box-shadow:none;border-radius:0;padding:22px 30px;max-width:none}}
+  @media (max-width:640px){.page{padding:24px 18px}.sign .row{gap:22px}}
+</style>
+</head>
+<body>
+
+<div class="toolbar no-print">
+  <a class="tb-btn" href="/">&larr; 返回爱讲题</a>
+  <button type="button" class="tb-btn primary" id="tbPrint">🖨 打印 / 存为 PDF</button>
+  <button type="button" class="tb-btn" id="tbSave">⬇ 下载保存</button>
+  <button type="button" class="tb-btn" id="tbReset">↺ 清空重填</button>
+  <span class="tb-tip">勾选和填写会自动存在本机，关掉再打开还在</span>
+</div>
+<div class="page">
+
+  <header class="doc">
+    <div class="brand"><span class="dot"></span><span>家庭一起定 · 标准勾选版</span></div>
+    <h1>家庭电子产品使用约定</h1>
+    <p class="subtitle">下面选项勾一勾、空的地方填一填，家长和孩子都同意、签上名，就能照着做。先试两周，到时候再看要不要改。</p>
+    <span class="status">勾好 + 双方签字 = 就能照着做（这五条底线谁都不能破）</span>
+  </header>
+
+  <div class="tip">
+    <b>怎么用这份约定：</b>① 从头看一遍；② 在 ☐ 里打勾（圆形 ◯ 只能选一个，方形 ☐ 能多选）；
+    ③ 黄色「建议」格是别人家常用的，不合适就划掉自己写；④ 最后家长和孩子都签上名。打印出来，就是一份能照做的约定。
+  </div>
+
+  <div class="guard">
+    <b>这五条谁都不能破（任何一条都不行）：</b>
+    <ol class="clauses" style="margin-top:5px">
+      <li>玩的时间，跟作业写没写完、考得好不好，<b>没关系</b>。不能说「写完作业才能玩」「考好了才让玩」。</li>
+      <li>学习和玩要<b>分开安排</b>，不能拿「作业全写完」当能玩的前提。</li>
+      <li>犯了错，只罚跟「用设备」有关的（超时、到点不走、偷偷绕开），<b>不能因为成绩差、学习不认真就罚少玩</b>。</li>
+      <li>这规矩<b>管孩子，也管家长</b>：家长不能一生气就改规矩、随便加重罚。</li>
+      <li>不能换个说法（比如叫「资格」「自律」）绕开上面四条；罚要<b>有个期限、有个数，不能没完没了</b>。</li>
+    </ol>
+  </div>
+
+  <!-- ===== A ===== -->
+  <h2>A. 咱们的约定<span class="en">AGREEMENT</span></h2>
+
+  <h3>一、咱们为啥定这个规矩（勾选确认）</h3>
+  <div class="grp">
+    <label class="opt"><input type="checkbox" class="box" data-i="1">玩的时间是事先说好的，不因为作业、成绩或家长心情，临时多给或少给</label><br>
+    <label class="opt"><input type="checkbox" class="box" data-i="2">学习和玩分开安排；真撞时间了，提前商量调一下，不把学习「算成」玩的时间</label><br>
+    <label class="opt"><input type="checkbox" class="box" data-i="3">规矩对家长和孩子都一样；要改，得俩人商量好、写清楚啥时候生效</label><br>
+    <label class="opt"><input type="checkbox" class="box" data-i="4">先试两周，到时候一起回头看看，决定改还是接着用</label>
+  </div>
+
+  <h3>二、哪些设备、用来干啥</h3>
+  <div class="grp"><span class="glabel">家里有这些设备（多选）：</span><br>
+    <label class="opt"><input type="checkbox" class="box" data-i="5">手机</label>
+    <label class="opt"><input type="checkbox" class="box" data-i="6">平板</label>
+    <label class="opt"><input type="checkbox" class="box" data-i="7">电脑</label>
+    <label class="opt"><input type="checkbox" class="box" data-i="8">游戏机</label>
+    <label class="opt"><input type="checkbox" class="box" data-i="9">智能手表</label>
+    <label class="opt"><input type="checkbox" class="box" data-i="10">电视</label>
+    <label class="opt"><input type="checkbox" class="box" data-i="11">其他：<input class="fill" data-f="f8" style="min-width:8.5em;width:8.5em" placeholder="　"></label>
+  </div>
+  <div class="grp"><span class="glabel">怎么分「学习用」和「玩」（单选）：</span><br>
+    <label class="opt radio"><input type="radio" class="box" name="rg1" data-i="r1">按设备分（哪台只学习、哪台能玩）</label>
+    <label class="opt radio"><input type="radio" class="box" name="rg1" data-i="r2">按 App 分（只让用白名单里的）</label>
+    <label class="opt radio"><input type="radio" class="box" name="rg1" data-i="r3">按时段分（学习时只能学，不能玩）</label>
+  </div>
+
+  <h3>三、啥时候能玩、能玩多久</h3>
+  <div class="grp"><span class="glabel">平时上学日，每天最多玩（单选）：</span><br>
+    <label class="opt radio"><input type="radio" class="box" name="rg2" data-i="r4">30 分钟</label>
+    <label class="opt radio"><input type="radio" class="box" name="rg2" data-i="r5">45 分钟</label>
+    <label class="opt radio"><input type="radio" class="box" name="rg2" data-i="r6">60 分钟</label>
+    <label class="opt radio"><input type="radio" class="box" name="rg2" data-i="r7">咱自己定：<input class="fill" data-f="f9" style="min-width:5.1em;width:5.1em" placeholder="　"> 分钟</label>
+  </div>
+  <div class="grp"><span class="glabel">周末和放假，每天最多玩（单选）：</span><br>
+    <label class="opt radio"><input type="radio" class="box" name="rg3" data-i="r8">60 分钟</label>
+    <label class="opt radio"><input type="radio" class="box" name="rg3" data-i="r9">90 分钟</label>
+    <label class="opt radio"><input type="radio" class="box" name="rg3" data-i="r10">120 分钟</label>
+    <label class="opt radio"><input type="radio" class="box" name="rg3" data-i="r11">咱自己定：<input class="fill" data-f="f10" style="min-width:5.1em;width:5.1em" placeholder="　"> 分钟</label>
+  </div>
+  <div class="grp"><span class="glabel">玩的时间固定不固定（单选）：</span><br>
+    <label class="opt radio"><input type="radio" class="box" name="rg4" data-i="r12">固定到每天同一时段（看下面的表 B）</label>
+    <label class="opt radio"><input type="radio" class="box" name="rg4" data-i="r13">不固定，但每天总时长不超上面说的上限</label>
+  </div>
+
+  <h4>表 B · 一周啥时候玩<span class="en">WEEKLY SCHEDULE</span></h4>
+  <p class="note">上面选了「固定到每天同一时段」，就填这张表（表头下第一行是<b>填写示例</b>，看看怎么填，可照抄也可改）。玩的时间是固定安排，<b>不用等作业写完</b>就能玩。</p>
+  <table class="tblB">
+    <tr><th style="width:11%">日期</th><th style="width:20%">娱乐时段</th><th style="width:12%">时长</th><th style="width:33%">怎么计时（每天勾选）</th><th>备注</th></tr>
+    <tr class="def"><td class="rowhead">示例<span class="tag2">参考</span></td><td>19:00–19:30</td><td>30 分</td><td><label class="tick"><input type="checkbox" class="box" data-i="t1" checked>平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t2"></span>计时器</label></td><td>家庭电影夜等写这</td></tr>
+    <tr><td class="rowhead">周一</td><td class="empty"><input class="fill cell" data-f="f1" style="width:100%"></td><td class="empty"><input class="fill cell" data-f="f2" style="width:100%"></td><td><label class="tick"><input type="checkbox" class="box" data-i="t3"></span>手机屏时</label><label class="tick"><input type="checkbox" class="box" data-i="t4"></span>平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t5"></span>计时器</label><label class="tick"><input type="checkbox" class="box" data-i="t6"></span>家长帮看</label></td><td class="empty"><input class="fill cell" data-f="f3" style="width:100%"></td></tr>
+    <tr><td class="rowhead">周二</td><td class="empty"><input class="fill cell" data-f="f4" style="width:100%"></td><td class="empty"><input class="fill cell" data-f="f5" style="width:100%"></td><td><label class="tick"><input type="checkbox" class="box" data-i="t7"></span>手机屏时</label><label class="tick"><input type="checkbox" class="box" data-i="t8"></span>平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t9"></span>计时器</label><label class="tick"><input type="checkbox" class="box" data-i="t10"></span>家长帮看</label></td><td class="empty"><input class="fill cell" data-f="f6" style="width:100%"></td></tr>
+    <tr><td class="rowhead">周三</td><td class="empty"><input class="fill cell" data-f="f7" style="width:100%"></td><td class="empty"><input class="fill cell" data-f="f8" style="width:100%"></td><td><label class="tick"><input type="checkbox" class="box" data-i="t11"></span>手机屏时</label><label class="tick"><input type="checkbox" class="box" data-i="t12"></span>平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t13"></span>计时器</label><label class="tick"><input type="checkbox" class="box" data-i="t14"></span>家长帮看</label></td><td class="empty"><input class="fill cell" data-f="f9" style="width:100%"></td></tr>
+    <tr><td class="rowhead">周四</td><td class="empty"><input class="fill cell" data-f="f10" style="width:100%"></td><td class="empty"><input class="fill cell" data-f="f11" style="width:100%"></td><td><label class="tick"><input type="checkbox" class="box" data-i="t15"></span>手机屏时</label><label class="tick"><input type="checkbox" class="box" data-i="t16"></span>平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t17"></span>计时器</label><label class="tick"><input type="checkbox" class="box" data-i="t18"></span>家长帮看</label></td><td class="empty"><input class="fill cell" data-f="f12" style="width:100%"></td></tr>
+    <tr><td class="rowhead">周五</td><td class="empty"><input class="fill cell" data-f="f13" style="width:100%"></td><td class="empty"><input class="fill cell" data-f="f14" style="width:100%"></td><td><label class="tick"><input type="checkbox" class="box" data-i="t19"></span>手机屏时</label><label class="tick"><input type="checkbox" class="box" data-i="t20"></span>平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t21"></span>计时器</label><label class="tick"><input type="checkbox" class="box" data-i="t22"></span>家长帮看</label></td><td class="empty"><input class="fill cell" data-f="f15" style="width:100%"></td></tr>
+    <tr><td class="rowhead">周六</td><td class="empty"><input class="fill cell" data-f="f16" style="width:100%"></td><td class="empty"><input class="fill cell" data-f="f17" style="width:100%"></td><td><label class="tick"><input type="checkbox" class="box" data-i="t23"></span>手机屏时</label><label class="tick"><input type="checkbox" class="box" data-i="t24"></span>平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t25"></span>计时器</label><label class="tick"><input type="checkbox" class="box" data-i="t26"></span>家长帮看</label></td><td class="empty"><input class="fill cell" data-f="f18" style="width:100%"></td></tr>
+    <tr><td class="rowhead">周日</td><td class="empty"><input class="fill cell" data-f="f19" style="width:100%"></td><td class="empty"><input class="fill cell" data-f="f20" style="width:100%"></td><td><label class="tick"><input type="checkbox" class="box" data-i="t27"></span>手机屏时</label><label class="tick"><input type="checkbox" class="box" data-i="t28"></span>平板限额</label><label class="tick"><input type="checkbox" class="box" data-i="t29"></span>计时器</label><label class="tick"><input type="checkbox" class="box" data-i="t30"></span>家长帮看</label></td><td class="empty"><input class="fill cell" data-f="f21" style="width:100%"></td></tr>
+  </table>
+  <p class="note">填写提示：「怎么计时」在格子里勾选当天用的工具（手机屏时 / 平板限额 / 计时器 / 家长帮看，可多选）；「备注」可以写家庭电影夜、过生日这类特殊安排。</p>
+  <p class="note">如果上面选的是「不固定」，这张表就空着不用填。</p>
+  <ul class="plain">
+    <li>开新的一局 / 新的一集前，先看剩下的时间够不够；那种退不出来的对局：<input class="fill" data-f="f1" style="min-width:5.1em;width:5.1em" placeholder="　"> 怎么处理</li>
+    <li>允不允许偶尔多玩最多 5 分钟（单选）：
+      <label class="opt radio"><input type="radio" class="box" name="rg5" data-i="r14">允许（啥时候能申请：<input class="fill" data-f="f11" style="min-width:5.1em;width:5.1em" placeholder="　">）</label>
+      <label class="opt radio"><input type="radio" class="box" name="rg5" data-i="r15">不允许</label></li>
+  </ul>
+
+  <h3>四、怎么算时间</h3>
+  <div class="grp"><span class="glabel">计时用啥（多选）：</span><br>
+    <label class="opt"><input type="checkbox" class="box" data-i="12">手机里的「屏幕使用时间」</label>
+    <label class="opt"><input type="checkbox" class="box" data-i="13">平板的限额设置</label>
+    <label class="opt"><input type="checkbox" class="box" data-i="14">厨房 / 手机计时器</label>
+    <label class="opt"><input type="checkbox" class="box" data-i="15">家长帮着看时间</label>
+  </div>
+  <ul class="plain">
+    <li>所有设备上的「玩」加在一起算同一个总时长；到点前提前 10 分钟提醒一次。</li>
+    <li>谁负责开计时、看时间：<input class="fill" data-f="f2" style="min-width:5.1em;width:5.1em" placeholder="　"></li>
+  </ul>
+
+  <h3>五、家长和孩子各自要做的（勾选确认）</h3>
+  <table class="acts">
+    <tr><th style="width:50%">家长要做的事</th><th>孩子要做的事</th></tr>
+    <tr><td>
+      <label class="opt"><input type="checkbox" class="box" data-i="16">到时间提醒、帮忙计时，不因为生气或成绩改规矩、临时加罚<br>
+      <label class="opt"><input type="checkbox" class="box" data-i="17">要改规矩，说清楚为啥、俩人商量、写明白啥时生效<br>
+      <label class="opt"><input type="checkbox" class="box" data-i="18">真有生病 / 急事 / 学校临时安排，调整当天安排，事后说一声、回头一起看</td>
+      <td>
+      <label class="opt"><input type="checkbox" class="box" data-i="19">按说好的时间玩、到点主动放下<br>
+      <label class="opt"><input type="checkbox" class="box" data-i="20">不绕开限额、不偷偷用没让用的设备 / 账号<br>
+      <label class="opt"><input type="checkbox" class="box" data-i="21">真违规了，接受表 C 的处置、参加回头看</td></tr>
+  </table>
+
+  <h3>六、特殊情况 &amp; 怎么改规矩</h3>
+  <ol class="clauses">
+    <li>真生病、家里急事、学校临时要求，当天可以调，事后说清、一起回头看。</li>
+    <li>「特殊情况」不能变成家长随时取消玩的理由。</li>
+    <li>要改规矩：提一下 → 俩人商量 → 写新的一条 + 生效日 → 重新签字。</li>
+    <li>每周回头看的时间：周日晚 <input class="fill" data-f="f3" style="min-width:5.7em;width:5.7em" placeholder="　"></li>
+  </ol>
+
+  <h3>七、违规咋办 &amp; 学习时设备的规矩</h3>
+  <p class="sec">违规只罚「用设备」的行为，分级看表 C。另外说好学习时的规矩：</p>
+  <label class="opt"><input type="checkbox" class="box" data-i="22"><b>学习的时候，说好的设备只用来学习</b>；拿去干别的，按表 C「超出约定用途」处理</label><br>
+  <label class="opt"><input type="checkbox" class="box" data-i="23">如果要装使用记录 / 监督，<b>提前跟孩子说清楚</b>、写进这份约定（不搞偷偷摸摸突然抓）</label><br>
+  <label class="opt"><input type="checkbox" class="box" data-i="24">玩的时间固定、能盼到，不因为学习表现变来变去——这本身就是防「偷偷切屏」最好的办法</label>
+
+  <div class="sign">
+    <p style="font-weight:700;color:var(--deep)">八、双方签字及日期</p>
+    <p class="note">签字，就表示看过也懂上面五条底线，同意勾的这些，知道先试两周再回头看。</p>
+    <div class="row">
+      <div class="item">家长签字：<span class="line"></span>日期：<span class="line" style="width:120px"></span></div>
+      <div class="item">孩子签字：<span class="line"></span>日期：<span class="line" style="width:120px"></span></div>
+    </div>
+  </div>
+
+  <!-- ===== C ===== -->
+  <div class="pgbreak"></div>
+  <h2>C. 违规了怎么处理、啥时候恢复<span class="en">VIOLATION &amp; RECOVERY</span></h2>
+  <p class="sec">下面是常用的分级，<b>勾选确认后生效</b>；可以改级别、改天数，但不能破五条底线。</p>
+  <table>
+    <tr><th style="width:18%">做了啥</th><th style="width:25%">怎么处理</th><th style="width:15%">啥情况算</th><th style="width:11%">天数</th><th style="width:12%">回头看</th><th>啥时恢复</th></tr>
+    <tr><td class="rowhead">偶尔超一点 / 用错了用途</td><td>简单聊一聊，不加罚</td><td>头一回或很少</td><td>—</td><td>当天或第二天</td><td>聊完就恢复</td></tr>
+    <tr><td class="rowhead">一两周内老超时</td><td>加计时器 / 提醒，或提前不让开新局</td><td>一周内≥3次</td><td class="def">1 周<span class="tag2">建议</span></td><td>周末回头看</td><td>守时了就恢复</td></tr>
+    <tr><td class="rowhead">明知故犯、叫不走</td><td>1 周内缩小自己决定的范围</td><td>事先说好</td><td class="def">1 周<span class="tag2">建议</span></td><td>回头看那天</td><td>做到约定就恢复</td></tr>
+    <tr><td class="rowhead">故意绕开限制</td><td>先收回自己管时间的权力，家长帮着计时</td><td>事先说好</td><td class="def">2 周<span class="tag2">建议</span></td><td>回头看那天</td><td>说清恢复条件后恢复</td></tr>
+  </table>
+  <p class="note">天数都写清楚了，没有「直到你自觉为止」这类没期限的话，也不没完没了地扣。</p>
+
+  <!-- ===== D ===== -->
+  <h2>D. 试两周 &amp; 回头看记录<span class="en">TRIAL &amp; REVIEW</span></h2>
+  <p class="sec">建议先试两周；回头看不翻旧账、不骂人，也不把玩的时间重新跟成绩绑一起。</p>
+  <table>
+    <tr><th style="width:11%">周次</th><th style="width:22%">实际做得咋样</th><th style="width:20%">闹了啥矛盾</th><th style="width:15%">家长说</th><th style="width:15%">孩子说</th><th>怎么调</th></tr>
+    <tr><td class="rowhead">第 1 周</td><td style="height:52px"><input class="fill cell" data-f="h1" style="width:100%"></td><td><input class="fill cell" data-f="x1" style="width:100%"></td><td><input class="fill cell" data-f="x2" style="width:100%"></td><td><input class="fill cell" data-f="x3" style="width:100%"></td><td><input class="fill cell" data-f="x4" style="width:100%"></td></tr>
+    <tr><td class="rowhead">第 2 周</td><td style="height:52px"><input class="fill cell" data-f="h2" style="width:100%"></td><td><input class="fill cell" data-f="x5" style="width:100%"></td><td><input class="fill cell" data-f="x6" style="width:100%"></td><td><input class="fill cell" data-f="x7" style="width:100%"></td><td><input class="fill cell" data-f="x8" style="width:100%"></td></tr>
+  </table>
+  <p class="sec" style="margin-top:12px">回头看时间：<input class="fill" data-f="f4" style="min-width:8.6em;width:8.6em" placeholder="　">　地点：<input class="fill" data-f="f5" style="min-width:8.6em;width:8.6em" placeholder="　">　谁主持：<input class="fill" data-f="f6" style="min-width:8.6em;width:8.6em" placeholder="　"></p>
+  <p class="sec">回头看结论（勾选）：</p>
+  <div class="grp">
+    <label class="opt"><input type="checkbox" class="box" data-i="25">照原来的继续用</label><br>
+    <label class="opt"><input type="checkbox" class="box" data-i="26">改一改再试（改要俩人商量、写清生效日，再检查一遍有没有破五条底线）</label><br>
+    <label class="opt"><input type="checkbox" class="box" data-i="27">正式长期用，下次回头看：<input class="fill" data-f="f7" style="min-width:7.9em;width:7.9em" placeholder="　"></label>
+  </div>
+  <div class="sign">
+    <div class="row">
+      <div class="item">家长签字：<span class="line"></span>日期：<span class="line" style="width:120px"></span></div>
+      <div class="item">孩子签字：<span class="line"></span>日期：<span class="line" style="width:120px"></span></div>
+    </div>
+  </div>
+
+  <footer class="doc">家庭一起定的草稿 · 玩的时间是事先说好的，不因为学习表现变来变去 · 改规矩得俩人商量好</footer>
+</div>
+
+<script>
+(function(){
+  var KEY = 'hl.familyAgreement.v1';
+  function load(){
+    try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e){ return {}; }
+  }
+  function save(st){
+    try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e){}
+  }
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('input.box'));
+  var fills = Array.prototype.slice.call(document.querySelectorAll('input.fill'));
+  var st = load();
+
+  // 恢复勾选状态
+  boxes.forEach(function(b){
+    var k = b.getAttribute('data-i');
+    if (st[k]) b.checked = true;
+    b.addEventListener('change', function(){
+      var cur = load();
+      // 单选同组互斥：清掉同组其它 key
+      if (b.type === 'radio'){
+        boxes.forEach(function(x){
+          if (x !== b && x.name === b.name) delete cur[x.getAttribute('data-i')];
+        });
+      }
+      if (b.checked) cur[k] = 1; else delete cur[k];
+      save(cur);
+    });
+  });
+
+  // 恢复填写内容
+  fills.forEach(function(f){
+    var k = f.getAttribute('data-f');
+    if (st[k] != null) f.value = st[k];
+    f.addEventListener('input', function(){
+      var cur = load();
+      if (f.value) cur[k] = f.value; else delete cur[k];
+      save(cur);
+    });
+  });
+
+  document.getElementById('tbPrint').addEventListener('click', function(){ window.print(); });
+
+  // 下载：把勾选/填写固化成属性后序列化，导出的文件仍可继续交互
+  document.getElementById('tbSave').addEventListener('click', function(){
+    var d = document.documentElement.cloneNode(true);
+    Array.prototype.slice.call(d.querySelectorAll('input')).forEach(function(i){
+      if (i.type === 'checkbox' || i.type === 'radio'){
+        if (i.checked) i.setAttribute('checked',''); else i.removeAttribute('checked');
+      } else { i.setAttribute('value', i.value); }
+    });
+    var t = d.querySelector('.toolbar');
+    if (t) t.parentNode.removeChild(t);
+    var html = '<!DOCTYPE html>\n' + new XMLSerializer().serializeToString(d);
+    var blob = new Blob([html], {type:'text/html;charset=utf-8'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '家庭电子产品使用约定.html';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 800);
+  });
+
+  document.getElementById('tbReset').addEventListener('click', function(){
+    if (!confirm('清空本机保存的勾选和填写？打印出来的纸不受影响。')) return;
+    try { localStorage.removeItem(KEY); } catch(e){}
+    boxes.forEach(function(b){ b.checked = false; });
+    fills.forEach(function(f){ f.value = ''; });
+  });
+})();
+</script>
+</body>
+</html>

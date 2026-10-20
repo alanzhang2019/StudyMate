@@ -13,10 +13,26 @@ import ThemeToggle from '@/app/components/ThemeToggle';
 //
 // 注意：本文件因此从 server component 变成 client component（下拉要交互）。
 // 首页是 force-static 的静态页，client component 在里面照常 SSR + 水合，没问题。
-const TOOLS = [
+type Tool = {
+  href: string;
+  label: string;
+  icon: string;
+  /** true ⇒ 用原生 `<a>` 整页走（跨应用或 public 下的静态 HTML，不吃 Next 客户端导航） */
+  external: boolean;
+  /** true ⇒ 真的离开本站（跨域），下拉里给个 ↗ 提示 */
+  offSite?: boolean;
+  /** hover 时显示的完整说明（下拉里放不下全称时用） */
+  full?: string;
+};
+
+const TOOLS: Tool[] = [
   { href: '/textbooks', label: '深圳教材', icon: '📖', external: false },
   { href: '/clipboard', label: '资料共享', icon: '📋', external: false },
-  { href: 'https://aijiangti.cn/wrong-notebook/', label: '智能错题本', icon: '📓', external: true },
+  { href: 'https://aijiangti.cn/wrong-notebook/', label: '智能错题本', icon: '📓', external: true, offSite: true, full: '错题自动归因、同类题变式巩固（独立应用）' },
+  // ★ 静态 HTML（在 public/ 下），不是 Next 路由 ⇒ 用 `<a>` 不用 `<Link>`。
+  //   这份规约是可勾选、可填写、可打印签字的一整页文档，
+  //   勾选与填写会存本机 localStorage（key: hl.familyAgreement.v1）。
+  { href: '/family-agreement.html', label: '家庭设备规约', icon: '📜', external: true, offSite: false, full: '家庭电子产品使用规约 · 可在线勾选填写，再打印签字' },
 ];
 
 function ToolboxMenu() {
@@ -60,14 +76,14 @@ function ToolboxMenu() {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 mt-2 min-w-[180px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg overflow-hidden z-50"
+          className="absolute right-0 mt-2 min-w-[200px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg overflow-hidden z-50"
         >
-          {TOOLS.map(({ href, label, icon, external }) => {
+          {TOOLS.map(({ href, label, icon, external, offSite, full }) => {
             const inner = (
               <>
                 <span aria-hidden="true">{icon}</span>
                 <span className="flex-1">{label}</span>
-                {external && (
+                {offSite && (
                   <span className="text-slate-400 dark:text-slate-500 text-xs" aria-hidden="true">
                     ↗
                   </span>
@@ -81,6 +97,7 @@ function ToolboxMenu() {
                 key={label}
                 role="menuitem"
                 href={href}
+                title={full}
                 className={cls}
                 onClick={() => setOpen(false)}
               >
@@ -91,6 +108,7 @@ function ToolboxMenu() {
                 key={label}
                 role="menuitem"
                 href={href}
+                title={full}
                 className={cls}
                 onClick={() => setOpen(false)}
               >
