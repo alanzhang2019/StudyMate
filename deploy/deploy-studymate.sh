@@ -20,6 +20,35 @@ echo "[studymate] 开始部署  HEAD=$(git rev-parse --short HEAD)  $(git log -1
 echo "[studymate] docker compose build frontend（Next.js 构建，通常几分钟）…"
 docker compose build frontend
 
+# ---------------------------------------------------------------------------
+# 1.5) pdfjs 运行时资产落到宿主机 public（bind mount 遮罩问题的兜底）
+#      prebuild（copy:pdfjs）在【构建期内】把 pdf.min.js / pdf.worker.min.js
+#      生成进镜像的 /app/public；但 compose 把 ./frontend/public bind mount
+#      到 /app/public —— 运行时会【整个遮住】镜像里的 public 目录。
+#      宿主机工作区没有这两个文件（gitignore，且只在容器构建时生成）⇒
+#      线上 /pdf.min.js 404，阅读器报「无法加载 PDF 渲染引擎」。
+#      本地 E2E 抓不到：本机 prebuild 直接把文件生成在宿主 public 里。
+#      这里从刚构建的镜像导出到宿主机，且必须放在 up -d【之前】——
+#      Next standalone 的 public 文件清单是启动时建的，晚于容器启动放入要重启才生效。
+#      （幂等：宿主机已有同 sha256 文件就跳过。）
+# ---------------------------------------------------------------------------
+IMG_REF=studymate-frontend:latest
+docker image inspect "$IMG_REF" >/dev/null 2>&1 || IMG_REF=$(docker compose images -q frontend | head -1)
+for f in pdf.min.js pdf.worker.min.js; do
+    want=$(docker run --rm --entrypoint sha256sum "$IMG_REF" "/app/public/$f" 2>/dev/null | awk '{print $1}')
+    if [ -z "$want" ]; then
+        echo "[studymate] ⚠️ 镜像里没有 /app/public/$f，跳过导出"
+        continue
+    fi
+    have=$(sha256sum "$APP_DIR/frontend/public/$f" 2>/dev/null | awk '{print $1}')
+    if [ "$want" = "$have" ]; then
+        echo "[studymate] $f 宿主机已是最新"
+    else
+        docker run --rm --entrypoint cat "$IMG_REF" "/app/public/$f" > "$APP_DIR/frontend/public/$f"
+        echo "[studymate] $f 已从镜像导出到宿主机 public（sha256=${want:0:12}）"
+    fi
+done
+
 echo "[studymate] docker compose up -d frontend …"
 docker compose up -d frontend
 

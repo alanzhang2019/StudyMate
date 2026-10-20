@@ -5,6 +5,11 @@
  *   NODE_PATH=C:/Users/Administrator/.workbuddy-ai/binaries/node/workspace/node_modules \
  *   node scripts/verify-textbook-reader.cjs [--port 3230] [--slug math-bnu-g7a]
  *
+ * 验线上生产（无需起服务、无需本地夹具）：
+ *   BASE_URL=https://aijiangti.cn \
+ *   NODE_PATH=C:/Users/Administrator/.workbuddy-ai/binaries/node/workspace/node_modules \
+ *   node scripts/verify-textbook-reader.cjs
+ *
  * 前置：
  *   1. dev server 已起（npx next dev --webpack -p 3230）
  *   2. public/textbooks/<slug>.pdf 存在（gitignored，测试夹具）
@@ -62,7 +67,9 @@ const getArg = (name, dflt) => {
 
 const PORT = Number(getArg('port', '3230'));
 const SLUG = getArg('slug', 'math-bnu-g7a');
-const BASE = `http://127.0.0.1:${PORT}`;
+// 默认打本机 dev server；设 BASE_URL=https://aijiangti.cn 可一键验线上生产
+// （prod 不需要本地 PDF 夹具：教材 PDF 由线上 nginx /textbooks/ 直出）
+const BASE = process.env.BASE_URL || `http://127.0.0.1:${PORT}`;
 const EXPECT_PAGES = 209;
 
 let pass = 0;
