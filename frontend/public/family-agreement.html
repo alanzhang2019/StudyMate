@@ -53,6 +53,11 @@
   td.def{background:#fffbeb}
   td.def .tag2{display:inline-block;font-size:10px;color:#b45309;background:#fde68a;
     border-radius:4px;padding:1px 6px;margin-left:6px;font-weight:600}
+  /* 表 C 的级别列：让「第几级」一眼可数，别埋在文字里 */
+  td.lvl{white-space:nowrap;background:#eef4ff;color:#1d4ed8;font-weight:700;font-size:12px;text-align:center}
+  td.lvl .lvl-t{display:inline-block;margin-top:2px;font-size:10.5px;font-weight:600;color:#3b82f6}
+  /* 「升级 / 降级」规则行：整表横跨，用浅底把它和其它四级区分开 */
+  tr.updown td{background:#fffbeb;border-top:2px solid var(--warn-line);font-size:12px}
   ol.clauses{padding-left:20px;margin:6px 0}
   ol.clauses li{margin:6px 0}
   ul.plain{padding-left:20px;margin:6px 0}
@@ -66,7 +71,10 @@
   .extra{margin-top:16px;page-break-inside:avoid;break-inside:avoid}
   .extra-t{font-size:12px;color:var(--muted);margin-bottom:4px}
   .extra-lines span{display:block;height:34px;border-bottom:1px solid var(--line)}
-  .pgbreak{page-break-before:always}
+  /* C/D 两段：不加整体分页保护。整块 969px，若整体 break-inside:avoid
+     会在第 3 页剩余 478px 装不下时把整块一起推到第 4 页，反而更差；
+     只让块内各自的 table 保护自己（见 @media print 里的 table/tr 规则）。 */
+  .cdblock{/* 允许在段间断页 */}
   table.tblB{page-break-inside:avoid}
   table.tblB tr{page-break-inside:avoid}
   table.acts td .opt{display:flex;align-items:flex-start;width:100%;margin:4px 0}
@@ -145,6 +153,9 @@
     .sign .line{width:150px}
     footer.doc{margin-top:12px;padding-top:7px}
     th,td{padding:4px 8px}
+    /* 表 C 是全文最密的一张（6 列、每格 1~3 行文字），单独再收一档 */
+    table.tblC{line-height:1.45}
+    table.tblC th,table.tblC td{padding:3px 7px}
     td.empty{height:24px}
     .fill.cell{height:22px}
     .tick{margin:1px 6px 1px 0}
@@ -159,6 +170,11 @@
     th{white-space:normal}
     th,td{padding:5px 6px;font-size:11.5px}
     table{font-size:11.5px}
+    /* 表 C 是 6 列，自动布局按每列「最小内容宽」撑开：即使放开 th 换行，
+       表格仍按内容撑到 376px > 容器 354px（视口 390 − .page 左右各 18px）。
+       窄屏必须开 fixed，让 6 列按百分比压进容器；再配 word-break 兜住长词。 */
+    table.tblC{table-layout:fixed;width:100%}
+    table.tblC th,table.tblC td{word-break:break-word;overflow-wrap:anywhere}
   }
 </style>
 </head>
@@ -315,35 +331,27 @@
     </div>
   </div>
 
-  <!-- 第 3 页末尾的手写补充区：A 段内容到签字栏为止只占本页约 2/3，
-       留白不利用等于浪费一页纸，给家庭留几行自己加条款的地方。
-       （注：4 页是靠下面 .pgbreak 让 C/D 段另起一页达成的，
-        本区不是页数保证 —— 删掉它仍是 4 页，只是第 3 页留白变空。） -->
-  <div class="extra">
-    <p class="extra-t">补充约定（上面没写到、但这家要加的，写这儿）</p>
-    <div class="extra-lines"><span></span><span></span><span></span><span></span><span></span><span></span></div>
-  </div>
-
   <!-- ===== C ===== -->
-  <div class="pgbreak"></div>
+  <div class="cdblock">
   <h2>C. 违规了怎么处理、啥时候恢复<span class="en">VIOLATION &amp; RECOVERY</span></h2>
-  <p class="sec">下面是常用的分级，<b>勾选确认后生效</b>；可以改级别、改天数，但不能破五条底线。</p>
-  <table>
-    <tr><th style="width:18%">做了啥</th><th style="width:25%">怎么处理</th><th style="width:15%">啥情况算</th><th style="width:11%">天数</th><th style="width:12%">回头看</th><th>啥时恢复</th></tr>
-    <tr><td class="rowhead">偶尔超一点 / 用错了用途</td><td>简单聊一聊，不加罚</td><td>头一回或很少</td><td>—</td><td>当天或第二天</td><td>聊完就恢复</td></tr>
-    <tr><td class="rowhead">一两周内老超时</td><td>加计时器 / 提醒，或提前不让开新局</td><td>一周内≥3次</td><td class="def">1 周<span class="tag2">建议</span></td><td>周末回头看</td><td>守时了就恢复</td></tr>
-    <tr><td class="rowhead">明知故犯、叫不走</td><td>1 周内缩小自己决定的范围</td><td>事先说好</td><td class="def">1 周<span class="tag2">建议</span></td><td>回头看那天</td><td>做到约定就恢复</td></tr>
-    <tr><td class="rowhead">故意绕开限制</td><td>先收回自己管时间的权力，家长帮着计时</td><td>事先说好</td><td class="def">2 周<span class="tag2">建议</span></td><td>回头看那天</td><td>说清恢复条件后恢复</td></tr>
+  <p class="sec">按<b>发生次数</b>对号入座，不是按大人当时有多生气。先查左边「啥情况算」（数得出来的才算），再看右边怎么处理。<b>勾选确认后生效</b>；可以改级别、改天数，但不能破五条底线。</p>
+  <table class="tblC">
+    <tr><th style="width:7%">级别</th><th style="width:15%">做了啥</th><th style="width:17%">啥情况算（数得出来）</th><th style="width:38%">怎么处理（具体到谁做啥）</th><th style="width:9%">天数</th><th>啥时恢复到原级</th></tr>
+    <tr><td class="rowhead lvl">1 级<br><span class="lvl-t">提醒</span></td><td class="rowhead">偶尔超一点 / 用错了用途</td><td><b>2 周内 ≤2 次</b>，或者头一回</td><td>当场只做一件事：<b>说出还剩多少分钟</b>，到点提醒一次。不加罚、不翻旧账、不连着说三遍</td><td>不加罚</td><td>当时就恢复，这次不记账</td></tr>
+    <tr><td class="rowhead lvl">2 级<br><span class="lvl-t">加提醒</span></td><td class="rowhead">一两周内老超时</td><td><b>1 周内 ≥3 次</b>，或 2 级观察期内再犯 1 次</td><td>① 装计时器并<b>摆在孩子看得见的地方</b>；② 到点前 5 分钟响一次；③ 上一局没结束<b>不许开新局</b>（写进设备设置，不靠嘴说）</td><td class="def">1 周<span class="tag2">建议</span></td><td>连续 7 天没有超时 ⇒ 撤掉计时器，回 1 级</td></tr>
+    <tr><td class="rowhead lvl">3 级<br><span class="lvl-t">收缩权限</span></td><td class="rowhead">明知故犯、叫不走</td><td><b>2 级期间又超 2 次</b>；或提醒过「还剩几分钟」仍不结束（叫不走，有时点可对）</td><td>① 时段权力<b>收回「家长确认后开机」</b>；② 玩前先说这局多久、几点结束；③ 到点家长直接关，<b>不吵不骂不多说</b></td><td class="def">1 周<span class="tag2">建议</span></td><td>满 1 周且<b>0 次超时</b> ⇒ 回 2 级再观察 1 周</td></tr>
+    <tr><td class="rowhead lvl">4 级<br><span class="lvl-t">代管时间</span></td><td class="rowhead">故意绕开限制</td><td>任一条：<b>① 换账号 / 小号；② 改设备时间或关限额；③ 用别人手机接着玩；④ 答应了偷着玩且不承认</b></td><td>① <b>立刻收回「自己管时间」</b>，玩的时间家长当场开关；② 只保留约定娱乐时段，其余设备放公共区；③ <b>把怎么绕的写下来</b>，防下一次</td><td class="def">2 周<span class="tag2">建议</span></td><td>满 2 周且<b>无新的绕开</b> ⇒ 回 3 级，再按 3→2→1 逐级恢复，<b>不许跳回 1 级</b></td></tr>
+    <tr class="updown"><td class="rowhead lvl">升级<br><span class="lvl-t">规则</span></td><td colspan="5"><b>升级</b>：同级在<b>观察期内又犯 2 次</b>，自动升一级，不用重新商量、也不用等到「再犯大的」。<b>降级</b>：观察期满且<b>0 次</b>违规才降一级；降级后先观察 1 周（4→3 观察 2 周）。<b>一次只动一级</b>，跳级要两人当场都同意、写在下面。</td></tr>
   </table>
-  <p class="note">天数都写清楚了，没有「直到你自觉为止」这类没期限的话，也不没完没了地扣。</p>
+  <p class="note">天数都写清楚了，没有「直到你自觉为止」这类没期限的话，也不没完没了地扣。<b>同一次行为只算一次</b>，不叠加；表里没写到的情形，先按 1 级处理，商量后再补进这张表。</p>
 
   <!-- ===== D ===== -->
   <h2>D. 试两周 &amp; 回头看记录<span class="en">TRIAL &amp; REVIEW</span></h2>
   <p class="sec">建议先试两周；回头看不翻旧账、不骂人，也不把玩的时间重新跟成绩绑一起。</p>
   <table>
     <tr><th style="width:11%">周次</th><th style="width:22%">实际做得咋样</th><th style="width:20%">闹了啥矛盾</th><th style="width:15%">家长说</th><th style="width:15%">孩子说</th><th>怎么调</th></tr>
-    <tr><td class="rowhead">第 1 周</td><td style="height:52px"><input class="fill cell" data-f="h1" style="width:100%"></td><td><input class="fill cell" data-f="x1" style="width:100%"></td><td><input class="fill cell" data-f="x2" style="width:100%"></td><td><input class="fill cell" data-f="x3" style="width:100%"></td><td><input class="fill cell" data-f="x4" style="width:100%"></td></tr>
-    <tr><td class="rowhead">第 2 周</td><td style="height:52px"><input class="fill cell" data-f="h2" style="width:100%"></td><td><input class="fill cell" data-f="x5" style="width:100%"></td><td><input class="fill cell" data-f="x6" style="width:100%"></td><td><input class="fill cell" data-f="x7" style="width:100%"></td><td><input class="fill cell" data-f="x8" style="width:100%"></td></tr>
+    <tr><td class="rowhead">第 1 周</td><td style="height:36px"><input class="fill cell" data-f="h1" style="width:100%"></td><td><input class="fill cell" data-f="x1" style="width:100%"></td><td><input class="fill cell" data-f="x2" style="width:100%"></td><td><input class="fill cell" data-f="x3" style="width:100%"></td><td><input class="fill cell" data-f="x4" style="width:100%"></td></tr>
+    <tr><td class="rowhead">第 2 周</td><td style="height:36px"><input class="fill cell" data-f="h2" style="width:100%"></td><td><input class="fill cell" data-f="x5" style="width:100%"></td><td><input class="fill cell" data-f="x6" style="width:100%"></td><td><input class="fill cell" data-f="x7" style="width:100%"></td><td><input class="fill cell" data-f="x8" style="width:100%"></td></tr>
   </table>
   <p class="sec" style="margin-top:12px">回头看时间：<input class="fill" data-f="f4" style="min-width:8.6em;width:8.6em" placeholder="　">　地点：<input class="fill" data-f="f5" style="min-width:8.6em;width:8.6em" placeholder="　">　谁主持：<input class="fill" data-f="f6" style="min-width:8.6em;width:8.6em" placeholder="　"></p>
   <p class="sec">回头看结论（勾选）：</p>
@@ -357,6 +365,20 @@
       <div class="item">家长签字：<span class="line"></span>日期：<span class="line" style="width:120px"></span></div>
       <div class="item">孩子签字：<span class="line"></span>日期：<span class="line" style="width:120px"></span></div>
     </div>
+  </div>
+
+  </div><!-- /.cdblock -->
+  <!-- 手写补充区：放在 C/D 两段之后，落在第 4 页。
+       位置是量出来的，不是随手放的：
+         · 原本它在第 3 页 C 段之前（当时靠 .pgbreak 强制 C 段换页）。
+         · 表 C 加了「级别列 + 可数判据 + 升级规则」后整段高 969px，
+           而第 3 页只剩 478px 装不下 ⇒ 标题留在第 3 页、表格被推到第 4 页，
+           标题和表被劈开（坏排版）。
+         · 把它挪到末尾后第 3 页腾出 227px，C 段整块回到第 3 页，
+           第 4 页 = D 段 + 本区 + 页脚，正好铺满，表格不再被劈。 -->
+  <div class="extra">
+    <p class="extra-t">补充约定（上面没写到、但这家要加的，写这儿）</p>
+    <div class="extra-lines"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
   </div>
 
   <footer class="doc">家庭一起定的草稿 · 玩的时间是事先说好的，不因为学习表现变来变去 · 改规矩得俩人商量好</footer>
