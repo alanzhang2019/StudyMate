@@ -30,17 +30,18 @@ export default function ThemeToggle() {
 
   return (
     <div className="relative" ref={ref}>
+      {/* ★ 只留图标、不带文字：窄屏导航上每一颗按钮都省一个字宽，
+          而且"跟随系统"这种状态说明属于 title/aria-label，不属于视觉主体。 */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="px-3 py-1.5 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-800/70 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center gap-1.5"
-        title="切换主题"
-        aria-label="切换主题"
+        className="p-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-800/70 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center justify-center"
+        title={`主题：${theme === 'system' ? '跟随系统' : theme === 'dark' ? '深色' : '浅色'}`}
+        aria-label={`切换主题（当前：${theme === 'system' ? '跟随系统' : theme === 'dark' ? '深色' : '浅色'}）`}
+        aria-expanded={open}
+        aria-haspopup="menu"
       >
         <Current className="w-4 h-4" />
-        <span className="hidden sm:inline">
-          {theme === 'system' ? '跟随系统' : theme === 'dark' ? '深色' : '浅色'}
-        </span>
       </button>
       {open && (
         <div className="absolute right-0 mt-2 min-w-[140px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg overflow-hidden z-50">

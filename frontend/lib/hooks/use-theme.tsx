@@ -13,6 +13,10 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  // ★ 产品决策（用户 2026-10-20 拍板）：默认就是跟随系统。
+  //   别改成 'light' —— 那会让所有没主动选过主题的学生强制走浅色。
+  //   layout.tsx 里的那段内联脚本（防止首屏闪白）也是同一套口径：
+  //   localStorage 没有值时按 prefers-color-scheme 决定，两边必须一致。
   const [theme, setThemeState] = useState<Theme>('system');
   const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>('light');
 
