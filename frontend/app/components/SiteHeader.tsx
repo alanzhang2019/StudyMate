@@ -26,6 +26,11 @@ type Tool = {
 };
 
 const TOOLS: Tool[] = [
+  // ★ 拍照讲题是本站原生功能（/mistake，OpenCV 检测题目区域 + 语音输入），
+  //   放工具箱第一位：上次首页改版后它的入口只剩"选完档案自动跳转"和测评结果页，
+  //   从首页再也点不到了。它和首页 Hero 的「AI 自学」（/ai/，hl-platform）是两套东西，
+  //   别混：/mistake 讲一道题，/ai/ 是自学闭环。
+  { href: '/mistake', label: '拍照讲题', icon: '📷', external: false, full: '作业不会做，拍一下马上讲明白 —— 不只给答案，一步一步讲清楚这题该怎么想' },
   { href: '/textbooks', label: '深圳教材', icon: '📖', external: false },
   { href: '/clipboard', label: '资料共享', icon: '📋', external: false },
   { href: 'https://aijiangti.cn/wrong-notebook/', label: '智能错题本', icon: '📓', external: true, offSite: true, full: '错题自动归因、同类题变式巩固（独立应用）' },
