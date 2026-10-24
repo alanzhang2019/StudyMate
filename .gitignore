@@ -54,3 +54,42 @@ _next_static_archive/
 /frontend/public/textbooks/
 /_tb-reader.png
 /frontend/_tb-reader.png
+
+# === C 收尾：hl 副本与本地杂物（2026-10-24 归类） ===
+# hl-platform 源码/测试套件副本混入本仓工作树，绝不入库
+/server/
+/hl-platform/
+/hl-platform-开工方案-2026-10-12.md
+/_b161check_ref.cjs
+/_b164/
+/_b167/
+/_b167-base/
+/_b189*/
+/_b190*/
+/_patch189*/
+/_patch190*/
+/_reg189*/
+/_reg190*/
+/_probe*/
+/_clean_dup0068.cjs
+/_verify_dup.cjs
+/_srv/
+/_sm-work/
+/_db-migrate-test/
+/_diffreg.cjs
+/_fix189a8desc.cjs
+.diffreg.cjs
+.fix189a8desc.cjs
+/.workbuddy/
+# 方案/原型草稿 HTML（非源码）
+/GESP6-*.html
+/GESP8-*.html
+/infra-purchase-checklist.html
+/platform-architecture-proposal.html
+/smartyouth-live-teardown.html
+/solo-build-checklist.html
+/think-panel-preview.html
+/think-panel-preview.css
+/server-capacity-assessment.html
+# 本次对齐文档（可不留存）
+/progress-align-2026-10-24.md
