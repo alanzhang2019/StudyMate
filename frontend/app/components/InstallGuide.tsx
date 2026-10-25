@@ -171,15 +171,7 @@ export function InstallGuideView({ initialTab = 'ios' }: { initialTab?: TabKey }
         将网页版变成手机APP
       </h2>
 
-      <div className="mt-8 flex flex-col items-center">
-        <div className="h-24 w-24 overflow-hidden rounded-[22px] bg-white dark:bg-slate-800 shadow-[0_12px_32px_rgba(30,41,59,0.20)] ring-1 ring-slate-900/5 dark:ring-white/10">
-          {/* 站点自己的图标（public/logo.svg），保证「装出来的东西」和「图标」是同一个 */}
-          <img src="/logo.svg" alt="爱讲题" width={96} height={96} className="h-full w-full" />
-        </div>
-        <div className="mt-3 text-sm text-slate-500 dark:text-slate-400">爱讲题</div>
-      </div>
-
-      <p className="mt-6 text-center text-base sm:text-lg text-slate-600 dark:text-slate-300 transition-colors">
+      <p className="mt-8 text-center text-base sm:text-lg text-slate-600 dark:text-slate-300 transition-colors">
         装好后，它就像一个 App：全屏打开，一步进课堂。
       </p>
 
