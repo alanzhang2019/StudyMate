@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 
 /**
- * 「把云端版装进手机桌面」导引。
+ * 「将网页版变成手机APP」导引。
  *
  * ## 为什么要它
  * 爱讲题是**云端版**（HTTPS + 浏览器打开），学生每次用都要先开浏览器、输网址。
@@ -168,7 +168,7 @@ export function InstallGuideView({ initialTab = 'ios' }: { initialTab?: TabKey }
   return (
     <section id="install" className="max-w-3xl mx-auto px-6 pb-20 scroll-mt-20">
       <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50 text-center transition-colors">
-        把云端版装进手机桌面
+        将网页版变成手机APP
       </h2>
 
       <div className="mt-8 flex flex-col items-center">
