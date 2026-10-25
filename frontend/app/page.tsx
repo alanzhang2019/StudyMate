@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import SiteHeader from '@/app/components/SiteHeader';
+import InstallGuide from '@/app/components/InstallGuide';
 
 export const dynamic = 'force-static';
 export const revalidate = 3600;
@@ -77,6 +78,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* 将网页版变成手机APP */}
+      <InstallGuide />
 
       {/* Footer */}
       <footer className="border-t border-slate-200/70 bg-white/60 backdrop-blur dark:border-slate-700/60 dark:bg-slate-900/40 transition-colors">
