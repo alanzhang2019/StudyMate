@@ -6,13 +6,11 @@ import { ChevronDown, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ThemeToggle from '@/app/components/ThemeToggle';
 
-// 顶部导航只保留三项：AI 原生教育 / 信息学奥赛 / 工具箱。
-// 原来导航上有 6 个按钮（含深圳教材、资料共享、智能错题本、AI 自学），
-// 窄屏会 flex-wrap 挤成两排、把 Hero 顶下去。现在把工具类入口统一收进
-// 工具箱下拉，「AI 自学」不再单列 —— 首页本身就是 AI 自学页。
-//
-// 注意：本文件因此从 server component 变成 client component（下拉要交互）。
-// 首页是 force-static 的静态页，client component 在里面照常 SSR + 水合，没问题。
+// 顶部导航：AI 自学平台 / AI 原生教育 / 百宝箱▾（+「开始自学」按钮）。
+// 品牌层级（2026-10-26 定稿）：爱讲题 = 主品牌；后浪奔涌 = AI 自学平台子品牌；
+// 少年 AI 创造营 = AI 原生教育产品名；百宝箱 = 工具集合入口。
+// 信奥、深圳教材、云剪切板等零散工具统一收进「百宝箱」下拉。
+
 type Tool = {
   href: string;
   label: string;
@@ -27,13 +25,12 @@ type Tool = {
 
 const TOOLS: Tool[] = [
   // ★ 拍照讲题是本站原生功能（/mistake，OpenCV 检测题目区域 + 语音输入），
-  //   放工具箱第一位：上次首页改版后它的入口只剩"选完档案自动跳转"和测评结果页，
-  //   从首页再也点不到了。它和首页 Hero 的「AI 自学」（/ai/，hl-platform）是两套东西，
+  //   放百宝箱第一位。它和首页 Hero 的「AI 自学」（/ai/，hl-platform）是两套东西，
   //   别混：/mistake 讲一道题，/ai/ 是自学闭环。
   { href: '/mistake', label: '拍照讲题', icon: '📷', external: false, full: '作业不会做，拍一下马上讲明白 —— 不只给答案，一步一步讲清楚这题该怎么想' },
   { href: '/textbooks', label: '深圳教材', icon: '📖', external: false },
-  { href: '/clipboard', label: '资料共享', icon: '📋', external: false },
-  { href: 'https://aijiangti.cn/wrong-notebook/', label: '智能错题本', icon: '📓', external: true, offSite: true, full: '错题自动归因、同类题变式巩固（独立应用）' },
+  // 2026-10-26：资料共享 → 云剪切板（用户定名）。
+  { href: '/clipboard', label: '云剪切板', icon: '📋', external: false },
   // ★ 静态 HTML（在 public/ 下），不是 Next 路由 ⇒ 用 `<a>` 不用 `<Link>`。
   //   这份规约是可勾选、可填写、可打印签字的一整页文档，
   //   勾选与填写会存本机 localStorage（key: hl.familyAgreement.v1）。
@@ -72,7 +69,7 @@ function ToolboxMenu() {
         className="gap-1"
       >
         <Wrench className="w-4 h-4" aria-hidden="true" />
-        工具箱
+        百宝箱
         <ChevronDown
           className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`}
           aria-hidden="true"
@@ -133,22 +130,27 @@ export default function SiteHeader() {
   return (
     <nav className="max-w-6xl mx-auto flex items-center justify-between px-6 py-5">
       <Link href="/" className="flex items-center gap-2">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold">
-          爱
-        </div>
-        <span className="text-lg font-bold text-slate-800 dark:text-slate-100">
+        <img
+          src="/assets/homepage/logo.png"
+          alt="爱讲题 logo"
+          className="h-9 w-auto"
+        />
+        <span className="text-lg font-bold text-[#0F1E3D] dark:text-slate-100">
           爱讲题
         </span>
       </Link>
       <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
         <ThemeToggle />
         <Button asChild size="sm" variant="outline">
-          <Link href="/camp">🚀 AI 原生教育</Link>
+          <a href="/ai/">AI 自学平台</a>
         </Button>
         <Button asChild size="sm" variant="outline">
-          <Link href="/csp-lecture">📚 信息学奥赛</Link>
+          <Link href="/camp">AI 原生教育</Link>
         </Button>
         <ToolboxMenu />
+        <Button asChild size="sm" className="bg-[#2B5CFF] hover:bg-[#1f4ae0] text-white">
+          <a href="/ai/">开始自学</a>
+        </Button>
       </div>
     </nav>
   );
