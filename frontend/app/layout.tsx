@@ -75,6 +75,13 @@ export const metadata: Metadata = {
     title: '爱讲题',
     statusBarStyle: 'default',
   },
+  // ★ Next 16 的 `appleWebApp.capable` 只会输出 `mobile-web-app-capable`（无 apple- 前缀），
+  //   而 iOS Safari 认的是 `apple-mobile-web-app-capable` ⇒ iOS 16.3 及更早会开成带地址栏的网页。
+  //   iOS 16.4+ 走 manifest 的 display:standalone，但老设备仍要靠这个 meta，
+  //   所以用 `other` 补一条精确的 apple- 前缀版本。
+  other: {
+    'apple-mobile-web-app-capable': 'yes',
+  },
   robots: {
     index: true,
     follow: true,
