@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 /**
  * 「把云端版装进手机桌面」导引。
@@ -16,11 +16,16 @@ import { useEffect, useState } from 'react';
  * - 安卓：Chrome ⋮ 菜单里是「安装应用」（站点带 manifest 且满足条件时），
  *   部分国产浏览器叫「添加到主屏幕」。两者都写了，避免用户在别的浏览器里找不到。
  *
- * ## 交互细节
- * - 首次渲染固定 iOS（SSR 与 client 一致，避免 hydration mismatch），
- *   挂载后再按 UA 切到安卓 —— 切换发生在 hydration 之后，不会报错。
- * - `InstallGuideView` 是纯展示（tab 由外部给），本地静态预览与截图都靠它；
- *   `InstallGuide` 才是带状态的外壳。
+ * ## ★ 为什么切换用 radio + 纯 CSS，而不是 React state
+ * 实测（真 Chromium，线上页面）：**hydration 完成前的点击会被整个丢掉** ——
+ * 连点 3 轮都点不动（React 的事件重放在这种「组件尚未接管」的子树上不生效）。
+ * 学生常在页面刚出现、还没 hydrate 完就伸手点 Tab，那一下没反应 = 导引失灵。
+ * 所以把切换交给浏览器原生 radio + CSS 兄弟选择器：
+ *   · 零 JS 依赖 ⇒ 点 Tab 立刻生效，hydration 前后一样；禁用 JS 也能切。
+ *   · radio 组自带无障碍语义（读屏会念「单选按钮，已选中」）。
+ *   · JS 只剩一件事：按 UA 预选安卓（改一个 checked 属性）。
+ * CSS 机制：radio 是 card 的直接子元素，label / 步骤面板用
+ * `peer-[#install-tab-xxx:checked]:*` 变体命中（Tailwind 的 peer 是 `~ *` 通用兄弟）。
  */
 
 type TabKey = 'ios' | 'android';
@@ -135,14 +140,30 @@ function ChipView({ chip }: { chip: Chip }) {
   return <span className={cls + (chip.mono ? ' font-mono' : '')}>{chip.text}</span>;
 }
 
-export function InstallGuideView({
-  tab,
-  onSelect,
-}: {
-  tab: TabKey;
-  onSelect?: (t: TabKey) => void;
-}) {
-  const steps = GUIDES[tab];
+function Steps({ tab }: { tab: TabKey }) {
+  return (
+    <ol className="space-y-5 px-5 py-6 sm:px-8 sm:py-7">
+      {GUIDES[tab].map((s, i) => (
+        <li key={tab + i} className="flex items-start gap-3 text-slate-700 dark:text-slate-200">
+          <span
+            aria-hidden="true"
+            className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-slate-300 dark:border-slate-500 font-serif italic text-[13px] leading-none text-slate-500 dark:text-slate-400"
+          >
+            {i + 1}
+          </span>
+          <span className="flex flex-wrap items-center gap-x-3 gap-y-2 text-base sm:text-[17px] leading-relaxed">
+            <span>{s.text}</span>
+            <ChipView chip={s.chip} />
+          </span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+export function InstallGuideView({ initialTab = 'ios' }: { initialTab?: TabKey }) {
+  const tabCls =
+    'cursor-pointer select-none border-b-2 border-slate-200/80 px-4 py-4 text-center text-base text-slate-500 transition-colors hover:text-slate-800 dark:border-slate-700/70 dark:text-slate-400 dark:hover:text-slate-200';
 
   return (
     <section id="install" className="max-w-3xl mx-auto px-6 pb-20 scroll-mt-20">
@@ -162,57 +183,54 @@ export function InstallGuideView({
         装好后，它就像一个 App：全屏打开，一步进课堂。
       </p>
 
-      <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200/80 bg-white/80 backdrop-blur shadow-sm dark:border-slate-700/70 dark:bg-slate-800/50 transition-colors">
-        <div className="grid grid-cols-2 border-b border-slate-200/80 dark:border-slate-700/70">
-          {TABS.map((t) => {
-            const active = tab === t.key;
-            return (
-              <button
-                key={t.key}
-                type="button"
-                onClick={onSelect ? () => onSelect(t.key) : undefined}
-                aria-pressed={active}
-                className={
-                  '-mb-px border-b-2 px-4 py-4 text-base transition-colors ' +
-                  (active
-                    ? 'border-slate-900 dark:border-slate-100 font-semibold text-slate-900 dark:text-slate-50'
-                    : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200')
-                }
-              >
-                {t.label}
-              </button>
-            );
-          })}
-        </div>
+      {/* ★ card 是 grid：两个 radio 是它的直接子元素，label / 面板靠 globals.css 里
+          `.install-guide:has(> input[value=…]:checked)` 跟随选中态 ⇒ 切换零 JS 依赖。
+          radio 用 sr-only（绝对定位）不占格位，所以两个 label 正好占满两列。 */}
+      <div className="install-guide relative mt-8 grid grid-cols-2 overflow-hidden rounded-2xl border border-slate-200/80 bg-white/80 backdrop-blur shadow-sm dark:border-slate-700/70 dark:bg-slate-800/50 transition-colors">
+        <input
+          type="radio"
+          name="install-tab"
+          id="install-tab-ios"
+          value="ios"
+          className="sr-only"
+          defaultChecked={initialTab === 'ios'}
+        />
+        <input
+          type="radio"
+          name="install-tab"
+          id="install-tab-android"
+          value="android"
+          className="sr-only"
+          defaultChecked={initialTab === 'android'}
+        />
 
-        <ol className="space-y-5 px-5 py-6 sm:px-8 sm:py-7">
-          {steps.map((s, i) => (
-            <li key={tab + i} className="flex items-start gap-3 text-slate-700 dark:text-slate-200">
-              <span
-                aria-hidden="true"
-                className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-slate-300 dark:border-slate-500 font-serif italic text-[13px] leading-none text-slate-500 dark:text-slate-400"
-              >
-                {i + 1}
-              </span>
-              <span className="flex flex-wrap items-center gap-x-3 gap-y-2 text-base sm:text-[17px] leading-relaxed">
-                <span>{s.text}</span>
-                <ChipView chip={s.chip} />
-              </span>
-            </li>
-          ))}
-        </ol>
+        <label htmlFor="install-tab-ios" data-tab="ios" className={tabCls}>
+          {TABS[0].label}
+        </label>
+        <label htmlFor="install-tab-android" data-tab="android" className={tabCls}>
+          {TABS[1].label}
+        </label>
+
+        <div data-panel="ios" className="col-span-2">
+          <Steps tab="ios" />
+        </div>
+        <div data-panel="android" className="col-span-2">
+          <Steps tab="android" />
+        </div>
       </div>
     </section>
   );
 }
 
 export default function InstallGuide() {
-  const [tab, setTab] = useState<TabKey>('ios');
-
-  // 挂载后再按 UA 预选：SSR 阶段必须与首帧一致，否则 hydration 会报 mismatch。
+  // 唯一的 JS 职责：按 UA 预选安卓（改一个 checked 属性，CSS 立刻跟着切）。
+  // 首屏默认 iOS（SSR 与首帧一致，避免 hydration mismatch）；iOS 16.4+ 走 manifest，
+  // 这条只是让安卓用户一进来就看到自己那套步骤。
   useEffect(() => {
-    if (/Android/i.test(navigator.userAgent)) setTab('android');
+    if (!/Android/i.test(navigator.userAgent)) return;
+    const el = document.getElementById('install-tab-android') as HTMLInputElement | null;
+    if (el) el.checked = true;
   }, []);
 
-  return <InstallGuideView tab={tab} onSelect={setTab} />;
+  return <InstallGuideView />;
 }

@@ -279,3 +279,30 @@
     transform: scale(1.08);
   }
 }
+
+/* ---- 首页「装到手机桌面」导引：平台切换用 radio + 纯 CSS ----
+   ★ 为什么不用 React state：实测（真 Chromium 打线上页面）**hydration 完成前的点击
+     会被整个丢掉** —— 连点 3 轮都点不动（React 的事件重放在「组件还没接管」的
+     子树上不生效）。学生常在页面刚出现、还没 hydrate 完就伸手点 Tab，
+     那一下没反应 = 导引失灵。
+   ⇒ 切换交给浏览器原生 radio + :has()，零 JS 依赖：hydration 前后一样，禁用 JS 也能切。
+   作用范围是 .install-guide 这张卡片自己（:has 只看它内部的 radio）。
+   选中态的样式也写在这里（未分层的 CSS 优先级高于 Tailwind 工具类，能压住基础样式）。 */
+.install-guide:has(> input[value='ios']:checked) label[data-tab='ios'],
+.install-guide:has(> input[value='android']:checked) label[data-tab='android'] {
+  border-bottom-color: var(--color-slate-900);
+  color: var(--color-slate-900);
+  font-weight: 600;
+}
+
+.dark .install-guide:has(> input[value='ios']:checked) label[data-tab='ios'],
+.dark .install-guide:has(> input[value='android']:checked) label[data-tab='android'] {
+  border-bottom-color: var(--color-slate-100);
+  color: var(--color-slate-50);
+}
+
+/* 没选中的一侧整块藏起来（不用 hidden 类：display:block 需要留给选中的一侧） */
+.install-guide:has(> input[value='ios']:checked) [data-panel='android'],
+.install-guide:has(> input[value='android']:checked) [data-panel='ios'] {
+  display: none;
+}
