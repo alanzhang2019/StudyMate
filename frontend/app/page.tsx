@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import SiteHeader from '@/app/components/SiteHeader';
+import InstallGuide from '@/app/components/InstallGuide';
 
 export const dynamic = 'force-static';
 export const revalidate = 3600;
@@ -169,6 +170,9 @@ export default function LandingPage() {
           })}
         </div>
       </section>
+
+      {/* 装到手机桌面：把云端版变成「一个 App」—— 步骤写在首页，学生不用自己摸索 */}
+      <InstallGuide />
 
       {/* Final CTA */}
       <section className="max-w-4xl mx-auto px-6 pb-20">

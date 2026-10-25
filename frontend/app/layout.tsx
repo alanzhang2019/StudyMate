@@ -69,6 +69,12 @@ export const metadata: Metadata = {
       '爱讲题把 AI 自学、信息学奥赛、深圳教材、资料共享与智能错题本收进同一个入口：拍一道题或打一句话，AI 从思路讲到步骤，学完接着做同类题与单元测评。',
     images: ['/og-cover.png'],
   },
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    title: '爱讲题',
+    statusBarStyle: 'default',
+  },
   robots: {
     index: true,
     follow: true,
@@ -77,7 +83,7 @@ export const metadata: Metadata = {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
     ],
-    apple: '/logo.svg',
+    apple: '/apple-icon.png',
   },
 };
 
