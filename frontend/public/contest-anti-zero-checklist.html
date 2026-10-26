@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>【科创家信奥编程】复赛防爆零自查表</title>
+<style>
+  :root{
+    --blue:#2563EB;
+    --blue-dark:#0F172A;
+    --blue-deep:#1E3A8A;
+    --blue-light:#EFF6FF;
+    --blue-border:#BFDBFE;
+    --red:#DC2626;
+    --red-light:#FEF2F2;
+    --amber:#D97706;
+    --amber-bg:#FFFBEB;
+    --amber-border:#FCD34D;
+    --gray:#64748B;
+    --gray-light:#94A3B8;
+    --bg:#F1F5F9;
+    --card:#FFFFFF;
+    --border:#E2E8F0;
+    --green:#059669;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:var(--bg);
+    color:var(--blue-dark);
+    line-height:1.7;
+    font-size:16px;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:0 16px 64px;}
+
+  /* ===== 头部 ===== */
+  .hero{
+    background:linear-gradient(135deg,#0F172A 0%,#1E3A8A 60%,#2563EB 100%);
+    color:#fff;
+    padding:44px 16px 56px;
+    text-align:center;
+  }
+  .hero .brand{
+    display:inline-block;
+    font-size:13px;
+    letter-spacing:2px;
+    padding:4px 14px;
+    border:1px solid rgba(255,255,255,.35);
+    border-radius:999px;
+    margin-bottom:16px;
+    opacity:.9;
+  }
+  .hero h1{font-size:30px;font-weight:800;letter-spacing:1px;margin-bottom:10px;}
+  .hero .sub{font-size:14px;opacity:.85;max-width:560px;margin:0 auto 14px;}
+  .hero .meta{font-size:13px;opacity:.75;}
+  .hero .meta b{color:#93C5FD;font-weight:600;}
+
+  /* ===== 进度条 ===== */
+  .progress-wrap{
+    position:sticky;top:0;z-index:50;
+    background:rgba(255,255,255,.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--border);
+    padding:10px 16px;
+    display:flex;align-items:center;gap:12px;
+  }
+  .progress-bar{flex:1;height:8px;background:#E2E8F0;border-radius:999px;overflow:hidden;}
+  .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#2563EB,#60A5FA);border-radius:999px;transition:width .35s ease;}
+  .progress-text{font-size:13px;color:var(--gray);white-space:nowrap;font-variant-numeric:tabular-nums;}
+
+  /* ===== 卡片通用 ===== */
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:22px 20px;
+    margin-top:20px;
+    box-shadow:0 1px 3px rgba(15,23,42,.06);
+  }
+
+  /* ===== 说明 ===== */
+  .intro h2{font-size:17px;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .intro h2::before{content:"";width:4px;height:18px;background:var(--blue);border-radius:2px;}
+  .intro p{font-size:14px;color:#334155;}
+  .intro .flow{
+    display:flex;flex-wrap:wrap;gap:6px;align-items:center;
+    margin-top:14px;font-size:12px;
+  }
+  .intro .flow span{
+    background:var(--blue-light);color:var(--blue-deep);
+    border:1px solid var(--blue-border);
+    padding:3px 10px;border-radius:999px;font-weight:600;
+  }
+  .intro .flow i{color:var(--gray-light);font-style:normal;}
+
+  /* ===== 题目 ===== */
+  .q{scroll-margin-top:70px;}
+  .q-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .q-no{
+    width:28px;height:28px;border-radius:8px;flex:none;
+    background:var(--blue);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px;font-weight:700;
+  }
+  .q-req{color:var(--red);font-weight:700;font-size:15px;}
+  .q-tag{
+    font-size:11px;color:var(--red);
+    border:1px solid #FECACA;background:var(--red-light);
+    padding:1px 8px;border-radius:999px;
+  }
+  .q-title{font-size:16px;font-weight:600;color:var(--blue-dark);margin-bottom:6px;}
+  .q-title code{
+    font-family:Consolas,"Courier New",monospace;
+    background:#F1F5F9;border:1px solid var(--border);
+    padding:1px 6px;border-radius:5px;font-size:14px;color:var(--blue-deep);
+  }
+  .q-fig{margin:14px 0 4px;text-align:center;}
+  .q-fig svg{width:100%;max-width:420px;height:auto;border-radius:10px;}
+  .q-fig figcaption{font-size:12px;color:var(--gray-light);margin-top:6px;}
+
+  .tip{
+    margin-top:12px;
+    background:var(--amber-bg);
+    border:1px solid var(--amber-border);
+    border-left-width:4px;
+    border-radius:8px;
+    padding:10px 14px;
+    font-size:14px;color:#92400E;
+  }
+  .tip b{color:#B45309;}
+
+  pre.code{
+    margin-top:14px;
+    background:#0F172A;
+    color:#E2E8F0;
+    border-radius:10px;
+    padding:16px 18px;
+    font-family:Consolas,"Courier New",monospace;
+    font-size:13.5px;
+    line-height:1.75;
+    overflow-x:auto;
+    white-space:pre;
+  }
+  pre.code .k{color:#C084FC;}
+  pre.code .f{color:#60A5FA;}
+  pre.code .s{color:#FBBF24;}
+  pre.code .n{color:#F472B6;}
+  pre.code .c{color:#64748B;font-style:italic;}
+  pre.code .o{color:#94A3B8;}
+
+  /* ===== 选项 ===== */
+  .opts{display:flex;gap:12px;margin-top:16px;}
+  .opt{
+    flex:1;position:relative;cursor:pointer;
+    border:2px solid var(--border);
+    border-radius:12px;
+    padding:14px 10px;
+    text-align:center;
+    font-size:17px;font-weight:700;
+    color:var(--gray);
+    background:#FAFCFE;
+    transition:all .18s ease;
+    user-select:none;
+  }
+  .opt input{position:absolute;opacity:0;pointer-events:none;}
+  .opt .mark{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:22px;height:22px;border-radius:50%;
+    border:2px solid #CBD5E1;margin-right:8px;vertical-align:-5px;
+    font-size:12px;color:#fff;transition:all .18s ease;
+  }
+  .opt:hover{border-color:#93C5FD;}
+  .opt.on-yes{
+    border-color:var(--blue);background:var(--blue-light);color:var(--blue-deep);
+  }
+  .opt.on-yes .mark{background:var(--blue);border-color:var(--blue);}
+  .opt.on-yes .mark::after{content:"✓";}
+  .opt.on-no{
+    border-color:var(--red);background:var(--red-light);color:#B91C1C;
+  }
+  .opt.on-no .mark{background:var(--red);border-color:var(--red);}
+  .opt.on-no .mark::after{content:"✕";font-size:11px;}
+
+  /* ===== 提交 ===== */
+  .submit-btn{
+    display:block;width:100%;margin-top:26px;
+    background:linear-gradient(135deg,#2563EB,#1D4ED8);
+    color:#fff;border:none;border-radius:14px;
+    padding:17px;font-size:17px;font-weight:700;letter-spacing:1px;
+    cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;
+    box-shadow:0 6px 16px rgba(37,99,235,.35);
+  }
+  .submit-btn:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(37,99,235,.42);}
+  .submit-btn:active{transform:translateY(0);}
+
+  .toast{
+    position:fixed;left:50%;bottom:32px;transform:translateX(-50%) translateY(20px);
+    background:var(--blue-dark);color:#fff;
+    padding:12px 22px;border-radius:999px;font-size:14px;
+    opacity:0;pointer-events:none;transition:all .3s ease;z-index:99;
+    box-shadow:0 8px 24px rgba(15,23,42,.3);
+    max-width:86vw;text-align:center;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* ===== 结果 ===== */
+  .result{margin-top:24px;}
+  .score-card{text-align:center;padding:34px 20px 26px;position:relative;overflow:hidden;}
+  .score-card::before{
+    content:"";position:absolute;inset:0 0 auto 0;height:6px;
+    background:linear-gradient(90deg,#2563EB,#60A5FA);
+  }
+  .ring-box{position:relative;width:150px;height:150px;margin:0 auto 14px;}
+  .ring-box svg{transform:rotate(-90deg);}
+  .ring-bg{fill:none;stroke:#E2E8F0;stroke-width:12;}
+  .ring-fg{fill:none;stroke:#2563EB;stroke-width:12;stroke-linecap:round;transition:stroke-dashoffset .8s ease;}
+  .ring-num{
+    position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+  }
+  .ring-num b{font-size:38px;font-weight:800;color:var(--blue-dark);font-variant-numeric:tabular-nums;line-height:1.1;}
+  .ring-num b i{font-size:18px;font-style:normal;color:var(--gray);}
+  .ring-num span{font-size:12px;color:var(--gray);}
+  .score-level{font-size:20px;font-weight:800;margin-bottom:8px;}
+  .score-desc{font-size:14px;color:#475569;max-width:460px;margin:0 auto;}
+
+  .lv-ok{color:var(--green);}
+  .lv-warn{color:var(--amber);}
+  .lv-bad{color:var(--red);}
+
+  .wrong-title{
+    font-size:16px;font-weight:700;margin:24px 0 12px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .wrong-title::before{content:"";width:4px;height:18px;background:var(--red);border-radius:2px;}
+  .wrong-item{
+    border:1px solid #FECACA;background:var(--red-light);
+    border-radius:12px;padding:14px 16px;margin-bottom:12px;
+  }
+  .wrong-item .wi-head{font-size:14px;font-weight:700;color:#B91C1C;margin-bottom:4px;}
+  .wrong-item .wi-body{font-size:14px;color:#7F1D1D;}
+  .wrong-item .wi-fix{
+    margin-top:8px;font-size:13.5px;color:#334155;
+    background:#fff;border:1px dashed #FCA5A5;border-radius:8px;padding:8px 12px;
+  }
+  .wrong-item .wi-fix b{color:var(--blue-deep);}
+  .all-ok{
+    border:1px solid #A7F3D0;background:#ECFDF5;
+    border-radius:12px;padding:16px;text-align:center;
+    color:#065F46;font-size:15px;font-weight:600;
+  }
+
+  .actions{display:flex;gap:12px;margin-top:22px;}
+  .actions button{
+    flex:1;padding:14px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;
+    transition:all .15s ease;
+  }
+  .btn-ghost{background:#fff;border:2px solid var(--blue);color:var(--blue);}
+  .btn-ghost:hover{background:var(--blue-light);}
+  .btn-solid{background:var(--blue-dark);border:2px solid var(--blue-dark);color:#fff;}
+  .btn-solid:hover{background:#1E293B;}
+
+  .motto{
+    margin-top:22px;text-align:center;
+    font-size:14px;color:var(--gray);
+    padding:16px;border-top:1px dashed var(--border);
+  }
+  .motto b{color:var(--blue-deep);}
+  .motto .local{display:block;font-size:12px;color:var(--gray-light);margin-top:6px;}
+
+  footer.site{
+    text-align:center;font-size:12px;color:var(--gray-light);
+    margin-top:34px;line-height:1.8;
+  }
+
+  @media (max-width:520px){
+    .hero h1{font-size:24px;}
+    .opt{font-size:16px;padding:13px 8px;}
+    .card{padding:18px 16px;}
+    .actions{flex-direction:column;}
+  }
+  @media print{
+    .progress-wrap,.submit-btn,.actions,.toast{display:none!important;}
+    body{background:#fff;}
+    .card{box-shadow:none;break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="brand">科创家信奥编程</div>
+  <h1>复赛防爆零自查表</h1>
+  <p class="sub">CSP-J / CSP-S 复赛机试专项自查：从建目录、文件命名、文件读写，到本地自测、交卷检查，逐项过一遍。</p>
+  <div class="meta">共 <b>10</b> 题 · 约 3 分钟</div>
+</header>
+
+<div class="progress-wrap">
+  <div class="progress-bar"><div class="progress-fill" id="pfill"></div></div>
+  <span class="progress-text" id="ptext">已答 0 / 10</span>
+</div>
+
+<div class="wrap">
+
+  <section class="card intro">
+    <h2>填写说明</h2>
+    <p>复赛最可惜的不是「不会做」，而是「会做却爆零」——文件名错一个字母、freopen 被注释忘恢复，整题就是 0 分。本表把复赛机试的操作流程拆成 10 个自查点，请逐项如实作答，提交后立即看到你的爆零风险等级和整改建议。</p>
+    <div class="flow">
+      <span>建目录</span><i>→</i><span>文件命名</span><i>→</i><span>写框架+文件读写</span><i>→</i><span>本地自测</span><i>→</i><span>交卷检查</span>
+    </div>
+  </section>
+
+  <form id="surveyForm">
+
+    <!-- Q1 -->
+    <section class="card q" id="q1">
+      <div class="q-head"><span class="q-no">1</span><span class="q-req">*</span><span class="q-tag">必填</span></div>
+      <div class="q-title">拿到题目之后，你是否知道在桌面或者 D 盘新建一个文件夹(具体以监考老师要求为准)，文件夹的名称为你本人的准考证号(如题示例)</div>
+      <figure class="q-fig">
+        <svg viewBox="0 0 360 190" role="img" aria-label="桌面新建准考证号文件夹示意图">
+          <defs>
+            <linearGradient id="desk" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#1E293B"/><stop offset="1" stop-color="#0F172A"/>
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="360" height="190" rx="10" fill="url(#desk)"/>
+          <text x="14" y="22" fill="#64748B" font-size="10">桌面</text>
+          <g transform="translate(118,50)">
+            <path d="M0 16 V6 H30 L40 16 H76 V78 H0 Z" fill="#3B82F6"/>
+            <path d="M0 16 H76 V78 H0 Z" fill="#2563EB"/>
+          </g>
+          <text x="156" y="150" fill="#E2E8F0" font-size="14" text-anchor="middle" font-family="Consolas,monospace">GD-J00666</text>
+          <text x="180" y="174" fill="#64748B" font-size="10" text-anchor="middle">根文件夹 = 本人准考证号</text>
+        </svg>
+        <figcaption>示意图：以准考证号建立根文件夹</figcaption>
+      </figure>
+      <div class="opts">
+        <label class="opt"><input type="radio" name="q1" value="1"><span class="mark"></span>是</label>
+        <label class="opt"><input type="radio" name="q1" value="0"><span class="mark"></span>否</label>
+      </div>
+    </section>
+
+    <!-- Q2 -->
+    <section class="card q" id="q2">
+      <div class="q-head"><span class="q-no">2</span><span class="q-req">*</span><span class="q-tag">必填</span></div>
+      <div class="q-title">建立好文件夹以后，你是否知道在此文件夹下面再次建立4个文件夹，文件夹的名称为题目的目录名称(如题示例)</div>
+      <figure class="q-fig">
+        <svg viewBox="0 0 360 216" role="img" aria-label="准考证号文件夹下建立4个题目文件夹示意图">
+          <rect x="4" y="4" width="352" height="208" rx="8" fill="#FFFFFF" stroke="#CBD5E1"/>
+          <path d="M4 12 a8 8 0 0 1 8-8 h344 a8 8 0 0 1 8 8 v20 H4 Z" fill="#EFF6FF"/>
+          <g transform="translate(16,10) scale(0.62)"><path d="M0 8 V2 H14 L19 8 H32 V22 H0 Z" fill="#3B82F6"/></g>
+          <text x="42" y="24" font-size="12" fill="#0F172A" font-family="Consolas,monospace">GD-J00666</text>
+          <text x="318" y="24" font-size="10" fill="#64748B" text-anchor="end">4 个项目</text>
+          <g transform="translate(24,46) scale(0.62)"><path d="M0 8 V2 H14 L19 8 H32 V22 H0 Z" fill="#3B82F6"/></g>
+          <text x="50" y="62" font-size="12.5" fill="#0F172A" font-family="Consolas,monospace">candy</text>
+          <g transform="translate(24,78) scale(0.62)"><path d="M0 8 V2 H14 L19 8 H32 V22 H0 Z" fill="#3B82F6"/></g>
+          <text x="50" y="94" font-size="12.5" fill="#0F172A" font-family="Consolas,monospace">network</text>
+          <g transform="translate(24,110) scale(0.62)"><path d="M0 8 V2 H14 L19 8 H32 V22 H0 Z" fill="#3B82F6"/></g>
+          <text x="50" y="126" font-size="12.5" fill="#0F172A" font-family="Consolas,monospace">sort</text>
+          <g transform="translate(24,142) scale(0.62)"><path d="M0 8 V2 H14 L19 8 H32 V22 H0 Z" fill="#3B82F6"/></g>
+          <text x="50" y="158" font-size="12.5" fill="#0F172A" font-family="Consolas,monospace">fruit</text>
+          <line x1="14" y1="182" x2="346" y2="182" stroke="#E2E8F0"/>
+          <text x="180" y="199" font-size="10" fill="#64748B" text-anchor="middle">每个子文件夹名 = 对应题目的目录名，逐字一致</text>
+        </svg>
+        <figcaption>示意图：准考证号文件夹下建立 4 个题目文件夹</figcaption>
+      </figure>
+      <div class="tip"><b>注意：</b>文件夹的名称一定要和目录名称一致，一个字母都不可错哦!否则直接零分。建议直接复制题目目录名称，避免打错。</div>
+      <div class="opts">
+        <label class="opt"><input type="radio" name="q2" value="1"><span class="mark"></span>是</label>
+        <label class="opt"><input type="radio" name="q2" value="0"><span class="mark"></span>否</label>
+      </div>
+    </section>
+
+    <!-- Q3 -->
+    <section class="card q" id="q3">
+      <div class="q-head"><span class="q-no">3</span><span class="q-req">*</span><span class="q-tag">必填</span></div>
+      <div class="q-title">建立这4个文件夹以后，以第一道题为例: 打开第一个文件夹(candy)，你是否知道先查看文件的扩展名是不是打开了(如题示例)</div>
+      <figure class="q-fig">
+        <svg viewBox="0 0 360 196" role="img" aria-label="资源管理器查看文件扩展名示意图">
+          <rect x="4" y="4" width="352" height="188" rx="8" fill="#FFFFFF" stroke="#CBD5E1"/>
+          <path d="M4 12 a8 8 0 0 1 8-8 h344 a8 8 0 0 1 8 8 v20 H4 Z" fill="#EFF6FF"/>
+          <text x="16" y="24" font-size="11" fill="#0F172A" font-family="Consolas,monospace">GD-J00666 &gt; candy</text>
+          <g font-size="11" fill="#64748B">
+            <text x="18" y="50">文件</text><text x="52" y="50">主页</text><text x="86" y="50">共享</text>
+          </g>
+          <text x="120" y="50" font-size="11" fill="#2563EB" font-weight="700">查看</text>
+          <line x1="118" y1="55" x2="142" y2="55" stroke="#2563EB" stroke-width="2.5"/>
+          <rect x="12" y="64" width="150" height="118" rx="6" fill="#F8FAFC" stroke="#E2E8F0"/>
+          <text x="22" y="82" font-size="10" fill="#64748B">窗格</text>
+          <rect x="22" y="90" width="26" height="20" rx="4" fill="#E2E8F0"/>
+          <rect x="54" y="90" width="26" height="20" rx="4" fill="#E2E8F0"/>
+          <rect x="86" y="90" width="26" height="20" rx="4" fill="#E2E8F0"/>
+          <text x="22" y="126" font-size="10" fill="#64748B">布局</text>
+          <rect x="22" y="134" width="26" height="20" rx="4" fill="#E2E8F0"/>
+          <rect x="54" y="134" width="26" height="20" rx="4" fill="#E2E8F0"/>
+          <rect x="172" y="64" width="176" height="118" rx="6" fill="#F8FAFC" stroke="#E2E8F0"/>
+          <text x="182" y="82" font-size="10" fill="#64748B">显示 / 隐藏</text>
+          <rect x="182" y="92" width="14" height="14" rx="3" fill="#2563EB"/>
+          <path d="M185 99.5 l2.5 2.5 l4.5 -5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <text x="204" y="104" font-size="11.5" fill="#0F172A" font-weight="700">文件扩展名</text>
+          <rect x="182" y="122" width="14" height="14" rx="3" fill="#fff" stroke="#94A3B8" stroke-width="1.5"/>
+          <text x="204" y="134" font-size="11.5" fill="#334155">隐藏的项目</text>
+          <text x="182" y="164" font-size="10" fill="#94A3B8">☑ 勾选后，candy.cpp 显示完整扩展名</text>
+          <path d="M330 96 Q318 88 306 96" stroke="#DC2626" stroke-width="2.5" fill="none"/>
+          <polygon points="306,96 314,91 313,101" fill="#DC2626"/>
+        </svg>
+        <figcaption>示意图：查看 → 勾选「文件扩展名」</figcaption>
+      </figure>
+      <div class="opts">
+        <label class="opt"><input type="radio" name="q3" value="1"><span class="mark"></span>是</label>
+        <label class="opt"><input type="radio" name="q3" value="0"><span class="mark"></span>否</label>
+      </div>
+    </section>
+
+    <!-- Q4 -->
+    <section class="card q" id="q4">
+      <div class="q-head"><span class="q-no">4</span><span class="q-req">*</span><span class="q-tag">必填</span></div>
+      <div class="q-title">如果文件的扩展名已经是打开的状态，你是否明白要新建一个.cpp文件，以第一道题为例(如题示例)</div>
+      <figure class="q-fig">
+        <svg viewBox="0 0 360 132" role="img" aria-label="新建 candy.cpp 文件示意图">
+          <rect x="4" y="4" width="352" height="124" rx="8" fill="#FFFFFF" stroke="#CBD5E1"/>
+          <path d="M4 12 a8 8 0 0 1 8-8 h344 a8 8 0 0 1 8 8 v20 H4 Z" fill="#EFF6FF"/>
+          <text x="16" y="24" font-size="11" fill="#0F172A" font-family="Consolas,monospace">GD-J00666 &gt; candy</text>
+          <g transform="translate(24,44)">
+            <rect x="0" y="0" width="34" height="42" rx="4" fill="#FFFFFF" stroke="#94A3B8"/>
+            <path d="M26 0 L34 8 H26 Z" fill="#CBD5E1"/>
+            <text x="17" y="26" font-size="8.5" fill="#2563EB" text-anchor="middle" font-weight="700" font-family="Consolas,monospace">C++</text>
+          </g>
+          <text x="68" y="70" font-size="13" fill="#0F172A" font-family="Consolas,monospace" font-weight="700">candy.cpp</text>
+          <text x="68" y="88" font-size="10" fill="#94A3B8">重命名时连 .cpp 扩展名一起改</text>
+          <line x1="14" y1="104" x2="346" y2="104" stroke="#E2E8F0"/>
+          <text x="180" y="120" font-size="10" fill="#64748B" text-anchor="middle">先显示扩展名，再新建/重命名为 candy.cpp</text>
+        </svg>
+        <figcaption>示意图：新建 candy.cpp</figcaption>
+      </figure>
+      <div class="opts">
+        <label class="opt"><input type="radio" name="q4" value="1"><span class="mark"></span>是</label>
+        <label class="opt"><input type="radio" name="q4" value="0"><span class="mark"></span>否</label>
+      </div>
+    </section>
+
+    <!-- Q5 -->
+    <section class="card q" id="q5">
+      <div class="q-head"><span class="q-no">5</span><span class="q-req">*</span><span class="q-tag">必填</span></div>
+      <div class="q-title">你是否知道以同样的方式，再建立一个.in文件(如题示例)</div>
+      <figure class="q-fig">
+        <svg viewBox="0 0 360 176" role="img" aria-label="再建立 candy.in 文件示意图">
+          <rect x="4" y="4" width="352" height="168" rx="8" fill="#FFFFFF" stroke="#CBD5E1"/>
+          <path d="M4 12 a8 8 0 0 1 8-8 h344 a8 8 0 0 1 8 8 v20 H4 Z" fill="#EFF6FF"/>
+          <text x="16" y="24" font-size="11" fill="#0F172A" font-family="Consolas,monospace">GD-J00666 &gt; candy</text>
+          <g transform="translate(24,42)">
+            <rect x="0" y="0" width="30" height="38" rx="4" fill="#FFFFFF" stroke="#94A3B8"/>
+            <path d="M22 0 L30 8 H22 Z" fill="#CBD5E1"/>
+            <text x="15" y="24" font-size="8.5" fill="#2563EB" text-anchor="middle" font-weight="700" font-family="Consolas,monospace">C++</text>
+          </g>
+          <text x="64" y="66" font-size="13" fill="#0F172A" font-family="Consolas,monospace" font-weight="700">candy.cpp</text>
+          <g transform="translate(24,96)">
+            <rect x="0" y="0" width="30" height="38" rx="4" fill="#EFF6FF" stroke="#60A5FA"/>
+            <path d="M22 0 L30 8 H22 Z" fill="#BFDBFE"/>
+            <text x="15" y="24" font-size="9" fill="#1D4ED8" text-anchor="middle" font-weight="700" font-family="Consolas,monospace">IN</text>
+          </g>
+          <text x="64" y="120" font-size="13" fill="#0F172A" font-family="Consolas,monospace" font-weight="700">candy.in</text>
+          <line x1="14" y1="148" x2="346" y2="148" stroke="#E2E8F0"/>
+          <text x="180" y="164" font-size="10" fill="#64748B" text-anchor="middle">candy.in 用于本地测试输入，与 freopen 中的文件名保持一致</text>
+        </svg>
+        <figcaption>示意图：同目录下再建 candy.in</figcaption>
+      </figure>
+      <div class="opts">
+        <label class="opt"><input type="radio" name="q5" value="1"><span class="mark"></span>是</label>
+        <label class="opt"><input type="radio" name="q5" value="0"><span class="mark"></span>否</label>
+      </div>
+    </section>
+
+    <!-- Q6 -->
+    <section class="card q" id="q6">
+      <div class="q-head"><span class="q-no">6</span><span class="q-req">*</span><span class="q-tag">必填</span></div>
+      <div class="q-title">你是否明白双击打开 <code>.cpp</code> 文件，就要开始写程序框架+文件读写了</div>
+      <pre class="code"><span class="k">int</span> main(){
+    <span class="f">freopen</span>(<span class="s">"candy.in"</span>,<span class="s">"r"</span>,stdin);
+    <span class="f">freopen</span>(<span class="s">"candy.out"</span>,<span class="s">"w"</span>,stdout);
+    <span class="k">return</span> <span class="n">0</span>;
+}</pre>
+      <div class="opts">
+        <label class="opt"><input type="radio" name="q6" value="1"><span class="mark"></span>是</label>
+        <label class="opt"><input type="radio" name="q6" value="0"><span class="mark"></span>否</label>
+      </div>
+    </section>
+
+    <!-- Q7 -->
+    <section class="card q" id="q7">
+      <div class="q-head"><span class="q-no">7</span><span class="q-req">*</span><span class="q-tag">必填</span></div>
+      <div class="q-title">此时，你是否知道需要测试一下上述操作</div>
+      <pre class="code"><span class="k">int</span> main(){
+    <span class="f">freopen</span>(<span class="s">"candy.in"</span>,<span class="s">"r"</span>,stdin);
+    <span class="f">freopen</span>(<span class="s">"candy.out"</span>,<span class="s">"w"</span>,stdout);
+    <span class="k">int</span> n;
+    cin <span class="o">&gt;&gt;</span> n;
+    cout <span class="o">&lt;&lt;</span> n;
+    <span class="k">return</span> <span class="n">0</span>;
+}</pre>
+      <div class="opts">
+        <label class="opt"><input type="radio" name="q7" value="1"><span class="mark"></span>是</label>
+        <label class="opt"><input type="radio" name="q7" value="0"><span class="mark"></span>否</label>
+      </div>
+    </section>
+
+    <!-- Q8 -->
+    <section class="card q" id="q8">
+      <div class="q-head"><span class="q-no">8</span><span class="q-req">*</span><span class="q-tag">必填</span></div>
+      <div class="q-title">如果你发现程序运行完成以后直接结束，没有让你输入。你是否知道打开 candy 这个文件夹后发现多了一个 candy.out 的文件，也明白当出现这个文件以后，证明自己操作正确</div>
+      <figure class="q-fig">
+        <svg viewBox="0 0 360 196" role="img" aria-label="运行后生成 candy.out 文件示意图">
+          <rect x="4" y="4" width="352" height="188" rx="8" fill="#FFFFFF" stroke="#CBD5E1"/>
+          <path d="M4 12 a8 8 0 0 1 8-8 h344 a8 8 0 0 1 8 8 v20 H4 Z" fill="#EFF6FF"/>
+          <text x="16" y="24" font-size="11" fill="#0F172A" font-family="Consolas,monospace">GD-J00666 &gt; candy</text>
+          <g font-size="10" fill="#64748B">
+            <text x="20" y="50">名称</text><text x="150" y="50">修改日期</text><text x="252" y="50">类型</text>
+          </g>
+          <line x1="12" y1="56" x2="348" y2="56" stroke="#E2E8F0"/>
+          <g transform="translate(20,64)"><rect width="24" height="30" rx="3" fill="#fff" stroke="#94A3B8"/><text x="12" y="19" font-size="7" fill="#2563EB" text-anchor="middle" font-weight="700" font-family="Consolas,monospace">C++</text></g>
+          <text x="52" y="83" font-size="11.5" fill="#0F172A" font-family="Consolas,monospace">candy.cpp</text>
+          <text x="150" y="83" font-size="10.5" fill="#64748B" font-family="Consolas,monospace">2022/9/29 10:37</text>
+          <text x="252" y="83" font-size="10.5" fill="#64748B">C++ 文件</text>
+          <g transform="translate(20,100)"><rect width="24" height="30" rx="3" fill="#DCFCE7" stroke="#4ADE80"/><text x="12" y="19" font-size="7" fill="#15803D" text-anchor="middle" font-weight="700" font-family="Consolas,monospace">EXE</text></g>
+          <text x="52" y="119" font-size="11.5" fill="#0F172A" font-family="Consolas,monospace">candy.exe</text>
+          <text x="150" y="119" font-size="10.5" fill="#64748B" font-family="Consolas,monospace">2022/9/29 10:40</text>
+          <text x="252" y="119" font-size="10.5" fill="#64748B">应用程序</text>
+          <g transform="translate(20,136)"><rect width="24" height="30" rx="3" fill="#EFF6FF" stroke="#60A5FA"/><text x="12" y="19" font-size="7.5" fill="#1D4ED8" text-anchor="middle" font-weight="700" font-family="Consolas,monospace">IN</text></g>
+          <text x="52" y="155" font-size="11.5" fill="#0F172A" font-family="Consolas,monospace">candy.in</text>
+          <text x="150" y="155" font-size="10.5" fill="#64748B" font-family="Consolas,monospace">2022/9/29 10:30</text>
+          <text x="252" y="155" font-size="10.5" fill="#64748B">IN 文件</text>
+          <rect x="12" y="170" width="336" height="20" rx="4" fill="#EFF6FF"/>
+          <g transform="translate(20,172)"><rect width="24" height="18" rx="3" fill="#fff" stroke="#2563EB"/><text x="12" y="12.5" font-size="6.5" fill="#1D4ED8" text-anchor="middle" font-weight="700" font-family="Consolas,monospace">OUT</text></g>
+          <text x="52" y="184" font-size="11.5" fill="#1D4ED8" font-family="Consolas,monospace" font-weight="700">candy.out</text>
+          <text x="150" y="184" font-size="10.5" fill="#2563EB" font-family="Consolas,monospace">2022/9/29 10:40</text>
+          <text x="252" y="184" font-size="10.5" fill="#2563EB">OUT 文件</text>
+          <text x="330" y="184" font-size="9.5" fill="#2563EB" text-anchor="end">← 新出现</text>
+        </svg>
+        <figcaption>示意图：运行后文件夹里多出 candy.out</figcaption>
+      </figure>
+      <div class="opts">
+        <label class="opt"><input type="radio" name="q8" value="1"><span class="mark"></span>是</label>
+        <label class="opt"><input type="radio" name="q8" value="0"><span class="mark"></span>否</label>
+      </div>
+    </section>
+
+    <!-- Q9 -->
+    <section class="card q" id="q9">
+      <div class="q-head"><span class="q-no">9</span><span class="q-req">*</span><span class="q-tag">必填</span></div>
+      <div class="q-title">你是否掌握如何验证程序的正确性呢? 你需要打开 candy.in 文件，试着输入一个5，然后保存，关掉文件，然后打开 candy.cpp 该程序，然后点击运行，会发现输出的结果5 出现在了 candy.out 文件里面了，这就说明你的操作是正确的。</div>
+      <div class="tip"><b>本地自测闭环：</b>candy.in 里写 5 → 编译运行 → candy.out 里出现 5，这条「读文件 → 写文件」的链路才算真正通了。</div>
+      <div class="opts">
+        <label class="opt"><input type="radio" name="q9" value="1"><span class="mark"></span>是</label>
+        <label class="opt"><input type="radio" name="q9" value="0"><span class="mark"></span>否</label>
+      </div>
+    </section>
+
+    <!-- Q10 -->
+    <section class="card q" id="q10">
+      <div class="q-head"><span class="q-no">10</span><span class="q-req">*</span><span class="q-tag">必填</span></div>
+      <div class="q-title">最后提交题目的时候，你是否清楚需要再次检查 freopen 语句有没有被注释掉，如果调试过程中注释掉了 freopen，一定要去掉注释 // (如图所示)</div>
+      <pre class="code"><span class="k">int</span> main(){
+    <span class="c">// freopen("candy.in","r",stdin);</span>
+    <span class="c">// freopen("candy.out","w",stdout);</span>
+    <span class="k">return</span> <span class="n">0</span>;
+}</pre>
+      <div class="tip"><b>交卷前最后一遍：</b>全局搜索 <code>freopen</code>，确认两句都没有被 // 注释掉——调试时注释了忘了恢复，是每年最高发的冤案。</div>
+      <div class="opts">
+        <label class="opt"><input type="radio" name="q10" value="1"><span class="mark"></span>是</label>
+        <label class="opt"><input type="radio" name="q10" value="0"><span class="mark"></span>否</label>
+      </div>
+    </section>
+
+    <button type="submit" class="submit-btn">提交，查看爆零风险</button>
+  </form>
+
+  <!-- 结果 -->
+  <section class="result" id="result" hidden>
+    <div class="card score-card">
+      <div class="ring-box">
+        <svg width="150" height="150" viewBox="0 0 150 150">
+          <circle class="ring-bg" cx="75" cy="75" r="64"/>
+          <circle class="ring-fg" id="ringFg" cx="75" cy="75" r="64" stroke-dasharray="402.1" stroke-dashoffset="402.1"/>
+        </svg>
+        <div class="ring-num"><b id="scoreNum">0<i>分</i></b><span>爆零安全得分</span></div>
+      </div>
+      <div class="score-level" id="scoreLevel"></div>
+      <p class="score-desc" id="scoreDesc"></p>
+    </div>
+
+    <h3 class="wrong-title" id="wrongTitle">需要整改的项</h3>
+    <div id="wrongList"></div>
+
+    <div class="actions no-print">
+      <button type="button" class="btn-ghost" id="btnRetry">重新自查</button>
+      <button type="button" class="btn-solid" id="btnPrint">打印 / 截图保存</button>
+    </div>
+
+    <div class="motto">
+      <b>难题不常有，粗心天天有。</b>会做，更要交对。
+      <span class="local">科创家信奥编程 · 复赛防爆零自查表</span>
+    </div>
+  </section>
+
+  <footer class="site">
+    科创家信奥编程 · CSP-J / CSP-S 复赛备考系列
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  var TOTAL = 10;
+  var CIRC = 2 * Math.PI * 64; // 402.12
+
+  var TIPS = {
+    1: "开考第一件事：问清监考老师的目录要求，用准考证号建根文件夹。建议直接复制准考证号，不要手打——目录错，一切白搭。",
+    2: "四道题建四个子文件夹，目录名从题面直接复制（candy / network / sort / fruit），一个字母都不能错。",
+    3: "不会显示文件扩展名，就会剪出 candy.cpp.txt 这种隐形炸弹。资源管理器 → 查看 → 勾选「文件扩展名」。",
+    4: "建 .cpp 要连扩展名一起改：右键 → 新建文本文档 → 重命名为 candy.cpp，回车确认。",
+    5: "candy.in 是本地自测的输入文件，与 candy.cpp 同目录，文件名必须和 freopen 里写的完全一致。",
+    6: "freopen 两句是复赛的生命线。双击打开 .cpp 第一件事就写程序框架+文件读写，别想着「等写完再加」。",
+    7: "每道题先跑通文件读写，再写算法：能读出、能写出，确认链路通了再往下写。",
+    8: "运行后文件夹里出现 candy.out，说明读写通路正确；没出现，立刻检查 freopen 语句和文件路径。",
+    9: "本地自测闭环：candy.in 里输入 5 → 运行 → candy.out 里出现 5，这条链路才算真正通了。",
+    10: "交卷前最后一遍：全局搜索 freopen，确认没有被 // 注释掉。调试时注释了忘了恢复，是每年最高发的冤案。"
+  };
+
+  var SHORT = {
+    1: "不会用准考证号建根文件夹",
+    2: "不知道建 4 个题目子文件夹",
+    3: "不会查看/打开文件扩展名",
+    4: "不会新建 .cpp 文件",
+    5: "不会再建 .in 测试文件",
+    6: "不熟悉程序框架+文件读写模板",
+    7: "写完不测试文件读写",
+    8: "看不懂 candy.out 生成的含义",
+    9: "不会本地自测验证正确性",
+    10: "交卷前不检查 freopen 是否被注释"
+  };
+
+  var form = document.getElementById("surveyForm");
+  var pfill = document.getElementById("pfill");
+  var ptext = document.getElementById("ptext");
+  var toast = document.getElementById("toast");
+  var resultSec = document.getElementById("result");
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function(){ toast.classList.remove("show"); }, 2600);
+  }
+
+  function answeredCount(){
+    return form.querySelectorAll("input[type=radio]:checked").length;
+  }
+
+  function refreshProgress(){
+    var n = answeredCount();
+    pfill.style.width = (n / TOTAL * 100) + "%";
+    ptext.textContent = "已答 " + n + " / " + TOTAL;
+  }
+
+  // 选项样式
+  form.querySelectorAll(".opt").forEach(function(opt){
+    var input = opt.querySelector("input");
+    input.addEventListener("change", function(){
+      var name = input.name;
+      form.querySelectorAll('input[name="' + name + '"]').forEach(function(i){
+        i.closest(".opt").classList.remove("on-yes","on-no");
+      });
+      opt.classList.add(input.value === "1" ? "on-yes" : "on-no");
+      refreshProgress();
+    });
+  });
+
+  form.addEventListener("submit", function(e){
+    e.preventDefault();
+    var unanswered = [];
+    for (var i = 1; i <= TOTAL; i++){
+      if (!form.querySelector('input[name="q' + i + '"]:checked')) unanswered.push(i);
+    }
+    if (unanswered.length){
+      showToast("还有 " + unanswered.length + " 题未作答（第 " + unanswered.join("、") + " 题）");
+      var first = document.getElementById("q" + unanswered[0]);
+      first.scrollIntoView({behavior:"smooth", block:"start"});
+      var card = first.querySelector(".q-title");
+      card.style.transition = "color .2s";
+      card.style.color = "#DC2626";
+      setTimeout(function(){ card.style.color = ""; }, 1600);
+      return;
+    }
+    renderResult();
+  });
+
+  function renderResult(){
+    var yes = 0, wrong = [];
+    for (var i = 1; i <= TOTAL; i++){
+      var v = form.querySelector('input[name="q' + i + '"]:checked').value;
+      if (v === "1") yes++;
+      else wrong.push(i);
+    }
+    var pct = yes * 10;
+
+    // 圆环
+    var ring = document.getElementById("ringFg");
+    var offset = CIRC * (1 - pct / 100);
+    ring.style.strokeDashoffset = offset;
+    ring.style.stroke = pct === 100 ? "#059669" : (pct >= 80 ? "#2563EB" : (pct >= 60 ? "#D97706" : "#DC2626"));
+
+    document.getElementById("scoreNum").innerHTML = pct + "<i>分</i>";
+
+    var level = document.getElementById("scoreLevel");
+    var desc = document.getElementById("scoreDesc");
+    level.className = "score-level";
+    if (pct === 100){
+      level.textContent = "零风险选手 ✅";
+      level.classList.add("lv-ok");
+      desc.textContent = "10 项全部过关，机试操作流程已经没有盲区。保持手感，安心上考场。";
+    } else if (pct >= 90){
+      level.textContent = "基本安全，仍有 1 处漏洞 ⚠️";
+      level.classList.add("lv-warn");
+      desc.textContent = "整体过关，但下面这一项足够让一整题归零。赛前把它练成本能动作。";
+    } else if (pct >= 70){
+      level.textContent = "高风险，多处隐患 ❗";
+      level.classList.add("lv-warn");
+      desc.textContent = "不止一处操作不熟。复赛里任何一处爆零都是整题 0 分，建议按整改清单逐项过一遍。";
+    } else {
+      level.textContent = "极高风险，操作不熟 🚨";
+      level.classList.add("lv-bad");
+      desc.textContent = "机试环境操作还没有形成肌肉记忆。建议赛前专项演练：完整走一遍 建目录→读写→自测→交卷 全流程。";
+    }
+
+    // 整改清单
+    var list = document.getElementById("wrongList");
+    var title = document.getElementById("wrongTitle");
+    list.innerHTML = "";
+    if (wrong.length === 0){
+      title.textContent = "整改清单";
+      var ok = document.createElement("div");
+      ok.className = "all-ok";
+      ok.textContent = "全部选「是」，没有需要整改的项。把这张表打印贴在电脑前，每写完一题逐条打勾。";
+      list.appendChild(ok);
+    } else {
+      title.textContent = "需要整改的项（答「否」共 " + wrong.length + " 项）";
+      wrong.forEach(function(n){
+        var item = document.createElement("div");
+        item.className = "wrong-item";
+        var head = document.createElement("div");
+        head.className = "wi-head";
+        head.textContent = "第 " + n + " 题 · " + SHORT[n];
+        var body = document.createElement("div");
+        body.className = "wi-body";
+        body.textContent = "你选择了「否」。";
+        var fix = document.createElement("div");
+        fix.className = "wi-fix";
+        fix.innerHTML = "<b>整改建议：</b>" + TIPS[n];
+        item.appendChild(head);
+        item.appendChild(body);
+        item.appendChild(fix);
+        list.appendChild(item);
+      });
+    }
+
+    resultSec.hidden = false;
+    resultSec.scrollIntoView({behavior:"smooth", block:"start"});
+  }
+
+  document.getElementById("btnRetry").addEventListener("click", function(){
+    form.reset();
+    form.querySelectorAll(".opt").forEach(function(o){ o.classList.remove("on-yes","on-no"); });
+    refreshProgress();
+    resultSec.hidden = true;
+    window.scrollTo({top:0, behavior:"smooth"});
+  });
+
+  document.getElementById("btnPrint").addEventListener("click", function(){
+    window.print();
+  });
+})();
+</script>
+</body>
+</html>

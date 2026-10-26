@@ -35,6 +35,10 @@ const TOOLS: Tool[] = [
   //   这份规约是可勾选、可填写、可打印签字的一整页文档，
   //   勾选与填写会存本机 localStorage（key: hl.familyAgreement.v1）。
   { href: '/family-agreement.html', label: '家庭设备规约', icon: '📜', external: true, offSite: false, full: '家庭电子产品使用规约 · 可在线勾选填写，再打印签字' },
+  // ★ 静态 HTML（在 public/ 下），不是 Next 路由 ⇒ 用 `<a>` 不用 `<Link>`。
+  //   复赛机试防爆零自查表：建目录 / 文件命名 / 文件读写 / 本地自测 / 交卷检查 10 项逐项自查，
+  //   提交即出爆零风险等级与整改建议，可打印保存。
+  { href: '/contest-anti-zero-checklist.html', label: '复赛防爆零自查表', icon: '🛡️', external: true, offSite: false, full: 'CSP-J / CSP-S 复赛机试防爆零：建目录、文件命名、文件读写、本地自测、交卷检查，10 项逐项自查' },
 ];
 
 function ToolboxMenu() {
