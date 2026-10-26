@@ -36,9 +36,10 @@ const TOOLS: Tool[] = [
   //   勾选与填写会存本机 localStorage（key: hl.familyAgreement.v1）。
   { href: '/family-agreement.html', label: '家庭设备规约', icon: '📜', external: true, offSite: false, full: '家庭电子产品使用规约 · 可在线勾选填写，再打印签字' },
   // ★ 静态 HTML（在 public/ 下），不是 Next 路由 ⇒ 用 `<a>` 不用 `<Link>`。
-  //   复赛机试防爆零自查表：建目录 / 文件命名 / 文件读写 / 本地自测 / 交卷检查 10 项逐项自查，
+  //   复赛防爆零自查表：机试环境操作 10 项 + 代码防爆零 5 项 = 15 项逐项自查，
   //   提交即出爆零风险等级与整改建议，可打印保存。
-  { href: '/contest-anti-zero-checklist.html', label: '复赛防爆零自查表', icon: '🛡️', external: true, offSite: false, full: 'CSP-J / CSP-S 复赛机试防爆零：建目录、文件命名、文件读写、本地自测、交卷检查，10 项逐项自查' },
+  //   ★ 更新内容时必须同步这里的「N 项」与分部分描述（学生按标题判断要不要点开）。
+  { href: '/contest-anti-zero-checklist.html', label: '复赛防爆零自查表', icon: '🛡️', external: true, offSite: false, full: 'CSP-J / CSP-S 复赛防爆零：机试环境操作（建目录、文件命名、读写、自测、交卷检查）+ 代码防爆零（多组数据清空、long long、边界数据、保存、清场），15 项逐项自查' },
 ];
 
 function ToolboxMenu() {

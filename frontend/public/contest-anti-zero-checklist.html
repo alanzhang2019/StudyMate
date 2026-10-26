@@ -94,6 +94,18 @@
   }
   .intro .flow i{color:var(--gray-light);font-style:normal;}
 
+  /* ===== 分部标题 ===== */
+  .sec-div{
+    display:flex;align-items:center;gap:10px;
+    margin:38px 2px 0;
+  }
+  .sec-div::before,.sec-div::after{content:"";flex:1;height:1px;background:var(--border);}
+  .sec-div span{
+    font-size:13px;font-weight:700;color:var(--blue-deep);
+    background:var(--blue-light);border:1px solid var(--blue-border);
+    padding:5px 14px;border-radius:999px;white-space:nowrap;
+  }
+
   /* ===== 题目 ===== */
   .q{scroll-margin-top:70px;}
   .q-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
@@ -293,25 +305,28 @@
   <div class="brand">科创家信奥编程</div>
   <h1>复赛防爆零自查表</h1>
   <p class="sub">CSP-J / CSP-S 复赛机试专项自查：从建目录、文件命名、文件读写，到本地自测、交卷检查，逐项过一遍。</p>
-  <div class="meta">共 <b>10</b> 题 · 约 3 分钟</div>
+  <div class="meta">共 <b>15</b> 题 · 约 5 分钟</div>
 </header>
 
 <div class="progress-wrap">
   <div class="progress-bar"><div class="progress-fill" id="pfill"></div></div>
-  <span class="progress-text" id="ptext">已答 0 / 10</span>
+  <span class="progress-text" id="ptext">已答 0 / 15</span>
 </div>
 
 <div class="wrap">
 
   <section class="card intro">
     <h2>填写说明</h2>
-    <p>复赛最可惜的不是「不会做」，而是「会做却爆零」——文件名错一个字母、freopen 被注释忘恢复，整题就是 0 分。本表把复赛机试的操作流程拆成 10 个自查点，请逐项如实作答，提交后立即看到你的爆零风险等级和整改建议。</p>
+    <p>复赛最可惜的不是「不会做」，而是「会做却爆零」——文件名错一个字母、freopen 被注释忘恢复、答案变量忘清空，整题就是 0 分。本表把复赛防爆零拆成两部分共 15 个自查点（机试环境操作 10 项 + 代码防爆零 5 项），请逐项如实作答，提交后立即看到你的爆零风险等级和整改建议。</p>
+    <p style="margin-top:8px;"><b>注意：</b>不是每题选「是」才安全——第二部分中部分题目「否」才是正确答案。请逐题看清再选，选中后选项颜色会即时提示该项是否安全（蓝 ✓ = 安全，红 ✕ = 有风险），请凭实情作答，不要为凑分反选。</p>
     <div class="flow">
-      <span>建目录</span><i>→</i><span>文件命名</span><i>→</i><span>写框架+文件读写</span><i>→</i><span>本地自测</span><i>→</i><span>交卷检查</span>
+      <span>建目录</span><i>→</i><span>文件命名</span><i>→</i><span>写框架+文件读写</span><i>→</i><span>本地自测</span><i>→</i><span>交卷检查</span><i>→</i><span>代码防爆零</span>
     </div>
   </section>
 
   <form id="surveyForm">
+
+    <div class="sec-div"><span>第一部分 · 机试环境操作（10 项）</span></div>
 
     <!-- Q1 -->
     <section class="card q" id="q1">
@@ -572,6 +587,71 @@
       </div>
     </section>
 
+    <div class="sec-div"><span>第二部分 · 代码防爆零（5 项）</span></div>
+
+    <!-- Q11 -->
+    <section class="card q" id="q11">
+      <div class="q-head"><span class="q-no">11</span><span class="q-req">*</span><span class="q-tag">必填</span></div>
+      <div class="q-title">题目有多组测试数据 <code>while(T--)</code> 时，你是否知道每一组都要把数组、<code>vis</code>、<code>cnt</code>、答案变量等重新清空，而不是只清一部分？</div>
+      <pre class="code"><span class="c">// 每一组数据开头，先把上组的痕迹全部擦掉</span>
+<span class="k">while</span>(T--){
+    cnt = <span class="n">0</span>;                          <span class="c">// 计数器归零</span>
+    <span class="f">memset</span>(vis, <span class="n">0</span>, <span class="k">sizeof</span>(vis));    <span class="c">// 访问标记清零</span>
+    <span class="c">// ...读入本组数据，正常求解</span>
+}</pre>
+      <div class="tip"><b>高频爆零：</b>上一组数据污染下一组——单组测对、交上去全错。清空要当成和读入一样固定的开头动作。</div>
+      <div class="opts">
+        <label class="opt"><input type="radio" name="q11" value="1"><span class="mark"></span>是</label>
+        <label class="opt"><input type="radio" name="q11" value="0"><span class="mark"></span>否</label>
+      </div>
+    </section>
+
+    <!-- Q12 -->
+    <section class="card q" id="q12">
+      <div class="q-head"><span class="q-no">12</span><span class="q-req">*</span><span class="q-tag">必填</span></div>
+      <div class="q-title">写累加、相乘的答案时，你是否曾忘记看数据范围、没开 <code>long long</code>（或没写 <code>1LL</code>），导致答案溢出算错？</div>
+      <pre class="code"><span class="k">long long</span> ans = <span class="n">0</span>;              <span class="c">// 答案变量用 long long</span>
+ans += <span class="n">1LL</span> * a[i] * b[i];      <span class="c">// 先提升再相乘，防 int 溢出</span></pre>
+      <div class="tip"><b>隐形杀手：</b>int 最大约 21 亿，数据范围一大就爆。答案全乱但编译不报错、小样例也看不出来——交卷前逐题检查答案类型。</div>
+      <div class="opts">
+        <label class="opt"><input type="radio" name="q12" value="0"><span class="mark"></span>是</label>
+        <label class="opt"><input type="radio" name="q12" value="1"><span class="mark"></span>否</label>
+      </div>
+    </section>
+
+    <!-- Q13 -->
+    <section class="card q" id="q13">
+      <div class="q-head"><span class="q-no">13</span><span class="q-req">*</span><span class="q-tag">必填</span></div>
+      <div class="q-title">样例过了以后，你是否会不自己造边界数据再测（<code>n=1</code>、<code>n=最大</code>、全 0、全部相同、答案最大），就直接交卷？</div>
+      <div class="tip"><b>样例过 ≠ 对：</b>复赛里「样例全过最后爆零」一半栽在边界上。手搓边界数据，再和暴力程序对拍，才是交卷前的标准动作。</div>
+      <div class="opts">
+        <label class="opt"><input type="radio" name="q13" value="0"><span class="mark"></span>是</label>
+        <label class="opt"><input type="radio" name="q13" value="1"><span class="mark"></span>否</label>
+      </div>
+    </section>
+
+    <!-- Q14 -->
+    <section class="card q" id="q14">
+      <div class="q-head"><span class="q-no">14</span><span class="q-req">*</span><span class="q-tag">必填</span></div>
+      <div class="q-title">改完代码，你是否经常忘了按 <code>Ctrl+S</code> 保存，就直接编译运行、交上去的是旧版？</div>
+      <div class="tip"><b>年度冤案：</b>编辑器里明明改好了，磁盘上还是旧版本，交上去的是半小时前的代码。先保存、再编译，交卷前每份 .cpp 都按一次 Ctrl+S。</div>
+      <div class="opts">
+        <label class="opt"><input type="radio" name="q14" value="0"><span class="mark"></span>是</label>
+        <label class="opt"><input type="radio" name="q14" value="1"><span class="mark"></span>否</label>
+      </div>
+    </section>
+
+    <!-- Q15 -->
+    <section class="card q" id="q15">
+      <div class="q-head"><span class="q-no">15</span><span class="q-req">*</span><span class="q-tag">必填</span></div>
+      <div class="q-title">交卷前，你的题目文件夹里是否还留着 <code>.in</code> / <code>.out</code> / <code>.exe</code> 或旧版本没有清掉？</div>
+      <div class="tip"><b>合规红线：</b>可执行文件、测试数据、旧版本都属于「有效答案以外的文件」，NOI 系列赛明确不允许，可能整题甚至整场判零。交卷前每个文件夹逐一清场。</div>
+      <div class="opts">
+        <label class="opt"><input type="radio" name="q15" value="0"><span class="mark"></span>是</label>
+        <label class="opt"><input type="radio" name="q15" value="1"><span class="mark"></span>否</label>
+      </div>
+    </section>
+
     <button type="submit" class="submit-btn">提交，查看爆零风险</button>
   </form>
 
@@ -613,7 +693,7 @@
 <script>
 (function(){
   "use strict";
-  var TOTAL = 10;
+  var TOTAL = 15;
   var CIRC = 2 * Math.PI * 64; // 402.12
 
   var TIPS = {
@@ -626,7 +706,12 @@
     7: "每道题先跑通文件读写，再写算法：能读出、能写出，确认链路通了再往下写。",
     8: "运行后文件夹里出现 candy.out，说明读写通路正确；没出现，立刻检查 freopen 语句和文件路径。",
     9: "本地自测闭环：candy.in 里输入 5 → 运行 → candy.out 里出现 5，这条链路才算真正通了。",
-    10: "交卷前最后一遍：全局搜索 freopen，确认没有被 // 注释掉。调试时注释了忘了恢复，是每年最高发的冤案。"
+    10: "交卷前最后一遍：全局搜索 freopen，确认没有被 // 注释掉。调试时注释了忘了恢复，是每年最高发的冤案。",
+    11: "多组数据的标准开头：先全部清零再读入。cnt、ans、vis、数组，漏一个，第二组起答案全错。",
+    12: "看到数据范围超过 2×10⁹，答案和中间结果立刻换 long long；乘法写 1LL*a*b 提升类型，别心疼那几个字母。",
+    13: "交卷前每题自造 5 类边界：n=1、n=最大、全 0、全部相同、答案最大；能写暴力的就对拍，比样例靠谱得多。",
+    14: "改完代码先按 Ctrl+S 再编译，交卷前把每个 .cpp 都重新按一次保存——你改的代码必须落在磁盘上才算数。",
+    15: "交卷前每个题目文件夹只留 .cpp：删掉 .in、.out、.exe 和旧版本。多余文件属于违规，别让满分题栽在这。"
   };
 
   var SHORT = {
@@ -639,7 +724,12 @@
     7: "写完不测试文件读写",
     8: "看不懂 candy.out 生成的含义",
     9: "不会本地自测验证正确性",
-    10: "交卷前不检查 freopen 是否被注释"
+    10: "交卷前不检查 freopen 是否被注释",
+    11: "多组数据不清空，上组污染下组",
+    12: "曾因忘开 long long / 1LL 导致答案溢出",
+    13: "样例过了就交，不造边界数据",
+    14: "改完不保存就编译，交的是旧版",
+    15: "文件夹留 .in/.out/.exe，交卷不清场"
   };
 
   var form = document.getElementById("surveyForm");
@@ -704,7 +794,7 @@
       if (v === "1") yes++;
       else wrong.push(i);
     }
-    var pct = yes * 10;
+    var pct = Math.round(yes / TOTAL * 100);
 
     // 圆环
     var ring = document.getElementById("ringFg");
@@ -720,7 +810,7 @@
     if (pct === 100){
       level.textContent = "零风险选手 ✅";
       level.classList.add("lv-ok");
-      desc.textContent = "10 项全部过关，机试操作流程已经没有盲区。保持手感，安心上考场。";
+      desc.textContent = "15 项全部过关，机试操作和代码习惯都没有盲区。保持手感，安心上考场。";
     } else if (pct >= 90){
       level.textContent = "基本安全，仍有 1 处漏洞 ⚠️";
       level.classList.add("lv-warn");
@@ -743,7 +833,7 @@
       title.textContent = "整改清单";
       var ok = document.createElement("div");
       ok.className = "all-ok";
-      ok.textContent = "全部选「是」，没有需要整改的项。把这张表打印贴在电脑前，每写完一题逐条打勾。";
+      ok.textContent = "15 项全部过关，没有需要整改的项。保持手感，安心上考场。";
       list.appendChild(ok);
     } else {
       title.textContent = "需要整改的项（答「否」共 " + wrong.length + " 项）";
@@ -755,7 +845,8 @@
         head.textContent = "第 " + n + " 题 · " + SHORT[n];
         var body = document.createElement("div");
         body.className = "wi-body";
-        body.textContent = "你选择了「否」。";
+        var chosen = form.querySelector('input[name="q' + n + '"]:checked').closest(".opt").textContent.trim();
+        body.textContent = "你选择了「" + chosen + "」，这一项有爆零风险。";
         var fix = document.createElement("div");
         fix.className = "wi-fix";
         fix.innerHTML = "<b>整改建议：</b>" + TIPS[n];
