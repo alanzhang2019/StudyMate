@@ -14,8 +14,11 @@ export const revalidate = 3600;
 
 
 export default function LandingPage() {
+  // 浅色：品牌米白 #F7F5F0（无黑色块）；深色：跟随全站深色底 slate-950。
+  // ⚠️ 别只写 dark:from/via/to —— 那是渐变色标，没有 bg-gradient-to-* 时全部失效，
+  //    背景会停在浅色米白，而 dark:text-* 又把文字翻成浅色 ⇒ 浅字压浅底看不见（线上事故根因）。
   return (
-    <main className="min-h-screen bg-[#F7F5F0] dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 transition-colors">
+    <main className="min-h-screen bg-[#F7F5F0] dark:bg-slate-950 transition-colors">
       {/* Top nav */}
       <SiteHeader />
 
