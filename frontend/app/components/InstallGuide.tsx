@@ -11,8 +11,14 @@ import { useEffect } from 'react';
  * 这个价值学生不会自己知道，所以必须在首页把步骤写清楚。
  *
  * ## 平台差异（两个 Tab 的由来）
- * - iPhone / iPad：**只有 Safari** 能「添加到主屏幕」；Chrome on iOS 没有这个入口。
- *   路径 = Safari 底部「分享」→ 下滑找到「添加到主屏幕」。
+ * - iPhone / iPad：**只有 Safari** 能「加到主页面」；Chrome on iOS 没有这个入口。
+ *   ★★ 2026-10-26 用户实机纠正：新版 Safari 底部**不一定直接露分享图标**，
+ *   实际路径是「⋯（三个点）→ 共享 → 加至主页面 → 开启为网页APP → 添加」。
+ *   老写法「点底部的分享按钮」在真机上找不到那个按钮 ⇒ 用户照着做直接卡在第 2 步
+ *   （用户原话：「这个指引有误，我实际操作是打开 aijiangti.cn，然后点击底部三个点
+ *   → 共享 → 加至主页面 → 开启为网页APP」）。
+ *   ⇒ 改成按「⋯ → 共享」写，并在步骤下留一句兜底：底部**直接**看到分享图标（□↑）
+ *     时点它也一样（不同 iOS 版本 / 窗口宽度下，Safari 底部栏的收纳方式不一样）。
  * - 安卓：Chrome ⋮ 菜单里是「安装应用」（站点带 manifest 且满足条件时），
  *   部分国产浏览器叫「添加到主屏幕」。两者都写了，避免用户在别的浏览器里找不到。
  *
@@ -26,6 +32,12 @@ import { useEffect } from 'react';
  *   · JS 只剩一件事：按 UA 预选安卓（改一个 checked 属性）。
  * CSS 机制：radio 是 card 的直接子元素，label / 步骤面板用
  * `peer-[#install-tab-xxx:checked]:*` 变体命中（Tailwind 的 peer 是 `~ *` 通用兄弟）。
+ *
+ * ## ★ 为什么一步是「片段数组」而不是「一句文字 + 一个按钮」
+ * iOS 那步要写「点底部的 [⋯] 再选 [共享]」—— 文字与示意块**交替出现**。
+ * 早先的 `{ text, chip }` 只能「一句话 + 一个块」，遇到这种就得把「⋯」塞进文字里，
+ * 于是示意块（学生真正要找的那个图标）反而没了。改成有序片段后，
+ * 想加几段文字、几个按钮都行，渲染仍然是一行（flex-wrap 自动换行）。
  */
 
 type TabKey = 'ios' | 'android';
@@ -39,85 +51,143 @@ type Chip =
   | { kind: 'text'; text: string; mono?: boolean; href?: string }
   | { kind: 'icon'; icon: React.ReactNode };
 
-type Step = { text: string; chip: Chip };
+/** 一步里的一段：要么是文字，要么是一个「界面上真实存在的按钮 / 图标」示意块。 */
+type Part = { t: 'text'; v: string } | { t: 'chip'; v: Chip };
+
+/** 一步 = 若干片段按顺序排（见文件头「为什么一步是片段数组」）。 */
+type Step = { parts: Part[] };
 
 const URL_TEXT = 'aijiangti.cn';
 
+// ---------- 几个界面上真实出现的小图标（尺寸统一 4×4，跟着文字颜色走） ----------
+const iconCls = 'h-4 w-4';
+
+/** 新版 Safari 底部那颗「更多」（三个横点）。学生要在自己屏幕上找的就是它。 */
+function DotsIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className={iconCls} fill="currentColor" aria-hidden="true">
+      <circle cx="5" cy="12" r="1.7" />
+      <circle cx="12" cy="12" r="1.7" />
+      <circle cx="19" cy="12" r="1.7" />
+    </svg>
+  );
+}
+
+/** 安卓 Chrome 右上角的「⋮」。 */
+function VdotsIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className={iconCls} fill="currentColor" aria-hidden="true">
+      <circle cx="12" cy="5" r="1.7" />
+      <circle cx="12" cy="12" r="1.7" />
+      <circle cx="12" cy="19" r="1.7" />
+    </svg>
+  );
+}
+
+/** 老版 Safari 底部那个分享图标（方框 + 向上箭头）—— 兜底说明里提到它。 */
+function ShareIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={iconCls}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 3.2v11.2" />
+      <path d="M8.4 6.8 12 3.2l3.6 3.6" />
+      <path d="M7.2 10.4H5.6A1.6 1.6 0 0 0 4 12v7.4A1.6 1.6 0 0 0 5.6 21h12.8a1.6 1.6 0 0 0 1.6-1.6V12a1.6 1.6 0 0 0-1.6-1.6h-1.6" />
+    </svg>
+  );
+}
+
+/** 「加至主页面」左边那个「方框 + 加号」。 */
+function PlusSquareIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-3.5 w-3.5 shrink-0"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
+      <rect x="3.6" y="3.6" width="16.8" height="16.8" rx="4" />
+      <path d="M12 8.6v6.8M8.6 12h6.8" />
+    </svg>
+  );
+}
+
+const urlChip: Chip = { kind: 'text', text: URL_TEXT, mono: true, href: 'https://aijiangti.cn' };
+
 const GUIDES: Record<TabKey, Step[]> = {
   ios: [
+    // 1
+    { parts: [{ t: 'text', v: '用 Safari 打开' }, { t: 'chip', v: urlChip }] },
+    // 2 ★ 用户实机纠正的那一步：分享入口收在「⋯」里
     {
-      text: '用 Safari 打开',
-      chip: { kind: 'text', text: URL_TEXT, mono: true, href: 'https://aijiangti.cn' },
+      parts: [
+        { t: 'text', v: '点底部的' },
+        { t: 'chip', v: { kind: 'icon', icon: <DotsIcon /> } },
+        { t: 'text', v: '再选' },
+        { t: 'chip', v: { kind: 'text', text: '共享' } },
+      ],
     },
+    // 3
     {
-      text: '点底部的分享按钮',
-      chip: {
-        kind: 'icon',
-        icon: (
-          <svg
-            viewBox="0 0 24 24"
-            className="h-4 w-4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.8}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M12 3.2v11.2" />
-            <path d="M8.4 6.8 12 3.2l3.6 3.6" />
-            <path d="M7.2 10.4H5.6A1.6 1.6 0 0 0 4 12v7.4A1.6 1.6 0 0 0 5.6 21h12.8a1.6 1.6 0 0 0 1.6-1.6V12a1.6 1.6 0 0 0-1.6-1.6h-1.6" />
-          </svg>
-        ),
-      },
+      parts: [
+        { t: 'text', v: '选' },
+        {
+          t: 'chip',
+          v: {
+            kind: 'icon',
+            icon: (
+              <span className="inline-flex items-center gap-1.5">
+                <PlusSquareIcon />
+                <span>加至主页面</span>
+              </span>
+            ),
+          },
+        },
+      ],
     },
+    // 4 ★ 不打开这个开关，装出来是个「带地址栏的快捷方式」，不是全屏 App
     {
-      text: '选择',
-      chip: {
-        kind: 'icon',
-        icon: (
-          <span className="inline-flex items-center gap-1.5">
-            <svg
-              viewBox="0 0 24 24"
-              className="h-3.5 w-3.5 shrink-0"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.8}
-              strokeLinecap="round"
-              aria-hidden="true"
-            >
-              <rect x="3.6" y="3.6" width="16.8" height="16.8" rx="4" />
-              <path d="M12 8.6v6.8M8.6 12h6.8" />
-            </svg>
-            <span>添加到主屏幕</span>
-          </span>
-        ),
-      },
+      parts: [
+        { t: 'text', v: '打开' },
+        { t: 'chip', v: { kind: 'text', text: '开启为网页APP' } },
+        { t: 'text', v: '，再点右上角「添加」' },
+      ],
     },
   ],
   android: [
+    // 1
+    { parts: [{ t: 'text', v: '用 Chrome 或系统浏览器打开' }, { t: 'chip', v: urlChip }] },
+    // 2
+    { parts: [{ t: 'text', v: '点浏览器菜单' }, { t: 'chip', v: { kind: 'icon', icon: <VdotsIcon /> } }] },
+    // 3
     {
-      text: '用 Chrome 或系统浏览器打开',
-      chip: { kind: 'text', text: URL_TEXT, mono: true, href: 'https://aijiangti.cn' },
-    },
-    {
-      text: '点浏览器菜单',
-      chip: {
-        kind: 'icon',
-        icon: (
-          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true">
-            <circle cx="12" cy="5" r="1.7" />
-            <circle cx="12" cy="12" r="1.7" />
-            <circle cx="12" cy="19" r="1.7" />
-          </svg>
-        ),
-      },
-    },
-    {
-      text: '选择',
-      chip: { kind: 'text', text: '添加到主屏幕 / 安装应用' },
+      parts: [
+        { t: 'text', v: '选择' },
+        { t: 'chip', v: { kind: 'text', text: '添加到主屏幕 / 安装应用' } },
+      ],
     },
   ],
+};
+
+/** 步骤下面那句兜底说明（目前只有 iOS 需要：底部栏各版本收纳方式不同）。 */
+const NOTES: Partial<Record<TabKey, { parts: Part[] }>> = {
+  ios: {
+    parts: [
+      { t: 'text', v: '底部直接看到分享图标' },
+      { t: 'chip', v: { kind: 'icon', icon: <ShareIcon /> } },
+      { t: 'text', v: '时，点它也是一样的，不用先点「⋯」。' },
+    ],
+  },
 };
 
 function ChipView({ chip }: { chip: Chip }) {
@@ -140,24 +210,45 @@ function ChipView({ chip }: { chip: Chip }) {
   return <span className={cls + (chip.mono ? ' font-mono' : '')}>{chip.text}</span>;
 }
 
-function Steps({ tab }: { tab: TabKey }) {
+function PartsView({ parts }: { parts: Part[] }) {
   return (
-    <ol className="space-y-5 px-5 py-6 sm:px-8 sm:py-7">
-      {GUIDES[tab].map((s, i) => (
-        <li key={tab + i} className="flex items-start gap-3 text-slate-700 dark:text-slate-200">
-          <span
-            aria-hidden="true"
-            className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-slate-300 dark:border-slate-500 font-serif italic text-[13px] leading-none text-slate-500 dark:text-slate-400"
-          >
-            {i + 1}
-          </span>
-          <span className="flex flex-wrap items-center gap-x-3 gap-y-2 text-base sm:text-[17px] leading-relaxed">
-            <span>{s.text}</span>
-            <ChipView chip={s.chip} />
-          </span>
-        </li>
-      ))}
-    </ol>
+    <>
+      {parts.map((p, i) =>
+        p.t === 'text' ? (
+          <span key={i}>{p.v}</span>
+        ) : (
+          <ChipView key={i} chip={p.v} />
+        ),
+      )}
+    </>
+  );
+}
+
+function Steps({ tab }: { tab: TabKey }) {
+  const note = NOTES[tab];
+  return (
+    <div className="px-5 py-6 sm:px-8 sm:py-7">
+      <ol className="space-y-5">
+        {GUIDES[tab].map((s, i) => (
+          <li key={tab + i} className="flex items-start gap-3 text-slate-700 dark:text-slate-200">
+            <span
+              aria-hidden="true"
+              className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-slate-300 dark:border-slate-500 font-serif italic text-[13px] leading-none text-slate-500 dark:text-slate-400"
+            >
+              {i + 1}
+            </span>
+            <span className="flex flex-wrap items-center gap-x-3 gap-y-2 text-base sm:text-[17px] leading-relaxed">
+              <PartsView parts={s.parts} />
+            </span>
+          </li>
+        ))}
+      </ol>
+      {note ? (
+        <p className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-dashed border-slate-200 pt-4 text-[13px] leading-relaxed text-slate-500 dark:border-slate-700 dark:text-slate-400">
+          <PartsView parts={note.parts} />
+        </p>
+      ) : null}
+    </div>
   );
 }
 
