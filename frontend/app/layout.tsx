@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || 'https://aijiangti.cn',
   ),
-  title: '爱讲题 · AI 自学与学习工具箱',
+  title: '爱讲题 · 自学立身，创造立世',
   description:
     '爱讲题把 AI 自学、信息学奥赛、深圳教材、资料共享与智能错题本收进同一个入口：拍一道题或打一句话，AI 从思路讲到步骤，学完接着做同类题与单元测评。',
   keywords: [
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     locale: 'zh_CN',
     url: 'https://aijiangti.cn',
     siteName: '爱讲题',
-    title: '爱讲题 · AI 自学与学习工具箱',
+    title: '爱讲题 · 自学立身，创造立世',
     description:
       '爱讲题把 AI 自学、信息学奥赛、深圳教材、资料共享与智能错题本收进同一个入口：拍一道题或打一句话，AI 从思路讲到步骤，学完接着做同类题与单元测评。',
     images: [
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '爱讲题 · AI 自学与学习工具箱',
+    title: '爱讲题 · 自学立身，创造立世',
     description:
       '爱讲题把 AI 自学、信息学奥赛、深圳教材、资料共享与智能错题本收进同一个入口：拍一道题或打一句话，AI 从思路讲到步骤，学完接着做同类题与单元测评。',
     images: ['/og-cover.png'],
