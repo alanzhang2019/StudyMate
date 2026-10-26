@@ -183,11 +183,14 @@
   }
   /* Defensive: pin native form control text colors so they
      stay readable even if a UA forces dark scheme on us
-     before our CSS has loaded. */
+     before our CSS has loaded.
+     ★ 只作用于原生输入控件，绝不能包含 button —— app 的 <Button>（data-slot="button"）
+     会被这条强制成 #1E293B 深灰，深色模式下「深色药丸底 + 深灰字」直接看不见
+     （2026-10-26 百宝箱按钮事故；同背景的 <a> 版按钮因为继承 --foreground 才是浅色）。
+     浅色模式下 body 前景本就是 #1E293B，去掉 button 不改变任何观感。 */
   input,
   textarea,
-  select,
-  button {
+  select {
     color: #1E293B;
   }
   input::placeholder,
