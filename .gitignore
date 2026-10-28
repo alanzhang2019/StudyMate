@@ -93,3 +93,39 @@ _next_static_archive/
 /server-capacity-assessment.html
 # 本次对齐文档（可不留存）
 /progress-align-2026-10-24.md
+
+# === 2026-10-28 仓库大扫除：补齐 hl 调试杂物与嵌套第三方仓 ===
+# 批次调试脚本 / 回放快照（hl-platform 测试套件暂存本仓，勿混入 StudyMate 提交）
+/_b216*
+/_b217*
+/_b218/
+/_b223/
+/_b225/
+/_b226/
+/_b227/
+/_b228/
+/_b230/
+/_b231*
+/_b232/
+/_b287*
+/_b288*
+/_chk*
+/_cur*
+/_fix*
+/_gen*
+/_gesp*
+/_home*
+/_ig/
+/_mkjob*
+/_msg*
+/_parentlink*
+/_pv*
+/_probe*
+/_reg*
+/_ref*
+/_shots*
+/_t217/
+/_uplim/
+/.workbuddy-ai/
+# 嵌套第三方仓（独立 git 仓库：videoclass api 8021），勿混入 StudyMate
+/third-party/videoclass/
