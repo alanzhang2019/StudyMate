@@ -373,8 +373,8 @@ export function ErrorList({ subjectId, subjectName }: ErrorListProps = {}) {
                                     <CardHeader className="pb-0">
                                         <div className="flex justify-between items-start">
                                             <Badge
-                                                variant={item.masteryLevel > 0 ? "default" : "secondary"}
-                                                className={item.masteryLevel > 0 ? "bg-green-600 hover:bg-green-700" : ""}
+                                                variant="default"
+                                                className={item.masteryLevel > 0 ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700 text-white"}
                                             >
                                                 {item.masteryLevel > 0 ? (
                                                     <span className="flex items-center gap-1">
