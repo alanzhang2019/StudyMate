@@ -18,8 +18,10 @@ import {
   coverFilePath,
   videoFilePath,
 } from '@/lib/server/camp-work-autogen';
+import { mediaFilePath } from '@/lib/server/camp-work-media';
+import { MEDIA_KIND_LABEL, parseMediaJson } from '@/lib/camp/media';
 
-export type WorkAssetKind = 'html' | 'cover' | 'video' | 'process';
+export type WorkAssetKind = 'html' | 'cover' | 'video' | 'process' | 'media';
 
 export type WorkAsset = {
   kind: WorkAssetKind;
@@ -90,7 +92,7 @@ function pushIfExists(
 export function collectWorkAssets(workId: string): WorkAsset[] {
   const row = getDb()
     .prepare(
-      'SELECT id, title, htmlFile, coverImage, introVideoFile, processLogJson FROM camp_works WHERE id = ? LIMIT 1',
+      'SELECT id, title, htmlFile, coverImage, introVideoFile, processLogJson, mediaJson FROM camp_works WHERE id = ? LIMIT 1',
     )
     .get(workId) as
     | {
@@ -100,6 +102,7 @@ export function collectWorkAssets(workId: string): WorkAsset[] {
         coverImage: string | null;
         introVideoFile: string | null;
         processLogJson: string | null;
+        mediaJson: string | null;
       }
     | undefined;
 
@@ -163,6 +166,21 @@ export function collectWorkAssets(workId: string): WorkAsset[] {
       absPath: coverFilePath(file),
     });
   });
+
+  // 5. 学生上传的非 HTML 作品素材（图片 / 视频 / 文档）。
+  //    审核老师要能直接下载这些文件，否则视频/图片作品没法审。
+  for (const m of parseMediaJson(row.mediaJson)) {
+    const mm = /\/media\/(\d{1,2})\.([a-z0-9]{1,5})$/i.exec(m.url || '');
+    if (!mm) continue;
+    const seq = Number(mm[1]);
+    const ext = mm[2].toLowerCase();
+    pushIfExists(out, {
+      kind: 'media',
+      label: `作品素材（${MEDIA_KIND_LABEL[m.kind] || '文件'}）`,
+      fileName: `${stem}-${m.name || `${seq}.${ext}`}`,
+      absPath: mediaFilePath(row.id, seq, ext),
+    });
+  }
 
   return out;
 }

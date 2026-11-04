@@ -3,6 +3,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { groupTextbooksBySubject, textbookTitle } from '@/lib/textbooks';
+import {
+  WORK_KIND_LABEL,
+  firstImageUrl,
+  workKindOf,
+  type WorkMedia,
+} from '@/lib/camp/media';
 
 const TEXTBOOK_GROUPS = groupTextbooksBySubject();
 
@@ -24,6 +30,7 @@ type Work = {
   ratingAvg?: number; // 讨论区平均分（0 = 还没人评分）
   ratingCount?: number; // 评分人数
   commentCount?: number; // 讨论区评论数（含回复）
+  mediaLabel?: string; // 非 HTML 作品的形式角标（🎬 视频介绍 / 🖼️ 图片展示 / …）
 };
 
 // 两个早期示范作品（炳炳 / 小高）为静态种子，保留在作品墙顶部；
@@ -94,12 +101,22 @@ type DbWork = {
   ratingAvg?: number;
   ratingCount?: number;
   commentCount?: number;
+  htmlFile?: string | null;
+  workKind?: string | null;
+  media?: WorkMedia[];
 };
 
 function mapDbWork(w: DbWork, index: number): Work {
   const studentLabel = [w.studentName, w.grade]
     .filter(Boolean)
     .join(' · ');
+  const media: WorkMedia[] = Array.isArray(w.media) ? w.media : [];
+  // 只给带素材的新作品加角标；老作品卡片保持原样，不增加视觉噪音。
+  const mediaLabel = media.length
+    ? WORK_KIND_LABEL[
+        w.workKind || workKindOf({ hasHtml: !!w.htmlFile, media })
+      ] || ''
+    : '';
   return {
     slug: w.id,
     textbookSlug: w.textbookSlug ?? null,
@@ -109,7 +126,9 @@ function mapDbWork(w: DbWork, index: number): Work {
     student: studentLabel || '匿名学员',
     views: typeof w.viewCount === 'number' ? w.viewCount : 0,
     description: w.description || '',
-    cover: w.coverImage || '',
+    // 没单独设封面时，用学生上传的第一张图片当封面
+    cover: w.coverImage || firstImageUrl(media) || '',
+    mediaLabel,
     textbook: textbookTitle(w.textbookSlug),
     // 精选不再强制套一种样式（原来统一变黄底大卡，反而破坏了便签墙
     // 黄/蓝/纸白交错的随机感）。现在精选与普通作品共用同一套循环配色，
@@ -391,6 +410,7 @@ export default function WorksPage() {
                 <div className="work-note-copy">
                 <div className="work-note-topline mono">
                   <span>{work.category}</span>
+                  {work.mediaLabel ? <span>{work.mediaLabel}</span> : null}
                   {work.textbook ? <span>📘 {work.textbook}</span> : null}
                   <span>{work.date}</span>
                 </div>

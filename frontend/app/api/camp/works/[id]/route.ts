@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
+import { parseMediaJson, workKindOf } from '@/lib/camp/media';
 
 function safeJsonParse(str: string | null | undefined): any[] {
   if (!str) return [];
@@ -12,6 +13,7 @@ function safeJsonParse(str: string | null | undefined): any[] {
 }
 
 function transformWork(row: any): any {
+  const media = parseMediaJson(row.mediaJson);
   return {
     ...row,
     techStack: safeJsonParse(row.techStackJson),
@@ -20,6 +22,9 @@ function transformWork(row: any): any {
     processLog: parseProcessLog(row.processLogJson),
     ability: parseAbility(row.abilityJson),
     teacherComment: row.teacherComment || '',
+    // 2026-11-04：学生上传的图片 / 视频 / 文档素材，前端按 kind 分别渲染
+    media,
+    workKind: row.workKind || workKindOf({ hasHtml: !!row.htmlFile, media }),
   };
 }
 

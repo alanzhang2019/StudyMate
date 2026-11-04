@@ -15,6 +15,16 @@ import {
   runWorkAutoGen,
   coverFilePath,
 } from '@/lib/server/camp-work-autogen';
+import {
+  MEDIA_LIMITS,
+  classifyMedia,
+  cleanDisplayName,
+  mediaServeUrl,
+  parseMediaJson,
+  saveMediaFile,
+  workKindOf,
+  type WorkMedia,
+} from '@/lib/server/camp-work-media';
 import { ratingSummaryForMany } from '@/lib/server/camp-discussion';
 
 /**
@@ -81,9 +91,13 @@ function safeJsonParse(str: string | null | undefined): any[] {
 const TEXTBOOK_SLUGS = new Set(TEXTBOOKS.map((t) => t.slug));
 
 function transformWork(row: any): any {
+  const media = parseMediaJson(row.mediaJson);
   return {
     ...row,
     techStack: safeJsonParse(row.techStackJson),
+    media,
+    // 老作品没有 workKind：按是否带 HTML 推断，避免作品墙角标缺失
+    workKind: row.workKind || workKindOf({ hasHtml: !!row.htmlFile, media }),
   };
 }
 
@@ -182,6 +196,7 @@ export const POST = async (req: NextRequest) => {
     const contentType = req.headers.get('content-type') || '';
     const fields: Record<string, string> = {};
     let htmlFile: File | null = null;
+    const mediaFiles: File[] = [];
     let coverDataUrl: string | null = null;
 
     if (contentType.includes('multipart/form-data')) {
@@ -189,6 +204,7 @@ export const POST = async (req: NextRequest) => {
       for (const [k, v] of formData.entries()) {
         if (typeof v === 'string') fields[k] = v;
         else if (k === 'htmlFile') htmlFile = v as File;
+        else if (k === 'mediaFiles') mediaFiles.push(v as File);
       }
       // coverDataUrl 体积大（base64 ~1-3MB），通常走 multipart
       const cdu = fields.coverDataUrl;
@@ -314,6 +330,88 @@ export const POST = async (req: NextRequest) => {
       htmlFileRel = saveHtmlFile(id, buf);
     }
 
+    // 2026-11-04：学生上传的非 HTML 作品素材（视频介绍 / 图片展示 / 文档附件）。
+    // 与 HTML 通道并列 —— 只传视频或图片也能提交，不必先做一个网页。
+    const media: WorkMedia[] = [];
+    if (mediaFiles.length > 0) {
+      if (mediaFiles.length > MEDIA_LIMITS.maxFiles) {
+        return NextResponse.json(
+          { success: false, error: `作品素材最多 ${MEDIA_LIMITS.maxFiles} 个文件` },
+          { status: 400 },
+        );
+      }
+      const counts: Record<string, number> = { image: 0, video: 0, file: 0 };
+      let total = 0;
+      for (const f of mediaFiles) {
+        const cls = classifyMedia(f.name || '');
+        if (!cls) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `不支持的文件格式：${f.name || '未命名'}（支持图片、视频、PDF、PPT、Word、ZIP）`,
+            },
+            { status: 400 },
+          );
+        }
+        if (f.size === 0) {
+          return NextResponse.json(
+            { success: false, error: `${f.name} 是空文件，请重新选择` },
+            { status: 400 },
+          );
+        }
+        if (f.size > cls.rule.max) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `${f.name} 超过 ${Math.round(cls.rule.max / 1024 / 1024)}MB 上限`,
+            },
+            { status: 400 },
+          );
+        }
+        counts[cls.rule.kind] += 1;
+        const cap =
+          cls.rule.kind === 'image'
+            ? MEDIA_LIMITS.maxImage
+            : cls.rule.kind === 'video'
+            ? MEDIA_LIMITS.maxVideo
+            : MEDIA_LIMITS.maxFile;
+        if (counts[cls.rule.kind] > cap) {
+          return NextResponse.json(
+            { success: false, error: `同类素材最多 ${cap} 个（${f.name} 超出）` },
+            { status: 400 },
+          );
+        }
+        total += f.size;
+      }
+      if (total > MEDIA_LIMITS.maxTotal) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `作品素材总大小不能超过 ${Math.round(MEDIA_LIMITS.maxTotal / 1024 / 1024)}MB`,
+          },
+          { status: 400 },
+        );
+      }
+
+      // 先全量校验、再统一落盘：避免第 3 个文件不合规时前 2 个已成孤儿文件。
+      let seq = 0;
+      for (const f of mediaFiles) {
+        const cls = classifyMedia(f.name || '')!;
+        seq += 1;
+        const buf = Buffer.from(await f.arrayBuffer());
+        saveMediaFile(id, seq, cls.ext, buf);
+        media.push({
+          kind: cls.rule.kind,
+          url: mediaServeUrl(id, seq, cls.ext),
+          name: cleanDisplayName(f.name || '', `素材${seq}.${cls.ext}`),
+          mime: cls.rule.mime,
+          size: buf.length,
+          ext: cls.ext,
+        });
+      }
+    }
+    const workKind = workKindOf({ hasHtml: !!htmlFileRel, media });
+
     const created = await db.campWork.create({
       data: {
         id,
@@ -329,6 +427,8 @@ export const POST = async (req: NextRequest) => {
         description: description || null,
         techStackJson: JSON.stringify(techStack),
         htmlFile: htmlFileRel,
+        workKind,
+        mediaJson: JSON.stringify(media),
         editToken,
         coverSource: coverImage ? 'url' : coverDataUrl ? 'client' : 'none',
         status: 'pending',
@@ -355,9 +455,14 @@ export const POST = async (req: NextRequest) => {
     let autoDescription: string | null = null;
     let autoCoverImage: string | null = null;
     let autoCoverSource: string | null = null;
-    await runWorkAutoGen(id).catch((e) =>
-      console.error('[camp/works autogen] unexpected error:', e),
-    );
+    // 非 HTML 素材作品没有可分析的网页正文，跳过 LLM/截图自动生成：
+    // 否则会凭空生成一张与作品无关的 AI 封面，还白白多等几十秒。
+    // 纯文字提交（既无 HTML 也无素材）保持原有行为不变。
+    if (htmlFileRel || media.length === 0) {
+      await runWorkAutoGen(id).catch((e) =>
+        console.error('[camp/works autogen] unexpected error:', e),
+      );
+    }
     const fresh = getDb()
       .prepare(
         'SELECT description, coverImage, coverSource FROM camp_works WHERE id = ?',
@@ -378,6 +483,8 @@ export const POST = async (req: NextRequest) => {
         description: autoDescription,
         coverImage: autoCoverImage,
         coverSource: autoCoverSource,
+        workKind,
+        mediaCount: media.length,
       },
     });
   } catch (error: any) {

@@ -4,6 +4,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { textbookTitle } from '@/lib/textbooks';
+import {
+  WORK_KIND_LABEL,
+  firstImageUrl,
+  formatMediaSize,
+  parseMediaJson,
+  type WorkMedia,
+} from '@/lib/camp/media';
 import WorkDiscussion from '@/app/camp/work/[slug]/discussion';
 
 type Lesson = {
@@ -39,6 +46,9 @@ type WorkDetail = {
   shareText: string;
   textbookLabel?: string; // 关联教材显示名
   video: string;
+  /** 学生上传的非 HTML 素材（图片 / 视频 / 文档），种子作品为空 */
+  media?: WorkMedia[];
+  workKind?: string;
 };
 
 const ANIMAL_COVER =
@@ -316,6 +326,11 @@ function mapDbWorkToDetail(row: any): WorkDetail {
     .filter(Boolean)
     .join(' · ');
 
+  // 详情 API 已把 mediaJson 解析成 media；兼容直接吃原始行的调用方。
+  const media: WorkMedia[] = Array.isArray(row.media)
+    ? (row.media as WorkMedia[])
+    : parseMediaJson(row.mediaJson);
+
   // 创作记录：processLog 数组 → lessons
   const processLog = Array.isArray(row.processLog) ? row.processLog : [];
   const lessons: Lesson[] = processLog
@@ -344,7 +359,8 @@ function mapDbWorkToDetail(row: any): WorkDetail {
     date: formatDate(row.createdAt),
     studentLabel: studentLabel || '匿名学员',
     views: typeof row.viewCount === 'number' ? row.viewCount : 0,
-    cover: row.coverImage || '',
+    // 没单独设封面时，用学生上传的第一张图片当封面（审核通过后才对外可见）
+    cover: row.coverImage || firstImageUrl(media) || '',
     externalUrl: row.linkUrl || '',
     hasHtml: !!row.htmlFile,
     intro: row.description || '',
@@ -376,6 +392,8 @@ function mapDbWorkToDetail(row: any): WorkDetail {
     shareTitle: row.title || '学员作品',
     shareText: `${studentLabel || '学员'} 的作品`,
     textbookLabel: textbookTitle(row.textbookSlug),
+    media,
+    workKind: row.workKind || '',
   };
 }
 
@@ -482,6 +500,11 @@ export default function WorkDetailPage() {
   const hasVideo = !!work.video && work.video.trim().length > 0;
   const hasExternal = !!work.externalUrl;
   const hasHtml = !!work.hasHtml;
+  const mediaItems = work.media || [];
+  const mediaImages = mediaItems.filter((m) => m.kind === 'image');
+  const mediaVideos = mediaItems.filter((m) => m.kind === 'video');
+  const mediaDocs = mediaItems.filter((m) => m.kind === 'file');
+  const mediaKindLabel = WORK_KIND_LABEL[work.workKind || ''] || '作品展示';
 
   const handleShare = () => {
     setShareOpen(true);
@@ -604,6 +627,63 @@ export default function WorkDetailPage() {
           {work.figcaption ? <figcaption>{work.figcaption}</figcaption> : null}
         </figure>
       </section>
+
+      {/* 2026-11-04：学生上传的非 HTML 作品（图片展示 / 视频介绍 / 文档附件）。
+          与下方「老师配置的介绍视频」是两个来源，互不覆盖。 */}
+      {mediaItems.length ? (
+        <section className="work-media">
+          <header className="work-media-heading">
+            <p className="section-kicker">WORK / 作品展示</p>
+            <h2>{mediaKindLabel}</h2>
+          </header>
+
+          {mediaImages.length ? (
+            <div className="work-media-grid">
+              {mediaImages.map((m) => (
+                <a
+                  key={m.url}
+                  className="work-media-image"
+                  href={m.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={m.name}
+                >
+                  <img src={m.url} alt={m.name || '作品图片'} loading="lazy" />
+                </a>
+              ))}
+            </div>
+          ) : null}
+
+          {mediaVideos.length ? (
+            <div className="work-media-videos">
+              {mediaVideos.map((m) => (
+                <div className="work-media-video" key={m.url}>
+                  <video src={m.url} controls preload="metadata" playsInline />
+                  <p className="work-media-file-name">{m.name}</p>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          {mediaDocs.length ? (
+            <ul className="work-media-files">
+              {mediaDocs.map((m) => (
+                <li key={m.url}>
+                  <a href={m.url} download>
+                    <span className="work-media-file-icon" aria-hidden="true">
+                      📎
+                    </span>
+                    <span className="work-media-file-name">{m.name}</span>
+                    <span className="work-media-file-size">
+                      {formatMediaSize(m.size)}
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </section>
+      ) : null}
 
       {hasVideo ? (
         <section className="work-video">

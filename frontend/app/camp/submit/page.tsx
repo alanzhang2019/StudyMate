@@ -4,6 +4,13 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { screenshotHtmlFile } from '@/lib/client/html-screenshot';
 import { GRADE_OPTIONS } from '@/lib/camp/grades';
+import {
+  MEDIA_ACCEPT,
+  MEDIA_LIMITS,
+  MEDIA_KIND_LABEL,
+  classifyMedia,
+  formatMediaSize,
+} from '@/lib/camp/media';
 import TextbookPicker from '@/app/camp/textbook-picker';
 
 const CATEGORY_OPTIONS = [
@@ -25,6 +32,8 @@ type SubmitState =
       description?: string;
       coverImage?: string;
       coverSource?: string;
+      mediaCount?: number;
+      workKind?: string;
     }
   | { kind: 'error'; message: string };
 
@@ -40,7 +49,9 @@ export default function CampSubmitPage() {
   const [techStack, setTechStack] = useState('');
   const [textbook, setTextbook] = useState('');
   const [htmlFile, setHtmlFile] = useState<File | null>(null);
+  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [dragOver, setDragOver] = useState(false);
+  const [dragMediaOver, setDragMediaOver] = useState(false);
   const [company, setCompany] = useState(''); // 蜜罐，隐藏，留空
 
   const [state, setState] = useState<SubmitState>({ kind: 'idle' });
@@ -51,7 +62,11 @@ export default function CampSubmitPage() {
   const canSubmit =
     title.trim().length > 0 && studentName.trim().length > 0 && !busy;
 
-  const buildFormData = (file?: File, coverDataUrl?: string | null): FormData => {
+  const buildFormData = (
+    file?: File,
+    coverDataUrl?: string | null,
+    extraMedia: File[] = [],
+  ): FormData => {
     const fd = new FormData();
     fd.append('title', title.trim());
     fd.append('studentName', studentName.trim());
@@ -65,16 +80,22 @@ export default function CampSubmitPage() {
     fd.append('textbook', textbook);
     fd.append('company', company);
     if (file) fd.append('htmlFile', file);
+    // 同名多值字段：服务端 formData.entries() 会逐条收到（见 /api/camp/works POST）
+    for (const f of extraMedia) fd.append('mediaFiles', f);
     if (coverDataUrl) fd.append('coverDataUrl', coverDataUrl);
     return fd;
   };
 
-  const doSubmit = async (file?: File, coverDataUrl?: string | null) => {
+  const doSubmit = async (
+    file?: File,
+    coverDataUrl?: string | null,
+    extraMedia: File[] = [],
+  ) => {
     setState(file ? { kind: 'generating' } : { kind: 'submitting' });
     try {
       const res = await fetch('/api/camp/works', {
         method: 'POST',
-        body: buildFormData(file, coverDataUrl),
+        body: buildFormData(file, coverDataUrl, extraMedia),
       });
       const json = await res.json().catch(() => ({} as any));
       if (!res.ok || !json.success) {
@@ -95,6 +116,8 @@ export default function CampSubmitPage() {
         description: json.data?.description,
         coverImage: json.data?.coverImage,
         coverSource: json.data?.coverSource,
+        mediaCount: json.data?.mediaCount,
+        workKind: json.data?.workKind,
       });
     } catch (err: any) {
       setState({ kind: 'error', message: err?.message || '网络错误，请重试' });
@@ -104,7 +127,7 @@ export default function CampSubmitPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
-    doSubmit(htmlFile ?? undefined);
+    doSubmit(htmlFile ?? undefined, undefined, mediaFiles);
   };
 
   // 上传 HTML：立即触发「客户端截图 + 自动生成介绍」，无需再点提交
@@ -128,7 +151,74 @@ export default function CampSubmitPage() {
       coverDataUrl = null;
     }
 
-    await doSubmit(file, coverDataUrl);
+    await doSubmit(file, coverDataUrl, mediaFiles);
+  };
+
+  // 2026-11-04：非 HTML 作品素材（视频介绍 / 图片展示 / 文档附件）。
+  // 前端先按与服务端同一份规则校验，给出即时反馈；服务端仍会独立复验。
+  const validateAndAddMedia = (picked: File[]) => {
+    if (!picked.length) return;
+    const next = [...mediaFiles, ...picked];
+    if (next.length > MEDIA_LIMITS.maxFiles) {
+      setState({ kind: 'error', message: `作品素材最多 ${MEDIA_LIMITS.maxFiles} 个文件` });
+      return;
+    }
+    const counts: Record<string, number> = { image: 0, video: 0, file: 0 };
+    let total = 0;
+    for (const f of next) {
+      const cls = classifyMedia(f.name);
+      if (!cls) {
+        setState({
+          kind: 'error',
+          message: `「${f.name}」格式不支持，请选图片、视频、PDF、PPT、Word 或 ZIP`,
+        });
+        return;
+      }
+      if (f.size === 0) {
+        setState({ kind: 'error', message: `「${f.name}」是空文件，请重新选择` });
+        return;
+      }
+      if (f.size > cls.rule.max) {
+        setState({
+          kind: 'error',
+          message: `「${f.name}」超过 ${Math.round(cls.rule.max / 1024 / 1024)}MB 上限`,
+        });
+        return;
+      }
+      counts[cls.rule.kind] += 1;
+      const cap =
+        cls.rule.kind === 'image'
+          ? MEDIA_LIMITS.maxImage
+          : cls.rule.kind === 'video'
+          ? MEDIA_LIMITS.maxVideo
+          : MEDIA_LIMITS.maxFile;
+      if (counts[cls.rule.kind] > cap) {
+        setState({ kind: 'error', message: `同类素材最多 ${cap} 个` });
+        return;
+      }
+      total += f.size;
+    }
+    if (total > MEDIA_LIMITS.maxTotal) {
+      setState({
+        kind: 'error',
+        message: `作品素材总大小不能超过 ${Math.round(MEDIA_LIMITS.maxTotal / 1024 / 1024)}MB`,
+      });
+      return;
+    }
+    setMediaFiles(next);
+    if (state.kind === 'error') setState({ kind: 'idle' });
+  };
+
+  const handleMediaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    validateAndAddMedia(Array.from(e.target.files || []));
+    // 允许连续两次选同一个文件
+    e.target.value = '';
+  };
+
+  const handleMediaDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragMediaOver(false);
+    validateAndAddMedia(Array.from(e.dataTransfer?.files || []));
   };
 
   const handleHtmlChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -173,7 +263,9 @@ export default function CampSubmitPage() {
     setTechStack('');
     setTextbook('');
     setHtmlFile(null);
+    setMediaFiles([]);
     setDragOver(false);
+    setDragMediaOver(false);
     setState({ kind: 'idle' });
   };
 
@@ -207,8 +299,9 @@ export default function CampSubmitPage() {
           <span>把作品贴到这里。</span>
         </h1>
         <p>
-          上传一个 HTML 作品，我们会自动帮你写介绍、生成封面；
-          也可以只填文字。老师审核通过后，作品就会出现在「作品墙」上。
+          网页、视频、图片、文档都算作品：传 HTML 会自动帮你写介绍、生成封面；
+          也可以直接上传视频介绍、图片展示，甚至只填文字。
+          老师审核通过后，作品就会出现在「作品墙」上。
         </p>
       </section>
 
@@ -242,6 +335,13 @@ export default function CampSubmitPage() {
                 <p className="mono submit-kicker">自动生成的介绍</p>
                 <p className="submit-success-desc-body">{state.description}</p>
               </div>
+            ) : null}
+
+            {state.mediaCount && state.mediaCount > 0 ? (
+              <p className="submit-success-media">
+                已上传 {state.mediaCount} 个作品素材（图片 / 视频 / 文档），
+                审核通过后会展示在作品墙上。
+              </p>
             ) : null}
 
             <p>
@@ -350,12 +450,13 @@ export default function CampSubmitPage() {
             <div className="submit-card-head">
               <p className="mono submit-kicker">STEP 02 — 作品信息</p>
               <p className="submit-card-intro">
-                上传 HTML 作品后，我们会当场帮你写介绍、生成封面，你什么都不用再点。
+                网页作品（HTML）上传后会自动写介绍、生成封面；视频、图片、文档也能直接传，可以多选。
+                不传 HTML 同样可以提交。
               </p>
             </div>
 
             <Field
-              label="作品文件（HTML）"
+              label="网页作品（HTML，选填）"
               hint="上传后自动生成介绍和封面，无需再点提交"
             >
               <label
@@ -394,6 +495,78 @@ export default function CampSubmitPage() {
               </label>
             </Field>
 
+            <Field
+              label="作品素材（图片 / 视频 / 文档）"
+              hint="选填 · 可以不传 HTML，只用视频介绍或图片展示也能提交"
+            >
+              <label
+                className={`upload-zone upload-zone--media ${
+                  dragMediaOver ? 'upload-zone--over' : ''
+                } ${mediaFiles.length ? 'upload-zone--has-file' : ''}`}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragMediaOver(true);
+                }}
+                onDragLeave={() => setDragMediaOver(false)}
+                onDrop={handleMediaDrop}
+              >
+                <input
+                  type="file"
+                  multiple
+                  accept={MEDIA_ACCEPT}
+                  onChange={handleMediaChange}
+                  disabled={busy}
+                  className="submit-file-input"
+                />
+                <span className="upload-zone-icon" aria-hidden="true">
+                  🎬
+                </span>
+                <span className="upload-zone-title">
+                  {mediaFiles.length
+                    ? `已选 ${mediaFiles.length} 个素材，可继续追加`
+                    : '点击或拖拽图片、视频、文档到这里'}
+                </span>
+                <span className="upload-zone-hint">
+                  图片 ≤10MB · 视频 ≤80MB · PDF/PPT/Word/ZIP ≤30MB，最多{' '}
+                  {MEDIA_LIMITS.maxFiles} 个
+                </span>
+              </label>
+              {mediaFiles.length ? (
+                <ul className="submit-media-list">
+                  {mediaFiles.map((f, i) => {
+                    const cls = classifyMedia(f.name);
+                    return (
+                      <li key={`${f.name}-${i}`}>
+                        <span className="submit-media-kind">
+                          {cls ? MEDIA_KIND_LABEL[cls.rule.kind] : '文件'}
+                        </span>
+                        <span className="submit-media-name" title={f.name}>
+                          {f.name}
+                        </span>
+                        <span className="submit-media-size">
+                          {formatMediaSize(f.size)}
+                        </span>
+                        <button
+                          type="button"
+                          className="submit-media-remove"
+                          aria-label={`移除 ${f.name}`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setMediaFiles((prev) =>
+                              prev.filter((_, j) => j !== i),
+                            );
+                          }}
+                        >
+                          ×
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : null}
+            </Field>
+
             <Field label="作品类型">
               <select
                 value={category}
@@ -408,7 +581,10 @@ export default function CampSubmitPage() {
               </select>
             </Field>
 
-            <Field label="封面图链接" hint="选填 · 不传 HTML 时可填 http(s) 图片地址">
+            <Field
+              label="封面图链接"
+              hint="选填 · 传了图片素材会自动用第一张当封面；也可填 http(s) 图片地址"
+            >
               <input
                 value={coverImage}
                 onChange={(e) => setCoverImage(e.target.value)}

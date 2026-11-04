@@ -916,6 +916,19 @@ function applyMigrations(db: Database): void {
     migrate(db, `ALTER TABLE camp_works ADD COLUMN ${col} ${type}`, `camp_works.${col}`)
   }
 
+  // 2026-11-04：学生可上传非 HTML 作品（视频介绍 / 图片展示 / 文档附件）。
+  //   workKind  html|video|image|file|text —— 作品墙角标与详情页展示方式
+  //   mediaJson WorkMedia[] JSON —— 结构见 lib/server/camp-work-media.ts
+  // 两列都可空；老库平滑补列，新库也由本段 migrate 一并补齐（不改 CREATE TABLE，
+  // 避免文件里两处 camp_works 建表语句产生歧义）。
+  const campWorkMediaCols: Array<[string, string]> = [
+    ['workKind', 'TEXT'],
+    ['mediaJson', 'TEXT'],
+  ]
+  for (const [col, type] of campWorkMediaCols) {
+    migrate(db, `ALTER TABLE camp_works ADD COLUMN ${col} ${type}`, `camp_works.${col}`)
+  }
+
   // 2026-09-19：作品关联教材（学生上传必选单本，slug 来自 textbooks.ts）。
   // 新部署走上方 CREATE TABLE 的 textbookSlug 列；老库平滑补列，列已存在会被吞掉。
   migrate(db, 'ALTER TABLE camp_works ADD COLUMN textbookSlug TEXT', 'camp_works.textbookSlug')
@@ -991,7 +1004,7 @@ function applyMigrations(db: Database): void {
       .prepare('PRAGMA table_info(camp_works)')
       .all() as Array<{ name: string }>
     const names = cols.map((c) => c.name)
-    const required = ['viewCount', 'grade', 'htmlFile', 'editToken', 'coverSource', 'textbookSlug']
+    const required = ['viewCount', 'grade', 'htmlFile', 'editToken', 'coverSource', 'textbookSlug', 'workKind', 'mediaJson']
     const missing = required.filter((c) => !names.includes(c))
     if (missing.length > 0) {
       console.error(
