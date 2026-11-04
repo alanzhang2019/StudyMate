@@ -40,6 +40,9 @@ const TOOLS: Tool[] = [
   //   提交即出爆零风险等级与整改建议，可打印保存。
   //   ★ 更新内容时必须同步这里的「N 项」与分部分描述（学生按标题判断要不要点开）。
   { href: '/contest-anti-zero-checklist.html', label: '复赛防爆零自查表', icon: '🛡️', external: true, offSite: false, full: 'CSP-J / CSP-S 复赛防爆零：机试环境操作（建目录、文件命名、读写、自测、交卷检查）+ 代码防爆零（多组数据清空、long long、边界数据、保存、清场），15 项逐项自查' },
+  // ★ 家长侧安卓安装包下载页：静态页落在 hl-platform 的 /ai 子应用，不是 Next 路由 ⇒ 用 `<a>` 整页走。
+  //   页面首屏就是「下载安装包（APK）」按钮，并附安装三步、三项权限与侧载安全说明。
+  { href: '/ai/baibaoxiang/tv-pad-phone-study/', label: '看电视先答题', icon: '📺', external: true, full: 'TV-Pad-Phone-Study：看电视 / 平板 / 手机满 10 分钟要答题才能继续。打开下载页获取安卓安装包（含安装步骤与权限说明）' },
 ];
 
 function ToolboxMenu() {
