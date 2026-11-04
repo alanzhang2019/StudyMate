@@ -9,7 +9,10 @@ import ThemeToggle from '@/app/components/ThemeToggle';
 // 顶部导航：AI 自学平台 / AI 原生教育 / 百宝箱▾（+「开始自学」按钮）。
 // 品牌层级（2026-10-26 定稿）：爱讲题 = 主品牌；后浪奔涌 = AI 自学平台子品牌；
 // 少年 AI 创造营 = AI 原生教育产品名；百宝箱 = 工具集合入口。
-// 信奥、深圳教材、云剪切板等零散工具统一收进「百宝箱」下拉。
+// 信奥、云剪切板等零散工具统一收进「百宝箱」下拉。
+// 2026-11-04：按用户要求关闭百宝箱里的教材下载入口（原「深圳教材」→ /textbooks）。
+//   ★ 只关入口、不删路由：/textbooks 页面与教材 PDF 仍在，camp 作品上传、
+//     sitemap、教材阅读组件都依赖它，直接访问 /textbooks 依旧可用。
 
 type Tool = {
   href: string;
@@ -28,7 +31,8 @@ const TOOLS: Tool[] = [
   //   放百宝箱第一位。它和首页 Hero 的「AI 自学」（/ai/，hl-platform）是两套东西，
   //   别混：/mistake 讲一道题，/ai/ 是自学闭环。
   { href: '/mistake', label: '拍照讲题', icon: '📷', external: false, full: '作业不会做，拍一下马上讲明白 —— 不只给答案，一步一步讲清楚这题该怎么想' },
-  { href: '/textbooks', label: '深圳教材', icon: '📖', external: false },
+  // 2026-11-04 入口已关闭，需要恢复时取消下一行注释即可：
+  // { href: '/textbooks', label: '深圳教材', icon: '📖', external: false },
   // 2026-10-26：资料共享 → 云剪切板（用户定名）。
   { href: '/clipboard', label: '云剪切板', icon: '📋', external: false },
   // ★ 静态 HTML（在 public/ 下），不是 Next 路由 ⇒ 用 `<a>` 不用 `<Link>`。
