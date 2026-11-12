@@ -109,6 +109,15 @@ export default function NotebookDetailPage() {
                     </div>
                 </div>
 
+                {/* ★ WNPAPER：手机上标题栏只剩一个图标，功能会被当成"没做出来"。
+                    所以在列表上方补一条带文字的入口（只移动端显示；桌面端用标题栏那个）。 */}
+                <Link href={`/notebooks/${notebook.id}/paper`} className="block sm:hidden">
+                    <Button variant="outline" className="w-full justify-center">
+                        <FileStack className="mr-2 h-4 w-4" />
+                        {t.paper?.title || "拍整张卷子"}
+                    </Button>
+                </Link>
+
                 <ErrorList subjectId={notebook.id} subjectName={notebook.name} />
 
                 <RenameNotebookDialog
