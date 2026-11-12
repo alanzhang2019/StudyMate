@@ -2,14 +2,20 @@
  * 压缩图片文件
  * @param file 原始图片文件
  * @param maxSizeMB 最大文件大小（MB），默认 1MB
- * @param maxWidth 最大宽度，默认 1920px
+ * @param maxWidth 最大宽度，默认 1600px
  * @param quality 压缩质量 0-1，默认 0.8
  * @returns 压缩后的 Base64 字符串
+ *
+ * ★ 2026-11-12（用户报障「拍照识别为什么这么慢」）：maxWidth 1920 → 1600。
+ *   多模态模型的视觉 token 按**像素**切块算，长边 1920 的题图约 1920×1440，
+ *   降一档到 1600×1200 大约省掉三成视觉 token，首字延迟跟着降。
+ *   1600 对「一道题、A4 半页内的字」仍然清楚（实测错题照片里正文小四号字在 1600 下
+ *   字高约 20px，远超模型能认的下限）；再往下压（1280）才开始出现公式下标糊掉。
  */
 export async function compressImage(
     file: File,
     maxSizeMB: number = 1,
-    maxWidth: number = 1920,
+    maxWidth: number = 1600,
     quality: number = 0.8
 ): Promise<string> {
     return new Promise((resolve, reject) => {

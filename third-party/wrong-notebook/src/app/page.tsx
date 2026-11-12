@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense, useEffect } from "react";
+import { useState, Suspense, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { UploadZone } from "@/components/upload-zone";
@@ -27,6 +27,9 @@ function HomeContent() {
     const [step, setStep] = useState<"upload" | "review">("upload");
     const [analysisStep, setAnalysisStep] = useState<ProgressStatus>('idle');
     const [progress, setProgress] = useState(0);
+    // 真实等待秒数（2026-11-12）：进度条是模拟的，秒数是真的
+    const [elapsedSec, setElapsedSec] = useState(0);
+    const analysisStartRef = useRef(0);
     const [parsedData, setParsedData] = useState<ParsedQuestion | null>(null);
     const [currentImage, setCurrentImage] = useState<string | null>(null);
     const { t, language } = useLanguage();
@@ -89,16 +92,19 @@ function HomeContent() {
     }, []);
 
     // Simulate progress for smoother UX with timeout protection
+    // ★★★ 2026-11-12：与 notebooks/[id]/add/page.tsx 同一处改动 —— 原来进度加满 90 就永久冻结、
+    //   而随机步长常一步跨到 91~99 之间，看起来像卡死（用户截图停在「91%」）。改为按已等秒数推进，
+    //   并把真实秒数交给 ProgressFeedback 显示。
     useEffect(() => {
         let interval: NodeJS.Timeout;
         let timeout: NodeJS.Timeout;
         if (analysisStep !== 'idle') {
             setProgress(0);
+            const startedAt = analysisStartRef.current || Date.now();
             interval = setInterval(() => {
-                setProgress(prev => {
-                    if (prev >= 90) return prev; // Cap at 90% until complete
-                    return prev + Math.random() * 10;
-                });
+                const sec = (Date.now() - startedAt) / 1000;
+                setElapsedSec(Math.floor(sec));
+                setProgress(sec < 12 ? (sec / 12) * 60 : Math.min(97, 60 + ((sec - 12) / 8) * 3));
             }, 500);
 
             // Safety timeout: auto-reset after configurable time to prevent stuck overlay
@@ -128,6 +134,8 @@ function HomeContent() {
 
     const handleAnalyze = async (file: File) => {
         const startTime = Date.now();
+        // 计时起点在"真正开始处理"这一刻（压缩阶段也算学生等的时间）
+        analysisStartRef.current = startTime;
         frontendLogger.info('[HomeAnalyze]', 'Starting analysis flow', {
             timeoutSettings: {
                 apiTimeout: aiTimeout,
@@ -454,6 +462,7 @@ function HomeContent() {
                 status={analysisStep}
                 progress={progress}
                 message={getProgressMessage()}
+                elapsedSec={elapsedSec}
             />
 
             <div className="container mx-auto p-4 space-y-8 pb-20">

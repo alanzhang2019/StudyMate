@@ -3,6 +3,7 @@ import { AIService, ParsedQuestion, DifficultyLevel, AIConfig, ReanswerQuestionR
 import { generateAnalyzePrompt, generateSimilarQuestionPrompt, generateGeogebraPrompt } from './prompts';
 import { getAppConfig } from '../config';
 import { safeParseParsedQuestion } from './schema';
+import { sanitizeFigure } from './figure-sanitize';
 import { getMathTagsFromDB, getTagsFromDB } from './tag-service';
 import { createLogger } from '../logger';
 import { normalizeMistakeStatusForSave } from '../mistake-status';
@@ -27,6 +28,29 @@ function normalizePaperLevel(raw: string | null): string {
     return "";
 }
 
+/**
+ * 判断这次失败是否只是「网关/模型不认我们多塞的那个可选参数」。
+ *
+ * 只认 400/422 这一类**请求体被拒**，且错误文本里确实点名了参数或"未知/不支持字段"。
+ * 其它 400（例如图片过大、消息格式错）不在此列 —— 那种情况下原样抛出，
+ * 因为换个参数重试也救不回来，只会白白多花一次额度。
+ */
+function isUnknownParamError(err: unknown): boolean {
+    const anyErr: any = err as any;
+    const status = anyErr?.status ?? anyErr?.response?.status;
+    if (status !== 400 && status !== 422) return false;
+    const msg = (err instanceof Error ? err.message : String(err || '')).toLowerCase();
+    if (msg.includes('enable_thinking') || msg.includes('enablethinking')) return true;
+    return (
+        msg.includes('unrecognized') ||
+        msg.includes('unknown') ||
+        msg.includes('unsupported') ||
+        msg.includes('not supported') ||
+        msg.includes('extra field') ||
+        msg.includes('unexpected')
+    );
+}
+
 export class OpenAIProvider implements AIService {
     private openai: OpenAI;
     private model: string;
@@ -48,6 +72,16 @@ export class OpenAIProvider implements AIService {
             defaultHeaders: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             },
+            // ★★★ 2026-11-12（用户报障「拍照识别为什么这么慢」）：
+            //   SDK 默认 `timeout: 600000`（10 分钟）+ `maxRetries: 2` —— 也就是说网关
+            //   抖一次，SDK 会**在后台自己重试两次**，前端只能干等；实测线上三次真实拍照
+            //   分析耗时 30.5s / 75.4s / 184.3s，波动 6 倍，任何一次抖都可能叠成几分钟。
+            //   ① timeout 280s：略小于前端 300s（config.timeouts.analyze），让**服务端先超时**
+            //      并返回明确的 AI_TIMEOUT_ERROR，而不是前端先 abort、服务端还在白跑
+            //      （那种情况下用户看到"失败了"，其实 3 秒后就算完了，结果直接丢掉）；
+            //   ② maxRetries 1：真·容量错误（429/5xx）还留一次机会，但不再叠成 3 倍时长。
+            timeout: 280000,
+            maxRetries: 1,
         });
 
         this.model = config?.model || 'gpt-4o'; // Fallback for safety
@@ -120,7 +154,6 @@ export class OpenAIProvider implements AIService {
         const subjectRaw = this.extractTag(text, "subject");
         const knowledgePointsRaw = this.extractTag(text, "knowledge_points");
         const requiresImageRaw = this.extractTag(text, "requires_image");
-        const reuseOriginalImageRaw = this.extractTag(text, "reuse_original_image");
         const wrongAnswerText = this.extractTag(text, "wrong_answer_text") || "";
         const mistakeAnalysis = this.extractTag(text, "mistake_analysis") || "";
         const mistakeStatusRaw = this.extractTag(text, "mistake_status");
@@ -151,6 +184,10 @@ export class OpenAIProvider implements AIService {
         const requiresImage = requiresImageRaw?.toLowerCase().trim() === 'true';
         const mistakeStatus = normalizeMistakeStatusForSave(mistakeStatusRaw, wrongAnswerText);
 
+        // Process figure（2026-10-19）：变式题配图，模型按 <figure>…</figure> 返回内联 SVG
+        const figureRaw = this.extractTag(text, "figure");
+        const figure = sanitizeFigure(figureRaw);
+
         // Construct Result
         const result: ParsedQuestion = {
             questionText,
@@ -162,7 +199,7 @@ export class OpenAIProvider implements AIService {
             subject,
             knowledgePoints,
             requiresImage,
-            reuseOriginalImage: reuseOriginalImageRaw?.toLowerCase().trim() === 'true',
+            figure,
             gradeSemester,
             paperLevel
         };
@@ -185,11 +222,18 @@ export class OpenAIProvider implements AIService {
 
         // 从数据库获取各学科标签
         // 如果指定了学科，只获取该学科；否则获取所有学科标签供 AI 判断
-        const prefetchedMathTags = (subject === '数学' || !subject) ? await getMathTagsFromDB(grade || null) : [];
-        const prefetchedPhysicsTags = (subject === '物理' || !subject) ? await getTagsFromDB('physics') : [];
-        const prefetchedChemistryTags = (subject === '化学' || !subject) ? await getTagsFromDB('chemistry') : [];
-        const prefetchedBiologyTags = (subject === '生物' || !subject) ? await getTagsFromDB('biology') : [];
-        const prefetchedEnglishTags = (subject === '英语' || !subject) ? await getTagsFromDB('english') : [];
+        // ★ 2026-11-12：原来是 5 个串行 `await`。学科为空时要连打 5 次库，
+        //   每次都几十毫秒地排队（这几条只是拼提示词用的标签，彼此无依赖）。
+        //   改并行：语义一模一样，省掉的是叠加的往返。收益不大，但它是"用户已经
+        //   点了上传、页面却还没动静"那一段里唯一的本地耗时。
+        const [prefetchedMathTags, prefetchedPhysicsTags, prefetchedChemistryTags, prefetchedBiologyTags, prefetchedEnglishTags] =
+            await Promise.all([
+                (subject === '数学' || !subject) ? getMathTagsFromDB(grade || null) : Promise.resolve([] as any),
+                (subject === '物理' || !subject) ? getTagsFromDB('physics') : Promise.resolve([] as any),
+                (subject === '化学' || !subject) ? getTagsFromDB('chemistry') : Promise.resolve([] as any),
+                (subject === '生物' || !subject) ? getTagsFromDB('biology') : Promise.resolve([] as any),
+                (subject === '英语' || !subject) ? getTagsFromDB('english') : Promise.resolve([] as any),
+            ]);
 
         const systemPrompt = generateAnalyzePrompt(language, grade, subject, {
             customTemplate: config.prompts?.analyze,
@@ -277,28 +321,53 @@ export class OpenAIProvider implements AIService {
 
                 response = await res.json();
             } else {
-                response = await this.openai.chat.completions.create({
-                    model: this.model,
-                    messages: [
-                        {
-                            role: "system",
-                            content: systemPrompt
-                        },
-                        {
-                            role: "user",
-                            content: [
-                                {
-                                    type: "image_url",
-                                    image_url: {
-                                        url: `data:${mimeType};base64,${imageBase64}`,
-                                    },
+                const messages: any = [
+                    {
+                        role: "system",
+                        content: systemPrompt
+                    },
+                    {
+                        role: "user",
+                        content: [
+                            {
+                                type: "image_url",
+                                image_url: {
+                                    url: `data:${mimeType};base64,${imageBase64}`,
                                 },
-                            ],
-                        },
-                    ],
+                            },
+                        ],
+                    },
+                ];
+                const baseParams: any = {
+                    model: this.model,
+                    messages,
                     // response_format: { type: "json_object" }, // Removing to improve compatibility with 3rd party providers
                     max_tokens: 8192,
-                });
+                };
+
+                // ★★★ 2026-11-12（用户报障「拍照识别为什么这么慢」）——最大的一处提速：
+                //   把上游模型的**思考链关掉**。
+                //   线上真日志三次真实拍照分析：30.5s / 75.4s / 184.3s（全部成功，只是慢）。
+                //   同图同提示词（线上真提示词 6213 字符）A/B 实测：
+                //     · 开思考：25.4s，reasoning_tokens=646，reasoning_len=1041，completion=2173
+                //     · 关思考：11.4s，reasoning_tokens=0，  reasoning_len=0，   completion=1009
+                //              正文 1665 字符（不短）、finish=stop、JSON 结构完整
+                //   ⇒ 这一步干的活是「认字 + 抄题干 + 打标签」，不吃链式推理；思考只让用户干等，
+                //     还会把 completion 预算翻倍（思考+正文共用一个 max_tokens 池）。
+                //
+                // ★ 但**提速参数绝不允许成为单点故障**：网关/模型换代后可能不认这个字段，
+                //   400 报未知参数。所以下面 catch 里重试一次"只去掉这个字段"的请求——
+                //   宁可慢回去，也不能因为一个优化项把「拍照收题」整条链路打挂。
+                try {
+                    response = await this.openai.chat.completions.create({ ...baseParams, enable_thinking: false } as any);
+                } catch (fastErr) {
+                    if (!isUnknownParamError(fastErr)) throw fastErr;
+                    logger.warn(
+                        { error: fastErr instanceof Error ? fastErr.message : String(fastErr) },
+                        '⚠️ 网关不认 enable_thinking，已退回不关思考的请求（会慢一些，但识别功能不受影响）'
+                    );
+                    response = await this.openai.chat.completions.create(baseParams);
+                }
             }
 
             logger.box('📦 Full API Response', JSON.stringify(response, null, 2));
@@ -330,11 +399,12 @@ export class OpenAIProvider implements AIService {
         }
     }
 
-    async generateSimilarQuestion(originalQuestion: string, knowledgePoints: string[], language: 'zh' | 'en' = 'zh', difficulty: DifficultyLevel = 'medium', gradeSemester?: string | null, originalImageUrl?: string): Promise<ParsedQuestion> {
+    async generateSimilarQuestion(originalQuestion: string, knowledgePoints: string[], language: 'zh' | 'en' = 'zh', difficulty: DifficultyLevel = 'medium', gradeSemester?: string | null, opts?: { imageBase64?: string; requiresImage?: boolean }): Promise<ParsedQuestion> {
         const config = getAppConfig();
+        const imageBase64 = opts?.imageBase64;
         const systemPrompt = generateSimilarQuestionPrompt(language, originalQuestion, knowledgePoints, difficulty, {
             customTemplate: config.prompts?.similar
-        }, gradeSemester);
+        }, gradeSemester, { requiresImage: opts?.requiresImage, hasImage: !!imageBase64 });
         const userPrompt = `\nOriginal Question: "${originalQuestion}"\nKnowledge Points: ${knowledgePoints.join(", ")}\n    `;
 
         logger.box('🎯 Generate Similar Question Request', {
@@ -344,24 +414,40 @@ export class OpenAIProvider implements AIService {
             originalQuestion: originalQuestion.substring(0, 100) + '...',
             knowledgePoints: knowledgePoints.join(', '),
             difficulty,
-            language
+            language,
+            hasImage: !!imageBase64,
+            requiresImage: !!opts?.requiresImage
         });
         logger.box('📝 System Prompt', systemPrompt);
         logger.box('📝 User Prompt', userPrompt);
 
         try {
+            // ★ 2026-10-19：原题依赖图形时，把原题图一并喂进去，模型才能画出同类型的变式图。
+            let userContent: OpenAIUserContent = userPrompt;
+            if (imageBase64) {
+                userContent = [
+                    { type: "text", text: userPrompt },
+                    { type: "image_url", image_url: { url: imageBase64 } },
+                ];
+            }
+
             const response = await this.openai.chat.completions.create({
                 model: this.model,
                 messages: [
                     { role: "system", content: systemPrompt },
-                    { role: "user", content: originalImageUrl ? [
-                        { type: "text", text: userPrompt + '\n请参考附带的原题图片，确保新题可以独立作答。' },
-                        { type: "image_url", image_url: { url: originalImageUrl } },
-                    ] : userPrompt },
+                    { role: "user", content: userContent },
                 ],
                 // response_format: { type: "json_object" }, // Removing to improve compatibility with 3rd party providers
-                max_tokens: 8192,
-            });
+                // ★★ 2026-11-01（用户报障「举一反三出题速度怎么那么慢」）：
+                //   同一网关、同一提示词实测出题耗时 10 秒 ~ 52 秒，差距全在**思考 token**
+                //   （usage.completion_tokens_details.reasoning_tokens 实测 374 ~ 2656）。
+                //   出题是"给个模板往里填"的活，不需要长思考；关掉后尾延迟消失、方差也消失。
+                //   ★ 字段不在 OpenAI SDK 类型里，但网关认（`answerTutorQuestionStream` 已在用同一写法）。
+                thinking: { type: 'disabled' },
+                // ★ 8192 是给"思考 + 正文"共用的预算，关思考后 3000 足够
+                //   （实测一道带解析的题正文 900~1600 字符）。留太多只会让模型话更多。
+                max_tokens: 3000,
+            } as any);
 
             const text = response.choices[0]?.message?.content || "";
 
@@ -467,6 +553,80 @@ export class OpenAIProvider implements AIService {
 
         } catch (error) {
             logger.error({ error, stack: error instanceof Error ? error.stack : undefined }, 'Error during reanswer');
+            this.handleError(error);
+            throw error;
+        }
+    }
+
+    /** 题内「小老师」追问（2026-10-19）。理由见 gemini-provider 同名方法。 */
+    async answerTutorQuestion(prompt: string): Promise<string> {
+        try {
+            const response = await this.openai.chat.completions.create({
+                model: this.model,
+                messages: [{ role: "user", content: prompt }],
+                max_tokens: 1024,
+            });
+            const text = response.choices[0]?.message?.content || "";
+            if (!text) throw new Error("Empty response from AI");
+            return text.trim();
+        } catch (error) {
+            logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Error during tutor answer');
+            this.handleError(error);
+            throw error;
+        }
+    }
+
+    /**
+     * 题内「小老师」追问 —— **流式**（2026-10-22）。
+     *
+     * ★ 模型单独可配（`AI_TUTOR_MODEL`）：同一网关、同一提示词实测首字延迟
+     *   `qwen/qwen3.8-flash-next` 6.7~16.4 秒，`deepseek/deepseek-v4.1-flash` 2.9~6.0 秒。
+     *   追问是「学生当下卡住」的场景，首字延迟直接等于体感，所以给这一条链路单独留了开关；
+     *   不配就沿用全局 `OPENAI_MODEL`，别的功能（拍照识别/解析/出题）一行都不受影响。
+     *
+     * ★ 为什么不在这里做「失败重试」：流式一旦已经吐了字，重试就得处理"半截答案"，
+     *   而追问是学生看着屏幕的对话 —— 吐了一半再重来比直接报错更让人困惑。
+     *   失败就让前端把空回答撤掉、把问题放回输入框（与旧的整段失败同一套收尾）。
+     */
+    async *answerTutorQuestionStream(prompt: string): AsyncIterable<string> {
+        const model = process.env.AI_TUTOR_MODEL || this.model;
+        // ★★ 必须关掉「思考」（thinking）。
+        //   这个网关上的 deepseek 系模型默认先吐一段 `reasoning_content`（实测 300+ 字，
+        //   难题上更长），而 `max_tokens` 是**思考 + 正文共用一个预算** ⇒ 思考吃光预算，
+        //   正文就成了空串。线上真踩过：8 秒后 replyChars=0，学生只看到「小老师连不上」。
+        //   hl-platform 的非思考档位用的是同一写法（server/llm.js: thinking:{type:'disabled'}）。
+        //   ★ 这个字段不在 OpenAI SDK 的类型里，但网关认；万一哪天被 SDK 吞掉也不致命 ——
+        //     下面还有「空流兜底」，行为只是退回旧版（多等一轮）。
+        const base: any = {
+            model,
+            messages: [{ role: "user", content: prompt }],
+            max_tokens: 1500,
+            thinking: { type: 'disabled' },
+        };
+        try {
+            // ★ 显式 `as any`：`base` 是 any，展开后 TS 会挑到**非流式**重载，
+            //   于是 `stream` 被推断成 ChatCompletion（不可 for-await）。断言一下即可。
+            const stream: any = await this.openai.chat.completions.create({ ...base, stream: true } as any);
+            let n = 0;
+            for await (const chunk of stream) {
+                const delta = chunk.choices?.[0]?.delta?.content;
+                if (!delta) continue;
+                n += delta.length;
+                yield delta;
+            }
+            if (n) return;
+            // ★★ 兜底：上游偶发空流（只有思考没有正文，或者干脆什么都不给）。
+            //   宁可比别人慢一轮，也不要让学生看到「问过了但没有回答」——
+            //   那种"静默失败"最难理解，他会以为是自己点错了。
+            logger.warn({ model }, 'Tutor stream empty, retry non-stream');
+            const res: any = await this.openai.chat.completions.create(base);
+            const text = String(res?.choices?.[0]?.message?.content || '').trim();
+            if (text) yield text;
+        } catch (error) {
+            logger.error({
+                error: error instanceof Error ? error.message : String(error),
+                model,
+            }, 'Error during tutor stream');
             this.handleError(error);
             throw error;
         }

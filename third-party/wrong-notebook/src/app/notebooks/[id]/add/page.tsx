@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { UploadZone } from "@/components/upload-zone";
@@ -24,6 +24,9 @@ export default function AddErrorPage() {
     const [step, setStep] = useState<"upload" | "review">("upload");
     const [analysisStep, setAnalysisStep] = useState<ProgressStatus>('idle');
     const [progress, setProgress] = useState(0);
+    // 真实等待秒数（2026-11-12）：进度条是模拟的，秒数是真的 —— 见下面 useEffect 的注释
+    const [elapsedSec, setElapsedSec] = useState(0);
+    const analysisStartRef = useRef(0);
     const [parsedData, setParsedData] = useState<ParsedQuestion | null>(null);
     const [currentImage, setCurrentImage] = useState<string | null>(null);
     const { t, language } = useLanguage();
@@ -73,16 +76,25 @@ export default function AddErrorPage() {
     }, [notebookId, router]);
 
     // Simulate progress for smoother UX with timeout protection
+    //
+    // ★★★ 2026-11-12（用户报障「拍照识别为什么这么慢」）：原来这里是
+    //   `setProgress(prev => prev >= 90 ? prev : prev + Math.random()*10)` ——
+    //   加满到 90 后**永久冻结**，而随机步长常常一步跨到 91~99 之间某个值，
+    //   学生看到的就是截图里那样「91% 一动不动」，看起来像死机。
+    //   现在：① 进度按**已等秒数**推进（前 12 秒到 60%，之后每 8 秒 +3%，封顶 97%，
+    //   余下 3% 留给真的出结果那一瞬）；② 旁边同时显示**真实等待秒数**，
+    //   超过 45 秒再补一句"还在跑"（ProgressFeedback 里）。
+    //   进度条终究是模拟的：上游实测 30s / 75s / 184s，谁也没法预测下一次多久。
     useEffect(() => {
         let interval: NodeJS.Timeout;
         let timeout: NodeJS.Timeout;
         if (analysisStep !== 'idle') {
             setProgress(0);
+            const startedAt = analysisStartRef.current || Date.now();
             interval = setInterval(() => {
-                setProgress(prev => {
-                    if (prev >= 90) return prev;
-                    return prev + Math.random() * 10;
-                });
+                const sec = (Date.now() - startedAt) / 1000;
+                setElapsedSec(Math.floor(sec));
+                setProgress(sec < 12 ? (sec / 12) * 60 : Math.min(97, 60 + ((sec - 12) / 8) * 3));
             }, 500);
 
             // Safety timeout: auto-reset after configurable time to prevent stuck overlay
@@ -111,6 +123,8 @@ export default function AddErrorPage() {
 
     const handleAnalyze = async (file: File) => {
         const startTime = Date.now();
+        // 计时起点在"真正开始处理"这一刻（compressing 阶段的耗时也算学生等的时间）
+        analysisStartRef.current = startTime;
         frontendLogger.info('[AddAnalyze]', 'Starting analysis flow', {
             timeoutSettings: {
                 apiTimeout: aiTimeout,
@@ -354,6 +368,7 @@ export default function AddErrorPage() {
                 status={analysisStep}
                 progress={progress}
                 message={getProgressMessage()}
+                elapsedSec={elapsedSec}
             />
 
             <div className="container mx-auto p-4 space-y-8 pb-20">

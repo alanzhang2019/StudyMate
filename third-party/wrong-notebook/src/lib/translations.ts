@@ -28,6 +28,9 @@ export const translations = {
                 uploading: "Uploading...",
                 analyzing: "AI is analyzing...",
                 processing: "Processing result...",
+                // ★ 2026-11-12：上游模型 30~184s 波动，光看进度条会以为卡死。
+                //   等过 45 秒后补一句"还在跑"，别让人自己去猜要不要重试。
+                stillWorking: "Still reading the question — this usually takes 30-90 seconds. Please keep this page open.",
             },
             messages: {
                 analysisFailed: "AI analysis failed, please try again",
@@ -677,6 +680,9 @@ export const translations = {
                 uploading: "正在上传...",
                 analyzing: "AI 正在分析...",
                 processing: "正在处理结果...",
+                // ★ 2026-11-12：上游模型 30~184s 波动，光看进度条会以为卡死。
+                //   等过 45 秒后补一句"还在跑"，别让人自己去猜要不要重试。
+                stillWorking: "题目解析中，通常需要 30~90 秒，请先别关页面…",
             },
             messages: {
                 analysisFailed: "AI 分析失败，请重试",
