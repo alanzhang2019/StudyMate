@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, CheckCircle, XCircle, RefreshCw, Trash2, Edit, Save, X, Box, Loader2, Eye, EyeOff, ImageIcon } from "lucide-react";
+import { ArrowLeft, CheckCircle, XCircle, RefreshCw, Trash2, Edit, Save, X, Box, Loader2, Eye, EyeOff, ImageIcon, MessageCircle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -19,6 +19,8 @@ import { inferSubjectFromName } from "@/lib/knowledge-tags";
 import { getMistakeStatusLabel, normalizeMistakeStatusForSave } from "@/lib/mistake-status";
 import { NotebookSelector } from "@/components/notebook-selector";
 import { GeogebraDemo } from "@/components/geogebra-demo";
+import { VideoExplain } from "@/components/video-explain";
+import { TutorChat } from "@/components/tutor-chat";
 
 interface KnowledgeTag {
     id: string;
@@ -47,6 +49,11 @@ interface ErrorItemDetail {
     } | null;
     gradeSemester?: string | null;
     paperLevel?: string | null;
+    // ★ 批次 WNPAPER：拍照收卷进来的题，answerText/analysis 一定是空的（产品上就不给答案）。
+    //   paperScanId/paperPageNo 用来回看原卷那一页。
+    paperScanId?: string | null;
+    paperPageNo?: number | null;
+    source?: string | null;
     geogebraCommands?: string | null;
 }
 
@@ -59,6 +66,12 @@ export default function ErrorDetailPage() {
     const [isEditingNotes, setIsEditingNotes] = useState(false);
     const [notesInput, setNotesInput] = useState("");
     const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
+    // 小老师抽屉（2026-10-22）：open 状态放在页面这一层，因为入口在头部按钮、
+    // 抽屉在页面末尾 —— 两边都要能改它。useCallback 是为了让 TutorChat 里那个
+    // postMessage 监听的 effect 不因每次渲染重订阅。
+    const [tutorOpen, setTutorOpen] = useState(false);
+    const openTutor = useCallback(() => setTutorOpen(true), []);
+    const closeTutor = useCallback(() => setTutorOpen(false), []);
     const [isEditingTags, setIsEditingTags] = useState(false);
     const [tagsInput, setTagsInput] = useState<string[]>([]);
     const [isEditingMetadata, setIsEditingMetadata] = useState(false);
@@ -73,6 +86,29 @@ export default function ErrorDetailPage() {
     const [showQuestionImage, setShowQuestionImage] = useState(false);
     const [showReferenceImage, setShowReferenceImage] = useState(false);
     const [showOwnImage, setShowOwnImage] = useState(false);
+    // ★ 批次 WNPAPER：拍照收卷进来的题没有答案，但可以回看「原卷那一页」。
+    //   页图存在 PaperPage 里（一页一份），这里按 paperScanId 按需拉取。
+    const [paperPages, setPaperPages] = useState<{ pageNo: number; imageUrl: string }[] | null>(null);
+    const [showPaperPage, setShowPaperPage] = useState(false);
+    const [paperPageLoading, setPaperPageLoading] = useState(false);
+
+    /** 打开/收起「原卷那一页」。第一次点击才去拉页图（base64 不小，别在列表入口就预加载）。 */
+    const togglePaperPage = async () => {
+        if (!item?.paperScanId) return;
+        const next = !showPaperPage;
+        setShowPaperPage(next);
+        if (!next || paperPages || paperPageLoading) return;
+        setPaperPageLoading(true);
+        try {
+            const scan = await apiClient.get<{ pages: { pageNo: number; imageUrl: string }[] }>(`/api/paper-scans/${item.paperScanId}`);
+            setPaperPages(scan?.pages || []);
+        } catch (e) {
+            console.error('Failed to load paper page', e);
+            setPaperPages([]);
+        } finally {
+            setPaperPageLoading(false);
+        }
+    };
     const [showFloatingQuestion, setShowFloatingQuestion] = useState(false);
     const questionRef = useRef<HTMLDivElement>(null);
 
@@ -438,6 +474,39 @@ export default function ErrorDetailPage() {
         }
     }
 
+    /**
+     * ★★★ 拍照收卷的题**没有答案**，这是产品红线（防抄作业），不是"还没算出来"。
+     *   所以不能让它渲染成一片空白 —— 学生会以为页面坏了，甚至跑去点"编辑"自己填。
+     *   这里明说：答案不会来，要就自己做一遍。
+     */
+    const paperLockedNotice = (
+        <div className="rounded-lg border border-dashed bg-muted/40 p-4 text-sm leading-6 text-muted-foreground">
+            <b className="text-foreground">{t.paper?.lockedTitle || "这道题是拍照收卷收进来的，没有附带答案。"}</b>
+            <br />
+            {t.paper?.lockedHint || "想对答案就自己做一遍再看错在哪 —— 抄一遍错题，下次还是会错。"}
+        </div>
+    );
+
+    /**
+     * ★★★ 光把「答案卡 / 解析卡」按住是不够的（批次 WNPAPER）。
+     *   详情页还有三条路能把答案送到学生手里：
+     *     ① 问小老师（TutorChat，且能被父页面 postMessage 唤起）
+     *     ② 视频讲解（VideoExplain 截图直读直解）
+     *     ③ GeoGebra 一键生成演示（也是先解题再画图）
+     *   三条都是"解题器"，留着等于把刚堵的口子从侧面又开一遍。
+     *   ⇒ 拍照收卷的题**整块不挂载**，改给一句说明 + 指向「练习」。
+     *   注意是"不挂载"而不是"藏起来"：TutorChat 里那个 message 监听一旦挂上，
+     *   hl-platform 工具栏发 `wn:tutor-open` 就能把抽屉弹开。
+     */
+    const fromPaperScan = !!item.paperScanId;
+    const solverLockedNotice = (
+        <div className="rounded-lg border border-dashed p-4 text-sm leading-6 text-muted-foreground">
+            <b className="text-foreground">{t.paper?.solverLockedTitle || "这道题不给讲解。"}</b>
+            <br />
+            {t.paper?.solverLockedHint || "它是从卷子上收进来的，讲解里会带着答案。先自己做一遍（点上面的「练习」），做完再回来看。"}
+        </div>
+    );
+
     return (
         <main className="min-h-screen bg-background">
             <div className="container mx-auto p-4 space-y-6 pb-20">
@@ -452,6 +521,17 @@ export default function ErrorDetailPage() {
                     </div>
 
                     <div className="flex gap-2">
+                        {/* 小老师入口（2026-10-22 用户拍板：「入口可以在错题本右上角那里加上」）。
+                            ★ 抽屉本体在页面末尾的 <TutorChat> 里；这里只负责把 open 置真。
+                            ★ 与 hl-platform 错题本工具栏那个按钮是**同一件事的两个入口**：
+                              在 iframe 里用这个，新窗口打开（独立访问）时也只有这个能用。 */}
+                        {/* WNPAPER：拍照收卷的题不给解题器（见上方 fromPaperScan 注释）。 */}
+                        {!fromPaperScan && (
+                            <Button variant="outline" size="sm" onClick={openTutor}>
+                                <MessageCircle className="mr-2 h-4 w-4" />
+                                问小老师
+                            </Button>
+                        )}
                         <Link href={`/practice?id=${item.id}`}>
                             <Button variant="outline" size="sm">
                                 <RefreshCw className="mr-2 h-4 w-4" />
@@ -535,8 +615,50 @@ export default function ErrorDetailPage() {
                                 {showQuestionImage && <div className="mt-4"><img src={item.originalImageUrl} alt={t.detail.originalProblem || "Original Problem"} className="w-full rounded-lg border cursor-pointer hover:opacity-90 transition-opacity" onClick={() => setIsImageViewerOpen(true)} /><p className="text-xs text-muted-foreground mt-1 text-center">{t.detail?.clickToEnlarge || "Click to enlarge"}</p></div>}
                             </div>
                         )}
+
+                        {/* ★ 拍照收卷的题没有单题图（不为每题存一份整页 base64），改成回看原卷那一页 */}
+                        {item.paperScanId && (
+                            <div className="pt-3">
+                                <Button variant="outline" size="sm" onClick={togglePaperPage} className="flex items-center gap-2">
+                                    <ImageIcon className="h-4 w-4" />
+                                    {showPaperPage
+                                        ? (t.paper?.hidePage || "收起原卷")
+                                        : (t.paper?.viewPage || "查看原卷{page}").replace("{page}", item.paperPageNo ? `（第 ${item.paperPageNo} 页）` : "")}
+                                </Button>
+                                {showPaperPage && (
+                                    <div className="mt-4">
+                                        {paperPageLoading && <p className="text-sm text-muted-foreground">{t.common?.loading || "加载中…"}</p>}
+                                        {!paperPageLoading && paperPages && paperPages.length > 0 && (() => {
+                                            const page = paperPages.find(p => p.pageNo === (item.paperPageNo || 1)) || paperPages[0];
+                                            return (
+                                                <>
+                                                    <img
+                                                        src={page.imageUrl}
+                                                        alt={`paper page ${page.pageNo}`}
+                                                        className="w-full rounded-lg border cursor-pointer hover:opacity-90 transition-opacity"
+                                                        onClick={() => setIsImageViewerOpen(true)}
+                                                    />
+                                                    <p className="text-xs text-muted-foreground mt-1 text-center">
+                                                        {(t.paper?.page || "第 {n} 页").replace("{n}", String(page.pageNo))}
+                                                    </p>
+                                                </>
+                                            );
+                                        })()}
+                                        {!paperPageLoading && paperPages && paperPages.length === 0 && (
+                                            <p className="text-sm text-muted-foreground">{t.paper?.pageMissing || "原卷页图已不在（可能被清理过）"}</p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
+
+                {/* 视频讲解（2026-10-24；2026-10-28 按用户要求挪到题目下方）：
+                    截图直读直解 → videoclass 出片。入口常驻，已有任务自动恢复，
+                    服务端幂等不重复出片。
+                    WNPAPER：拍照收卷的题不挂载 —— 出片就是完整解题过程。 */}
+                {fromPaperScan ? solverLockedNotice : <VideoExplain errorItemId={item.id} questionText={item.questionText} />}
 
                 <div className="grid gap-6 lg:grid-cols-2">
                     <Card className="border-primary/20">
@@ -544,7 +666,7 @@ export default function ErrorDetailPage() {
                         <CardContent className="space-y-4">
                             {isEditingAnswer ? (
                                 <div className="space-y-3"><Textarea value={answerInput} onChange={e => setAnswerInput(e.target.value)} placeholder="Enter answer..." rows={5} className="w-full font-mono text-sm" /><div className="flex gap-2"><Button size="sm" onClick={saveAnswerHandler}><Save className="h-4 w-4 mr-1" />{t.common?.save || "Save"}</Button><Button size="sm" variant="outline" onClick={cancelEditingAnswer}><X className="h-4 w-4 mr-1" />{t.common?.cancel || "Cancel"}</Button></div></div>
-                            ) : <MarkdownRenderer content={item.answerText} className="font-semibold" />}
+                            ) : (item.paperScanId && !item.answerText ? paperLockedNotice : <MarkdownRenderer content={item.answerText} className="font-semibold" />)}
                             {item.referenceImageUrl && <div className="pt-3"><Button variant="ghost" size="sm" onClick={() => setShowReferenceImage(!showReferenceImage)} className="flex items-center gap-2 text-muted-foreground">{showReferenceImage ? <><EyeOff className="h-4 w-4" />隐藏图片</> : <><ImageIcon className="h-4 w-4" />查看图片</>}</Button>{showReferenceImage && <div className="mt-4"><img src={item.referenceImageUrl} alt="参考图片" className="w-full rounded-lg border cursor-pointer hover:opacity-90 transition-opacity" onClick={() => setIsImageViewerOpen(true)} /><p className="text-xs text-muted-foreground mt-1 text-center">{t.detail?.clickToEnlarge || "Click to enlarge"}</p></div>}</div>}
                         </CardContent>
                     </Card>
@@ -569,20 +691,39 @@ export default function ErrorDetailPage() {
                 </div>
 
                 <div className="grid gap-6 lg:grid-cols-2">
-                    <Card><CardHeader><div className="flex justify-between items-center"><CardTitle>{t.detail.analysis}</CardTitle>{!isEditingAnalysis && <Button variant="ghost" size="sm" onClick={startEditingAnalysis}><Edit className="h-4 w-4 mr-1" />{t.common?.edit || "Edit"}</Button>}</div></CardHeader><CardContent>{isEditingAnalysis ? (<div className="space-y-3"><Textarea value={analysisInput} onChange={e => setAnalysisInput(e.target.value)} placeholder="Enter analysis..." rows={12} className="w-full font-mono text-sm" /><div className="flex gap-2"><Button size="sm" onClick={saveAnalysisHandler}><Save className="h-4 w-4 mr-1" />{t.common?.save || "Save"}</Button><Button size="sm" variant="outline" onClick={cancelEditingAnalysis}><X className="h-4 w-4 mr-1" />{t.common?.cancel || "Cancel"}</Button></div></div>) : <MarkdownRenderer content={item.analysis} />}</CardContent></Card>
+                    <Card><CardHeader><div className="flex justify-between items-center"><CardTitle>{t.detail.analysis}</CardTitle>{!isEditingAnalysis && <Button variant="ghost" size="sm" onClick={startEditingAnalysis}><Edit className="h-4 w-4 mr-1" />{t.common?.edit || "Edit"}</Button>}</div></CardHeader><CardContent>{isEditingAnalysis ? (<div className="space-y-3"><Textarea value={analysisInput} onChange={e => setAnalysisInput(e.target.value)} placeholder="Enter analysis..." rows={12} className="w-full font-mono text-sm" /><div className="flex gap-2"><Button size="sm" onClick={saveAnalysisHandler}><Save className="h-4 w-4 mr-1" />{t.common?.save || "Save"}</Button><Button size="sm" variant="outline" onClick={cancelEditingAnalysis}><X className="h-4 w-4 mr-1" />{t.common?.cancel || "Cancel"}</Button></div></div>) : (item.paperScanId && !item.analysis ? paperLockedNotice : <MarkdownRenderer content={item.analysis} />)}</CardContent></Card>
                     <Card><CardHeader><div className="flex justify-between items-center"><CardTitle>{t.detail?.mistakeAnalysis || "错因分析"}</CardTitle>{!isEditingMistake && <Button variant="ghost" size="sm" onClick={startEditingMistake}><Edit className="h-4 w-4 mr-1" />{t.common?.edit || "Edit"}</Button>}</div></CardHeader><CardContent>{isEditingMistake ? (<div className="space-y-4"><div className="space-y-2"><label className="text-sm text-muted-foreground">{t.editor?.mistakeAnalysis || "错因分析"}</label><Textarea value={mistakeAnalysisInput} onChange={e => setMistakeAnalysisInput(e.target.value)} rows={8} className="w-full font-mono text-sm" /></div><div className="flex gap-2"><Button size="sm" onClick={saveMistakeHandler}><Save className="h-4 w-4 mr-1" />{t.common?.save || "Save"}</Button><Button size="sm" variant="outline" onClick={cancelEditingMistake}><X className="h-4 w-4 mr-1" />{t.common?.cancel || "Cancel"}</Button></div></div>) : item.mistakeAnalysis ? <MarkdownRenderer content={item.mistakeAnalysis} /> : <p className="text-sm text-muted-foreground italic">{t.detail?.noMistakeAnalysis || "暂无错因分析"}</p>}</CardContent></Card>
                 </div>
 
                 <div className="space-y-6">
-                    {item.geogebraCommands ? (
+                    {/* WNPAPER：GeoGebra 也是"先解题再画图"，拍照收卷的题一律不挂。 */}
+                    {fromPaperScan ? null : item.geogebraCommands ? (
                         <GeogebraDemo commands={item.geogebraCommands} height={700} showToolBar={true} showAlgebraInput={false} showMenuBar={false} onRegenerate={handleAnalyzeGeogebra} onSaveCommands={handleSaveGeogebraCommands} />
                     ) : (
                         <div className="rounded-lg border border-dashed p-4"><div className="flex items-center justify-between"><div className="flex items-center gap-2 text-sm text-muted-foreground"><Box className="h-4 w-4" /><span>GeoGebra 动态演示</span></div><Button variant="outline" size="sm" onClick={() => handleAnalyzeGeogebra()} disabled={isAnalyzingGeogebra}>{isAnalyzingGeogebra ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />AI 分析中...</> : <><Box className="mr-2 h-4 w-4" />生成演示</>}</Button></div>{geogebraError && <p className="text-xs text-muted-foreground mt-2">{geogebraError}</p>}<p className="text-xs text-muted-foreground mt-2">AI 将判断本题是否可以用 GeoGebra 进行动态演示，如适合则自动生成交互式图形</p></div>
                     )}
 
                     <Card><CardHeader><div className="flex justify-between items-center"><CardTitle>{t.detail.yourNotes}</CardTitle>{!isEditingNotes && <Button variant="ghost" size="sm" onClick={startEditingNotes}><Edit className="h-4 w-4 mr-1" />{t.detail.editNotes || "Edit"}</Button>}</div></CardHeader><CardContent>{isEditingNotes ? (<div className="space-y-3"><Textarea value={notesInput} onChange={e => setNotesInput(e.target.value)} placeholder={t.detail.notesPlaceholder || "Enter your notes..."} rows={5} className="w-full" /><div className="flex gap-2"><Button size="sm" onClick={saveNotes}><Save className="h-4 w-4 mr-1" />{t.common.save || "Save"}</Button><Button size="sm" variant="outline" onClick={cancelEditingNotes}><X className="h-4 w-4 mr-1" />{t.common.cancel || "Cancel"}</Button></div></div>) : <div className="whitespace-pre-wrap">{item.userNotes ? <p className="text-foreground">{item.userNotes}</p> : <p className="text-muted-foreground italic">{t.detail.noNotes}</p>}</div>}</CardContent></Card>
+
+                    {/* 题内「小老师」（2026-10-19 立，2026-10-22 改成右侧抽屉）：原来这里是
+                        一张默认收起的卡片，现在抽屉挂在页面末尾 —— 入口在头部右上角
+                        「问小老师」，也可由 hl-platform 错题本工具栏 postMessage 唤起。
+                        正文这里不再占版面：题目和追问互不顶掉。 */}
                 </div>
             </div>
+
+            {/* 题内「小老师」抽屉（2026-10-22）：关着时整块移出视口但**不卸载**，
+                追问记录留着（关掉看一眼题再打开，不用从头问）。
+                WNPAPER：拍照收卷的题不挂载（它监听 `wn:tutor-open`，藏起来也会被唤起）。 */}
+            {!fromPaperScan && (
+                <TutorChat
+                    errorItemId={item.id}
+                    language={language}
+                    open={tutorOpen}
+                    onOpen={openTutor}
+                    onClose={closeTutor}
+                />
+            )}
 
             {/* Image Viewer Modal */}
             {

@@ -29,6 +29,8 @@ model User {
   subjects   Subject[]
   practiceRecords PracticeRecord[]
   customTags KnowledgeTag[] // User's custom tags
+  videoJobs  VideoJob[]  // 错题视频讲解任务
+  paperScans PaperScan[] // 拍整张卷子的记录（批次 WNPAPER）
 }
 
 // 统一知识点标签表 (支持无限层级)
@@ -113,7 +115,63 @@ model ErrorItem {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
+  // 批次210-D：外部系统（hl-platform）推送过来的错题用它做幂等键。
+  // 本应用自己建的错题一律为 null（老数据也全是 null），互不干扰。
+  // ★ 唯一索引是 (userId, externalId) 而不是单列 externalId：
+  //   不同学生的 externalId 完全可能撞（都是「数学|unit1|q3」），
+  //   单列唯一会让第二个学生推不进来。
+  externalId       String?
+
+  // ★ 2026-11-12「拍整张卷子」：这条错题是从哪张卷子的第几页来的。
+  //   两个都是可空的 —— 老数据、单题拍照进来的条目保持 NULL，行为一个字都不变。
+  //   ★ 故意**不**声明 relation：SQLite 加外键要重建整张表，而这里只需要"指回原卷"，
+  //     真正的级联由 /api/paper-scans 手工维护（删卷子时连带删条目）。
+  paperScanId      String?
+  paperPageNo      Int?
+
   reviewSchedules ReviewSchedule[]
+  videoJobs       VideoJob[]
+
+  @@unique([userId, externalId])
+  @@index([paperScanId])
+}
+
+/// 拍整张卷子的一次记录：一张卷子一行，下面挂 1..6 张页图。
+model PaperScan {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  subjectId     String? // 归属本子（Subject）
+  title         String? // 卷面标题，如「第四单元测评」
+  gradeSemester String?
+  paperLevel    String?
+  pageCount     Int     @default(0)
+
+  pages PaperPage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+/// 卷子的整页原图。★ 一页只存一份 —— 同一页上的 8 道错题都指回这一行，
+/// 不像单题拍照那样每题存一份整页图（那是把库撑爆的最快办法）。
+model PaperPage {
+  id     String @id @default(cuid())
+  scanId String
+  scan   PaperScan @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  pageNo   Int // 1 起
+  imageUrl String // data URL（base64）
+  width    Int?
+  height   Int?
+
+  createdAt DateTime @default(now())
+
+  @@unique([scanId, pageNo])
+  @@index([scanId])
 }
 
 model ReviewSchedule {
@@ -138,4 +196,35 @@ model PracticeRecord {
   isCorrect Boolean?
   
   createdAt DateTime @default(now())
+}
+
+// 错题视频讲解任务（2026-10-24）：错题本 ←→ videoclass 的映射。
+// ★ 为什么需要这张表：videoclass 建题无查重（每次 POST /problems 都建新题），
+//   只有 job 层按 (user_id, Idempotency-Key) 幂等。不记映射，学生点第二次
+//   「视频讲解」就会重复建题、重复烧一次 LLM+渲染。
+// ★ (userId, errorItemId) 唯一：一个学生的一道错题只有一个任务行；
+//   失败后重新生成是原地更新这一行（vtJobId 换成新 job），不堆历史。
+// ★ 删错题级联删任务（onDelete: Cascade），与 ErrorItem 其他从表一致。
+model VideoJob {
+  id          String  @id @default(cuid())
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  errorItemId String
+  errorItem   ErrorItem @relation(fields: [errorItemId], references: [id], onDelete: Cascade)
+
+  vtProblemId Int // videoclass 侧题目 id
+  vtJobId     Int // videoclass 侧任务 id（Idempotency-Key = wn:{errorItemId}）
+  vtVideoId   Int? // 出片后回填的 videoclass 视频 id
+
+  // created/queued/storyboarding/rendering/composing/published/failed/cancelled
+  state        String    @default("created")
+  progress     Int       @default(0)
+  errorCode    String?
+  errorMessage String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, errorItemId])
+  @@index([errorItemId])
 }

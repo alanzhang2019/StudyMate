@@ -182,6 +182,8 @@ export const DEFAULT_ANALYZE_TEMPLATE = `【角色与核心任务 (ROLE AND CORE
      | 测试2 | 15 | 25 |
 
 3. **表格完整性要求**：
+   - ★ 表格的**每一行必须单独占一行**（表头一行、分隔行一行、每条数据各一行）。
+     禁止把整张表写在同一行里 —— 压成一行就不再是表格，前端只能把竖线原样印给学生。
    - 必须转录所有单元格内容（包括空单元格用 - 或空格表示）
    - 保留表格标题、单位、注释
    - 保留数据的对齐关系和分组信息
@@ -264,6 +266,13 @@ export const DEFAULT_SIMILAR_TEMPLATE = `你是一位资深的K12教育题目生
 
 <answer_text>
 在此处填写新题目的正确答案。
+* ★★ **每个空只写「最终答案」，不要写算式和推导过程。**
+  - 对：「130元」　　错：「260-130=130（元），最高的一天比最低的一天多130元」
+  - 对：「800元」　　错：「大约：200+200+300+100=800（元）」
+  - 算式、比较、说明一律写进 <analysis>，<answer_text> 里只留学生该填的那个值。
+* ★ 一道题有几个空，就按「(1) xxx；(2) yyy；(3) zzz」编号写几条，**条数必须等于空数**。
+* ★ 数值答案带上单位（如「130元」「25米」），学生只填数字或只填带单位的都算对。
+* ★ 描述性答案写**最短的可判形式**（如「3日；4日」），不要写成完整句子。
 </answer_text>
 
 <analysis>
@@ -272,13 +281,12 @@ export const DEFAULT_SIMILAR_TEMPLATE = `你是一位资深的K12教育题目生
 * **直接使用标准的 LaTeX 符号**（如 $\frac{1}{2}$），**不要**进行 JSON 转义。
 </analysis>
 
-<reuse_original_image>
-如果输入提供了原题图片，且新题可直接使用原图（图上的数字、字母、阴影和新题完全一致），填写 true；否则填写 false。不要把原图中不存在的新图形或标注假装成已有图片。
-</reuse_original_image>
+<figure>
+{{figure_instruction}}
+</figure>
 
 ###关键格式与内容约束 (CRITICAL RULES) !!!
 1. **纯文本**：内容作为纯文本处理，**不要转义反斜杠**。
-2. 如果提供原图，先结合图形理解原题。变式题必须可以独立作答。若复用原图，保持图上全部标注、几何关系和阴影不变，只改变提问角度；若不能复用，题干必须用文字完整写出新图形的所有必要条件，不得写“如图”或依赖未提供的新图。
 
 {{grade_instruction}}
 {{provider_hints}}`;
@@ -442,7 +450,9 @@ export function generateSimilarQuestionPrompt(
   knowledgePoints: string[],
   difficulty: 'easy' | 'medium' | 'hard' | 'harder' = 'medium',
   options?: PromptOptions,
-  gradeSemester?: string | null
+  gradeSemester?: string | null,
+  // 2026-10-19：原题是否依赖图形（由分析阶段的 requires_image 得来），以及原题图是否真的随请求一起喂给了模型。
+  figureHint?: { requiresImage?: boolean; hasImage?: boolean }
 ): string {
   const langInstruction = language === 'zh'
     ? "IMPORTANT: Provide the output based on the 'Original Question' language. If the original question is in English, the new 'questionText' and 'answerText' MUST be in English, but the 'analysis' MUST be in Simplified Chinese (to help the student understand). If the original is in Chinese, everything MUST be in Simplified Chinese."
@@ -457,6 +467,28 @@ export function generateSimilarQuestionPrompt(
 
   const template = options?.customTemplate || DEFAULT_SIMILAR_TEMPLATE;
 
+  // ★ 配图指令（2026-10-19，user 报障「举一反三的题目并没有图片」）：
+  //   原题靠图才能做（几何/函数图像/电路/实验装置），变式题只给文字 ⇒ 学生做不了、
+  //   也谈不上"举一反三"。所以凡是这类题，模型必须连图一起生成。
+  //   用内联 SVG 而不是外链：可随题目落库、前端直渲、无外链失效与版权问题。
+  const needsFigure = !!figureHint?.requiresImage;
+  const sawImage = !!figureHint?.hasImage;
+  const figureInstruction = needsFigure
+    ? [
+        '这道**原题依赖图形**才能作答（几何图形 / 函数图像 / 电路图 / 实验装置 / 统计图等），',
+        '所以新题**必须**带一张同类型的新图，否则学生无法作答。',
+        sawImage ? '（原题图片已随本次请求一并提供，请先看清它的图形结构与标注方式。）' : '',
+        '',
+        '输出要求：',
+        '1. 只输出一个内联 SVG 片段，以 `<svg` 开头、`</svg>` 结尾，**不要**任何外链图片、不要 markdown 图片语法、不要 base64。',
+        '2. `<svg>` 必须带 `viewBox`（如 `viewBox="0 0 320 200"`）、`xmlns="http://www.w3.org/2000/svg"`，不要写死 width/height。',
+        '3. 图形内容必须与**新题的条件**一致（数字、角度、标签、点字母都要对应新题，不要照抄原题的数字）。',
+        '4. 只允许这些元素与属性：`svg, g, path, line, polyline, polygon, rect, circle, ellipse, text, tspan, defs, marker` 及 `d, x, y, x1, y1, x2, y2, cx, cy, r, rx, ry, width, height, points, fill, stroke, stroke-width, stroke-dasharray, font-size, font-family, text-anchor, dominant-baseline, transform, viewBox, xmlns, id, marker-end, marker-start, opacity`。**禁止** `<script>`、`<foreignObject>`、`on*` 事件属性、`<image>`、外部 `href`。',
+        '5. 线条用 `stroke`、文字用 `<text>`；不要用 emoji 代替标注。',
+        '6. 如果新题确实不需要图（例如你把它改成了纯文字题），就把这一整段留空（`<figure>` 与 `</figure>` 之间什么都不要写）。',
+      ].join('\n')
+    : '这道题不需要图（纯文字即可作答）⇒ `<figure>` 与 `</figure>` 之间**留空**，不要输出任何内容。若你判断新题确实需要一张图才能作答，也可以按 SVG 规则补一张。';
+
   return replaceVariables(template, {
     difficulty_level: difficulty.toUpperCase(),
     difficulty_instruction: difficultyInstruction,
@@ -464,8 +496,9 @@ export function generateSimilarQuestionPrompt(
     original_question: originalQuestion.replace(/"/g, '\\"').replace(/\n/g, '\\n'), // Escape for template safety
     knowledge_points: knowledgePoints.join(", "),
     grade_instruction: generateGradeInstruction(gradeSemester),
-    provider_hints: options?.providerHints || ''
-  }).trim() + `\n\n【变式题配图规则】如果原题附有图片，请结合图片理解图形、标注和阴影。新题必须独立可作答：只有沿用原图的全部图形与标注时才能在 <reuse_original_image> 写 true；其他情况写 false，并在题干用文字完整给出条件，不能引用不存在的新图。输出必须包含 <reuse_original_image>true 或 false</reuse_original_image>。`;
+    provider_hints: options?.providerHints || '',
+    figure_instruction: figureInstruction
+  }).trim();
 }
 
 /**
@@ -693,4 +726,144 @@ export function generateReanswerPrompt(
     grade_instruction: generateGradeInstruction(gradeSemester),
     provider_hints: options?.providerHints || ''
   }).trim();
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// 「拍整张卷子」：一次认一整页，只挑错题与空白题，★ 一个答案都不许输出
+// ─────────────────────────────────────────────────────────────────────────
+/**
+ * 与 generateAnalyzePrompt 的区别（别合并，两条链路的目标正好相反）：
+ *   · 单题拍照：学生拍一道题，我们要把**答案和解析**算出来给他校对 —— 那是"帮他学"；
+ *   · 整卷识别：学生拍一张卷子，我们只要"哪几道要进错题本"，**绝不能**把答案吐出来 ——
+ *     否则他下次直接拍整张卷子抄。所以这里的第一条硬规定是"不许写答案"。
+ *
+ * ★★★ 为什么"不许写答案"要写成三条不同的说法（禁止 + 字段白名单 + 错因枚举）：
+ *   只写一句"不要输出正确答案"，模型仍会在 reason 里写「应为 x=8」「先移项再合并」——
+ *   那是它最自然的表达方式，实测同类提示词里这类"顺手解释"是最难禁掉的一类泄漏。
+ *   所以错因只许从**固定枚举**里选一个词，它在结构上就没有写数字/式子的位置。
+ *
+ * ★★ 老师批改痕迹优先（用户拍板"两者结合"）：
+ *   卷面上有红叉/扣分/半勾 = 老师已经判过错，以老师为准（老师看到的是完整过程，
+ *   而模型只看到一张可能模糊的照片）；卷面干干净净没批过，才让模型自己判，
+ *   并且前端会把这批题标成「AI 判断，可能有误」—— 两种来源在 UI 上必须能分清。
+ */
+const PAPER_HINT_ZH = [
+    '你在帮一个学生把**整张试卷/练习卷**上的错题和空题整理进错题本。',
+    '请完成四件事：① 认出这一页上的每一道题（题号 + 题干 + 选项）；② 照抄学生**手写**的作答；',
+    '③ 判断这道题要不要进错题本；④ 给出知识点标签。',
+    '',
+    '★★★ 第一条硬规定：**任何字段都不许出现答案**。',
+    '  · 你可以在**心里**把题做一遍来判断对错，但**绝对不要**把正确答案、计算结果、解题步骤、',
+    '    「应为…」「答案是…」「先…再…」这类话写进任何一个字段里。',
+    '  · 输出里出现任何一个数字结果、式子结果或解题过程，都算错误输出。',
+    '  · 错因只许从下面 7 个词里挑一个，**不许自己造句**：',
+    '    计算错误 / 概念不清 / 审题不清 / 方法不会 / 格式单位 / 未作答 / 其他',
+    '',
+    '输出要求：',
+    '- 只输出**一个 JSON 对象**，不要解释、不要 markdown 代码块、不要前后缀。',
+    '- 结构如下（**只许出现这些字段名**）：',
+    '{"subject":"数学","title":"第四单元测评","gradeSemester":"初二上","paperLevel":"a",',
+    ' "items":[{"no":"3","section":"一、选择题","questionText":"题干原文","options":["2x+1","x-3"],',
+    ' "studentAnswer":"B","teacherMark":"wrong","modelVerdict":"wrong","errorTag":"计算错误",',
+    ' "knowledgePoints":["一元一次方程"]}]}',
+    '',
+    '字段口径：',
+    '  · no：卷面题号原样抄（"1"、"2(1)"、"三、5" 都行），同一页里必须唯一。',
+    '  · section：这道题所属的**大题号**或大题名（「一、选择题」「填空题」这类卷面原样文字）。',
+    '    卷面从头连续编号时写空串 ""；**分大题重新编号时（选择题 1~5、填空题又从 1 开始）必须写**，',
+    '    否则两道题会被当成同一题。',
+    '  · questionText：**题干原文，逐字照抄**。含条件、括号、下划线空位、单位、问句、小问序号。',
+    '    只允许去掉学生手写的作答；不许概括、缩写、改写、补全或纠错，不许截断。',
+    '    看不清的字用「?」保留位置。题干跨行时合并成一段（保留原标点）。',
+    '  · options：这道题是选择题时，把 A/B/C/D 各选项的**内容**逐条抄进来（纸面顺序，不要带「A.」前缀）。',
+    '    不是选择题就写 []。',
+    '  · studentAnswer：学生**手写**的作答原文；没写就写空串 ""（空题也必须进 items，不要省略）。',
+    '    ★ 印在纸上的题目、选项、答案**不是**学生的作答，绝不要当成他写的。',
+    '  · teacherMark：卷面上**老师的批改痕迹**，三选一：',
+    '      "wrong" = 有红叉/✗/斜线划掉/红笔扣分（如 -2）/半勾/圈出错处；',
+    '      "right" = 有红勾/√/「对」/满分标记；',
+    '      "none"  = 卷面没有批改痕迹（没批过的练习卷、自己做的卷子）。',
+    '    ★ 只认**老师笔迹**（通常是红笔、与作答明显不同色）；学生自己的笔迹不算批改痕迹。',
+    '  · modelVerdict：你自己判断的结果，三选一："right" / "wrong" / "blank"。',
+    '    学生完全没作答 ⇒ 一律 "blank"（不用管对不对）。',
+    '  · errorTag / knowledgePoints：错因标签（只从上面 7 个词里选）与知识点（1~3 个，用课本里的说法）。',
+    '    teacherMark 是 "right" 的题不收录，可以不写这两个字段。',
+    '',
+    '收录口径（★ 决定哪道题进错题本，按这个顺序想）：',
+    '  1. 学生完全没作答 ⇒ 收录（空题）。',
+    '  2. 老师批了错（teacherMark="wrong"）⇒ 收录，**以老师为准**，就算你觉得学生写对了也照样收录。',
+    '  3. 老师批了对（teacherMark="right"）⇒ **不收录**。',
+    '  4. 卷面没有批改痕迹（teacherMark="none"）⇒ 按你自己的 modelVerdict：wrong 才收录。',
+    '  ★ 只输出**要收录**的题（错题 + 空题）。判对了的题、以及卷头卷尾那些不是题的行，一律不要出现在 items 里。',
+    '',
+    '其它：',
+    '- 卷头的标题、姓名/班级/考号那一行、「满分 xx 分」、页码、页脚网址**都不是题**，不要写进 items。',
+    '- 题目被翻页截断时，只抄本页能看见的部分，不要猜下一页的内容。',
+    '- 整页没有一道题能认出来（拍糊了、拍到手或桌面）⇒ 输出 {"empty":true}。',
+    '- 公式用常见文本写法（3/4、x^2、√2、≤）。',
+    '- 除 no/section/questionText/options/studentAnswer/teacherMark/modelVerdict/errorTag/knowledgePoints 之外的字段，一个都不要输出。',
+].join('\n');
+
+const PAPER_HINT_EN = [
+    'You are helping a student file the WRONG and BLANK questions of a whole exam paper into a mistake notebook.',
+    'Do four things: (1) find every question on this page (number + stem + options); (2) transcribe the student\'s HANDWRITTEN answer;',
+    '(3) decide whether it must be filed; (4) give knowledge-point tags.',
+    '',
+    '★★★ Hard rule #1: NEVER output the answer in any field.',
+    '  You may work the problem out silently to judge correctness, but do NOT write the correct answer, the computed result,',
+    '  the solution steps, or sentences like "should be 8" / "the answer is" into ANY field.',
+    '  · errorTag must be one of these exact words: 计算错误 / 概念不清 / 审题不清 / 方法不会 / 格式单位 / 未作答 / 其他',
+    '',
+    'Output: ONE JSON object, no prose, no markdown fence, only these keys:',
+    '{"subject":"数学","title":"Unit 4 Test","gradeSemester":"","paperLevel":"a","items":[{"no":"3","section":"","questionText":"...","options":[],"studentAnswer":"B","teacherMark":"wrong","modelVerdict":"wrong","errorTag":"计算错误","knowledgePoints":["..."]}]}',
+    '',
+    'Field rules:',
+    '  · questionText: verbatim transcript of the printed stem. Do not summarise, shorten or correct. Use "?" for illegible chars.',
+    '  · options: option CONTENTS without the "A." prefix; [] if not multiple-choice.',
+    '  · studentAnswer: verbatim handwritten answer; empty string if the student left it blank (blank questions MUST still be listed).',
+    '  · teacherMark: "wrong" (red X / cross / deducted marks / half tick) | "right" (tick / correct mark) | "none" (paper not graded).',
+    '    Only the TEACHER\'s pen marks count, never the student\'s own writing.',
+    '  · modelVerdict: "right" / "wrong" / "blank" (blank means the student wrote nothing).',
+    '',
+    'Filing rules: blank => file; teacherMark "wrong" => file (teacher wins); teacherMark "right" => skip;',
+    'teacherMark "none" => file only if your modelVerdict is "wrong".',
+    'Only list questions that must be filed. Never include the page header, name/class line, "full marks" line, page number or footer.',
+    'If the page has no readable question at all, output {"empty":true}.',
+].join('\n');
+
+/**
+ * 生成整卷识别提示词。
+ * ★ 不接 customTemplate：单题链路那边允许用户覆盖提示词（`config.prompts.analyze`），
+ *   但这条链路的"不许给答案"是产品红线 —— 一旦可被线上配置覆盖，等于给抄作业开了个开关。
+ */
+export function generatePaperPrompt(
+  language: 'zh' | 'en',
+  options?: {
+    gradeSemester?: string | null;
+    subject?: string | null;
+    teacherMarks?: boolean;
+  }
+): string {
+  const base = language === 'zh' ? PAPER_HINT_ZH : PAPER_HINT_EN;
+  const parts: string[] = [base];
+
+  const grade = options?.gradeSemester ? generateGradeInstruction(options.gradeSemester) : '';
+  if (grade) parts.push('', grade);
+
+  if (options?.subject) {
+    parts.push('', language === 'zh' ? `本卷学科：${options.subject}` : `Subject: ${options.subject}`);
+  }
+
+  // ★ 学生自己做的卷子（没有老师批改）也照样支持，但要把"以谁为准"说清楚，
+  //   否则模型会看到"没有红叉"就当全对，一道题都不收。
+  if (options?.teacherMarks === false) {
+    parts.push(
+      '',
+      language === 'zh'
+        ? '注意：这份卷子看起来**没有老师批改痕迹**，请按你自己的判断（modelVerdict）决定收录哪些题，teacherMark 一律写 "none"。'
+        : 'Note: this paper has no teacher marks; decide by your own verdict and always set teacherMark to "none".'
+    );
+  }
+
+  return parts.filter(Boolean).join('\n').trim();
 }

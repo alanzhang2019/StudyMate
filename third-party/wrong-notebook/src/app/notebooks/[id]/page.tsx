@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/ui/back-button";
-import { Plus, House, Pencil } from "lucide-react";
+import { Plus, House, Pencil, FileStack } from "lucide-react";
 import Link from "next/link";
 import { ErrorList } from "@/components/error-list";
 import { RenameNotebookDialog } from "@/components/rename-notebook-dialog";
@@ -81,6 +81,17 @@ export default function NotebookDetailPage() {
                         </p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
+                        {/* ★ 批次 WNPAPER：拍整张卷子。与「+ 加一道」并列，因为它解决的是
+                            同一个问题（往本子里加错题），只是入口粒度不同：一张 vs 一道。 */}
+                        <Link href={`/notebooks/${notebook.id}/paper`}>
+                            <Button size="sm" variant="outline" className="hidden sm:flex">
+                                <FileStack className="mr-2 h-4 w-4" />
+                                {t.paper?.title || "拍整张卷子"}
+                            </Button>
+                            <Button size="icon" variant="outline" className="sm:hidden" aria-label={t.paper?.title || "拍整张卷子"}>
+                                <FileStack className="h-4 w-4" />
+                            </Button>
+                        </Link>
                         <Link href={`/notebooks/${notebook.id}/add`}>
                             <Button size="sm" className="hidden sm:flex">
                                 <Plus className="mr-2 h-4 w-4" />

@@ -1,6 +1,9 @@
 import OpenAI from "openai";
-import { AIService, ParsedQuestion, DifficultyLevel, AIConfig, ReanswerQuestionResult, GeogebraAnalysisResult } from "./types";
-import { generateAnalyzePrompt, generateSimilarQuestionPrompt, generateGeogebraPrompt } from './prompts';
+import { AIService, ParsedQuestion, DifficultyLevel, AIConfig, ReanswerQuestionResult, GeogebraAnalysisResult, PaperScanResult, PaperItem, PaperEvidence } from "./types";
+import { generateAnalyzePrompt, generateSimilarQuestionPrompt, generateGeogebraPrompt, generatePaperPrompt } from './prompts';
+// ★ 整卷识别的纯规则层（白名单重建 + 收录判定），单独放在 .mjs 里是为了能被
+//   scripts/check-paper-scan.cjs 直接 import 做功能级判据（而不是只能 grep 源码）。
+import { parseJsonLoose, buildPaperResult } from './paper-rules.mjs';
 import { getAppConfig } from '../config';
 import { safeParseParsedQuestion } from './schema';
 import { sanitizeFigure } from './figure-sanitize';
@@ -397,6 +400,73 @@ export class OpenAIProvider implements AIService {
             this.handleError(error);
             throw error;
         }
+    }
+
+    /**
+     * 整页试卷识别（批次 WNPAPER）：只要**错题与空白题**，一个答案都不返回。
+     *
+     * 与 analyzeImage 的区别见 prompts.ts 的 generatePaperPrompt 注释 —— 简单说：
+     * 单题拍照是"帮他学"（给答案+解析），整卷识别是"帮他攒错题"（绝不给答案）。
+     *
+     * ★★★ 防泄漏是**两层**的，缺一不可：
+     *   ① 提示词要求模型不许写答案、错因只能从 7 个枚举词里选；
+     *   ② 返回前一律过 `buildPaperResult()` 白名单重建（paper-rules.mjs）——
+     *      模型就算多吐 correctAnswer / analysis / solution，也不会被搬进返回体。
+     *   只靠①等于把产品红线交给模型的心情。
+     */
+    async analyzePaperPage(
+        imageBase64: string,
+        mimeType: string = 'image/jpeg',
+        language: 'zh' | 'en' = 'zh',
+        pageNo: number = 1,
+        subject?: string | null,
+        gradeSemester?: string | null
+    ): Promise<PaperScanResult> {
+        const systemPrompt = generatePaperPrompt(language, { subject, gradeSemester });
+
+        logger.box('📄 Paper Scan Request', {
+            provider: 'OpenAI',
+            model: this.model,
+            pageNo,
+            imageSize: `${imageBase64.length} bytes`,
+            subject: subject || 'auto',
+        });
+
+        const baseParams: any = {
+            model: this.model,
+            messages: [
+                { role: 'system', content: systemPrompt },
+                {
+                    role: 'user',
+                    content: [
+                        { type: 'image_url', image_url: { url: `data:${mimeType};base64,${imageBase64}` } },
+                    ],
+                },
+            ],
+            max_tokens: 8192,
+        };
+
+        let response: any;
+        try {
+            // 与单题识别同样关掉思考链（实测 25.4s → 11.4s）。整卷识别输出更长，
+            // 关思考省下的时间更可观；网关不认时退回原请求，别为了提速把功能打挂。
+            response = await this.openai.chat.completions.create({ ...baseParams, enable_thinking: false } as any);
+        } catch (fastErr) {
+            if (!isUnknownParamError(fastErr)) throw fastErr;
+            logger.warn({ error: fastErr instanceof Error ? fastErr.message : String(fastErr) },
+                '⚠️ 网关不认 enable_thinking，整卷识别已退回不关思考的请求');
+            response = await this.openai.chat.completions.create(baseParams);
+        }
+
+        const text = response?.choices?.[0]?.message?.content || '';
+        logger.box('📄 Paper Scan Raw Response', text || '(empty)');
+        if (!text) throw new Error('AI_RESPONSE_ERROR: empty response from paper scan');
+
+        const parsed = parseJsonLoose(text);
+        const result = buildPaperResult(parsed, pageNo) as PaperScanResult;
+
+        logger.box('📄 Paper Scan Result', JSON.stringify({ stats: result.stats, items: result.items.length }, null, 2));
+        return result;
     }
 
     async generateSimilarQuestion(originalQuestion: string, knowledgePoints: string[], language: 'zh' | 'en' = 'zh', difficulty: DifficultyLevel = 'medium', gradeSemester?: string | null, opts?: { imageBase64?: string; requiresImage?: boolean }): Promise<ParsedQuestion> {
