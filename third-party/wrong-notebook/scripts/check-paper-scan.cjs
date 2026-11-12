@@ -193,6 +193,29 @@ const FORBIDDEN_KEYS = ['correctAnswer', 'analysis', 'answerText', 'answer', 'so
     ok('练习页：拍卷题不给"答案有误"的红叉（学生没答错，是没答案可对）',
         /!hasKeyAnswer \? "border-dashed/.test(practice || ''));
 
+    // ─────────── D. 入口层级：拍卷子是「我的错题本」这一层的动作（2026-11-12 补） ───────────
+    // 用户原话：「拍整张卷子应该放到这一层，不是放到数学或者英语，新用户一开始还没有建立文件夹」。
+    // 这里的红线是**入口不能被科目困住**：首页就能拍，一个本子都没有也能拍。
+    console.log('\nD. 入口在错题本首页这一层，且新用户不会卡住');
+    const home = read('src/app/notebooks/page.tsx') || '';
+    const startDlg = read('src/components/paper-scan-start-dialog.tsx') || '';
+
+    ok('★ 首页（我的错题本）就挂了「拍整张卷子」入口，不必先进某个科目',
+        /PaperScanStartDialog/.test(home) && /setPaperDialogOpen\(true\)/.test(home));
+    ok('首页入口是整块可点的卡片（不是又一枚没人认得的图标按钮）',
+        /<button[\s\S]{0,500}setPaperDialogOpen\(true\)/.test(home) && /entryDesc/.test(home));
+    ok('★ 入口在「有没有本子」的分支之外 —— 0 个本子也照样点得开',
+        home.indexOf('setPaperDialogOpen(true)') > 0 &&
+        home.indexOf('notebooks.length === 0 ?') > 0 &&
+        home.indexOf('setPaperDialogOpen(true)') < home.indexOf('notebooks.length === 0 ?'));
+    ok('★ 一个本子都没有时，弹窗直接进「新建」态（不能让新用户卡在这条死路上）',
+        /setAdding\(notebooks\.length === 0\)/.test(startDlg));
+    ok('★ 现场建完立刻跳拍卷子页，不用回头再点一次',
+        /goScan\(created\.id\)/.test(startDlg));
+    ok('只有一个本子时默认选中，少一次点击',
+        /setSelectedId\(notebooks\.length === 1 \? notebooks\[0\]\.id : ""\)/.test(startDlg));
+    ok('新建失败要说话，不能静默失败', /catch[\s\S]{0,300}createNotebookFailed/.test(startDlg));
+
     console.log(`\n通过 ${pass} 项，失败 ${fail} 项`);
     process.exit(fail === 0 ? 0 : 1);
 })().catch((e) => {

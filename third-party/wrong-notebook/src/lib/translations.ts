@@ -5,6 +5,15 @@ export const translations = {
         // ★ 批次 WNPAPER：拍整张卷子（只收题、不给答案）
         paper: {
             title: "Scan a whole paper",
+            entryDesc: "Wrong and blank questions in one go — never answers.",
+            chooseNotebook: "Which notebook should this paper go into?",
+            noNotebookHint: "You have no notebook yet. Name the subject and we will create one for you.",
+            newNotebook: "Create a new notebook",
+            newNotebookPlaceholder: "e.g. Chinese, Physics",
+            newNotebookThenScan: "Create and start scanning",
+            goScan: "Open the camera",
+            backToPick: "Pick an existing notebook",
+            createNotebookFailed: "Could not create the notebook. Try another name.",
             noticeBold: "This entry files questions; it never shows answers.",
             notice: "Photograph the whole paper and we pick out the wrong and blank questions into your mistake notebook. Answers and solutions are not shown — a mistake is only worth keeping if you redo it yourself.",
             pickHint: "One page per shot, up to {n} pages. Split the paper if it does not fit in one photo.",
@@ -694,6 +703,15 @@ export const translations = {
         // ★ 批次 WNPAPER：拍整张卷子（只收题、不给答案）
         paper: {
             title: "拍整张卷子",
+            entryDesc: "错题和空白题一次收进来，不给答案。",
+            chooseNotebook: "这张卷子归到哪个错题本？",
+            noNotebookHint: "你还没有错题本。给这张卷子的科目起个名字，建好就能拍。",
+            newNotebook: "新建一个本子",
+            newNotebookPlaceholder: "比如：语文、物理",
+            newNotebookThenScan: "新建并开始拍照",
+            goScan: "去拍照",
+            backToPick: "还是选已有的本子",
+            createNotebookFailed: "新建错题本失败，换个名字再试。",
             noticeBold: "这个入口只收题，不给答案。",
             notice: "拍完整张卷子，自动把「做错的」和「空着的」挑出来存进错题本。答案和解析不会显示——错题要自己再做一遍才有用。",
             pickHint: "一页拍一张，最多 {n} 页。卷子拍不全就分两张拍。",

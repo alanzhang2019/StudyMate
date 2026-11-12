@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/ui/back-button";
-import { Plus, House } from "lucide-react";
+import { Plus, House, FileStack, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { NotebookCard } from "@/components/notebook-card";
 import { CreateNotebookDialog } from "@/components/create-notebook-dialog";
 import { RenameNotebookDialog } from "@/components/rename-notebook-dialog";
+import { PaperScanStartDialog } from "@/components/paper-scan-start-dialog";
 
 import { Notebook } from "@/types/api";
 import { apiClient } from "@/lib/api-client";
@@ -24,6 +25,7 @@ export default function NotebooksPage() {
     const [loading, setLoading] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [renameTarget, setRenameTarget] = useState<Notebook | null>(null);
+    const [paperDialogOpen, setPaperDialogOpen] = useState(false);
 
     useEffect(() => {
         fetchNotebooks();
@@ -114,6 +116,28 @@ export default function NotebooksPage() {
                     </div>
                 </div>
 
+                {/* 拍整张卷子（2026-11-12）：入口放在「我的错题本」这一层，
+                    不挂在数学/英语里面 —— 拍卷子是整个错题本的输入方式，
+                    不属于某个科目；新用户也可能还没建过本子。 */}
+                <button
+                    type="button"
+                    onClick={() => setPaperDialogOpen(true)}
+                    className="group flex w-full items-center gap-3 rounded-xl border border-primary/25 bg-primary/[0.05] p-4 text-left shadow-sm transition hover:border-primary/50 hover:bg-primary/[0.08] hover:shadow sm:max-w-xl"
+                >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <FileStack className="h-5 w-5" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-semibold">
+                            {t.paper?.title || "拍整张卷子"}
+                        </span>
+                        <span className="mt-0.5 block text-xs leading-5 text-muted-foreground">
+                            {t.paper?.entryDesc || "把卷子里的错题和空白题一次收进来 —— 只收题，不给答案。"}
+                        </span>
+                    </span>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5" />
+                </button>
+
                 {notebooks.length === 0 ? (
                     <div className="text-center py-12 border-2 border-dashed rounded-lg">
                         <p className="text-muted-foreground mb-4">
@@ -153,6 +177,13 @@ export default function NotebooksPage() {
                     onOpenChange={(open) => { if (!open) setRenameTarget(null); }}
                     currentName={renameTarget?.name || ""}
                     onRename={handleRename}
+                />
+
+                <PaperScanStartDialog
+                    open={paperDialogOpen}
+                    onOpenChange={setPaperDialogOpen}
+                    notebooks={notebooks}
+                    onCreated={(nb) => setNotebooks((prev) => [nb, ...prev])}
                 />
             </div >
         </main >
